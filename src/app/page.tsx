@@ -20,90 +20,61 @@ export default function Home() {
 
     gsap.registerPlugin(ScrollTrigger);
 
-    // Continuous rotation for the logo
-    gsap.to(logoRef.current, {
-      rotation: 360,
-      duration: 8,
-      ease: "linear",
-      repeat: -1,
+    // Use gsap.context to ensure clean setup/teardown
+    const ctx = gsap.context(() => {
+      // Continuous rotation
+      gsap.to(logoRef.current, {
+        rotation: 360,
+        duration: 8,
+        ease: "linear",
+        repeat: -1,
+      });
+
+      // Set initial states
+      gsap.set(title1Ref.current, { scale: 0.067 });
+      gsap.set([title2Ref.current, subtitleRef.current], {
+        scale: 0,
+        opacity: 0,
+      });
+      gsap.set(blackBgRef.current, { scale: 20 });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: heroRef.current,
+          start: "top top",
+          end: "+=150%",
+          scrub: 1,
+          pin: true,
+          pinSpacing: true,
+        },
+      });
+
+      tl.to(logoRef.current, { scale: 15, duration: 1, ease: "power2.in" })
+        .to(
+          blackBgRef.current,
+          { scale: 1.5, duration: 1, ease: "power2.in" },
+          "<",
+        )
+        .to(
+          title1Ref.current,
+          { scale: 1, duration: 1, ease: "power2.in" },
+          "<",
+        )
+        .to(overlayRef.current, { opacity: 0, duration: 0.3 }, "-=0.2")
+        .set(overlayRef.current, { display: "none" })
+        .to(
+          title2Ref.current,
+          { scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" },
+          "-=0.1",
+        )
+        .to(
+          subtitleRef.current,
+          { scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" },
+          "-=0.3",
+        );
     });
 
-    // Set initial states
-    gsap.set([eyebrowRef.current, title1Ref.current], { scale: 0.067 });
-    gsap.set([title2Ref.current, subtitleRef.current], {
-      scale: 0,
-      opacity: 0,
-    });
-    gsap.set(blackBgRef.current, { scale: 20 });
-
-    // Intro Reveal Timeline
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: "top top",
-        end: "+=150%",
-        scrub: 1,
-        pin: true,
-        pinSpacing: true,
-      },
-    });
-
-    tl.to(logoRef.current, {
-      scale: 15,
-      duration: 1,
-      ease: "power2.in",
-    })
-      .to(
-        blackBgRef.current,
-        {
-          scale: 1.5,
-          duration: 1,
-          ease: "power2.in",
-        },
-        "<",
-      )
-      .to(
-        [eyebrowRef.current, title1Ref.current],
-        {
-          scale: 1,
-          duration: 1,
-          ease: "power2.in",
-        },
-        "<",
-      )
-      .to(
-        overlayRef.current,
-        {
-          opacity: 0,
-          duration: 0.3,
-        },
-        "-=0.2",
-      )
-      .set(overlayRef.current, { display: "none" })
-      .to(
-        title2Ref.current,
-        {
-          scale: 1,
-          opacity: 1,
-          duration: 0.6,
-          ease: "power3.out",
-        },
-        "-=0.1",
-      )
-      .to(
-        subtitleRef.current,
-        {
-          scale: 1,
-          opacity: 1,
-          duration: 0.6,
-          ease: "power3.out",
-        },
-        "-=0.3",
-      );
-
-    return () => {
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-    };
+    return () => ctx.revert(); // This replaces the manual .kill() and is much safer
   }, []);
 
   return (
