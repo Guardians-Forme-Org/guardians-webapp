@@ -16,6 +16,8 @@ export default function Home() {
   const eyebrowRef = useRef(null);
 
   useEffect(() => {
+    if (!heroRef.current || !logoRef.current) return;
+
     gsap.registerPlugin(ScrollTrigger);
 
     // Continuous rotation for the logo
