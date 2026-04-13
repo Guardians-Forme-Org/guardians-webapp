@@ -7,8 +7,8 @@ const ENDPOINTS = [
   "circles",
   "challenges",
   "ValidationTiers",
-  "circlesMembers",
-  "challengesMembers",
+  "circlesMembers", //
+  "challengesMembers", //
 ] as const;
 
 async function fetchEndpoint(endpoint: string): Promise<unknown> {
