@@ -34,7 +34,7 @@ export const RainbowJSON: FC<DataProps> = ({ data }) => {
   const formattedJson = highlightJson(data);
 
   return (
-    <div className="p-4 bg-dark text-white rounded-md shadow-lg overflow-y-scroll overflow-x-scroll max-h-96">
+    <div className="p-4 bg-black text-white rounded-md shadow-lg overflow-y-scroll overflow-x-scroll max-h-96">
       <button
         onClick={() =>
           navigator.clipboard.writeText(JSON.stringify(data, null, 2))

@@ -1,0 +1,169 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong.",
+    "retry": "Try again",
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "submit": "Submit",
+    "create": "Create",
+    "empty": "Nothing here yet.",
+    "noResults": "No results found."
+  },
+  "nav": {
+    "circles": "Circles",
+    "challenges": "Challenges",
+    "reports": "Reports",
+    "admin": "Admin"
+  },
+  "auth": {
+    "register": {
+      "title": "Create your account",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Your full name",
+      "city": "City",
+      "cityPlaceholder": "Your city",
+      "language": "Language preference",
+      "languagePlaceholder": "Select a language",
+      "languages": {
+        "en": "English",
+        "es": "Spanish",
+        "zu": "isiZulu"
+      },
+      "submit": "Create account",
+      "submitting": "Creating account...",
+      "error": "Registration failed. Please try again."
+    },
+    "onboarding": {
+      "progress": "Step {{current}} of {{total}}",
+      "step1": {
+        "title": "Welcome to Guardians of the Future",
+        "description": "A civic action platform where community groups track and prove real-world environmental and social impact together.",
+        "cta": "Get started"
+      },
+      "step2": {
+        "title": "What is a Circle?",
+        "description": "A Circle is a community group of Guardians who adopt Challenges and work together to create impact in their area.",
+        "browseCircles": "Browse Circles",
+        "createCircle": "Create a Circle"
+      },
+      "step3": {
+        "title": "What is a Challenge?",
+        "description": "A Challenge is a specific environmental or social task with defined goals and a validation process to prove your impact.",
+        "browseChallenges": "Browse Challenges"
+      },
+      "continue": "Continue",
+      "finish": "Finish"
+    }
+  },
+  "circles": {
+    "list": {
+      "title": "Circles",
+      "createButton": "Create Circle",
+      "memberCount": "{{count}} member",
+      "memberCount_other": "{{count}} members",
+      "noMembers": "No members yet",
+      "created": "Created {{date}}",
+      "empty": "No circles yet. Be the first to create one.",
+      "errorTitle": "Could not load circles"
+    },
+    "detail": {
+      "backLink": "Back to Circles",
+      "guardianLabel": "Guardian",
+      "createdLabel": "Created",
+      "membersSection": "Members",
+      "challengesSection": "Active Challenges",
+      "impactSection": "Impact",
+      "emptySection": "Nothing here yet.",
+      "notFound": "Circle not found.",
+      "errorTitle": "Could not load circle"
+    },
+    "new": {
+      "title": "Create a Circle",
+      "nameLabel": "Name",
+      "namePlaceholder": "Circle name",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What does your Circle do?",
+      "cityLabel": "City",
+      "cityPlaceholder": "Your city",
+      "submit": "Create Circle",
+      "submitting": "Creating...",
+      "cancelLink": "Back to Circles",
+      "errorTitle": "Could not create circle"
+    }
+  },
+  "challenges": {
+    "list": {
+      "title": "Challenges",
+      "filterCategory": "Category",
+      "filterCategoryAll": "All categories",
+      "filterTier": "Validation tier",
+      "filterTierAll": "All tiers",
+      "region": "{{suburb}}, {{city}}",
+      "empty": "No challenges found.",
+      "errorTitle": "Could not load challenges"
+    },
+    "detail": {
+      "backLink": "Back to Challenges",
+      "statusLabel": "Status",
+      "categoryLabel": "Category",
+      "locationTitle": "Location",
+      "what3wordsLabel": "what3words",
+      "validationTitle": "Validation tier",
+      "validationLevel": "Level {{level}}",
+      "circlesTitle": "Circles working on this",
+      "emptyCircles": "No circles yet.",
+      "submitReport": "Submit a Report",
+      "notFound": "Challenge not found.",
+      "errorTitle": "Could not load challenge"
+    }
+  },
+  "reports": {
+    "new": {
+      "title": "Submit a Report",
+      "challengeContext": "Challenge",
+      "step1Title": "What did you do?",
+      "descriptionLabel": "Describe what you did",
+      "descriptionPlaceholder": "Describe the actions taken...",
+      "quantityLabel": "Quantity",
+      "quantityPlaceholder": "0",
+      "step2Title": "Upload Evidence",
+      "evidenceLabel": "Photo or document",
+      "step3Title": "Peer Verifier",
+      "verifierLabel": "Guardian ID of verifier",
+      "verifierPlaceholder": "Verifier's Guardian ID",
+      "next": "Next",
+      "back": "Back",
+      "submit": "Submit report",
+      "submitting": "Submitting...",
+      "success": {
+        "title": "Report submitted",
+        "description": "Your report has been submitted successfully.",
+        "viewCircle": "View your Circle"
+      },
+      "errorTitle": "Could not submit report"
+    }
+  },
+  "admin": {
+    "queue": {
+      "title": "Pending Reports",
+      "circleColumn": "Circle",
+      "challengeColumn": "Challenge",
+      "dateColumn": "Submitted",
+      "evidenceColumn": "Evidence",
+      "actionsColumn": "Actions",
+      "approve": "Approve",
+      "reject": "Reject",
+      "requestInfo": "Request Info",
+      "empty": "No pending reports.",
+      "errorTitle": "Could not load queue",
+      "viewEvidence": "View evidence",
+      "unauthorized": "Access denied. Admin only.",
+      "approveSuccess": "Report approved.",
+      "rejectSuccess": "Report rejected.",
+      "requestInfoSuccess": "More info requested.",
+      "actionError": "Action failed. Please try again."
+    }
+  }
+}

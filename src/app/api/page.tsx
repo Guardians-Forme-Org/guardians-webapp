@@ -25,7 +25,7 @@ export default async function ApiOverview() {
   );
 
   return (
-    <div className="min-h-screen bg-black/5 text-white p-8 font-mono">
+    <div className="min-h-screen bg-black text-white p-8 font-mono">
       <h1 className="text-2xl font-bold mb-8 text-orange-400">Guardians API</h1>
       <div className="flex flex-col gap-16 divide-white/20 divide-y">
         {results.map((result, i) => {

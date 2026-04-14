@@ -1,9 +1,35 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Image from "next/image";
+import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+
+function NavGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-xs tracking-widest uppercase text-black/40">{label}</p>
+      <div className="divide-y divide-black/10 border border-black/10 rounded-lg overflow-hidden">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function NavLink({ href, title, description }: { href: string; title: string; description: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center justify-between px-4 py-3 bg-white hover:bg-black/5 transition-colors group"
+    >
+      <div>
+        <p className="text-sm font-medium">{title}</p>
+        <p className="text-xs text-black/40">{description}</p>
+      </div>
+      <span className="text-black/30 group-hover:text-black/60 transition-colors text-sm">→</span>
+    </Link>
+  );
+}
 
 export default function Home() {
   const heroRef = useRef(null);
@@ -97,7 +123,7 @@ export default function Home() {
             ref={subtitleRef}
             className="hero-subtitle text-black/50 text-center mt-8 italic"
           >
-            WORK IN PROGRESS ...
+            A civic action platform for community impact.
           </p>
         </div>
       </section>
@@ -115,8 +141,50 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Placeholder for subsequent content to allow scrolling */}
-      {/* <section style={{ height: "100vh", background: "#003518" }}></section> */}
+      {/* App Navigation */}
+      <section className="min-h-screen bg-white px-6 py-16">
+        <div className="max-w-2xl mx-auto space-y-12">
+
+          <div className="space-y-1">
+            <p className="text-xs tracking-widest uppercase text-black/40">Platform</p>
+            <h2 className="text-2xl font-semibold">Get started</h2>
+          </div>
+
+          <div className="space-y-6">
+            <NavGroup label="Auth">
+              <NavLink href="/register" title="Register" description="Create your account" />
+              <NavLink href="/onboarding" title="Onboarding" description="3-step intro flow" />
+            </NavGroup>
+
+            <NavGroup label="Circles">
+              <NavLink href="/circles" title="Circle list" description="Browse all circles" />
+              <NavLink href="/circles/new" title="Create a Circle" description="Start a new circle" />
+              <NavLink href="/circles/08d65cbb-ef6f-468e-96e8-dab74bc054cd" title="Circle detail" description="Diepkloof Guardians (seed)" />
+            </NavGroup>
+
+            <NavGroup label="Challenges">
+              <NavLink href="/challenges" title="Challenge library" description="Browse all challenges" />
+              <NavLink href="/challenges/f44a537f-da1d-4321-82ce-1a7139a4a609" title="Challenge detail" description="Newland West Land Care (seed)" />
+            </NavGroup>
+
+            <NavGroup label="Reports">
+              <NavLink
+                href="/reports/new?challengeId=f44a537f-da1d-4321-82ce-1a7139a4a609"
+                title="Submit a Report"
+                description="Report form for Newland West Land Care"
+              />
+            </NavGroup>
+
+            <NavGroup label="Admin">
+              <NavLink href="/admin/queue" title="Admin queue" description="Pending L2 report review" />
+            </NavGroup>
+
+            <NavGroup label="Dev">
+              <NavLink href="/api" title="API overview" description="Live JSON from all endpoints" />
+            </NavGroup>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
