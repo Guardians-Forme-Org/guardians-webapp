@@ -46,9 +46,41 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --color-domain-mitigation: var(--domain-mitigation);
+  --color-domain-mitigation-bg: var(--domain-mitigation-bg);
+  --color-domain-mitigation-border: var(--domain-mitigation-border);
+
+  --color-domain-resilience: var(--domain-resilience);
+  --color-domain-resilience-bg: var(--domain-resilience-bg);
+  --color-domain-resilience-border: var(--domain-resilience-border);
+
+  --color-domain-democratic: var(--domain-democratic);
+  --color-domain-democratic-bg: var(--domain-democratic-bg);
+  --color-domain-democratic-border: var(--domain-democratic-border);
+
+  --color-domain-regeneration: var(--domain-regeneration);
+  --color-domain-regeneration-bg: var(--domain-regeneration-bg);
+  --color-domain-regeneration-border: var(--domain-regeneration-border);
 }
 
 :root {
+  --domain-mitigation:        #27500A;
+  --domain-mitigation-bg:     #EAF3DE;
+  --domain-mitigation-border: #B8D9A0;
+
+  --domain-resilience:        #0A3D50;
+  --domain-resilience-bg:     #DEF0F3;
+  --domain-resilience-border: #A0CDD9;
+
+  --domain-democratic:        #4A2D00;
+  --domain-democratic-bg:     #F5ECD6;
+  --domain-democratic-border: #D9C090;
+
+  --domain-regeneration:        #3D0A27;
+  --domain-regeneration-bg:     #F3DEE8;
+  --domain-regeneration-border: #D9A0C0;
+
   --gotf-black: #000000;
   --gotf-white: #ffffff;
   --gotf-green: #003518;

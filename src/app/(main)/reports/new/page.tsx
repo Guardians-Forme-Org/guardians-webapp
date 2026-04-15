@@ -44,6 +44,7 @@ function ReportForm() {
 
     await submitReport.mutateAsync({
       challenge_id: challengeId,
+      challenge_title: challenge?.title,
       description,
       quantity: Number(quantity),
       evidence_url: evidenceUrl || undefined,

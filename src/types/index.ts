@@ -60,6 +60,7 @@ export type Challenge = {
 export type Report = {
   id: string;
   challenge_id: string;
+  challenge_title?: string;
   circle_id: string;
   guardian_id: string;
   validation_tier: ValidationTier;
@@ -85,6 +86,7 @@ export type NewCirclePayload = {
 
 export type NewReportPayload = {
   challenge_id: string;
+  challenge_title?: string;
   description: string;
   quantity: number;
   evidence_url?: string;

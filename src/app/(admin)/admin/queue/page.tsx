@@ -4,27 +4,14 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useAdminQueue } from "@/hooks/useAdminQueue";
 import { useReviewReport } from "@/hooks/useReviewReport";
-import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function AdminQueuePage() {
   const { t } = useTranslation();
-  const isAdmin = useAuthStore((s) => s.isAdmin);
-  const router = useRouter();
   const { data: reports, isLoading, isError } = useAdminQueue();
   const reviewReport = useReviewReport();
-
-  useEffect(() => {
-    if (!isAdmin) router.replace("/");
-  }, [isAdmin, router]);
-
-  if (!isAdmin) {
-    return <p className="p-4 text-sm text-muted-foreground">{t("admin.queue.unauthorized")}</p>;
-  }
 
   async function handleAction(
     id: string,

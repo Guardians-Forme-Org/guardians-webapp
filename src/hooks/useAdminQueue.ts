@@ -1,14 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { useReportStore } from "@/store/reportStore";
 import type { AdminReport } from "@/types";
 
-// Admin reports endpoint is not live yet — stub returns empty array
-function fetchAdminQueue(): Promise<AdminReport[]> {
-  return Promise.resolve([]);
-}
-
 export function useAdminQueue() {
-  return useQuery<AdminReport[]>({
-    queryKey: ["admin", "queue"],
-    queryFn: fetchAdminQueue,
-  });
+  const submittedReports = useReportStore((s) => s.submittedReports);
+
+  const data: AdminReport[] = submittedReports.map((r) => ({
+    id: r.id,
+    circle_name: r.circle_id || "—",
+    challenge_title: r.challenge_title ?? r.challenge_id,
+    submitted_at: r.submitted_at,
+    evidence_url: r.evidence_url ?? "",
+    status: r.status,
+  }));
+
+  return { data, isLoading: false, isError: false };
 }

@@ -9,6 +9,7 @@ function mockSubmit(payload: NewReportPayload): Promise<Report> {
       resolve({
         id: crypto.randomUUID(),
         challenge_id: payload.challenge_id,
+        challenge_title: payload.challenge_title,
         circle_id: "",
         guardian_id: "",
         validation_tier: { level: 1, name: "Self Declared", description: "", code: "SELF_DECLARED" },

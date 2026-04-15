@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useCircles } from "@/hooks/useCircles";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CirclesPage() {
@@ -12,54 +11,61 @@ export default function CirclesPage() {
   const { data: circles, isLoading, isError } = useCircles();
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t("circles.list.title")}</h1>
+    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <div className="flex items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">{t("circles.list.title")}</h1>
+          <p className="text-sm text-muted-foreground">
+            {t("circles.list.empty").includes("first") ? "Community groups making real impact." : ""}
+          </p>
+        </div>
         <Link href="/circles/new" className={buttonVariants({ size: "sm" })}>
           {t("circles.list.createButton")}
         </Link>
       </div>
 
       {isLoading && (
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-5 w-1/2" />
-                <Skeleton className="h-4 w-3/4" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-1/4" />
-              </CardContent>
-            </Card>
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-border p-4 space-y-2">
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-3 w-1/4 mt-1" />
+            </div>
           ))}
         </div>
       )}
 
       {isError && (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-destructive">{t("circles.list.errorTitle")}</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+          <p className="text-sm text-destructive">{t("circles.list.errorTitle")}</p>
+        </div>
       )}
 
       {!isLoading && !isError && circles?.length === 0 && (
-        <p className="text-muted-foreground text-sm">{t("circles.list.empty")}</p>
+        <div className="rounded-xl border border-dashed border-border p-10 text-center">
+          <p className="text-sm text-muted-foreground">{t("circles.list.empty")}</p>
+        </div>
       )}
 
       {!isLoading && !isError && circles && circles.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {circles.map((circle) => {
             const memberCount = circle.member_ids?.length ?? 0;
             return (
-              <Link key={circle.id} href={`/circles/${circle.id}`}>
-                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                  <CardHeader>
-                    <CardTitle className="text-base">{circle.name}</CardTitle>
-                    <CardDescription>{circle.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground flex gap-4">
+              <Link
+                key={circle.id}
+                href={`/circles/${circle.id}`}
+                className="group flex items-start justify-between gap-4 rounded-xl border border-border p-4 hover:bg-muted/40 hover:border-foreground/20 transition-all"
+              >
+                <div className="space-y-0.5 min-w-0">
+                  <p className="text-sm font-semibold tracking-tight group-hover:text-foreground truncate">
+                    {circle.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">
+                    {circle.description}
+                  </p>
+                  <div className="flex gap-3 pt-1 text-[11px] text-muted-foreground/60">
                     <span>
                       {memberCount === 0
                         ? t("circles.list.noMembers")
@@ -70,8 +76,11 @@ export default function CirclesPage() {
                         date: new Date(circle.created_at).toLocaleDateString(),
                       })}
                     </span>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
+                <span className="shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors mt-0.5">
+                  →
+                </span>
               </Link>
             );
           })}

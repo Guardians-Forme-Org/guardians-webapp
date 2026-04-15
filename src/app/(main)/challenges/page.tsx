@@ -1,134 +1,168 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useMemo, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useChallenges } from "@/hooks/useChallenges";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { filterChallenges } from "@/lib/filterChallenges";
+import { ChallengeDomainTabs } from "@/components/challenges/ChallengeDomainTabs";
+import { ChallengeFilterBar } from "@/components/challenges/ChallengeFilterBar";
+import { ChallengeGrid } from "@/components/challenges/ChallengeGrid";
+import { GuidedFinder } from "@/components/challenges/GuidedFinder";
+import type {
+  ActiveFilters,
+  ChallengeDomain,
+  ChallengeTeamSize,
+  ChallengeTimeCommitment,
+  TaggedChallenge,
+} from "@/types/challenges";
 
-export default function ChallengesPage() {
+function parseParam<T extends string>(
+  value: string | null,
+  valid: readonly T[],
+): T[] {
+  if (!value) return [];
+  return value.split(",").filter((v): v is T => valid.includes(v as T));
+}
+
+const DOMAINS: ChallengeDomain[] = [
+  "mitigation",
+  "resilience",
+  "democratic_infrastructure",
+  "regeneration",
+];
+const TIMES: ChallengeTimeCommitment[] = [
+  "half_day",
+  "full_day",
+  "multi_day",
+  "multi_week",
+  "ongoing",
+];
+const TEAMS: ChallengeTeamSize[] = ["individual", "small", "circle", "large"];
+const LEVELS = ["L1", "L2", "L3"] as const;
+
+function filtersToParams(filters: ActiveFilters): string {
+  const p = new URLSearchParams();
+  if (filters.domains.length) p.set("domains", filters.domains.join(","));
+  if (filters.time.length) p.set("time", filters.time.join(","));
+  if (filters.team.length) p.set("team", filters.team.join(","));
+  if (filters.validation.length) p.set("validation", filters.validation.join(","));
+  const s = p.toString();
+  return s ? `?${s}` : "";
+}
+
+function hasActiveFilters(filters: ActiveFilters): boolean {
+  return (
+    filters.domains.length > 0 ||
+    filters.time.length > 0 ||
+    filters.team.length > 0 ||
+    filters.validation.length > 0
+  );
+}
+
+function ChallengesContent() {
   const { t } = useTranslation();
-  const { data: challenges, isLoading, isError } = useChallenges();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [tierFilter, setTierFilter] = useState("all");
+  const filters: ActiveFilters = {
+    domains: parseParam(searchParams.get("domains"), DOMAINS),
+    time: parseParam(searchParams.get("time"), TIMES),
+    team: parseParam(searchParams.get("team"), TEAMS),
+    validation: parseParam(searchParams.get("validation"), LEVELS),
+  };
 
-  const categories = challenges
-    ? [...new Set(challenges.map((c) => c.category?.code).filter(Boolean))]
-    : [];
+  const [finderOpen, setFinderOpen] = useState(false);
 
-  const filtered = challenges?.filter((c) => {
-    const matchCategory =
-      categoryFilter === "all" || c.category?.code === categoryFilter;
-    const matchTier =
-      tierFilter === "all" ||
-      String(c.validation_tier?.level) === tierFilter;
-    return matchCategory && matchTier;
-  });
+  const { data: raw, isLoading, isError } = useChallenges();
+  const challenges: TaggedChallenge[] = (raw as unknown as TaggedChallenge[]) ?? [];
+
+  const filtered = useMemo(
+    () => filterChallenges(challenges, filters),
+    [challenges, filters],
+  );
+
+  function setFilters(next: ActiveFilters) {
+    router.replace(`/challenges${filtersToParams(next)}`);
+  }
+
+  function clearFilters() {
+    router.replace("/challenges");
+  }
+
+  const active = hasActiveFilters(filters);
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-4">
-      <h1 className="text-2xl font-semibold">{t("challenges.list.title")}</h1>
-
-      <div className="flex flex-wrap gap-2">
-        <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v ?? "all")}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder={t("challenges.list.filterCategory")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("challenges.list.filterCategoryAll")}</SelectItem>
-            {categories.map((code) => (
-              <SelectItem key={code} value={code!}>
-                {code}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={tierFilter} onValueChange={(v) => setTierFilter(v ?? "all")}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder={t("challenges.list.filterTier")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("challenges.list.filterTierAll")}</SelectItem>
-            <SelectItem value="1">1 — Self Declared</SelectItem>
-            <SelectItem value="2">2 — Evidence Based</SelectItem>
-            <SelectItem value="3">3 — Peer Reviewed</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      {/* Page header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("challenges.library.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("challenges.library.subtitle")}
+          </p>
+        </div>
+        <button
+          onClick={() => setFinderOpen(true)}
+          className="shrink-0 mt-1 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors whitespace-nowrap"
+        >
+          {t("challenges.library.finder_cta")} →
+        </button>
       </div>
 
-      {isLoading && (
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-5 w-1/2" />
-                <Skeleton className="h-4 w-3/4" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-1/3" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
       {isError && (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-destructive">{t("challenges.list.errorTitle")}</p>
-          </CardContent>
-        </Card>
+        <p className="text-sm text-destructive">{t("challenges.list.errorTitle")}</p>
       )}
 
-      {!isLoading && !isError && filtered?.length === 0 && (
-        <p className="text-muted-foreground text-sm">{t("challenges.list.empty")}</p>
-      )}
+      {/* Domain tabs */}
+      <ChallengeDomainTabs
+        active={filters.domains}
+        onChange={(domains) => setFilters({ ...filters, domains })}
+      />
 
-      {!isLoading && !isError && filtered && filtered.length > 0 && (
-        <div className="space-y-3">
-          {filtered.map((challenge) => (
-            <Link key={challenge.id} href={`/challenges/${challenge.id}`}>
-              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                <CardHeader>
-                  <div className="flex flex-wrap gap-1 mb-1">
-                    {challenge.category && (
-                      <Badge variant="secondary">{challenge.category.name}</Badge>
-                    )}
-                    {challenge.validation_tier && (
-                      <Badge variant="outline">
-                        L{challenge.validation_tier.level} {challenge.validation_tier.name}
-                      </Badge>
-                    )}
-                    {challenge.status && (
-                      <Badge>{challenge.status.name}</Badge>
-                    )}
-                  </div>
-                  <CardTitle className="text-base">{challenge.title}</CardTitle>
-                  <CardDescription>{challenge.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">
-                  {challenge.region &&
-                    t("challenges.list.region", {
-                      suburb: challenge.region.suburb,
-                      city: challenge.region.city,
-                    })}
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      )}
+      {/* Secondary filters */}
+      <ChallengeFilterBar filters={filters} onChange={setFilters} />
+
+      {/* Result count + clear */}
+      <div className="flex items-center justify-between">
+        {!isLoading && (
+          <p className="text-xs text-muted-foreground">
+            {t("challenges.library.showing", { count: filtered.length })}
+          </p>
+        )}
+        {active && (
+          <button
+            onClick={clearFilters}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            {t("challenges.library.empty_cta")}
+          </button>
+        )}
+      </div>
+
+      {/* Grid */}
+      <ChallengeGrid
+        challenges={filtered}
+        isLoading={isLoading}
+        onClearFilters={clearFilters}
+      />
+
+      {/* Guided finder panel */}
+      <GuidedFinder
+        open={finderOpen}
+        onClose={() => setFinderOpen(false)}
+        challenges={challenges}
+      />
     </div>
+  );
+}
+
+export default function ChallengesPage() {
+  return (
+    <Suspense>
+      <ChallengesContent />
+    </Suspense>
   );
 }

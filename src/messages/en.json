@@ -94,6 +94,50 @@
     }
   },
   "challenges": {
+    "library": {
+      "title": "Challenge Library",
+      "subtitle": "Find an action that fits your Circle",
+      "finder_cta": "Not sure? Try the finder",
+      "showing": "Showing {{count}} challenges",
+      "empty": "No challenges match your filters",
+      "empty_cta": "Clear filters"
+    },
+    "domains": {
+      "all": "All",
+      "mitigation": "Mitigation & Circularity",
+      "resilience": "Resilience & Biodiversity",
+      "democratic_infrastructure": "Democratic Infrastructure",
+      "regeneration": "Regeneration"
+    },
+    "filters": {
+      "time": "Time",
+      "team": "Team",
+      "level": "Level",
+      "half_day": "Half-day",
+      "full_day": "Full-day",
+      "multi_day": "Multi-day",
+      "multi_week": "Multi-week",
+      "ongoing": "Ongoing",
+      "individual": "Individual",
+      "small": "Small group",
+      "circle": "Full Circle",
+      "large": "Large group"
+    },
+    "finder": {
+      "title": "Find your challenge",
+      "q1": "What matters most to your Circle?",
+      "q2": "How much time can you commit?",
+      "q3": "How big is your Circle?",
+      "strong_match": "Strong match",
+      "good_match": "Good match",
+      "possible": "Possible",
+      "back": "Back",
+      "see_results": "See matches"
+    },
+    "card": {
+      "adopt": "Adopt this challenge",
+      "view": "View details"
+    },
     "list": {
       "title": "Challenges",
       "filterCategory": "Category",

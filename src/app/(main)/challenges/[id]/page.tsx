@@ -16,7 +16,7 @@ export default function ChallengeDetailPage({
 }) {
   const { id } = use(params);
   const { t } = useTranslation();
-  const { data: challenge, isLoading, isError } = useChallenge(id);
+  const { data: challenge, isLoading } = useChallenge(id);
 
   if (isLoading) {
     return (
@@ -29,7 +29,7 @@ export default function ChallengeDetailPage({
     );
   }
 
-  if (isError || !challenge) {
+  if (!challenge) {
     return (
       <div className="max-w-2xl mx-auto p-4 space-y-4">
         <Link href="/challenges" className="text-sm text-muted-foreground hover:underline">
