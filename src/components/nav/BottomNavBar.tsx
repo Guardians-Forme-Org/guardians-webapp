@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Trophy, Users, User } from "lucide-react";
+import { Home, Compass, User } from "lucide-react";
 
 const tabs = [
   { href: "/home", label: "Home", icon: Home },
-  { href: "/challenges", label: "Challenges", icon: Trophy },
-  { href: "/circles", label: "Circles", icon: Users },
+  { href: "/discover", label: "Discover", icon: Compass },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
@@ -15,7 +14,7 @@ export default function BottomNavBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-zinc-950 border-t border-zinc-800 z-50">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-[#EBEBEB] z-50">
       <div className="flex items-center justify-around px-2 pb-safe">
         {tabs.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
@@ -23,18 +22,14 @@ export default function BottomNavBar() {
             <Link
               key={href}
               href={href}
-              className="flex flex-col items-center gap-0.5 py-3 px-4 min-w-[60px]"
+              className="flex flex-col items-center gap-1 py-3 px-6 min-w-15"
             >
               <Icon
                 size={22}
                 strokeWidth={active ? 2.5 : 1.8}
-                className={active ? "text-green-500" : "text-zinc-500"}
+                className={active ? "text-[#0A0A0A]" : "text-[#9CA3AF]"}
               />
-              <span
-                className={`text-[10px] font-medium tracking-wide ${
-                  active ? "text-green-500" : "text-zinc-500"
-                }`}
-              >
+              <span className={`text-[10px] font-medium ${active ? "text-[#0A0A0A]" : "text-[#9CA3AF]"}`}>
                 {label}
               </span>
             </Link>
