@@ -1,4 +1,8 @@
-import { Search, MapPin, Plus, ChevronRight, Users } from "lucide-react";
+import { MapPin, Plus, ChevronRight, Users } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
+import SearchBar from "@/components/ui/SearchBar";
+import SectionHeader from "@/components/ui/SectionHeader";
+import Text from "@/components/ui/Text";
 
 const myCircles = [
   {
@@ -50,37 +54,31 @@ const exploreCircles = [
 
 export default function CirclesPage() {
   return (
-    <div className="flex flex-col min-h-full bg-zinc-50">
-      {/* Header */}
-      <header className="bg-white px-5 pt-12 pb-4 border-b border-zinc-100">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-zinc-900">Circles</h1>
-          <button className="flex items-center gap-1.5 bg-[#003518] text-white text-xs font-medium px-3 py-2 rounded-xl">
-            <Plus size={13} />
-            Create
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2 bg-zinc-100 rounded-xl px-3 py-2.5">
-          <Search size={15} className="text-zinc-400 shrink-0" />
-          <span className="text-sm text-zinc-400">Search circles...</span>
-        </div>
+    <div className="flex flex-col min-h-full bg-surface">
+      <header className="bg-white border-b border-border">
+        <PageHeader
+          title="Circles"
+          action={
+            <button className="flex items-center gap-1.5 bg-gotf-green text-white text-xs font-medium px-3 py-2 rounded-xl">
+              <Plus size={13} />
+              Create
+            </button>
+          }
+        />
+        <SearchBar placeholder="Search circles..." />
       </header>
 
       <div className="flex-1 px-5 py-5 space-y-6">
         {/* My Circles */}
         <section>
-          <h2 className="text-zinc-900 font-semibold text-sm mb-3 uppercase tracking-wider text-xs text-zinc-500">
-            My Circles
-          </h2>
+          <SectionHeader title="My Circles" />
           <div className="space-y-2.5">
             {myCircles.map((c) => (
               <a
                 key={c.id}
                 href={`/circles/${c.id}`}
-                className="flex items-center gap-3 bg-white rounded-2xl p-3.5 shadow-sm border border-zinc-100"
+                className="flex items-center gap-3 bg-white rounded-2xl p-3.5 shadow-sm border border-border"
               >
-                {/* Avatar */}
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
                   style={{ background: c.color }}
@@ -90,37 +88,39 @@ export default function CirclesPage() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-sm text-zinc-900 truncate">{c.name}</p>
-                    <span className="shrink-0 text-[10px] font-medium text-[#003518] bg-green-50 px-2 py-0.5 rounded-full">
+                    <Text variant="subheading" className="font-semibold truncate">
+                      {c.name}
+                    </Text>
+                    <span className="shrink-0 text-[10px] font-medium text-gotf-green bg-green-50 px-2 py-0.5 rounded-full">
                       {c.role}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 text-zinc-400 mt-0.5">
+                  <div className="flex items-center gap-1 text-text-muted mt-0.5">
                     <MapPin size={10} />
-                    <span className="text-[11px] truncate">{c.location}</span>
+                    <Text variant="label" className="truncate normal-case tracking-normal">
+                      {c.location}
+                    </Text>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <Text variant="label" className="normal-case tracking-normal mt-0.5">
                     {c.members} members · {c.challenges} challenges
-                  </p>
+                  </Text>
                 </div>
 
-                <ChevronRight size={16} className="text-zinc-300 shrink-0" />
+                <ChevronRight size={16} className="text-text-muted shrink-0" />
               </a>
             ))}
           </div>
         </section>
 
-        {/* Explore */}
+        {/* Explore Near You */}
         <section>
-          <h2 className="text-xs text-zinc-500 font-semibold uppercase tracking-wider mb-3">
-            Explore Near You
-          </h2>
+          <SectionHeader title="Explore Near You" />
           <div className="space-y-2.5">
             {exploreCircles.map((c) => (
               <a
                 key={c.id}
                 href={`/circles/${c.id}`}
-                className="flex items-center gap-3 bg-white rounded-2xl p-3.5 shadow-sm border border-zinc-100"
+                className="flex items-center gap-3 bg-white rounded-2xl p-3.5 shadow-sm border border-border"
               >
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
@@ -130,17 +130,21 @@ export default function CirclesPage() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-zinc-900 truncate">{c.name}</p>
-                  <div className="flex items-center gap-1 text-zinc-400 mt-0.5">
+                  <Text variant="subheading" className="font-semibold truncate">
+                    {c.name}
+                  </Text>
+                  <div className="flex items-center gap-1 text-text-muted mt-0.5">
                     <MapPin size={10} />
-                    <span className="text-[11px] truncate">{c.location}</span>
+                    <Text variant="label" className="truncate normal-case tracking-normal">
+                      {c.location}
+                    </Text>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <Text variant="label" className="normal-case tracking-normal mt-0.5">
                     {c.members} members · {c.challenges} challenges
-                  </p>
+                  </Text>
                 </div>
 
-                <button className="shrink-0 text-[11px] font-semibold text-[#003518] border border-[#003518] px-2.5 py-1 rounded-lg">
+                <button className="shrink-0 text-[11px] font-semibold text-gotf-green border border-gotf-green px-2.5 py-1 rounded-lg">
                   Join
                 </button>
               </a>

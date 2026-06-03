@@ -1,4 +1,6 @@
 import { Settings, MapPin, Trophy, Leaf, Users, ChevronRight, Award, Star } from "lucide-react";
+import Card from "@/components/ui/Card";
+import Text from "@/components/ui/Text";
 
 const impactStats = [
   { label: "kg composted", value: "32" },
@@ -23,19 +25,18 @@ const recentActivity = [
 
 export default function ProfilePage() {
   return (
-    <div className="flex flex-col min-h-full bg-zinc-50">
+    <div className="flex flex-col min-h-full bg-surface">
       {/* Header */}
-      <header className="bg-[#003518] px-5 pt-12 pb-8">
+      <header className="bg-gotf-green px-5 pt-12 pb-8">
         <div className="flex justify-end mb-6">
           <button className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
             <Settings size={16} className="text-white" />
           </button>
         </div>
 
-        {/* Avatar + name */}
         <div className="flex flex-col items-center">
           <div className="w-20 h-20 rounded-full bg-gotf-yellow flex items-center justify-center mb-3 ring-4 ring-white/20">
-            <span className="text-[#003518] text-2xl font-bold">SW</span>
+            <span className="text-gotf-green text-2xl font-bold">SW</span>
           </div>
           <h1 className="text-white text-xl font-bold">Sean Wilson</h1>
           <p className="text-green-300 text-xs mt-0.5">Facilitator</p>
@@ -49,15 +50,13 @@ export default function ProfilePage() {
       <div className="flex-1 px-5 py-5 space-y-6">
         {/* Impact stats */}
         <section>
-          <h2 className="text-xs text-zinc-500 font-semibold uppercase tracking-wider mb-3">
-            My Impact
-          </h2>
+          <Text variant="label" className="block mb-3">My Impact</Text>
           <div className="grid grid-cols-2 gap-2.5">
             {impactStats.map(({ label, value }) => (
-              <div key={label} className="bg-white rounded-2xl p-4 shadow-sm border border-zinc-100">
-                <p className="text-2xl font-bold text-zinc-900">{value}</p>
-                <p className="text-xs text-zinc-500 mt-0.5">{label}</p>
-              </div>
+              <Card key={label} className="p-4">
+                <Text variant="display" className="block">{value}</Text>
+                <Text variant="caption" className="block mt-0.5">{label}</Text>
+              </Card>
             ))}
           </div>
         </section>
@@ -65,10 +64,8 @@ export default function ProfilePage() {
         {/* Badges */}
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs text-zinc-500 font-semibold uppercase tracking-wider">
-              Badges
-            </h2>
-            <span className="text-xs text-[#003518] font-medium">3 / 5 earned</span>
+            <Text variant="label">Badges</Text>
+            <Text variant="label" className="text-gotf-green normal-case">3 / 5 earned</Text>
           </div>
           <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
             {badges.map(({ label, icon: Icon, earned }) => (
@@ -76,18 +73,18 @@ export default function ProfilePage() {
                 <div
                   className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
                     earned
-                      ? "bg-[#003518]"
-                      : "bg-zinc-100 border border-dashed border-zinc-300"
+                      ? "bg-gotf-green"
+                      : "bg-surface border border-dashed border-border"
                   }`}
                 >
                   <Icon
                     size={22}
-                    className={earned ? "text-gotf-yellow" : "text-zinc-300"}
+                    className={earned ? "text-gotf-yellow" : "text-text-muted"}
                   />
                 </div>
-                <span className={`text-[10px] font-medium ${earned ? "text-zinc-700" : "text-zinc-400"}`}>
+                <Text variant="label" className={`normal-case ${earned ? "text-text-subheading" : "text-text-muted"}`}>
                   {label}
-                </span>
+                </Text>
               </div>
             ))}
           </div>
@@ -95,32 +92,30 @@ export default function ProfilePage() {
 
         {/* Recent activity */}
         <section>
-          <h2 className="text-xs text-zinc-500 font-semibold uppercase tracking-wider mb-3">
-            Recent Activity
-          </h2>
-          <div className="bg-white rounded-2xl shadow-sm border border-zinc-100 divide-y divide-zinc-50">
+          <Text variant="label" className="block mb-3">Recent Activity</Text>
+          <Card className="divide-y divide-border">
             {recentActivity.map(({ text, time }) => (
               <div key={text} className="flex items-center justify-between px-4 py-3.5">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[#003518] shrink-0" />
-                  <p className="text-sm text-zinc-700">{text}</p>
+                  <div className="w-2 h-2 rounded-full bg-gotf-green shrink-0" />
+                  <Text variant="body" className="text-text-subheading">{text}</Text>
                 </div>
-                <span className="text-[10px] text-zinc-400 shrink-0 ml-2">{time}</span>
+                <Text variant="label" className="normal-case shrink-0 ml-2">{time}</Text>
               </div>
             ))}
-          </div>
+          </Card>
         </section>
 
         {/* Settings links */}
         <section>
-          <div className="bg-white rounded-2xl shadow-sm border border-zinc-100 divide-y divide-zinc-50">
+          <Card className="divide-y divide-border">
             {["Account Settings", "Notifications", "Privacy", "Help & Feedback"].map((item) => (
               <div key={item} className="flex items-center justify-between px-4 py-3.5">
-                <span className="text-sm text-zinc-700">{item}</span>
-                <ChevronRight size={16} className="text-zinc-300" />
+                <Text variant="body" className="text-text-subheading">{item}</Text>
+                <ChevronRight size={16} className="text-text-muted" />
               </div>
             ))}
-          </div>
+          </Card>
         </section>
       </div>
     </div>

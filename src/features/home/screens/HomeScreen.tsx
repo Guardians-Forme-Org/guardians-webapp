@@ -1,11 +1,10 @@
+import SearchBar from "@/components/ui/SearchBar";
 import SectionHeader from "@/components/ui/SectionHeader";
 import ChallengeCard, { type Challenge } from "../components/ChallengeCard";
 import CircleListItem, { type Circle } from "../components/CircleListItem";
 import HomeHeader from "../components/HomeHeader";
 import ImpactSection from "../components/ImpactSection";
 import LocationPill from "../components/LocationPill";
-import { type Member } from "../components/MemberAvatar";
-import SearchBar from "../components/SearchBar";
 
 const continueChallenges: Challenge[] = [
   {
@@ -30,14 +29,6 @@ const circles: Circle[] = [
   { id: 1, rank: 1, name: "Green Urban Youth", joinDate: "12 March" },
   { id: 2, rank: 2, name: "Park Watch", joinDate: "1 December" },
   { id: 3, rank: 3, name: "Eco Homes", joinDate: "24 February" },
-];
-
-const members: Member[] = [
-  { id: 1, name: "Lerato" },
-  { id: 2, name: "Alex" },
-  { id: 3, name: "Thembi" },
-  { id: 4, name: "Cherry" },
-  { id: 5, name: "Roni" },
 ];
 
 const badgeStats = [
@@ -84,15 +75,6 @@ export default function HomeScreen() {
         </div>
       </section>
 
-      {/* Members */}
-      {/* <section className="px-5 mb-6">
-        <SectionHeader title="Members" href="/circles" />
-        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1">
-          {members.map((member, i) => (
-            <MemberAvatar key={member.id} member={member} index={i} />
-          ))}
-        </div>
-      </section> */}
     </div>
   );
 }
