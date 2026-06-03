@@ -15,14 +15,14 @@ type Props = {
 
 export default function CircleListItem({ circle }: Props) {
   return (
-    <div className="flex items-center gap-1 py-3.5">
+    <div className="flex items-center gap-3.75">
       <Text
         variant="body"
-        className="w-5 text-center font-medium text-text-primary"
+        className="w-2.5 text-center font-medium text-text-primary shrink-0"
       >
         {circle.rank}
       </Text>
-      <div className="size-12 rounded-lg bg-[#D1D5DB] overflow-hidden shrink-0 mr-2">
+      <div className="size-15 rounded-lg bg-[#D1D5DB] overflow-hidden shrink-0">
         {circle.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

@@ -38,9 +38,8 @@ const badgeStats = [
 ];
 
 const activityStats = [
-  { label: "My Steps", value: "17" },
-  { label: "My Challenges", value: "4" },
-  { label: "My Circles", value: "2" },
+  { label: "Challenges", value: "4" },
+  { label: "Circles", value: "2" },
 ];
 
 export default function HomeScreen() {
@@ -65,10 +64,10 @@ export default function HomeScreen() {
         </div>
       </section>
 
-      {/* Circles */}
-      <section className="px-5 mb-6">
+      {/* Circles — floating panel */}
+      <section className="bg-white rounded-t-[20px] shadow-[0_-5px_20px_0_rgba(0,0,0,0.05)] px-5 pt-6 pb-8 -mt-2">
         <SectionHeader title="Active Circles" href="/circles" />
-        <div className="">
+        <div className="flex flex-col gap-7.5">
           {circles.map((circle) => (
             <CircleListItem key={circle.id} circle={circle} />
           ))}
