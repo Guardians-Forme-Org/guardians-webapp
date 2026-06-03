@@ -14,7 +14,7 @@ export default function LocationPill({ city, country }: Props) {
         {city},
       </Text>
       <Text variant="body">{country}</Text>
-      <ChevronDown size={13} className="text-[#6B7280] ml-0.5" />
+      <ChevronDown size={13} className="text-text-secondary ml-0.5" />
     </button>
   );
 }

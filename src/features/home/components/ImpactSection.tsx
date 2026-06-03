@@ -14,13 +14,13 @@ type ImpactRowProps = {
 function ImpactRow({ icon, rowLabel, stats }: ImpactRowProps) {
   return (
     <div className="flex flex-col items-center gap-4 py-4 ">
-      <div className="flex items-center gap-1.5 w-full shrink-0">
-        {/* <span className="text-[8px]">{icon}</span> */}
-        <Text variant="caption" className="text-black font-semibold">
-          {rowLabel}
-        </Text>
-      </div>
-      <div className="flex flex-1 w-full">
+      {/* <div className="flex items-center gap-1.5 w-full shrink-0"> */}
+      {/* <span className="text-[8px]">{icon}</span> */}
+      {/* <Text variant="caption" className="text-black font-semibold"> */}
+      {/* {rowLabel} */}
+      {/* </Text> */}
+      {/* </div> */}
+      <div className="flex flex-1 w-full py-4">
         {stats.map((stat) => (
           <div
             key={stat.label}
@@ -31,7 +31,7 @@ function ImpactRow({ icon, rowLabel, stats }: ImpactRowProps) {
             </Text>
             <Text
               variant="display"
-              className="block font-bold text-[#0A0A0A] text-lg leading-0"
+              className="block font-bold text-text-primary text-lg leading-0"
             >
               {stat.value}
             </Text>
@@ -53,7 +53,7 @@ export default function ImpactSection({ badgeStats, activityStats }: Props) {
       <Text variant="heading" className="block mb-1 font-bold">
         My impact
       </Text>
-      <div className="divide-y divide-[#EBEBEB]">
+      <div className="divide-y divide-border">
         <ImpactRow
           rowLabel="Badges"
           icon={

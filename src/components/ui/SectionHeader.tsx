@@ -11,7 +11,7 @@ export default function SectionHeader({ title, href }: Props) {
     <div className="flex items-center justify-between mb-4">
       <Text variant="heading">{title}</Text>
       {href && (
-        <Link href={href} className="text-sm text-[#6B7280] hover:text-[#0A0A0A] transition-colors">
+        <Link href={href} className="text-sm text-gotf-blue hover:opacity-80 transition-opacity">
           See all
         </Link>
       )}

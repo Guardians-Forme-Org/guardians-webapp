@@ -9,12 +9,12 @@ type Variant =
   | "label";
 
 const variants: Record<Variant, string> = {
-  display: "text-2xl font-bold text-[#0A0A0A] tracking-wider",
-  heading: "text-base font-semibold text-[#0A0A0A]",
-  subheading: "text-sm font-medium text-[#374151] tracking-wider",
-  body: "text-sm text-[#6B7280]",
-  caption: "text-xs text-[#9CA3AF] tracking-tight",
-  label: "text-[11px] font-medium text-[#9CA3AF] uppercase tracking-wide",
+  display: "text-2xl font-bold text-text-primary tracking-wider",
+  heading: "text-base font-semibold text-text-primary",
+  subheading: "text-sm font-medium text-text-subheading tracking-wider",
+  body: "text-sm text-text-secondary",
+  caption: "text-xs text-text-muted tracking-tight",
+  label: "text-[11px] font-medium text-text-muted uppercase tracking-wide",
 };
 
 type Props = {

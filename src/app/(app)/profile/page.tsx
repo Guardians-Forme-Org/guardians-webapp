@@ -34,7 +34,7 @@ export default function ProfilePage() {
 
         {/* Avatar + name */}
         <div className="flex flex-col items-center">
-          <div className="w-20 h-20 rounded-full bg-[#e9ce2c] flex items-center justify-center mb-3 ring-4 ring-white/20">
+          <div className="w-20 h-20 rounded-full bg-gotf-yellow flex items-center justify-center mb-3 ring-4 ring-white/20">
             <span className="text-[#003518] text-2xl font-bold">SW</span>
           </div>
           <h1 className="text-white text-xl font-bold">Sean Wilson</h1>
@@ -82,7 +82,7 @@ export default function ProfilePage() {
                 >
                   <Icon
                     size={22}
-                    className={earned ? "text-[#e9ce2c]" : "text-zinc-300"}
+                    className={earned ? "text-gotf-yellow" : "text-zinc-300"}
                   />
                 </div>
                 <span className={`text-[10px] font-medium ${earned ? "text-zinc-700" : "text-zinc-400"}`}>

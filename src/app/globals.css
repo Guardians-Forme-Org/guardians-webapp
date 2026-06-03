@@ -2,13 +2,20 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1a1a1a;
   --gotf-black: #000000;
   --gotf-white: #ffffff;
   --gotf-green: #003518;
   --gotf-green-light: #22c55e;
-  --gotf-yellow: #e9ce2c;
-  --gray-700: #374151;
+  --gotf-yellow: #ffcc00;
+  --gotf-blue: #0088ff;
+  --text-primary: #1a1a1a;
+  --text-subheading: #333333;
+  --text-secondary: #999999;
+  --text-muted: #767676;
+  --surface: #f7f7f7;
+  --border: #ebebeb;
+  --progress-track: #e6e6e6;
 }
 
 @theme inline {
@@ -17,6 +24,14 @@
   --color-gotf-green: var(--gotf-green);
   --color-gotf-green-light: var(--gotf-green-light);
   --color-gotf-yellow: var(--gotf-yellow);
+  --color-gotf-blue: var(--gotf-blue);
+  --color-text-primary: var(--text-primary);
+  --color-text-subheading: var(--text-subheading);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-progress-track: var(--progress-track);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -43,14 +58,6 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-:root {
-  --gotf-black: #000000;
-  --gotf-white: #ffffff;
-  --gotf-green: #003518;
-  --gotf-yellow: #e9ce2c;
-  --gray-700: #374151;
 }
 
 .intro-overlay {

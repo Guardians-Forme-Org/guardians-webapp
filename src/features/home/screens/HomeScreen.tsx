@@ -4,7 +4,7 @@ import CircleListItem, { type Circle } from "../components/CircleListItem";
 import HomeHeader from "../components/HomeHeader";
 import ImpactSection from "../components/ImpactSection";
 import LocationPill from "../components/LocationPill";
-import MemberAvatar, { type Member } from "../components/MemberAvatar";
+import { type Member } from "../components/MemberAvatar";
 import SearchBar from "../components/SearchBar";
 
 const continueChallenges: Challenge[] = [
@@ -64,7 +64,7 @@ export default function HomeScreen() {
       {/* Continue */}
       <section className="mb-6">
         <div className="px-5">
-          <SectionHeader title="Continue" href="/challenges" />
+          <SectionHeader title="Active Challenges" href="/challenges" />
         </div>
         <div className="flex gap-3 pl-5 overflow-x-auto no-scrollbar pb-1">
           {continueChallenges.map((challenge) => (
@@ -76,8 +76,8 @@ export default function HomeScreen() {
 
       {/* Circles */}
       <section className="px-5 mb-6">
-        <SectionHeader title="Circles" href="/circles" />
-        <div className="divide-y divide-[#EBEBEB]">
+        <SectionHeader title="Active Circles" href="/circles" />
+        <div className="">
           {circles.map((circle) => (
             <CircleListItem key={circle.id} circle={circle} />
           ))}
@@ -85,14 +85,14 @@ export default function HomeScreen() {
       </section>
 
       {/* Members */}
-      <section className="px-5 mb-6">
+      {/* <section className="px-5 mb-6">
         <SectionHeader title="Members" href="/circles" />
         <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1">
           {members.map((member, i) => (
             <MemberAvatar key={member.id} member={member} index={i} />
           ))}
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

@@ -21,7 +21,7 @@ export default function ChallengeCard({ challenge }: Props) {
 
   return (
     <div className="w-[55%] shrink-0 overflow-hidden bg-white ">
-      <div className="h-22 bg-[#D1D5DB] relative overflow-hidden rounded-xl">
+      <div className="h-24 bg-[#D1D5DB] relative overflow-hidden rounded-xl">
         {challenge.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -36,27 +36,27 @@ export default function ChallengeCard({ challenge }: Props) {
       <div className="p-3 mt-2">
         <Text
           variant="subheading"
-          className="block font-bold text-[#0A0A0A] truncate mb-0.5"
+          className="block font-bold text-text-primary truncate mb-0.5 tracking-normal"
         >
           {challenge.title}
         </Text>
-        <Text variant="caption" className="block truncate mb-0.5">
+        <Text variant="caption" className="block truncate mb-0.5 font-semibold">
           {challenge.challengeName}
         </Text>
-        <Text variant="caption" className="block text-[#9CA3AF] truncate mb-3">
+        <Text variant="caption" className="block text-text-muted truncate mb-3">
           {challenge.circleName}
         </Text>
         <div className="h-1 rounded-full overflow-hidden mb-1.5 flex">
           <div
-            className="h-full bg-yellow-400 transition-all"
+            className="h-full bg-gotf-yellow transition-all"
             style={{ width: `${progress}%` }}
           />
           <div
-            className="h-full bg-gray-400 transition-all"
+            className="h-full bg-progress-track transition-all"
             style={{ width: `${101 - progress}%` }}
           />
         </div>
-        <Text variant="caption" className="text-[#9CA3AF]">
+        <Text variant="caption" className="text-text-muted">
           {challenge.currentStep} of {challenge.totalSteps} Steps
         </Text>
       </div>

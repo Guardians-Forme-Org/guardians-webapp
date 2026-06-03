@@ -36,7 +36,7 @@ export default function MemberAvatar({ member, index = 0 }: Props) {
           </div>
         )}
       </div>
-      <Text variant="caption" className="text-[#6B7280]">
+      <Text variant="caption" className="text-text-secondary">
         {member.name}
       </Text>
     </div>

@@ -15,12 +15,12 @@ export default function HomeHeader({ name, hasNotification = false }: Props) {
           alt="Guardians logo"
           className="w-9 h-9 object-contain shrink-0"
         />
-        <span className="text-2xl text-[#0A0A0A]">
+        <span className="text-2xl text-text-primary">
           Hi, <span className="font-bold">{name}</span>
         </span>
       </div>
       <button className="relative p-1" aria-label="Notifications">
-        <Bell size={22} strokeWidth={1.8} className="text-[#0A0A0A]" />
+        <Bell size={22} strokeWidth={1.8} className="text-text-primary" />
         {hasNotification && (
           <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 border border-white" />
         )}
