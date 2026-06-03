@@ -16,6 +16,21 @@
   --surface: #f7f7f7;
   --border: #ebebeb;
   --progress-track: #e6e6e6;
+
+  /* Profile dark theme */
+  --profile-bg: #111111;
+  --profile-card: #1a1a1a;
+  --profile-border: #2a2a2a;
+  --profile-border-subtle: #1e1e1e;
+  --profile-text: #f0f0f0;
+  --profile-text-sub: #cccccc;
+  --profile-text-muted: #888888;
+  --profile-text-dim: #555555;
+  --profile-accent: #3d9970;
+  --profile-accent-light: #5abf8a;
+  --profile-accent-bg: #1a2e1f;
+  --profile-accent-border: #2d5438;
+  --profile-unearned-bg: #1e1e2e;
 }
 
 @theme inline {
@@ -32,6 +47,22 @@
   --color-surface: var(--surface);
   --color-border: var(--border);
   --color-progress-track: var(--progress-track);
+
+  /* Profile dark theme */
+  --color-profile-bg: var(--profile-bg);
+  --color-profile-card: var(--profile-card);
+  --color-profile-border: var(--profile-border);
+  --color-profile-border-subtle: var(--profile-border-subtle);
+  --color-profile-text: var(--profile-text);
+  --color-profile-text-sub: var(--profile-text-sub);
+  --color-profile-text-muted: var(--profile-text-muted);
+  --color-profile-text-dim: var(--profile-text-dim);
+  --color-profile-accent: var(--profile-accent);
+  --color-profile-accent-light: var(--profile-accent-light);
+  --color-profile-accent-bg: var(--profile-accent-bg);
+  --color-profile-accent-border: var(--profile-accent-border);
+  --color-profile-unearned-bg: var(--profile-unearned-bg);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
