@@ -98,7 +98,7 @@ function ChallengeCard({ item }: { item: ChallengeItem }) {
 
 function CircleCard({ item }: { item: CircleItem }) {
   return (
-    <div className="flex h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white">
+    <Link href={`/circles/${item.id}`} className="flex h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white">
       {/* Left image strip */}
       <div className="w-[120px] shrink-0 bg-surface">
         {item.image && (
@@ -125,7 +125,7 @@ function CircleCard({ item }: { item: CircleItem }) {
           <AvatarStack />
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
