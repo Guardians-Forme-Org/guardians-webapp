@@ -1,10 +1,5 @@
-import BottomNavBar from "@/components/nav/BottomNavBar";
+import AppLayoutClient from "./AppLayoutClient";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative flex flex-col min-h-full max-w-md mx-auto bg-white shadow-xl">
-      <main className="flex-1 overflow-y-auto pb-safe-nav">{children}</main>
-      <BottomNavBar />
-    </div>
-  );
+  return <AppLayoutClient>{children}</AppLayoutClient>;
 }

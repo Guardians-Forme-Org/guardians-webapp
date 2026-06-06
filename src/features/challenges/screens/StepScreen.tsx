@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { ClipboardList } from "lucide-react";
 import ChallengeHero from "../components/ChallengeHero";
 import ActivityRow from "../components/ActivityRow";
 import { getChallengeById, getStepById } from "../data";
@@ -38,10 +40,17 @@ export default function StepScreen({ challengeId, stepId }: Props) {
             {step.title}
           </h1>
           <p className="text-base text-[#666] mt-1">Since {challenge.since}</p>
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-3">
             <button className="px-5 h-10 bg-linear-to-r from-[#008000] to-[#129612] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)]">
               Join Challenge
             </button>
+            <Link
+              href={`/challenges/${challengeId}/steps/${stepId}/log`}
+              className="flex items-center gap-1.5 px-4 h-10 bg-gotf-green text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)]"
+            >
+              <ClipboardList size={16} />
+              Log Evidence
+            </Link>
           </div>
         </div>
 

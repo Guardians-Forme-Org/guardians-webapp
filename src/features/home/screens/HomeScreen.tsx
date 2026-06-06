@@ -54,7 +54,7 @@ export default function HomeScreen() {
       {/* Continue */}
       <section className="mb-6">
         <div className="px-5">
-          <SectionHeader title="Active Challenges" href="/challenges" />
+          <SectionHeader title="Active Challenges" href="/discover" />
         </div>
         <div className="flex gap-3 pl-5 overflow-x-auto no-scrollbar pb-1">
           {continueChallenges.map((challenge) => (
@@ -66,7 +66,7 @@ export default function HomeScreen() {
 
       {/* Circles — floating panel */}
       <section className="bg-white rounded-t-[20px] shadow-[0_-5px_20px_0_rgba(0,0,0,0.05)] px-5 pt-6 pb-8 -mt-2">
-        <SectionHeader title="Active Circles" href="/circles" />
+        <SectionHeader title="Active Circles" href="/discover" />
         <div className="flex flex-col gap-7.5">
           {circles.map((circle) => (
             <CircleListItem key={circle.id} circle={circle} />

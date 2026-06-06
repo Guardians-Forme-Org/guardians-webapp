@@ -168,9 +168,12 @@ export default function DiscoverScreen() {
 
       {/* Create CTA */}
       <div className="px-5 mb-6">
-        <button className="w-full h-14 bg-black text-white rounded-full text-lg font-medium">
+        <Link
+          href={tab === "challenges" ? "/challenges/create" : "/circles/create"}
+          className="flex items-center justify-center w-full h-14 bg-black text-white rounded-full text-lg font-medium"
+        >
           {tab === "challenges" ? "Create Challenge" : "Create Circle"}
-        </button>
+        </Link>
       </div>
 
       {/* Cards */}
