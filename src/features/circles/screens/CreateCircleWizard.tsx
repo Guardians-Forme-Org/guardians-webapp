@@ -12,6 +12,8 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import Text from "@/components/ui/Text";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCreateCircle } from "@/lib/hooks/circles";
 
 // ── Form state ─────────────────────────────────────────────────────────────────
 
@@ -257,10 +259,14 @@ function Step3({
   form,
   onChange,
   onConfirm,
+  loading,
+  error,
 }: {
   form: CircleFormData;
   onChange: (f: keyof CircleFormData, v: string) => void;
   onConfirm: () => void;
+  loading: boolean;
+  error: string | null;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -326,12 +332,15 @@ function Step3({
           Remove
         </button>
 
+        {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+
         {/* Confirm */}
         <button
           onClick={onConfirm}
-          className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
+          disabled={loading}
+          className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium disabled:opacity-50"
         >
-          Confirm
+          {loading ? "Creating…" : "Confirm"}
         </button>
       </div>
     </>
@@ -420,6 +429,9 @@ function Step4({ onDone }: { onDone: () => void }) {
 
 export default function CreateCircleWizard() {
   const router = useRouter();
+  const { user } = useAuth();
+  const { mutate: createCircle, isPending, error: apiError } = useCreateCircle();
+
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<CircleFormData>(initialForm);
 
@@ -431,6 +443,22 @@ export default function CreateCircleWizard() {
   const close = () => router.push("/discover");
   const updateForm = (field: keyof CircleFormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
+
+  const handleSubmit = () => {
+    if (!user) return;
+    createCircle(
+      {
+        name: form.name,
+        description: form.description,
+        createdBy: user.id,
+        creatorAvatarUrl: user.user_metadata.avatarUrl,
+        region: { name: form.region, latitude: 0, longitude: 0 },
+      },
+      { onSuccess: next }
+    );
+  };
+
+  const submitError = apiError instanceof Error ? apiError.message : null;
 
   if (step === 4) {
     return (
@@ -458,14 +486,17 @@ export default function CreateCircleWizard() {
         {step === 1 && <Step1 form={form} onChange={updateForm} />}
         {step === 2 && <Step2 form={form} onChange={updateForm} />}
         {step === 3 && (
-          <Step3 form={form} onChange={updateForm} onConfirm={next} />
+          <Step3
+            form={form}
+            onChange={updateForm}
+            onConfirm={handleSubmit}
+            loading={isPending}
+            error={submitError}
+          />
         )}
       </div>
 
-      {/* Steps 1 & 2 use the shared Next button; Step 3 has its own Confirm inline */}
-      {step < 3 && (
-        <WizardNextButton label="Next" onClick={next} />
-      )}
+      {step < 3 && <WizardNextButton label="Next" onClick={next} />}
     </div>
   );
 }

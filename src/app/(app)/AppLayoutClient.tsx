@@ -1,23 +1,21 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import BottomNavBar from "@/components/nav/BottomNavBar";
+import { getToken } from "@/lib/auth";
 
-// These routes are wizard flows — they get the auth-style layout:
-// no bottom nav, no pb-safe-nav padding, overflow-hidden container.
+// Wizard flows — no bottom nav, no pb-safe-nav padding
 const WIZARD_PATHS = [
   "/challenges/create",
   "/circles/create",
-  "/challenges/",   // step log wizard
 ];
 
 function isWizardPath(pathname: string) {
-  return (
-    WIZARD_PATHS.some((p) => pathname.startsWith(p)) &&
-    // But the challenge list / circle list themselves should keep the nav
-    pathname !== "/challenges" &&
-    pathname !== "/circles"
-  );
+  if (WIZARD_PATHS.some((p) => pathname.startsWith(p))) return true;
+  // Step log wizard: /challenges/[id]/steps/[stepId]/log
+  if (/^\/challenges\/[^/]+\/steps\/[^/]+\/log/.test(pathname)) return true;
+  return false;
 }
 
 export default function AppLayoutClient({
@@ -26,7 +24,18 @@ export default function AppLayoutClient({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const wizard = isWizardPath(pathname);
+
+  // Auth gate — redirect to login if no valid token
+  useEffect(() => {
+    if (!getToken()) {
+      router.replace("/login");
+    }
+  }, [router]);
+
+  // While auth check runs, render nothing to avoid flash
+  if (typeof window !== "undefined" && !getToken()) return null;
 
   return (
     <div

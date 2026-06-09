@@ -16,7 +16,7 @@ function StatRow({ stats }: { stats: ImpactStat[] }) {
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className="flex flex-col items-center w-20 shrink-0"
+          className="flex flex-col items-center w-full"
         >
           <Text variant="caption" className="text-text-secondary">
             {stat.label}

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ChevronRight,
   X,
@@ -12,18 +14,21 @@ import {
   Shuffle,
   Clock,
   Users,
+  LogOut,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import Text from "@/components/ui/Text";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const impactStats = [
-  { label: "My CO₂ Avoided",         value: "20kg"      },
-  { label: "Circles CO₂ Avoided",    value: "1840kg"    },
-  { label: "My Area Generated",      value: "750m²"     },
-  { label: "Circle's Area Generated",value: "50 000m²"  },
-  { label: "My Waste Processed",     value: "32kg"      },
-  { label: "Circle's Waste Processed",value: "525kg"    },
+  { label: "My CO₂ Avoided",            value: "20kg"      },
+  { label: "Circles CO₂ Avoided",       value: "1840kg"    },
+  { label: "My Area Generated",         value: "750m²"     },
+  { label: "Circle's Area Generated",   value: "50 000m²"  },
+  { label: "My Waste Processed",        value: "32kg"      },
+  { label: "Circle's Waste Processed",  value: "525kg"     },
 ];
 
 const markers = [
@@ -49,17 +54,35 @@ const trace: {
   date: string;
   note?: string;
 }[] = [
-  { title: "Urban Composting Drive",   category: "Waste Reduction", level: "L3 verified", status: "verified",  hours: 14, circle: "Soweto Green", date: "Apr 2026", note: "also peer-verified 2 others" },
-  { title: "Stormwater Monitoring",    category: "Water & Land",    level: "L2 verified", status: "verified",  hours: 8,  circle: "Soweto Green", date: "Mar 2026" },
-  { title: "Tree Canopy Survey",       category: "Biodiversity",    level: "L1 submitted",status: "submitted", hours: 5,  circle: "EcoJozi",      date: "Mar 2026" },
-  { title: "Plastic Audit — Market St",category: "Waste Reduction", level: "L2 verified", status: "verified",  hours: 6,  circle: "Soweto Green", date: "Feb 2026", note: "peer-verified 1 other" },
+  { title: "Urban Composting Drive",    category: "Waste Reduction", level: "L3 verified",  status: "verified",  hours: 14, circle: "Soweto Green", date: "Apr 2026", note: "also peer-verified 2 others" },
+  { title: "Stormwater Monitoring",     category: "Water & Land",    level: "L2 verified",  status: "verified",  hours: 8,  circle: "Soweto Green", date: "Mar 2026" },
+  { title: "Tree Canopy Survey",        category: "Biodiversity",    level: "L1 submitted", status: "submitted", hours: 5,  circle: "EcoJozi",      date: "Mar 2026" },
+  { title: "Plastic Audit — Market St", category: "Waste Reduction", level: "L2 verified",  status: "verified",  hours: 6,  circle: "Soweto Green", date: "Feb 2026", note: "peer-verified 1 other" },
 ];
 
-const settingsItems = ["Profile", "Account Details", "Notifications", "Location", "Settings"];
+const settingsItems = ["Account Details", "Notifications", "Location", "Settings"];
+
+function formatJoinDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  const meta = user?.user_metadata;
+  const fullName =
+    [meta?.firstName, meta?.lastName].filter(Boolean).join(" ") ||
+    user?.email ||
+    "Guardian";
+  const joinDate = user?.created_at ? formatJoinDate(user.created_at) : "";
+
   return (
     <div className="flex flex-col min-h-full bg-white">
 
@@ -70,20 +93,28 @@ export default function ProfilePage() {
           alt="Guardians logo"
           className="w-8 h-8 object-contain"
         />
-        <X size={20} className="opacity-30 text-black" />
+        <button onClick={() => router.back()} aria-label="Close">
+          <X size={20} className="opacity-30 text-black" />
+        </button>
       </div>
 
       {/* Identity */}
       <div className="flex flex-col items-center gap-1 pb-8 pt-2">
-        <div className="w-30 h-30 rounded-full bg-surface border-2 border-border flex items-center justify-center mb-3">
-          <User size={48} className="text-text-muted" />
+        <div className="w-30 h-30 rounded-full bg-surface border-2 border-border flex items-center justify-center mb-3 overflow-hidden">
+          {meta?.avatarUrl ? (
+            <img src={meta.avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+          ) : (
+            <User size={48} className="text-text-muted" />
+          )}
         </div>
-        <h1 className="text-[32px] font-bold text-black leading-tight">Sean Wilson</h1>
+        <h1 className="text-[32px] font-bold text-black leading-tight">{fullName}</h1>
         <p className="text-base font-medium text-text-muted mt-0.5">Guardian, Facilitator</p>
-        <p className="text-base text-text-secondary">Joined 6 March 2026</p>
+        {joinDate && (
+          <p className="text-base text-text-secondary">Joined {joinDate}</p>
+        )}
       </div>
 
-      {/* Impact stats — flat 2-col grid with dividers */}
+      {/* Impact stats */}
       <div className="px-7.5">
         {[0, 1, 2].map((row) => (
           <div key={row} className="flex">
@@ -171,6 +202,15 @@ export default function ProfilePage() {
             <ChevronRight size={20} className="text-text-muted" />
           </div>
         ))}
+
+        {/* Logout */}
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 w-full px-7.5 py-6 border-b border-progress-track"
+        >
+          <LogOut size={18} className="text-red-500" />
+          <span className="text-base font-medium text-red-500">Log Out</span>
+        </button>
       </div>
 
     </div>

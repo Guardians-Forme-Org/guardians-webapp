@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +32,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geist.variable} h-full`}>
-      <body className="h-full bg-white text-zinc-900 antialiased">{children}</body>
+      <body className="h-full bg-white text-zinc-900 antialiased">
+          <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
+        </body>
     </html>
   );
 }

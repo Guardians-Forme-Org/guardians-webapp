@@ -1,3 +1,6 @@
+"use client";
+
+import { useAuth } from "@/contexts/AuthContext";
 import SearchBar from "@/components/ui/SearchBar";
 import SectionHeader from "@/components/ui/SectionHeader";
 import ChallengeCard, { type Challenge } from "../components/ChallengeCard";
@@ -40,12 +43,20 @@ const badgeStats = [
 const activityStats = [
   { label: "Challenges", value: "4" },
   { label: "Circles", value: "2" },
+  { label: "", value: "" },
 ];
 
 export default function HomeScreen() {
+  const { user } = useAuth();
+
+  const displayName =
+    user?.user_metadata.firstName ||
+    user?.email?.split("@")[0] ||
+    "Guardian";
+
   return (
     <div className="flex flex-col min-h-full bg-white gap-4">
-      <HomeHeader name="Linda" hasNotification />
+      <HomeHeader name={displayName} hasNotification />
       <SearchBar />
       <LocationPill city="Brive-la-Gaillarde" country="France" />
 
@@ -73,7 +84,6 @@ export default function HomeScreen() {
           ))}
         </div>
       </section>
-
     </div>
   );
 }
