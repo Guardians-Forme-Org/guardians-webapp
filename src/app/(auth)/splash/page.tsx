@@ -37,7 +37,7 @@ export default function SplashPage() {
           />
           <div className="font-black leading-tight tracking-wide text-black uppercase">
             <p className="text-[28px]">
-              Guardians<sup className="text-base tracking-normal">s</sup>
+              Guardians
             </p>
             <p className="text-[14px] font-semibold tracking-[0.25em] -mt-1">of the</p>
             <p className="text-[28px]">Future</p>

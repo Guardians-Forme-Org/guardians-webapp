@@ -60,7 +60,6 @@ export default function LoginPage() {
           <div className="font-black leading-tight text-gotf-yellow uppercase">
             <p className="text-[40px]">
               Guardians
-              <sup className="text-xl font-black tracking-normal">s</sup>
             </p>
             <p className="text-[22px] font-semibold tracking-[0.3em] -mt-1">
               of the

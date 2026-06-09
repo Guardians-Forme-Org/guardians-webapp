@@ -35,7 +35,7 @@ export default function GetStartedPage() {
           />
           <div className="font-black leading-tight text-white uppercase">
             <p className="text-[28px]">
-              Guardians<sup className="text-base tracking-normal font-black">s</sup>
+              Guardians
             </p>
             <p className="text-[14px] font-semibold tracking-[0.25em] -mt-1">of the</p>
             <p className="text-[28px]">Future</p>
