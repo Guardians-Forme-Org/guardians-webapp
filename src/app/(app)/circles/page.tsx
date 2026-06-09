@@ -1,156 +1,143 @@
+"use client";
+
 import { MapPin, Plus, ChevronRight, Users } from "lucide-react";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/ui/PageHeader";
 import SearchBar from "@/components/ui/SearchBar";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Text from "@/components/ui/Text";
+import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
+import type { ApiCircle, CirclesListResponse } from "@/lib/types/circles";
 
-const myCircles = [
-  {
-    id: 1,
-    name: "Urban Greening",
-    location: "KwaZulu-Natal, Durban",
-    members: 24,
-    challenges: 3,
-    role: "Member",
-    color: "#003518",
-  },
-  {
-    id: 2,
-    name: "Urban Watch",
-    location: "Umoja 1, Nairobi",
-    members: 12,
-    challenges: 1,
-    role: "Facilitator",
-    color: "#1a4a2e",
-  },
-];
+// ── Circle card ───────────────────────────────────────────────────────────────
 
-const exploreCircles = [
-  {
-    id: 3,
-    name: "Eco Makers",
-    location: "Langa, Cape Town",
-    members: 34,
-    challenges: 5,
-    color: "#2d6a4f",
-  },
-  {
-    id: 4,
-    name: "Green Roots",
-    location: "Soweto, Johannesburg",
-    members: 67,
-    challenges: 8,
-    color: "#003518",
-  },
-  {
-    id: 5,
-    name: "River Keepers",
-    location: "Gaborone, Botswana",
-    members: 18,
-    challenges: 2,
-    color: "#1a4a2e",
-  },
-];
+function CircleCard({ circle, role }: { circle: ApiCircle; role?: string }) {
+  const location = circle.region.address || "—";
+
+  return (
+    <Link
+      href={`/circles/${circle.circleId}`}
+      className="flex items-center gap-3 bg-white rounded-2xl p-3.5 shadow-sm border border-border"
+    >
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-gotf-green">
+        {circle.bannerUrl ? (
+          <img src={circle.bannerUrl} alt={circle.name} className="w-full h-full object-cover rounded-xl" />
+        ) : (
+          <Users size={20} className="text-white" />
+        )}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <Text variant="subheading" className="font-semibold truncate">
+            {circle.name}
+          </Text>
+          {role && (
+            <span className="shrink-0 text-[10px] font-medium text-gotf-green bg-green-50 px-2 py-0.5 rounded-full capitalize">
+              {role.toLowerCase()}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1 text-text-muted mt-0.5">
+          <MapPin size={10} />
+          <Text variant="label" className="truncate normal-case tracking-normal">
+            {location}
+          </Text>
+        </div>
+        <Text variant="label" className="normal-case tracking-normal mt-0.5">
+          {circle.members.length} members · {circle.challenges.length} challenges
+        </Text>
+      </div>
+
+      {role ? (
+        <ChevronRight size={16} className="text-text-muted shrink-0" />
+      ) : (
+        <button className="shrink-0 text-[11px] font-semibold text-gotf-green border border-gotf-green px-2.5 py-1 rounded-lg">
+          Join
+        </button>
+      )}
+    </Link>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function CirclesPage() {
+  const { user } = useAuth();
+  const { data: circles, isLoading, error } = useQuery({
+    queryKey: ["circles"],
+    queryFn: () => api.get<CirclesListResponse>("/circles"),
+  });
+
+  const myCircles = circles?.filter((c) =>
+    c.members.some((m) => m.userId === user?.id)
+  ) ?? [];
+
+  const exploreCircles = circles?.filter((c) =>
+    !c.members.some((m) => m.userId === user?.id)
+  ) ?? [];
+
   return (
     <div className="flex flex-col min-h-full bg-surface">
       <header className="bg-white border-b border-border">
         <PageHeader
           title="Circles"
           action={
-            <button className="flex items-center gap-1.5 bg-gotf-green text-white text-xs font-medium px-3 py-2 rounded-xl">
+            <Link
+              href="/circles/create"
+              className="flex items-center gap-1.5 bg-gotf-green text-white text-xs font-medium px-3 py-2 rounded-xl"
+            >
               <Plus size={13} />
               Create
-            </button>
+            </Link>
           }
         />
         <SearchBar placeholder="Search circles..." />
       </header>
 
       <div className="flex-1 px-5 py-5 space-y-6">
-        {/* My Circles */}
-        <section>
-          <SectionHeader title="My Circles" />
-          <div className="space-y-2.5">
-            {myCircles.map((c) => (
-              <a
-                key={c.id}
-                href={`/circles/${c.id}`}
-                className="flex items-center gap-3 bg-white rounded-2xl p-3.5 shadow-sm border border-border"
-              >
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: c.color }}
-                >
-                  <Users size={20} className="text-white" />
+        {isLoading && (
+          <p className="text-sm text-text-muted text-center pt-10">Loading circles…</p>
+        )}
+
+        {error && (
+          <p className="text-sm text-red-500 text-center pt-10">
+            {error instanceof Error ? error.message : "Failed to load circles."}
+          </p>
+        )}
+
+        {!isLoading && !error && (
+          <>
+            <section>
+              <SectionHeader title="My Circles" />
+              {myCircles.length === 0 ? (
+                <p className="text-sm text-text-muted">You haven&apos;t joined any circles yet.</p>
+              ) : (
+                <div className="space-y-2.5">
+                  {myCircles.map((c) => {
+                    const membership = c.members.find((m) => m.userId === user?.id);
+                    return (
+                      <CircleCard key={c.id} circle={c} role={membership?.role} />
+                    );
+                  })}
                 </div>
+              )}
+            </section>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Text variant="subheading" className="font-semibold truncate">
-                      {c.name}
-                    </Text>
-                    <span className="shrink-0 text-[10px] font-medium text-gotf-green bg-green-50 px-2 py-0.5 rounded-full">
-                      {c.role}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-text-muted mt-0.5">
-                    <MapPin size={10} />
-                    <Text variant="label" className="truncate normal-case tracking-normal">
-                      {c.location}
-                    </Text>
-                  </div>
-                  <Text variant="label" className="normal-case tracking-normal mt-0.5">
-                    {c.members} members · {c.challenges} challenges
-                  </Text>
+            {exploreCircles.length > 0 && (
+              <section>
+                <SectionHeader title="Explore Near You" />
+                <div className="space-y-2.5">
+                  {exploreCircles.map((c) => (
+                    <CircleCard key={c.id} circle={c} />
+                  ))}
                 </div>
-
-                <ChevronRight size={16} className="text-text-muted shrink-0" />
-              </a>
-            ))}
-          </div>
-        </section>
-
-        {/* Explore Near You */}
-        <section>
-          <SectionHeader title="Explore Near You" />
-          <div className="space-y-2.5">
-            {exploreCircles.map((c) => (
-              <a
-                key={c.id}
-                href={`/circles/${c.id}`}
-                className="flex items-center gap-3 bg-white rounded-2xl p-3.5 shadow-sm border border-border"
-              >
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: c.color }}
-                >
-                  <Users size={20} className="text-white" />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <Text variant="subheading" className="font-semibold truncate">
-                    {c.name}
-                  </Text>
-                  <div className="flex items-center gap-1 text-text-muted mt-0.5">
-                    <MapPin size={10} />
-                    <Text variant="label" className="truncate normal-case tracking-normal">
-                      {c.location}
-                    </Text>
-                  </div>
-                  <Text variant="label" className="normal-case tracking-normal mt-0.5">
-                    {c.members} members · {c.challenges} challenges
-                  </Text>
-                </div>
-
-                <button className="shrink-0 text-[11px] font-semibold text-gotf-green border border-gotf-green px-2.5 py-1 rounded-lg">
-                  Join
-                </button>
-              </a>
-            ))}
-          </div>
-        </section>
+              </section>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

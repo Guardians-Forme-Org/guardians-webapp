@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, MapPin } from "lucide-react";
 import SearchBar from "@/components/ui/SearchBar";
+import { api } from "@/lib/api";
+import type { CirclesListResponse } from "@/lib/types/circles";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -20,11 +23,12 @@ type ChallengeItem = {
 };
 
 type CircleItem = {
-  id: number;
+  id: string | number;
   name: string;
   since: string;
   location: string;
   members: number;
+  memberAvatars: string[];
   image?: string;
 };
 
@@ -37,21 +41,26 @@ const challenges: ChallengeItem[] = [
 ];
 
 const circles: CircleItem[] = [
-  { id: 1, name: "Green Urban Youth", since: "12 March",   location: "KwaZulu-Natal, Durban",    members: 24 },
-  { id: 2, name: "Urban Watch",       since: "1 December", location: "Umoja 1, Nairobi",         members: 12 },
-  { id: 3, name: "Eco Homes",         since: "24 February",location: "Langa, Cape Town",         members: 34 },
+  { id: 1, name: "Green Urban Youth", since: "12 March",    location: "KwaZulu-Natal, Durban", members: 24, memberAvatars: [] },
+  { id: 2, name: "Urban Watch",       since: "1 December",  location: "Umoja 1, Nairobi",      members: 12, memberAvatars: [] },
+  { id: 3, name: "Eco Homes",         since: "24 February", location: "Langa, Cape Town",      members: 34, memberAvatars: [] },
 ];
 
 // ── Avatar Stack ──────────────────────────────────────────────────────────────
 
-function AvatarStack() {
+function AvatarStack({ avatars }: { avatars: string[] }) {
+  const visible = avatars.slice(0, 5);
   return (
     <div className="flex items-center">
-      {Array.from({ length: 5 }).map((_, i) => (
+      {visible.map((url, i) => (
         <div
           key={i}
-          className={`size-8 rounded-full bg-[#d9d9d9] border-2 border-white ${i > 0 ? "-ml-4" : ""}`}
-        />
+          className={`size-8 rounded-full border-2 border-white overflow-hidden bg-[#d9d9d9] shrink-0 ${i > 0 ? "-ml-2" : ""}`}
+        >
+          {url ? (
+            <img src={url} alt="" className="w-full h-full object-cover" />
+          ) : null}
+        </div>
       ))}
     </div>
   );
@@ -87,7 +96,7 @@ function ChallengeCard({ item }: { item: ChallengeItem }) {
           <p className="text-[14px] text-text-muted">
             <span className="font-bold">{item.guardians}</span> Guardians
           </p>
-          <AvatarStack />
+          <AvatarStack avatars={[]} />
         </div>
       </div>
     </Link>
@@ -122,7 +131,7 @@ function CircleCard({ item }: { item: CircleItem }) {
           <p className="text-[14px] text-text-muted">
             <span className="font-bold">{item.members}</span> Members
           </p>
-          <AvatarStack />
+          <AvatarStack avatars={item.memberAvatars} />
         </div>
       </div>
     </Link>
@@ -133,6 +142,11 @@ function CircleCard({ item }: { item: CircleItem }) {
 
 export default function DiscoverScreen() {
   const [tab, setTab] = useState<Tab>("challenges");
+
+  const { data: apiCircles, isLoading: circlesLoading } = useQuery({
+    queryKey: ["circles"],
+    queryFn: () => api.get<CirclesListResponse>("/circles"),
+  });
 
   return (
     <div className="flex flex-col min-h-full bg-white">
@@ -180,7 +194,22 @@ export default function DiscoverScreen() {
       <div className="px-5 flex flex-col gap-4 pb-8">
         {tab === "challenges"
           ? challenges.map((c) => <ChallengeCard key={c.id} item={c} />)
-          : circles.map((c) => <CircleCard key={c.id} item={c} />)
+          : circlesLoading
+            ? <p className="text-sm text-text-muted text-center pt-6">Loading circles…</p>
+            : (apiCircles ?? []).map((c) => (
+                <CircleCard
+                  key={c.id}
+                  item={{
+                    id: c.circleId,
+                    name: c.name,
+                    since: new Date(c.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" }),
+                    location: c.region.address || "—",
+                    members: c.members.length,
+                    memberAvatars: c.members.map((m) => m.avatarUrl),
+                    image: c.bannerUrl || undefined,
+                  }}
+                />
+              ))
         }
       </div>
 

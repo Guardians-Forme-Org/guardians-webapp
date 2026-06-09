@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   X,
   Search,
-  MapPin,
   Link2,
   Download,
   Image as ImageIcon,
@@ -14,6 +13,8 @@ import {
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateCircle } from "@/lib/hooks/circles";
+import type { CreateCircleResponse } from "@/lib/types/circles";
+import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
 
 // ── Form state ─────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ type CircleFormData = {
   name: string;
   leads: string;
   description: string;
+  channelLink: string;
   region: string;
   imagePreview: string;
 };
@@ -29,6 +31,7 @@ const initialForm: CircleFormData = {
   name: "",
   leads: "",
   description: "",
+  channelLink: "",
   region: "",
   imagePreview: "",
 };
@@ -189,6 +192,27 @@ function Step1({
             className="border border-[#d9d9d9] rounded-[8px] px-4 py-5 text-base placeholder:text-[#bfbfbf] outline-none resize-none"
           />
         </div>
+
+        {/* Communication Channel Link */}
+        <div className="flex flex-col gap-2">
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            Communication Channel Link{" "}
+            <span className="text-[rgba(60,60,67,0.29)] font-normal">(Optional)</span>
+          </label>
+          <div className="relative">
+            <input
+              type="url"
+              value={form.channelLink}
+              onChange={(e) => onChange("channelLink", e.target.value)}
+              placeholder="e.g. WhatsApp, Telegram, Slack link"
+              className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
+            />
+            <Link2
+              size={16}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+            />
+          </div>
+        </div>
       </div>
     </>
   );
@@ -197,11 +221,11 @@ function Step1({
 // ── Step 2 — Location ─────────────────────────────────────────────────────────
 
 function Step2({
-  form,
-  onChange,
+  location,
+  onSelect,
 }: {
-  form: CircleFormData;
-  onChange: (f: keyof CircleFormData, v: string) => void;
+  location: LocationResult | null;
+  onSelect: (place: LocationResult) => void;
 }) {
   return (
     <>
@@ -212,41 +236,41 @@ function Step2({
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
             Region
           </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={form.region}
-              onChange={(e) => onChange("region", e.target.value)}
-              placeholder="Search for your location"
-              className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
-            />
-            <Search
-              size={16}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-            />
-          </div>
+          <LocationPicker
+            defaultValue={location?.formattedAddress}
+            onSelect={onSelect}
+            placeholder="Search for your location"
+          />
         </div>
 
-        {/* Map placeholder */}
-        <div className="border border-[#ccc] rounded-[10px] h-[274px] overflow-hidden flex items-center justify-center relative bg-[#eef4ee]">
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage:
-                "linear-gradient(#c8d8c8 1px, transparent 1px), linear-gradient(90deg, #c8d8c8 1px, transparent 1px)",
-              backgroundSize: "40px 40px",
-            }}
-          />
-          <div className="relative z-10 flex flex-col items-center gap-2">
-            <div className="size-10 rounded-full bg-white shadow-sm flex items-center justify-center">
-              <MapPin size={22} className="text-gotf-green" fill="#e8f7f0" strokeWidth={2} />
-            </div>
-            <div className="bg-white/90 rounded-full px-3 py-1">
-              <Text variant="caption" className="text-text-subheading">
-                {form.region || "Select a location"}
-              </Text>
-            </div>
-          </div>
+        {/* Map */}
+        <div className="border border-[#ccc] rounded-[10px] h-[274px] overflow-hidden relative bg-[#eef4ee]">
+          {location ? (
+            <img
+              src={`https://maps.googleapis.com/maps/api/staticmap?center=${location.latitude},${location.longitude}&zoom=14&size=600x274&scale=2&markers=color:0x003518|${location.latitude},${location.longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
+              alt={location.formattedAddress}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <>
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(#c8d8c8 1px, transparent 1px), linear-gradient(90deg, #c8d8c8 1px, transparent 1px)",
+                  backgroundSize: "40px 40px",
+                }}
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                <div className="size-10 rounded-full bg-white shadow-sm flex items-center justify-center">
+                  <Text variant="caption" className="text-gotf-green text-xl">📍</Text>
+                </div>
+                <div className="bg-white/90 rounded-full px-3 py-1">
+                  <Text variant="caption" className="text-text-subheading">Select a location</Text>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>
@@ -349,12 +373,20 @@ function Step3({
 
 // ── Step 4 — Done ─────────────────────────────────────────────────────────────
 
-function Step4({ onDone }: { onDone: () => void }) {
+function Step4({
+  circleName,
+  joinLink,
+  onDone,
+}: {
+  circleName: string;
+  joinLink: string;
+  onDone: () => void;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText("http:link/CircleX");
+      await navigator.clipboard.writeText(joinLink);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -364,7 +396,7 @@ function Step4({ onDone }: { onDone: () => void }) {
 
   const handleShare = async () => {
     try {
-      await navigator.share({ url: "http:link/CircleX", title: "Join my Circle on Guardians" });
+      await navigator.share({ url: joinLink, title: `Join ${circleName} on Guardians` });
     } catch {
       // not supported or dismissed
     }
@@ -372,7 +404,6 @@ function Step4({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-dvh bg-white overflow-hidden">
-      {/* Concentric mint circles */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[560px] rounded-full border border-[#e0f5ee] pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[420px] rounded-full bg-[#edfaf4] pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[290px] rounded-full bg-[#d8f5e9] pointer-events-none" />
@@ -384,7 +415,7 @@ function Step4({ onDone }: { onDone: () => void }) {
           alt="Guardians"
           className="w-12 h-12 object-contain mb-4"
         />
-        <h1 className="text-[32px] font-bold text-gotf-green mb-3">Circle created</h1>
+        <h1 className="text-[32px] font-bold text-gotf-green mb-3">{circleName}</h1>
         <p className="text-[18px] text-[#333] mb-8 max-w-[288px] leading-snug">
           Copy and share this link to invite people to join this circle
         </p>
@@ -395,11 +426,11 @@ function Step4({ onDone }: { onDone: () => void }) {
           className="flex items-center gap-5 w-full max-w-[322px] border border-[#ccc] rounded-[10px] px-10 py-5 mb-3 text-left"
         >
           <Link2 size={20} className="text-text-primary shrink-0" />
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 min-w-0">
             <span className="text-base font-bold text-black">
               {copied ? "Copied!" : "Copy invitation link"}
             </span>
-            <span className="text-base text-[#bfbfbf]">http:link/CircleX</span>
+            <span className="text-base text-[#bfbfbf] truncate">{joinLink}</span>
           </div>
         </button>
 
@@ -434,6 +465,8 @@ export default function CreateCircleWizard() {
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<CircleFormData>(initialForm);
+  const [location, setLocation] = useState<LocationResult | null>(null);
+  const [createdCircle, setCreatedCircle] = useState<CreateCircleResponse | null>(null);
 
   const next = () => setStep((s) => Math.min(s + 1, 4));
   const back = () => {
@@ -452,15 +485,32 @@ export default function CreateCircleWizard() {
         description: form.description,
         createdBy: user.id,
         creatorAvatarUrl: user.user_metadata.avatarUrl,
-        region: { name: form.region, latitude: 0, longitude: 0 },
+        channelLink: form.channelLink,
+        region: {
+          placeId: location?.placeId ?? "",
+          city: location?.city ?? "",
+          suburb: location?.suburb ?? "",
+          province: location?.province ?? "",
+          country: location?.country ?? "",
+          countryCode: location?.countryCode ?? "",
+          postalCode: location?.postalCode ?? "",
+          latitude: location?.latitude ?? 0,
+          longitude: location?.longitude ?? 0,
+          formattedAddress: location?.formattedAddress ?? "",
+        },
       },
-      { onSuccess: next }
+      {
+        onSuccess: (response) => {
+          setCreatedCircle(response);
+          next();
+        },
+      }
     );
   };
 
   const submitError = apiError instanceof Error ? apiError.message : null;
 
-  if (step === 4) {
+  if (step === 4 && createdCircle) {
     return (
       <div className="relative min-h-dvh">
         <div className="absolute top-8 left-10 z-20">
@@ -473,7 +523,11 @@ export default function CreateCircleWizard() {
             <X size={20} className="text-text-muted" />
           </button>
         </div>
-        <Step4 onDone={close} />
+        <Step4
+          circleName={createdCircle.name}
+          joinLink={createdCircle.joinLink}
+          onDone={close}
+        />
       </div>
     );
   }
@@ -484,7 +538,7 @@ export default function CreateCircleWizard() {
 
       <div className="flex-1 overflow-y-auto">
         {step === 1 && <Step1 form={form} onChange={updateForm} />}
-        {step === 2 && <Step2 form={form} onChange={updateForm} />}
+        {step === 2 && <Step2 location={location} onSelect={setLocation} />}
         {step === 3 && (
           <Step3
             form={form}

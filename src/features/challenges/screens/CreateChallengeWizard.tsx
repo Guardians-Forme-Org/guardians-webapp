@@ -16,6 +16,7 @@ import {
 import SearchBar from "@/components/ui/SearchBar";
 import Text from "@/components/ui/Text";
 import { challenges } from "../data";
+import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
 
 // ── Static data ────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ type FormData = {
   supportedBy: string;
   facilitatorId: string;
   channel: Channel;
+  channelLink: string;
 };
 
 const initialForm: FormData = {
@@ -65,6 +67,7 @@ const initialForm: FormData = {
   supportedBy: "",
   facilitatorId: "",
   channel: "whatsapp",
+  channelLink: "",
 };
 
 // ── Progress bar ───────────────────────────────────────────────────────────────
@@ -258,9 +261,13 @@ function Step2({ form }: { form: FormData }) {
 function Step3({
   form,
   onChange,
+  location,
+  onLocationSelect,
 }: {
   form: FormData;
   onChange: (field: keyof FormData, value: string) => void;
+  location: LocationResult | null;
+  onLocationSelect: (place: LocationResult) => void;
 }) {
   return (
     <>
@@ -290,16 +297,11 @@ function Step3({
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
             Region
           </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={form.region}
-              onChange={(e) => onChange("region", e.target.value)}
-              placeholder="Where is this challenge located?"
-              className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#737373] outline-none"
-            />
-            <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
-          </div>
+          <LocationPicker
+            defaultValue={location?.formattedAddress}
+            onSelect={onLocationSelect}
+            placeholder="Where is this challenge located?"
+          />
         </div>
 
         {/* Description */}
@@ -407,10 +409,12 @@ function Step4({
 
 function Step5({
   form,
-  onChange,
+  onChannelChange,
+  onLinkChange,
 }: {
   form: FormData;
-  onChange: (ch: Channel) => void;
+  onChannelChange: (ch: Channel) => void;
+  onLinkChange: (v: string) => void;
 }) {
   return (
     <>
@@ -426,7 +430,7 @@ function Step5({
           return (
             <button
               key={id}
-              onClick={() => onChange(id)}
+              onClick={() => onChannelChange(id)}
               className={`flex items-center justify-between h-[50px] px-5 rounded-[8px] border transition-colors ${
                 selected ? "border-gotf-green" : "border-border"
               }`}
@@ -439,6 +443,20 @@ function Step5({
             </button>
           );
         })}
+      </div>
+
+      <div className="flex flex-col gap-2 px-10 mt-7">
+        <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+          Communication Channel Link{" "}
+          <span className="text-[rgba(60,60,67,0.29)] font-normal">(Optional)</span>
+        </label>
+        <input
+          type="url"
+          value={form.channelLink}
+          onChange={(e) => onLinkChange(e.target.value)}
+          placeholder="Paste your group or channel link"
+          className="h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 text-base placeholder:text-[#bfbfbf] outline-none"
+        />
       </div>
     </>
   );
@@ -656,6 +674,7 @@ export default function CreateChallengeWizard() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>(initialForm);
+  const [location, setLocation] = useState<LocationResult | null>(null);
 
   const next = () => setStep((s) => Math.min(s + 1, 7));
   const back = () => {
@@ -681,7 +700,14 @@ export default function CreateChallengeWizard() {
           />
         )}
         {step === 2 && <Step2 form={form} />}
-        {step === 3 && <Step3 form={form} onChange={updateForm} />}
+        {step === 3 && (
+          <Step3
+            form={form}
+            onChange={updateForm}
+            location={location}
+            onLocationSelect={setLocation}
+          />
+        )}
         {step === 4 && (
           <Step4
             form={form}
@@ -691,7 +717,8 @@ export default function CreateChallengeWizard() {
         {step === 5 && (
           <Step5
             form={form}
-            onChange={(ch) => updateForm("channel", ch)}
+            onChannelChange={(ch) => updateForm("channel", ch)}
+            onLinkChange={(v) => updateForm("channelLink", v)}
           />
         )}
         {step === 6 && <Step6 form={form} onPublish={next} />}

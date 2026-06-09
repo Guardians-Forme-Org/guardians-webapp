@@ -1,6 +1,13 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { CreateCircleRequest, CreateCircleResponse } from "@/lib/types/circles";
+import type { CreateCircleRequest, CreateCircleResponse, CirclesListResponse } from "@/lib/types/circles";
+
+export function useCircles() {
+  return useQuery({
+    queryKey: ["circles"],
+    queryFn: () => api.get<CirclesListResponse>("/circles"),
+  });
+}
 
 export function useCreateCircle() {
   return useMutation({
