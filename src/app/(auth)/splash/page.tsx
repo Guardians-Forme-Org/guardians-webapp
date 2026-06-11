@@ -29,19 +29,12 @@ export default function SplashPage() {
         />
       ) : (
         /* Splash 2 — white + wordmark */
-        <div className="flex items-center gap-4">
+        <div>
           <img
-            src="/images/Guardians Logo-logo.png"
-            alt=""
-            className="w-[70px] h-[70px] object-contain"
+            src="/images/Guardians Logo-full.png"
+            alt="Guardians of the Future"
+            className="w-56 object-contain"
           />
-          <div className="font-black leading-tight tracking-wide text-black uppercase">
-            <p className="text-[28px]">
-              Guardians
-            </p>
-            <p className="text-[14px] font-semibold tracking-[0.25em] -mt-1">of the</p>
-            <p className="text-[28px]">Future</p>
-          </div>
         </div>
       )}
     </div>
