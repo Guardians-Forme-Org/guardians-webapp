@@ -24,11 +24,6 @@ type Props = {
   className?: string;
 };
 
-setOptions({
-  key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
-  v: "weekly",
-});
-
 function extractLocation(place: google.maps.places.PlaceResult): LocationResult | null {
   if (!place.geometry?.location) return null;
 
@@ -71,6 +66,11 @@ export default function LocationPicker({
   const [display, setDisplay] = useState(defaultValue);
 
   useEffect(() => {
+    setOptions({
+      key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
+      v: "weekly",
+    });
+
     let autocomplete: google.maps.places.Autocomplete;
 
     importLibrary("places").then(({ Autocomplete }) => {
