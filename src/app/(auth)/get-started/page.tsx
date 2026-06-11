@@ -1,15 +1,21 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 export default function GetStartedPage() {
+  const [bgLoaded, setBgLoaded] = useState(false);
+
   return (
     <div className="min-h-dvh flex flex-col bg-white">
       {/* Hero */}
-      <div className="relative flex-1 overflow-hidden flex items-center justify-center">
+      <div className="relative flex-1 overflow-hidden flex items-center justify-center bg-[#013818]">
         <img
           src="/images/get-started.png"
           alt=""
           aria-hidden
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          onLoad={() => setBgLoaded(true)}
+          className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-300 ${bgLoaded ? "opacity-100" : "opacity-0"}`}
         />
 
         {/* Bottom fade to white */}

@@ -94,9 +94,11 @@ function SlideIcon({
 export default function OnboardingPage() {
   const router = useRouter();
   const [idx, setIdx] = useState(0);
+  const [bgLoaded, setBgLoaded] = useState(false);
   const slide = slides[idx];
 
   const next = () => {
+    setBgLoaded(false);
     if (idx < slides.length - 1) setIdx((i) => i + 1);
     else router.push("/get-started");
   };
@@ -119,7 +121,8 @@ export default function OnboardingPage() {
             src={slide.bgImage}
             alt=""
             aria-hidden
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            onLoad={() => setBgLoaded(true)}
+            className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-300 ${bgLoaded ? "opacity-100" : "opacity-0"}`}
           />
           <div className="absolute inset-0 bg-black/20" />
         </>
