@@ -19,8 +19,7 @@ export default function LoginPage() {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const error =
-    validationError ??
-    (apiError instanceof Error ? apiError.message : null);
+    validationError ?? (apiError instanceof Error ? apiError.message : null);
 
   const handleLogin = () => {
     if (!credential.trim() || !password.trim()) {
@@ -30,16 +29,23 @@ export default function LoginPage() {
     setValidationError(null);
     login(
       { emailOrMobile: credential.trim(), password },
-      { onSuccess: () => router.push("/home") }
+      { onSuccess: () => router.push("/home") },
     );
   };
 
   return (
-    <div className="min-h-dvh flex flex-col bg-gotf-green">
-      {/* Top — dark green section */}
-      <div className="relative flex-1 flex flex-col">
+    <div className="min-h-dvh flex flex-col bg-[#013818]">
+      {/* Top — hero section */}
+      <div className="relative flex-1 flex flex-col overflow-hidden">
+        <img
+          src="/images/get-started.png"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        />
+
         {/* Logo + Close */}
-        <div className="flex items-center justify-between px-10 pt-10">
+        <div className="relative z-10 flex items-center justify-between px-10 pt-10">
           <img
             src="/images/Guardians Logo-logo.png"
             alt=""
@@ -56,16 +62,12 @@ export default function LoginPage() {
         </div>
 
         {/* Wordmark */}
-        <div className="px-10 mt-8">
-          <div className="font-black leading-tight text-gotf-yellow uppercase">
-            <p className="text-[40px]">
-              Guardians
-            </p>
-            <p className="text-[22px] font-semibold tracking-[0.3em] -mt-1">
-              of the
-            </p>
-            <p className="text-[40px]">Future</p>
-          </div>
+        <div className="relative z-10 px-10 mt-8">
+          <img
+            src="/images/Guardians Logo-word-white.png"
+            alt="Guardians of the Future"
+            className="w-[99%] object-contain translate-y-1/2"
+          />
         </div>
       </div>
 
@@ -79,7 +81,10 @@ export default function LoginPage() {
           <input
             type={mode === "email" ? "email" : "tel"}
             value={credential}
-            onChange={(e) => { setCredential(e.target.value); setValidationError(null); }}
+            onChange={(e) => {
+              setCredential(e.target.value);
+              setValidationError(null);
+            }}
             placeholder={
               mode === "mobile"
                 ? "Enter your phone number"
@@ -98,7 +103,10 @@ export default function LoginPage() {
             <input
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => { setPassword(e.target.value); setValidationError(null); }}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setValidationError(null);
+              }}
               onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               placeholder="Enter your password"
               className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#9a9898] outline-none"

@@ -346,9 +346,12 @@ function Step3({
 function Step4({ onDone }: { onDone: () => void }) {
   return (
     <div className="relative min-h-dvh bg-white flex flex-col items-center justify-center overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[560px] rounded-full border border-[#e0f5ee] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[420px] rounded-full bg-[#edfaf4] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[290px] rounded-full bg-[#d8f5e9] pointer-events-none" />
+      <img
+        src="/images/success-logo.png"
+        alt=""
+        aria-hidden
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full pointer-events-none"
+      />
 
       <div className="relative z-10 flex flex-col items-center text-center gap-4 px-10">
         <img src="/images/Guardians Logo-logo.png" alt="" className="w-12 h-12 object-contain mb-2" />

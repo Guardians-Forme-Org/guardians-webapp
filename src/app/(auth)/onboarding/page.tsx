@@ -1,44 +1,93 @@
 "use client";
 
-import { useState } from "react";
+import { type LucideIcon, ArrowRight, Leaf, Waves, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, X, Leaf, Waves } from "lucide-react";
+import { useState } from "react";
+
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+type Slide = {
+  bg: string;
+  bgImage?: string;
+  iconSrc?: string;
+  Icon?: LucideIcon;
+  iconAlign: "left" | "center";
+  iconPosition: "before-text" | "after-text";
+  textPosition: "top" | "bottom";
+  title: [string, string];
+  body: string;
+  cta: boolean;
+};
 
 // ── Slide data ─────────────────────────────────────────────────────────────────
 
-const slides = [
+const slides: Slide[] = [
   {
-    bg: "#003818",
-    gradient: "linear-gradient(170deg, #003818 0%, #004d20 60%, #003010 100%)",
+    bg: "#013818",
+    bgImage: "/images/onb1.png",
     Icon: Leaf,
-    customIcon: null,
+    iconAlign: "center",
+    iconPosition: "after-text",
+    textPosition: "top",
     title: ["Become a", "Guardian"],
     body: "Turn your eco-intentions into real-world impact. Join a global community taking measurable action to protect our shared home, footprint by footprint.",
     cta: false,
   },
   {
-    bg: "#001440",
-    gradient: "linear-gradient(170deg, #00113a 0%, #001f5c 50%, #000c28 100%)",
+    bg: "#2C709B",
+    bgImage: "/images/onb2.png",
     Icon: Waves,
-    customIcon: null,
+    iconAlign: "left",
+    iconPosition: "before-text",
+    textPosition: "bottom",
     title: ["Act", "Together"],
     body: "Team up in Circles to tackle clear environmental challenges. Together, structure drives real change.",
     cta: false,
   },
   {
-    bg: "#c87020",
-    gradient: "linear-gradient(170deg, #d47a25 0%, #c06818 60%, #a85510 100%)",
-    Icon: null,
-    customIcon: (
-      <svg width="44" height="32" viewBox="0 0 44 32" fill="none">
-        <path d="M2 30 Q22 2 42 30" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none" />
-      </svg>
-    ),
+    bg: "#FD9742",
+    bgImage: "/images/onb3.png",
+    Icon: Leaf,
+    iconAlign: "center",
+    iconPosition: "before-text",
+    textPosition: "bottom",
     title: ["Have an", "Impact"],
     body: "Complete challenges, log simple evidence, and see your verified efforts fuel your Circle's goals.",
     cta: true,
   },
-] as const;
+];
+
+// ── Icon renderer ──────────────────────────────────────────────────────────────
+
+function SlideIcon({
+  slide,
+  position,
+}: {
+  slide: Slide;
+  position: "before-text" | "after-text";
+}) {
+  const { iconSrc, Icon, iconAlign } = slide;
+  if (!iconSrc && !Icon) return null;
+
+  const margin = position === "before-text" ? "mb-7" : "mt-7";
+  const wrapper =
+    iconAlign === "center" ? `${margin} flex justify-center` : margin;
+
+  if (iconSrc) {
+    return (
+      <div className={wrapper}>
+        <img src={iconSrc} alt="" className="w-10 h-10 object-contain" />
+      </div>
+    );
+  }
+
+  const Comp = Icon!;
+  return (
+    <div className={wrapper}>
+      <Comp size={40} className="text-white" strokeWidth={1.5} />
+    </div>
+  );
+}
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
@@ -54,15 +103,30 @@ export default function OnboardingPage() {
 
   const skip = () => router.push("/get-started");
 
-  const { Icon, customIcon } = slide;
+  const contentClass =
+    slide.textPosition === "top"
+      ? "relative z-10 flex-1 flex flex-col px-10 pt-12"
+      : "relative z-10 flex-1 flex flex-col justify-end px-10 pb-10";
 
   return (
     <div
-      className="min-h-dvh relative flex flex-col select-none"
-      style={{ background: slide.gradient }}
+      className="min-h-dvh relative flex flex-col select-none overflow-hidden"
+      style={{ backgroundColor: slide.bg }}
     >
+      {slide.bgImage && (
+        <>
+          <img
+            src={slide.bgImage}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          />
+          <div className="absolute inset-0 bg-black/20" />
+        </>
+      )}
+
       {/* Header */}
-      <div className="flex items-center justify-between px-10 pt-10">
+      <div className="relative z-10 flex items-center justify-between px-10 pt-10">
         <img
           src="/images/Guardians Logo-logo.png"
           alt=""
@@ -75,11 +139,9 @@ export default function OnboardingPage() {
       </div>
 
       {/* Slide content */}
-      <div className="flex-1 px-10 pt-12">
-        {Icon ? (
-          <Icon size={40} className="text-white mb-7" strokeWidth={1.5} />
-        ) : (
-          <div className="mb-7">{customIcon}</div>
+      <div className={contentClass}>
+        {slide.iconPosition === "before-text" && (
+          <SlideIcon slide={slide} position="before-text" />
         )}
 
         <h1 className="text-[60px] font-bold text-white leading-[1.05]">
@@ -88,17 +150,21 @@ export default function OnboardingPage() {
           {slide.title[1]}
         </h1>
 
-        <p className="text-[#e6e6e6] text-xl mt-6 leading-relaxed tracking-[0.2px] w-[322px]">
+        <p className="text-[#e6e6e6] text-xl mt-6 leading-relaxed tracking-[0.2px] w-80.5">
           {slide.body}
         </p>
+
+        {slide.iconPosition === "after-text" && (
+          <SlideIcon slide={slide} position="after-text" />
+        )}
       </div>
 
       {/* Bottom actions */}
-      <div className="flex flex-col items-center gap-5 pb-16 px-5">
+      <div className="relative z-20 flex flex-col items-center gap-8 pb-16 pt-8 px-5">
         {slide.cta ? (
           <button
             onClick={next}
-            className="w-[338px] h-14 rounded-full text-white text-xl font-medium"
+            className="w-84.5 h-14 rounded-full text-white text-xl font-medium"
             style={{ backgroundColor: "#fd9742" }}
           >
             Get Started
@@ -119,8 +185,9 @@ export default function OnboardingPage() {
             <div
               key={i}
               className={`rounded-full transition-all duration-300 ${
-                i === idx ? "w-7 h-2.5 bg-white" : "size-2.5 bg-white/40"
+                i === idx ? "w-7 h-2.5" : "size-2.5 bg-white/40"
               }`}
+              style={{ backgroundColor: i === idx ? slides[i].bg : "" }}
             />
           ))}
         </div>

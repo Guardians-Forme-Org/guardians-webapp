@@ -627,10 +627,7 @@ function Step6({
 function Step7({ onDone }: { onDone: () => void }) {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-dvh bg-white overflow-hidden">
-      {/* Concentric mint circles */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[560px] rounded-full border border-[#e0f5ee] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[420px] rounded-full bg-[#edfaf4] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[290px] rounded-full bg-[#d8f5e9] pointer-events-none" />
+      <img src="/images/success-logo.png" alt="" aria-hidden className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center px-10">
