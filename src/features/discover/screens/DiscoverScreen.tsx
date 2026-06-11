@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, MapPin } from "lucide-react";
 import SearchBar from "@/components/ui/SearchBar";
@@ -40,12 +41,6 @@ const challenges: ChallengeItem[] = [
   { id: 3, title: "Change Tracking",  since: "24 February", circle: "Eco Homes",         progress: 68, guardians: 38 },
 ];
 
-const circles: CircleItem[] = [
-  { id: 1, name: "Green Urban Youth", since: "12 March",    location: "KwaZulu-Natal, Durban", members: 24, memberAvatars: [] },
-  { id: 2, name: "Urban Watch",       since: "1 December",  location: "Umoja 1, Nairobi",      members: 12, memberAvatars: [] },
-  { id: 3, name: "Eco Homes",         since: "24 February", location: "Langa, Cape Town",      members: 34, memberAvatars: [] },
-];
-
 // ── Avatar Stack ──────────────────────────────────────────────────────────────
 
 function AvatarStack({ avatars }: { avatars: string[] }) {
@@ -72,10 +67,12 @@ function ChallengeCard({ item }: { item: ChallengeItem }) {
   return (
     <Link href={`/challenges/${item.id}`} className="flex h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white">
       {/* Left image strip */}
-      <div className="w-[120px] shrink-0 bg-surface">
-        {item.image && (
-          <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-        )}
+      <div className="w-[120px] shrink-0 bg-surface flex items-center justify-center">
+        <img
+          src={item.image || "/images/Guardians Logo-full.png"}
+          alt={item.title}
+          className={item.image ? "w-full h-full object-cover" : "w-16 h-16 object-contain opacity-20"}
+        />
       </div>
 
       {/* Right content */}
@@ -109,10 +106,12 @@ function CircleCard({ item }: { item: CircleItem }) {
   return (
     <Link href={`/circles/${item.id}`} className="flex h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white">
       {/* Left image strip */}
-      <div className="w-[120px] shrink-0 bg-surface">
-        {item.image && (
-          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-        )}
+      <div className="w-[120px] shrink-0 bg-surface flex items-center justify-center">
+        <img
+          src={item.image || "/images/Guardians Logo-logo.png"}
+          alt={item.name}
+          className={item.image ? "w-full h-full object-cover" : "w-14 h-14 object-contain opacity-20"}
+        />
       </div>
 
       {/* Right content */}
@@ -141,12 +140,19 @@ function CircleCard({ item }: { item: CircleItem }) {
 // ── Main Screen ────────────────────────────────────────────────────────────────
 
 export default function DiscoverScreen() {
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>("challenges");
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
 
   const { data: apiCircles, isLoading: circlesLoading } = useQuery({
     queryKey: ["circles"],
     queryFn: () => api.get<CirclesListResponse>("/circles"),
   });
+
+  const lq = query.toLowerCase();
+  const filteredChallenges = challenges.filter(
+    (c) => !lq || c.title.toLowerCase().includes(lq) || c.circle.toLowerCase().includes(lq),
+  );
 
   return (
     <div className="flex flex-col min-h-full bg-white">
@@ -177,7 +183,9 @@ export default function DiscoverScreen() {
 
       {/* Search */}
       <SearchBar
+        defaultValue={query}
         placeholder={tab === "challenges" ? "Find challenges near you" : "Find circles near you"}
+        onSubmit={setQuery}
       />
 
       {/* Create CTA */}
@@ -193,23 +201,25 @@ export default function DiscoverScreen() {
       {/* Cards */}
       <div className="px-5 flex flex-col gap-4 pb-8">
         {tab === "challenges"
-          ? challenges.map((c) => <ChallengeCard key={c.id} item={c} />)
+          ? filteredChallenges.map((c) => <ChallengeCard key={c.id} item={c} />)
           : circlesLoading
             ? <p className="text-sm text-text-muted text-center pt-6">Loading circles…</p>
-            : (apiCircles ?? []).map((c) => (
-                <CircleCard
-                  key={c.id}
-                  item={{
-                    id: c.circleId,
-                    name: c.name,
-                    since: new Date(c.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" }),
-                    location: c.region.address || "—",
-                    members: c.members.length,
-                    memberAvatars: c.members.map((m) => m.avatarUrl),
-                    image: c.bannerUrl || undefined,
-                  }}
-                />
-              ))
+            : (apiCircles ?? [])
+                .filter((c) => !lq || c.name.toLowerCase().includes(lq))
+                .map((c) => (
+                  <CircleCard
+                    key={c.id}
+                    item={{
+                      id: c.circleId,
+                      name: c.name,
+                      since: new Date(c.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" }),
+                      location: c.region.address || "—",
+                      members: c.members.length,
+                      memberAvatars: c.members.map((m) => m.avatarUrl),
+                      image: c.bannerUrl || undefined,
+                    }}
+                  />
+                ))
         }
       </div>
 

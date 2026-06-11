@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
   X,
-  Search,
-  MapPin,
   Camera,
   Upload,
   AlertTriangle,
@@ -15,6 +13,7 @@ import {
   Minus,
   CheckCircle,
 } from "lucide-react";
+import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
 import Text from "@/components/ui/Text";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -28,9 +27,7 @@ type LogFormData = {
   permissionConfirmed: boolean;
   markComplete: boolean;
   // Step 2
-  location: string;
-  lat: string;
-  lng: string;
+  locationResult: LocationResult | null;
   baselinePhoto: string;
   plantingPhoto: string;
   // Step 3
@@ -277,107 +274,6 @@ function UploadZone({
   );
 }
 
-function MapWidget({
-  location,
-  lat,
-  lng,
-  onLocationChange,
-  onLatChange,
-  onLngChange,
-}: {
-  location: string;
-  lat: string;
-  lng: string;
-  onLocationChange: (v: string) => void;
-  onLatChange: (v: string) => void;
-  onLngChange: (v: string) => void;
-}) {
-  const useMyLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        onLatChange(pos.coords.latitude.toFixed(4));
-        onLngChange(pos.coords.longitude.toFixed(4));
-      });
-    }
-  };
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-base font-medium text-text-primary tracking-[0.16px]">Location</label>
-      <div className="border border-[rgba(26,26,24,0.28)] rounded-[8px] overflow-hidden">
-        {/* Search bar */}
-        <div className="flex items-center gap-2 px-4 h-[60px] border-b border-[rgba(26,26,24,0.14)]">
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => onLocationChange(e.target.value)}
-            placeholder="Find the location"
-            className="flex-1 bg-transparent text-base text-text-primary placeholder:text-[#bfbfbf] outline-none"
-          />
-          <Search size={16} className="text-text-muted shrink-0" />
-        </div>
-
-        {/* Map placeholder */}
-        <div className="relative h-[180px] bg-[#eef4ee] flex items-center justify-center overflow-hidden">
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage:
-                "linear-gradient(#c8d8c8 1px, transparent 1px), linear-gradient(90deg, #c8d8c8 1px, transparent 1px)",
-              backgroundSize: "32px 32px",
-            }}
-          />
-          <div className="relative z-10 flex flex-col items-center gap-1">
-            <div className="size-8 rounded-full bg-white shadow flex items-center justify-center">
-              <MapPin size={18} className="text-[#d85a30]" fill="#fde8e2" />
-            </div>
-            <div className="size-2 rounded-full bg-black/15" />
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex gap-2 p-2.5">
-          <button
-            onClick={useMyLocation}
-            className="flex-1 flex items-center justify-center gap-1.5 h-10 bg-[#1d9e75] border border-[#0f6e56] rounded-[8px] text-white text-[13px] font-semibold"
-          >
-            <MapPin size={14} />
-            My location
-          </button>
-          <button className="flex-1 flex items-center justify-center gap-1.5 h-10 bg-[#f0efeb] border border-[rgba(26,26,24,0.28)] rounded-[8px] text-[#5c5c59] text-xs font-semibold">
-            Pin
-          </button>
-          <button className="flex-1 flex items-center justify-center gap-1.5 h-10 bg-[#f0efeb] border border-[rgba(26,26,24,0.28)] rounded-[8px] text-[#5c5c59] text-xs font-semibold">
-            Manual
-          </button>
-        </div>
-
-        {/* Lat / Lng */}
-        <div className="flex gap-2 px-3 pb-3">
-          <div className="flex-1 flex flex-col gap-1">
-            <p className="text-[11px] font-semibold text-[#5c5c59]">Latitude</p>
-            <input
-              type="text"
-              value={lat}
-              onChange={(e) => onLatChange(e.target.value)}
-              className="h-10 bg-white border border-[rgba(26,26,24,0.28)] rounded-[8px] px-2.5 text-[14px] text-text-primary outline-none"
-            />
-          </div>
-          <div className="flex-1 flex flex-col gap-1">
-            <p className="text-[11px] font-semibold text-[#5c5c59]">Longitude</p>
-            <input
-              type="text"
-              value={lng}
-              onChange={(e) => onLngChange(e.target.value)}
-              className="h-10 bg-white border border-[rgba(26,26,24,0.28)] rounded-[8px] px-2.5 text-[14px] text-text-primary outline-none"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function InterventionRow({
   item,
   onChange,
@@ -547,14 +443,14 @@ function Step2({ form, update, onNext }: { form: LogFormData; update: (k: keyof 
       </div>
 
       <div className="flex flex-col gap-5 px-5">
-        <MapWidget
-          location={form.location}
-          lat={form.lat}
-          lng={form.lng}
-          onLocationChange={(v) => update("location", v)}
-          onLatChange={(v) => update("lat", v)}
-          onLngChange={(v) => update("lng", v)}
-        />
+        <FieldGroup label="Location" required>
+          <LocationPicker
+            defaultValue={form.locationResult?.formattedAddress ?? ""}
+            onSelect={(place) => update("locationResult", place)}
+            placeholder="Find the location"
+            className="w-full h-[44px] bg-white border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 pr-10 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none"
+          />
+        </FieldGroup>
 
         <UploadZone
           label="Baseline Photo(s)"
@@ -822,9 +718,7 @@ const initForm = (): LogFormData => ({
   permissionHolder: "",
   permissionConfirmed: false,
   markComplete: false,
-  location: "",
-  lat: "",
-  lng: "",
+  locationResult: null,
   baselinePhoto: "",
   plantingPhoto: "",
   estimatedArea: "",

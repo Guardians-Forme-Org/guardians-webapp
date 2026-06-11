@@ -11,9 +11,9 @@ export default function LocationPill({ city, country }: Props) {
     <button className="flex items-center justify-center gap-1.5 px-5 mb-5">
       <MapPin size={13} className="text-gotf-green shrink-0" />
       <Text variant="body" className="text-gotf-green font-medium">
-        {city},
+        {city ? `${city}${country ? "," : ""}` : "Set location"}
       </Text>
-      <Text variant="body">{country}</Text>
+      {country && <Text variant="body">{country}</Text>}
       <ChevronDown size={13} className="text-text-secondary ml-0.5" />
     </button>
   );

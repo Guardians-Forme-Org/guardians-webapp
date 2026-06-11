@@ -17,18 +17,35 @@ export type RegisterRequest = {
   lastName: string;
   preferredLanguage: Language;
   location: {
+    placeId: string;
+    city: string;
+    suburb: string;
+    province: string;
+    country: string;
+    countryCode: string;
+    postalCode: string;
     latitude: number;
     longitude: number;
-    address: string;
+    formattedAddress: string;
   };
 };
 
 export type UserLocation = {
-  address: string;
-  id: string;
+  // legacy shape
+  address?: string;
+  id?: string;
+  what3words?: string;
+  // new shape (matches LocationResult)
+  placeId?: string;
+  city?: string;
+  suburb?: string;
+  province?: string;
+  country?: string;
+  countryCode?: string;
+  postalCode?: string;
   latitude: number;
   longitude: number;
-  what3words: string;
+  formattedAddress?: string;
 };
 
 export type UserMetadata = {

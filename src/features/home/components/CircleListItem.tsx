@@ -31,7 +31,9 @@ export default function CircleListItem({ circle }: Props) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-linear-to-br from-[#c8e6c9] to-[#81c784]" />
+          <div className="w-full h-full bg-surface flex items-center justify-center">
+            <img src="/images/Guardians Logo-logo.png" alt="" className="w-8 h-8 object-contain opacity-20" />
+          </div>
         )}
       </div>
       <div className="flex-1 min-w-0">

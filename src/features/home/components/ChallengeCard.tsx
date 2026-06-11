@@ -30,7 +30,9 @@ export default function ChallengeCard({ challenge }: Props) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-linear-to-br from-[#d4e8d1] to-[#a8d5a2]" />
+          <div className="w-full h-full bg-surface flex items-center justify-center">
+            <img src="/images/Guardians Logo-full.png" alt="" className="w-20 h-20 object-contain opacity-20" />
+          </div>
         )}
       </div>
       <div className="p-3 mt-2">

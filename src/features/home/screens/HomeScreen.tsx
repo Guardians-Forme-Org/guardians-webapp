@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import SearchBar from "@/components/ui/SearchBar";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -48,6 +49,7 @@ const activityStats = [
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const router = useRouter();
 
   const displayName =
     user?.user_metadata.firstName ||
@@ -56,9 +58,14 @@ export default function HomeScreen() {
 
   return (
     <div className="flex flex-col min-h-full bg-white gap-4">
-      <HomeHeader name={displayName} hasNotification />
-      <SearchBar />
-      <LocationPill city="Brive-la-Gaillarde" country="France" />
+      <HomeHeader name={displayName} avatarUrl={user?.user_metadata.avatarUrl} hasNotification />
+      <SearchBar
+        onSubmit={(q) => router.push(`/discover${q ? `?q=${encodeURIComponent(q)}` : ""}`)}
+      />
+      <LocationPill
+        city={user?.user_metadata.location.city || user?.user_metadata.location.formattedAddress || user?.user_metadata.location.address || ""}
+        country={user?.user_metadata.location.country || ""}
+      />
 
       <ImpactSection badgeStats={badgeStats} activityStats={activityStats} />
 

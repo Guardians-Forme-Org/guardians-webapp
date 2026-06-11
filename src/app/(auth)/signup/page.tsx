@@ -2,8 +2,10 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Search, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
+import { X, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
 import { useRegister } from "@/lib/hooks/auth";
+import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
+import Text from "@/components/ui/Text";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -14,7 +16,7 @@ type FormData = {
   confirmPassword: string;
   firstName: string;
   lastName: string;
-  region: string;
+  location: LocationResult | null;
   imagePreview: string;
 };
 
@@ -25,7 +27,7 @@ const initForm: FormData = {
   confirmPassword: "",
   firstName: "",
   lastName: "",
-  region: "",
+  location: null,
   imagePreview: "",
 };
 
@@ -191,11 +193,13 @@ function Step1({
 function Step2({
   form,
   onChange,
+  onLocationSelect,
   onNext,
   onClose,
 }: {
   form: FormData;
   onChange: (f: keyof FormData, v: string) => void;
+  onLocationSelect: (place: LocationResult) => void;
   onNext: () => void;
   onClose: () => void;
 }) {
@@ -231,15 +235,38 @@ function Step2({
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">Region</label>
-          <div className="relative">
-            <input
-              type="text"
-              value={form.region}
-              onChange={(e) => onChange("region", e.target.value)}
-              placeholder="Search for your location"
-              className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
-            />
-            <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+          <LocationPicker
+            defaultValue={form.location?.formattedAddress ?? ""}
+            onSelect={onLocationSelect}
+            placeholder="Search for your location"
+          />
+          <div className="border border-[#ccc] rounded-[10px] h-[200px] overflow-hidden relative bg-[#eef4ee]">
+            {form.location ? (
+              <img
+                src={`https://maps.googleapis.com/maps/api/staticmap?center=${form.location.latitude},${form.location.longitude}&zoom=14&size=600x200&scale=2&markers=color:0x003518|${form.location.latitude},${form.location.longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
+                alt={form.location.formattedAddress}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <>
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(#c8d8c8 1px, transparent 1px), linear-gradient(90deg, #c8d8c8 1px, transparent 1px)",
+                    backgroundSize: "40px 40px",
+                  }}
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                  <div className="size-10 rounded-full bg-white shadow-sm flex items-center justify-center">
+                    <Text variant="caption" className="text-gotf-green text-xl">📍</Text>
+                  </div>
+                  <div className="bg-white/90 rounded-full px-3 py-1">
+                    <Text variant="caption" className="text-text-subheading">Select a location</Text>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -354,6 +381,8 @@ export default function SignUpPage() {
   const close = () => router.push("/get-started");
   const updateForm = (field: keyof FormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
+  const updateLocation = (place: LocationResult) =>
+    setForm((f) => ({ ...f, location: place }));
 
   const handleStep1Next = () => {
     if (!form.email && !form.phone) {
@@ -380,7 +409,18 @@ export default function SignUpPage() {
       firstName: form.firstName,
       lastName: form.lastName,
       preferredLanguage: { id: "en", name: "English", code: "en" },
-      location: { latitude: 0, longitude: 0, address: form.region },
+      location: form.location ?? {
+        placeId: "",
+        city: "",
+        suburb: "",
+        province: "",
+        country: "",
+        countryCode: "",
+        postalCode: "",
+        latitude: 0,
+        longitude: 0,
+        formattedAddress: "",
+      },
     };
     register(payload, { onSuccess: next });
   };
@@ -399,7 +439,7 @@ export default function SignUpPage() {
       />
     );
   if (step === 2)
-    return <Step2 form={form} onChange={updateForm} onNext={next} onClose={close} />;
+    return <Step2 form={form} onChange={updateForm} onLocationSelect={updateLocation} onNext={next} onClose={close} />;
   if (step === 3)
     return (
       <Step3
