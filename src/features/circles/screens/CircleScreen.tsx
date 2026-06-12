@@ -166,7 +166,12 @@ export default function CircleScreen({ circleId }: Props) {
         <div className="px-7.5 py-7.5 pb-10">
           <div className="flex items-center justify-between mb-7.5">
             <p className="text-xl font-bold text-text-subheading">Challenges</p>
-            <p className="text-base text-text-secondary">{circle.members.length} Guardians</p>
+            <Link
+              href={`/challenges/create?circleId=${circle.circleId}`}
+              className="text-base font-medium text-gotf-green"
+            >
+              + Start Challenge
+            </Link>
           </div>
 
           {circle.challenges.length === 0 ? (

@@ -1,58 +1,52 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import LocationPicker, {
+  type LocationResult,
+} from "@/components/ui/LocationPicker";
+import SearchBar from "@/components/ui/SearchBar";
+import Text from "@/components/ui/Text";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCreateChallenge, useTemplates } from "@/lib/hooks/challenges";
+import type { ApiTemplate } from "@/lib/types/challenges";
 import {
   ChevronLeft,
   ChevronRight,
-  X,
-  Search,
   Download,
-  MessageCircle,
+  ExternalLink,
   Globe,
   Mail,
   MapPin,
+  MessageCircle,
+  Search,
+  X,
 } from "lucide-react";
-import SearchBar from "@/components/ui/SearchBar";
-import Text from "@/components/ui/Text";
-import { challenges } from "../data";
-import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
-
-// ── Static data ────────────────────────────────────────────────────────────────
-
-const TEMPLATES = [
-  { id: "compost-sprint",  name: "Compost Sprint",  subtitle: "Highly Popular",  by: "Green Urban youth" },
-  { id: "urban-greening",  name: "Urban Greening",  subtitle: "Since 12 March",  by: "Green Urban youth" },
-  { id: "heat-mapping",    name: "Heat Mapping",    subtitle: "Since 12 March",  by: "Green Urban youth" },
-] as const;
-
-type TemplateId = typeof TEMPLATES[number]["id"];
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const FACILITATORS = [
-  { id: "1", rank: 1, name: "Yolanda", joinDate: "12 March 2026"    },
-  { id: "2", rank: 2, name: "Xavier",  joinDate: "1 December 2026"  },
-  { id: "3", rank: 3, name: "Thabang", joinDate: "4 April 2026",    locked: true },
-  { id: "4", rank: 4, name: "Thabang", joinDate: "24 August 2026"   },
-  { id: "5", rank: 5, name: "Victor",  joinDate: "24 February 2026" },
+  { id: "1", rank: 1, name: "Yolanda", joinDate: "12 March 2026" },
+  { id: "2", rank: 2, name: "Xavier", joinDate: "1 December 2026" },
+  { id: "3", rank: 3, name: "Thabang", joinDate: "4 April 2026", locked: true },
+  { id: "4", rank: 4, name: "Thabang", joinDate: "24 August 2026" },
+  { id: "5", rank: 5, name: "Victor", joinDate: "24 February 2026" },
 ];
 
 const CHANNELS = [
   { id: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle },
   { id: "facebook" as const, label: "Facebook", icon: Globe },
-  { id: "email"   as const, label: "Email",     icon: Mail },
+  { id: "email" as const, label: "Email", icon: Mail },
 ];
-
-const CIRCLES = ["Green Urban Youth", "Urban Watch", "Eco Homes"];
 
 // ── Form state ─────────────────────────────────────────────────────────────────
 
 type Channel = "whatsapp" | "facebook" | "email";
 
 type FormData = {
-  templateId: TemplateId;
+  templateId: string;
   name: string;
   region: string;
   description: string;
+  circleId: string;
   supportedBy: string;
   facilitatorId: string;
   channel: Channel;
@@ -60,10 +54,11 @@ type FormData = {
 };
 
 const initialForm: FormData = {
-  templateId: "compost-sprint",
+  templateId: "",
   name: "",
   region: "",
   description: "",
+  circleId: "",
   supportedBy: "",
   facilitatorId: "",
   channel: "whatsapp",
@@ -98,10 +93,18 @@ function WizardHeader({
   return (
     <div className="px-10 pt-8">
       <div className="flex items-center justify-between mb-6">
-        <button onClick={onBack} className="size-10 flex items-center" aria-label="Back">
+        <button
+          onClick={onBack}
+          className="size-10 flex items-center"
+          aria-label="Back"
+        >
           <ChevronLeft size={20} className="text-text-muted" />
         </button>
-        <button onClick={onClose} className="size-10 flex items-center justify-end" aria-label="Close">
+        <button
+          onClick={onClose}
+          className="size-10 flex items-center justify-end"
+          aria-label="Close"
+        >
           <X size={20} className="text-text-muted" />
         </button>
       </div>
@@ -132,17 +135,31 @@ function WizardTitle({
   const parts = boldWord ? description.split(boldWord) : null;
   return (
     <div className="px-10 mt-7 mb-7">
-      <h1 className="text-[32px] font-bold text-gotf-green leading-tight">{title}</h1>
+      <h1 className="text-[32px] font-bold text-gotf-green leading-tight">
+        {title}
+      </h1>
       <p className="text-[18px] text-black mt-4 leading-relaxed">
         {parts ? (
-          <>{parts[0]}<strong>{boldWord}</strong>{parts[1]}</>
-        ) : description}
+          <>
+            {parts[0]}
+            <strong>{boldWord}</strong>
+            {parts[1]}
+          </>
+        ) : (
+          description
+        )}
       </p>
     </div>
   );
 }
 
-function WizardNextButton({ label, onClick }: { label: string; onClick: () => void }) {
+function WizardNextButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
   return (
     <div className="px-5 pb-10 pt-4 shrink-0">
       <button
@@ -170,9 +187,13 @@ function RadioCircle({ selected }: { selected: boolean }) {
 function Step1({
   form,
   onChange,
+  templates,
+  isLoading,
 }: {
   form: FormData;
-  onChange: (id: TemplateId) => void;
+  onChange: (id: string) => void;
+  templates: ApiTemplate[];
+  isLoading: boolean;
 }) {
   return (
     <>
@@ -186,72 +207,195 @@ function Step1({
       <div className="px-10 mb-6">
         <div className="flex items-center gap-2 bg-white shadow-sm rounded-full px-5 h-[50px]">
           <Search size={16} className="text-text-muted shrink-0" />
-          <span className="text-base text-[#737373]">Find challenge templates</span>
+          <span className="text-base text-[#737373]">
+            Find challenge templates
+          </span>
         </div>
       </div>
 
       {/* Template options */}
       <div className="flex flex-col gap-3 px-10">
-        {TEMPLATES.map((t) => {
-          const selected = form.templateId === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => onChange(t.id)}
-              className={`flex items-center justify-between pl-[30px] pr-5 py-[18px] rounded-[16px] text-left transition-colors ${
-                selected ? "border-2 border-gotf-green" : "border border-border"
-              }`}
-            >
-              <div className="flex flex-col gap-0.5">
-                <p className="text-[18px] font-bold text-text-subheading">{t.name}</p>
-                <p className="text-[14px] text-text-subheading">{t.subtitle}</p>
-                <p className="text-[14px] text-text-muted">by {t.by}</p>
-              </div>
-              <RadioCircle selected={selected} />
-            </button>
-          );
-        })}
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-[86px] rounded-[16px] border border-border bg-surface animate-pulse"
+            />
+          ))
+        ) : templates.length === 0 ? (
+          <p className="text-base text-text-muted text-center py-8">
+            No templates available
+          </p>
+        ) : (
+          templates.map((t) => {
+            const selected = form.templateId === t.templateId;
+            return (
+              <button
+                key={t.templateId}
+                onClick={() => onChange(t.templateId)}
+                className={`flex items-center justify-between pl-[30px] pr-5 py-[18px] rounded-[16px] text-left transition-colors ${
+                  selected
+                    ? "border-2 border-gotf-green"
+                    : "border border-border"
+                }`}
+              >
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-[18px] font-bold text-text-subheading">
+                    {t.name}
+                  </p>
+                  <p className="text-[14px] text-text-subheading line-clamp-1">
+                    {t.description}
+                  </p>
+                  <p className="text-[14px] text-text-muted">
+                    {t.targetSDG.title}
+                  </p>
+                </div>
+                <RadioCircle selected={selected} />
+              </button>
+            );
+          })
+        )}
       </div>
     </>
   );
 }
 
+// ── SDG URL adapter ────────────────────────────────────────────────────────────
+
+function buildSdgUrl(code: string): string {
+  const number = code.replace(/\D/g, "");
+  return `https://sdgs.un.org/goals/goal${number}`;
+}
+
 // ── Step 2 — Template Preview ──────────────────────────────────────────────────
 
-function Step2({ form }: { form: FormData }) {
-  const template = TEMPLATES.find((t) => t.id === form.templateId) ?? TEMPLATES[0];
-  const templateSteps = challenges[0].steps;
+function Step2({
+  form,
+  templates,
+}: {
+  form: FormData;
+  templates: ApiTemplate[];
+}) {
+  const template =
+    templates.find((t) => t.templateId === form.templateId) ?? templates[0];
+  const templateSteps = template?.steps ?? [];
+  const [expandedStepId, setExpandedStepId] = useState<string | null>(null);
+  const [equipmentOpen, setEquipmentOpen] = useState(false);
+
+  const sdgNumber = template?.targetSDG?.code?.replace(/\D/g, "") ?? "";
 
   return (
     <>
-      <div className="px-10 mt-5 mb-8">
-        <h1 className="text-[32px] font-bold text-gotf-green">{template.name}</h1>
+      {/* Title + description */}
+      <div className="px-10 mt-5 mb-5">
+        <h1 className="text-[32px] font-bold text-gotf-green">
+          {template?.name}
+        </h1>
         <p className="text-[18px] text-black mt-3 leading-relaxed">
-          The {template.name} is a challenge that supports the environment ESG target
+          The {template?.name} is a challenge that supports the{" "}
+          <span className="font-bold">'{template?.targetSDG?.title}'</span>{" "}
+          Sustainable Development Goals.
         </p>
       </div>
 
+      {/* SDG badge */}
+      {template?.targetSDG && (
+        <div className="px-10 mb-7">
+          <a
+            href={buildSdgUrl(template.targetSDG.code)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-3 h-8 border-2 border-[#56c02b] rounded-[20px]"
+          >
+            <p className="text-[14px] text-[#1a1a1a] whitespace-nowrap">
+              SDG{" "}
+              <span className="font-bold">
+                {sdgNumber} {template.targetSDG.title.toUpperCase()}
+              </span>
+            </p>
+            <ExternalLink size={14} className="shrink-0 text-[#1a1a1a]" />
+          </a>
+        </div>
+      )}
+
+      {/* Steps */}
       <div className="px-10 mb-5">
         <p className="text-xl font-semibold text-text-subheading">Steps</p>
       </div>
 
-      <div className="flex flex-col gap-2.5">
-        {templateSteps.map((s) => (
-          <div
-            key={s.id}
-            className="flex gap-3.75 items-center border border-[#eee] rounded-[10px] px-4 py-2.5 mx-6"
-          >
-            <span className="w-2.5 text-center font-medium text-base text-black shrink-0">{s.rank}</span>
-            <div className={`size-15 rounded-lg overflow-hidden shrink-0 ${s.locked ? "bg-[#ccc] opacity-50" : "bg-surface"}`} />
-            <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-text-primary leading-tight">{s.title}</p>
-              <p className="text-xs text-text-primary truncate mt-0.5">{s.description}</p>
-              <p className="text-xs text-text-secondary">{s.phase}</p>
+      <div className="flex flex-col gap-2.5 px-6">
+        {templateSteps.map((s) => {
+          const expanded = expandedStepId === s.stepId;
+          return (
+            <div
+              key={s.stepId}
+              className="border border-[#eee] rounded-[10px] overflow-hidden"
+            >
+              <button
+                onClick={() => setExpandedStepId(expanded ? null : s.stepId)}
+                className="flex gap-3 items-center w-full text-left px-4 py-2.5"
+              >
+                <span className="w-2.5 text-center font-medium text-base text-black shrink-0">
+                  {s.stepNumber}
+                </span>
+                <div className="size-15 rounded-lg overflow-hidden shrink-0 bg-surface" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-base font-semibold text-[#1a1a1a] leading-tight">
+                    {s.title}
+                  </p>
+                  <p className="text-xs text-[#1a1a1a] truncate mt-0.5 opacity-80">
+                    {s.description}
+                  </p>
+                  <p className="text-xs text-[#999]">{s.stepType}</p>
+                </div>
+                <ChevronRight
+                  size={24}
+                  className={`text-text-muted shrink-0 transition-transform duration-200 ${
+                    expanded ? "rotate-90" : ""
+                  }`}
+                />
+              </button>
+
+              {expanded && (
+                <div className="px-4 pb-4 pt-2 border-t border-[#eee]">
+                  <p className="text-sm text-[#333] leading-relaxed">
+                    {s.description}
+                  </p>
+                </div>
+              )}
             </div>
-            <ChevronRight size={24} className="text-text-muted shrink-0" />
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* Equipment */}
+      {template?.equipments && template.equipments.length > 0 && (
+        <div className="mt-7 pb-10">
+          <button
+            onClick={() => setEquipmentOpen((o) => !o)}
+            className="flex items-center justify-between w-full px-10 mb-4"
+          >
+            <p className="text-xl font-semibold text-text-subheading">Equipment</p>
+            <ChevronRight
+              size={20}
+              className={`text-text-muted transition-transform duration-200 ${
+                equipmentOpen ? "rotate-90" : ""
+              }`}
+            />
+          </button>
+
+          {equipmentOpen && (
+            <div className="flex flex-col gap-3 px-6">
+              {template.equipments.map((eq, i) => (
+                <div key={i} className="border border-[#eee] rounded-[10px] px-4 py-3">
+                  <p className="text-base font-semibold text-[#1a1a1a]">{eq.name}</p>
+                  <p className="text-sm text-[#666] mt-1 leading-relaxed">{eq.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }
@@ -318,31 +462,7 @@ function Step3({
           />
         </div>
 
-        {/* Supported by */}
-        <div className="flex flex-col gap-1.5">
-          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            Supported by
-          </label>
-          <p className="text-xs text-[#8f8f8c]">
-            This would be the circle that will do the challenge
-          </p>
-          <div className="relative">
-            <select
-              value={form.supportedBy}
-              onChange={(e) => onChange("supportedBy", e.target.value)}
-              className="w-full h-11 border border-[rgba(26,26,24,0.28)] rounded-[8px] px-4 text-base text-text-primary outline-none appearance-none bg-white"
-            >
-              <option value=""></option>
-              {CIRCLES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <ChevronRight
-              size={14}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted rotate-90 pointer-events-none"
-            />
-          </div>
-        </div>
+        {/* Supported by — TODO: resolve circle name from circleId and display here */}
       </div>
     </>
   );
@@ -385,7 +505,9 @@ function Step4({
                 }`}
               />
               <div className="flex-1 min-w-0">
-                <p className={`text-base font-semibold ${selected ? "text-gotf-green" : "text-text-primary"}`}>
+                <p
+                  className={`text-base font-semibold ${selected ? "text-gotf-green" : "text-text-primary"}`}
+                >
                   {f.name}
                 </p>
                 <Text variant="caption" className="text-text-secondary">
@@ -420,7 +542,9 @@ function Step5({
     <>
       <WizardTitle
         title={"Choose a channel for communication"}
-        description={"Choose one of the channels below for the circle's communication."}
+        description={
+          "Choose one of the channels below for the circle's communication."
+        }
         boldWord="channels"
       />
 
@@ -436,7 +560,10 @@ function Step5({
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon size={22} className={selected ? "text-gotf-green" : "text-text-muted"} />
+                <Icon
+                  size={22}
+                  className={selected ? "text-gotf-green" : "text-text-muted"}
+                />
                 <span className="text-base text-text-primary">{label}</span>
               </div>
               <RadioCircle selected={selected} />
@@ -448,7 +575,9 @@ function Step5({
       <div className="flex flex-col gap-2 px-10 mt-7">
         <label className="text-base font-medium text-text-primary tracking-[0.16px]">
           Communication Channel Link{" "}
-          <span className="text-[rgba(60,60,67,0.29)] font-normal">(Optional)</span>
+          <span className="text-[rgba(60,60,67,0.29)] font-normal">
+            (Optional)
+          </span>
         </label>
         <input
           type="url"
@@ -467,13 +596,19 @@ function Step5({
 function Step6({
   form,
   onPublish,
+  templates,
+  isPending,
 }: {
   form: FormData;
   onPublish: () => void;
+  templates: ApiTemplate[];
+  isPending: boolean;
 }) {
-  const template = TEMPLATES.find((t) => t.id === form.templateId) ?? TEMPLATES[0];
-  const templateSteps = challenges[0].steps;
-  const facilitator = FACILITATORS.find((f) => f.id === form.facilitatorId) ?? FACILITATORS[0];
+  const template =
+    templates.find((t) => t.templateId === form.templateId) ?? templates[0];
+  const templateSteps = template?.steps ?? [];
+  const facilitator =
+    FACILITATORS.find((f) => f.id === form.facilitatorId) ?? FACILITATORS[0];
 
   return (
     <div className="flex flex-col">
@@ -489,16 +624,17 @@ function Step6({
             {form.supportedBy || "Urban Greening"}
           </span>
           <h1 className="text-[28px] font-bold text-text-subheading mt-3 leading-tight">
-            {form.name || template.name}
+            {form.name || template?.name}
           </h1>
           <p className="text-base text-[#666] mt-1">Since 12 March</p>
 
           <div className="mt-3 mb-6">
             <button
               onClick={onPublish}
-              className="px-5 h-10 bg-linear-to-r from-[#008000] to-[#129612] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)]"
+              disabled={isPending}
+              className="px-5 h-10 bg-linear-to-r from-[#008000] to-[#129612] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] disabled:opacity-60"
             >
-              Publish
+              {isPending ? "Publishing…" : "Publish"}
             </button>
           </div>
         </div>
@@ -516,7 +652,9 @@ function Step6({
           <div className="flex items-center gap-1.5">
             <MapPin size={16} className="text-gotf-green shrink-0" />
             <p className="text-base">
-              <span className="font-semibold text-text-primary">{form.region || "Durban"}</span>
+              <span className="font-semibold text-text-primary">
+                {form.region || "Durban"}
+              </span>
               <span className="text-[#666]">, KwaZulu Natal</span>
             </p>
           </div>
@@ -529,7 +667,7 @@ function Step6({
         <div className="px-10 py-5">
           <p className="text-base text-[#666] leading-relaxed line-clamp-3">
             {form.description ||
-              `"${template.name} is a challenge focused on building community environmental impact through practical, shared action."`}
+              `"${template?.name ?? "This"} is a challenge focused on building community environmental impact through practical, shared action."`}
           </p>
           <button className="text-base text-gotf-blue mt-2">Show more</button>
         </div>
@@ -539,7 +677,9 @@ function Step6({
         {/* Progress */}
         <div className="px-10 py-7.5 flex flex-col gap-7.5">
           <div className="flex flex-col gap-3">
-            <p className="text-xl font-semibold text-text-subheading">Progress</p>
+            <p className="text-xl font-semibold text-text-subheading">
+              Progress
+            </p>
             <div className="flex items-center gap-5">
               <div className="flex-1 h-2.5 bg-[#e0e0e0] rounded-full" />
               <p className="text-xl text-text-primary shrink-0">0%</p>
@@ -547,13 +687,21 @@ function Step6({
           </div>
           <div className="flex items-stretch">
             <div className="flex flex-col gap-2.5">
-              <Text variant="caption" className="text-text-muted">Target date</Text>
-              <p className="text-base font-semibold text-text-subheading">27 September 2026</p>
+              <Text variant="caption" className="text-text-muted">
+                Target date
+              </Text>
+              <p className="text-base font-semibold text-text-subheading">
+                27 September 2026
+              </p>
             </div>
             <div className="mx-7.5 border-r border-progress-track" />
             <div className="flex flex-col gap-2.5">
-              <Text variant="caption" className="text-text-muted">Time left</Text>
-              <p className="text-base font-semibold text-text-subheading">1 week</p>
+              <Text variant="caption" className="text-text-muted">
+                Time left
+              </Text>
+              <p className="text-base font-semibold text-text-subheading">
+                1 week
+              </p>
             </div>
           </div>
         </div>
@@ -564,8 +712,12 @@ function Step6({
         <div className="flex items-center gap-5 px-7.5 py-5 border-b border-progress-track">
           <div className="size-10 rounded-full bg-surface border border-border shrink-0" />
           <div>
-            <p className="text-xl font-semibold text-text-primary">{facilitator.name}</p>
-            <p className="text-base font-medium text-text-secondary">Facilitator</p>
+            <p className="text-xl font-semibold text-text-primary">
+              {facilitator.name}
+            </p>
+            <p className="text-base font-medium text-text-secondary">
+              Facilitator
+            </p>
           </div>
         </div>
 
@@ -583,7 +735,9 @@ function Step6({
             {["Jabu", "Xoliswa", "Thabang", "Mpho", "Roni"].map((name) => (
               <div key={name} className="flex flex-col items-center gap-2">
                 <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white" />
-                <Text variant="caption" className="text-text-subheading">{name}</Text>
+                <Text variant="caption" className="text-text-subheading">
+                  {name}
+                </Text>
               </div>
             ))}
           </div>
@@ -598,19 +752,27 @@ function Step6({
 
         {/* Steps */}
         <div className="py-6 pb-10">
-          <p className="text-xl font-semibold text-text-subheading px-10 mb-4">Steps</p>
+          <p className="text-xl font-semibold text-text-subheading px-10 mb-4">
+            Steps
+          </p>
           <div className="flex flex-col gap-2.5">
             {templateSteps.map((s) => (
               <div
-                key={s.id}
+                key={s.stepId}
                 className="flex gap-3.75 items-center border border-[#eee] rounded-[10px] px-4 py-2.5 mx-6"
               >
-                <span className="w-2.5 text-center font-medium text-base text-black shrink-0">{s.rank}</span>
-                <div className={`size-15 rounded-lg overflow-hidden shrink-0 ${s.locked ? "bg-[#ccc] opacity-50" : "bg-surface"}`} />
+                <span className="w-2.5 text-center font-medium text-base text-black shrink-0">
+                  {s.stepNumber}
+                </span>
+                <div className="size-15 rounded-lg overflow-hidden shrink-0 bg-surface" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-base font-semibold text-text-primary leading-tight">{s.title}</p>
-                  <p className="text-xs text-text-primary truncate mt-0.5">{s.description}</p>
-                  <p className="text-xs text-text-secondary">{s.phase}</p>
+                  <p className="text-base font-semibold text-text-primary leading-tight">
+                    {s.title}
+                  </p>
+                  <p className="text-xs text-text-primary truncate mt-0.5">
+                    {s.description}
+                  </p>
+                  <p className="text-xs text-text-secondary">{s.stepType}</p>
                 </div>
                 <ChevronRight size={24} className="text-text-muted shrink-0" />
               </div>
@@ -627,7 +789,12 @@ function Step6({
 function Step7({ onDone }: { onDone: () => void }) {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-dvh bg-white overflow-hidden">
-      <img src="/images/success-logo.png" alt="" aria-hidden className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full pointer-events-none" />
+      <img
+        src="/images/success-logo.png"
+        alt=""
+        aria-hidden
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full pointer-events-none"
+      />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center px-10">
@@ -636,11 +803,15 @@ function Step7({ onDone }: { onDone: () => void }) {
           alt="Guardians"
           className="w-12 h-12 object-contain mb-6"
         />
-        <h1 className="text-[32px] font-bold text-gotf-green mb-8">Challenge created</h1>
+        <h1 className="text-[32px] font-bold text-gotf-green mb-8">
+          Challenge created
+        </h1>
 
         <button className="flex items-center gap-5 w-full max-w-[322px] h-[60px] bg-white border border-border rounded-full px-10 mb-8">
           <Download size={20} className="text-text-primary shrink-0" />
-          <span className="text-base font-medium text-text-primary">Challenge Details PDF</span>
+          <span className="text-base font-medium text-text-primary">
+            Challenge Details PDF
+          </span>
         </button>
       </div>
 
@@ -667,11 +838,14 @@ const NEXT_LABELS: Record<number, string> = {
   5: "Review and Publish",
 };
 
-export default function CreateChallengeWizard() {
+export default function CreateChallengeWizard({ circleId }: { circleId: string }) {
   const router = useRouter();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormData>(initialForm);
+  const [form, setForm] = useState<FormData>({ ...initialForm, circleId });
   const [location, setLocation] = useState<LocationResult | null>(null);
+  const { data: templates = [], isLoading: templatesLoading } = useTemplates();
+  const createChallenge = useCreateChallenge();
 
   const next = () => setStep((s) => Math.min(s + 1, 7));
   const back = () => {
@@ -682,6 +856,23 @@ export default function CreateChallengeWizard() {
 
   const updateForm = (field: keyof FormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
+
+  const handlePublish = () => {
+    createChallenge.mutate(
+      {
+        name: form.name,
+        description: form.description,
+        circleId: form.circleId,
+        templateId: form.templateId,
+        challengeCode: form.templateId,
+        createdBy: user?.id ?? "",
+        equipments: [],
+        location: location ? { ...location, address: location.formattedAddress } : null,
+        region: location ? { ...location, address: location.formattedAddress } : null,
+      },
+      { onSuccess: next },
+    );
+  };
 
   if (step === 7) return <Step7 onDone={close} />;
 
@@ -694,9 +885,11 @@ export default function CreateChallengeWizard() {
           <Step1
             form={form}
             onChange={(id) => updateForm("templateId", id)}
+            templates={templates}
+            isLoading={templatesLoading}
           />
         )}
-        {step === 2 && <Step2 form={form} />}
+        {step === 2 && <Step2 form={form} templates={templates} />}
         {step === 3 && (
           <Step3
             form={form}
@@ -718,7 +911,14 @@ export default function CreateChallengeWizard() {
             onLinkChange={(v) => updateForm("channelLink", v)}
           />
         )}
-        {step === 6 && <Step6 form={form} onPublish={next} />}
+        {step === 6 && (
+          <Step6
+            form={form}
+            onPublish={handlePublish}
+            templates={templates}
+            isPending={createChallenge.isPending}
+          />
+        )}
       </div>
 
       {/* Only steps 1–5 use the bottom Next button; step 6 uses the inline Publish */}

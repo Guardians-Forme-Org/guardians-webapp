@@ -188,15 +188,17 @@ export default function DiscoverScreen() {
         onSubmit={setQuery}
       />
 
-      {/* Create CTA */}
-      <div className="px-5 mb-6">
-        <Link
-          href={tab === "challenges" ? "/challenges/create" : "/circles/create"}
-          className="flex items-center justify-center w-full h-14 bg-black text-white rounded-full text-lg font-medium"
-        >
-          {tab === "challenges" ? "Create Challenge" : "Create Circle"}
-        </Link>
-      </div>
+      {/* Create CTA — only available on circles tab; challenges must start from within a circle */}
+      {tab === "circles" && (
+        <div className="px-5 mb-6">
+          <Link
+            href="/circles/create"
+            className="flex items-center justify-center w-full h-14 bg-black text-white rounded-full text-lg font-medium"
+          >
+            Create Circle
+          </Link>
+        </div>
+      )}
 
       {/* Cards */}
       <div className="px-5 flex flex-col gap-4 pb-8">
