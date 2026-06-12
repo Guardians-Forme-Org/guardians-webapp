@@ -1,3 +1,7 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 type Props = {
   name: string;
   avatarUrl?: string;
@@ -16,6 +20,7 @@ export default function HomeHeader({
   avatarUrl,
   hasNotification = false,
 }: Props) {
+  const t = useTranslations("home");
   const initials = getInitials(name);
 
   return (
@@ -45,7 +50,7 @@ export default function HomeHeader({
           )}
         </div>
         <span className="text-2xl text-text-primary">
-          Hi, <span className="font-bold">{name}</span>
+          {t("greeting")} <span className="font-bold">{name}</span>
         </span>
       </div>
       <button className="relative p-1" aria-label="Notifications">

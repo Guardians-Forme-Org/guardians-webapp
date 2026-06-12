@@ -1,0 +1,43 @@
+{
+  "step1": {
+    "title1": "Ake",
+    "title2": "sikuqinisekise",
+    "phoneLabel": "Inombolo yocingo",
+    "phonePlaceholder": "Faka inombolo yocingo",
+    "emailLabel": "Ikheli le-imeyili",
+    "emailPlaceholder": "Faka ikheli lakho le-imeyili",
+    "passwordLabel": "Iphasiwedi",
+    "passwordPlaceholder": "Dala iphasiwedi",
+    "confirmLabel": "Qinisekisa Iphasiwedi",
+    "confirmPlaceholder": "Phinda iphasiwedi yakho",
+    "subtitle": "Faka <strong>inombolo yakho yeselula</strong> noma <strong>i-imeyili</strong> bese ukhetha iphasiwedi."
+  },
+  "step2": {
+    "title1": "Sitshele okwengeziwe",
+    "title2": "ngawe",
+    "firstNameLabel": "Igama",
+    "firstNamePlaceholder": "Yini igama lakho lokuqala",
+    "lastNameLabel": "Isibongo",
+    "lastNamePlaceholder": "Yini isibongo sakho",
+    "regionLabel": "Isifunda",
+    "locationPlaceholder": "Sesha indawo yakho",
+    "selectLocation": "Khetha indawo"
+  },
+  "step3": {
+    "noImage": "Akukho isithombe esikhethiwe",
+    "uploadImage": "Layisha Isithombe",
+    "remove": "Susa",
+    "confirm": "Qinisekisa",
+    "creating": "Yakha i-akhawunti…"
+  },
+  "step4": {
+    "title": "Impumelelo",
+    "subtitle": "Siyakwamukela ku\nAbalondolozi Besikhathi Esizayo"
+  },
+  "termsAndConditions": "Imigomo Nezimiso",
+  "errors": {
+    "credentialsRequired": "Sicela ufake i-imeyili noma inombolo yocingo.",
+    "passwordRequired": "Sicela udale iphasiwedi.",
+    "passwordMismatch": "Amaphasiwedi awafani."
+  }
+}

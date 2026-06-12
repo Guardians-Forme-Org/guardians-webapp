@@ -1,0 +1,43 @@
+{
+  "step1": {
+    "title1": "Kom ons",
+    "title2": "verifieer jou",
+    "phoneLabel": "Telefoonnommer",
+    "phonePlaceholder": "Voer telefoonnommer in",
+    "emailLabel": "E-posadres",
+    "emailPlaceholder": "Voer jou e-posadres in",
+    "passwordLabel": "Wagwoord",
+    "passwordPlaceholder": "Skep 'n wagwoord",
+    "confirmLabel": "Bevestig Wagwoord",
+    "confirmPlaceholder": "Herhaal jou wagwoord",
+    "subtitle": "Voer jou <strong>selfoonnommer</strong> of <strong>e-posadres</strong> in en kies 'n wagwoord."
+  },
+  "step2": {
+    "title1": "Vertel ons meer",
+    "title2": "van jouself",
+    "firstNameLabel": "Voornaam",
+    "firstNamePlaceholder": "Wat is jou voornaam",
+    "lastNameLabel": "Van",
+    "lastNamePlaceholder": "Wat is jou van",
+    "regionLabel": "Streek",
+    "locationPlaceholder": "Soek jou ligging",
+    "selectLocation": "Kies 'n ligging"
+  },
+  "step3": {
+    "noImage": "Geen prent gekies nie",
+    "uploadImage": "Laai Prent Op",
+    "remove": "Verwyder",
+    "confirm": "Bevestig",
+    "creating": "Skep rekening…"
+  },
+  "step4": {
+    "title": "Sukses",
+    "subtitle": "Welkom by\nBewaarders van die Toekoms"
+  },
+  "termsAndConditions": "Bepalings en Voorwaardes",
+  "errors": {
+    "credentialsRequired": "Voer asseblief 'n e-posadres of telefoonnommer in.",
+    "passwordRequired": "Skep asseblief 'n wagwoord.",
+    "passwordMismatch": "Wagwoorde stem nie ooreen nie."
+  }
+}

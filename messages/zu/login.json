@@ -1,0 +1,19 @@
+{
+  "emailLabel": "Ikheli le-imeyili",
+  "phoneLabel": "Inombolo yocingo",
+  "emailPlaceholder": "Faka ikheli lakho le-imeyili",
+  "phonePlaceholder": "Faka inombolo yakho yocingo",
+  "passwordLabel": "Iphasiwedi",
+  "passwordPlaceholder": "Faka iphasiwedi yakho",
+  "loginWithEmail": "Ngena nge-imeyili",
+  "loginWithMobile": "Ngena ngeselula",
+  "loggingIn": "Iyangena…",
+  "switchToEmail": "Qhubeka nge-imeyili",
+  "switchToMobile": "Qhubeka ngeselula",
+  "noAccount": "Awunayo i-akhawunti?",
+  "signUp": "Bhalisa",
+  "tos": "Ngokuchofoza ukungena, uyavuma “Abalondolozi Besikhathi Esizayo” futhi uvuma",
+  "termsOfService": "Imigomo Yesevisi",
+  "privacyPolicy": "Inqubomgomo Yobumfihlo",
+  "validationError": "Sicela ufake imininingwane yakho nephasiwedi."
+}

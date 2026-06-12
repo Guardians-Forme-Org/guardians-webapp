@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { getLocale } from "next-intl/server";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -25,13 +26,14 @@ export const viewport: Viewport = {
   themeColor: "#003518",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale().catch(() => "en");
   return (
-    <html lang="en" className={`${geist.variable} h-full`}>
+    <html lang={locale} className={`${geist.variable} h-full`}>
       <body className="h-full bg-white text-zinc-900 antialiased">
           <QueryProvider>
           <AuthProvider>{children}</AuthProvider>

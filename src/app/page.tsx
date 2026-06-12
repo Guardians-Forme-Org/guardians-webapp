@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 
-// Entry point — sends all users into the app's splash/onboarding flow.
-// The old marketing page is preserved at /landing.
-export default function RootPage() {
-  redirect("/splash");
+export default async function RootPage() {
+  const locale = await getLocale().catch(() => "en");
+  redirect(`/${locale}/splash`);
 }

@@ -1,0 +1,19 @@
+{
+  "emailLabel": "Adresse e-mail",
+  "phoneLabel": "Numéro de téléphone",
+  "emailPlaceholder": "Entrez votre adresse e-mail",
+  "phonePlaceholder": "Entrez votre numéro de téléphone",
+  "passwordLabel": "Mot de passe",
+  "passwordPlaceholder": "Entrez votre mot de passe",
+  "loginWithEmail": "Se connecter par e-mail",
+  "loginWithMobile": "Se connecter par mobile",
+  "loggingIn": "Connexion en cours…",
+  "switchToEmail": "Continuer avec l'e-mail",
+  "switchToMobile": "Continuer avec le mobile",
+  "noAccount": "Vous n'avez pas de compte ?",
+  "signUp": "S'inscrire",
+  "tos": "En cliquant sur connexion, vous acceptez les conditions de « Gardiens du Futur » et reconnaissez",
+  "termsOfService": "Conditions d'utilisation",
+  "privacyPolicy": "Politique de confidentialité",
+  "validationError": "Veuillez entrer vos identifiants et votre mot de passe."
+}

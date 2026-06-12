@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import Text from "@/components/ui/Text";
 
 type ImpactStat = {
@@ -31,10 +34,11 @@ function StatRow({ stats }: { stats: ImpactStat[] }) {
 }
 
 export default function ImpactSection({ badgeStats, activityStats }: Props) {
+  const t = useTranslations("home");
   return (
     <section className="border-y border-progress-track">
       <Text variant="heading" className="block px-5 pt-5">
-        My impact
+        {t("myImpact")}
       </Text>
       <StatRow stats={badgeStats} />
       <div className="mx-7.5 border-t border-progress-track" />

@@ -1,0 +1,19 @@
+{
+  "emailLabel": "Email Address",
+  "phoneLabel": "Phone Number",
+  "emailPlaceholder": "Enter your email address",
+  "phonePlaceholder": "Enter your phone number",
+  "passwordLabel": "Password",
+  "passwordPlaceholder": "Enter your password",
+  "loginWithEmail": "Login with email",
+  "loginWithMobile": "Login with mobile",
+  "loggingIn": "Logging in…",
+  "switchToEmail": "Continue with email",
+  "switchToMobile": "Continue with mobile",
+  "noAccount": "Don’t have an account?",
+  "signUp": "Sign Up",
+  "tos": "By clicking login, you agree to “Guardians of the Future” and acknowledge the",
+  "termsOfService": "Terms of Service",
+  "privacyPolicy": "Privacy Policy",
+  "validationError": "Please enter your credentials and password."
+}

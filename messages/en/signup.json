@@ -1,0 +1,43 @@
+{
+  "step1": {
+    "title1": "Let us",
+    "title2": "authenticate you",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "Enter phone number",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Create a password",
+    "confirmLabel": "Confirm Password",
+    "confirmPlaceholder": "Repeat your password",
+    "subtitle": "Provide your <strong>mobile number</strong> or <strong>email</strong> and choose a password."
+  },
+  "step2": {
+    "title1": "Tell us more",
+    "title2": "about yourself",
+    "firstNameLabel": "First Name",
+    "firstNamePlaceholder": "What’s your first name",
+    "lastNameLabel": "Last Name",
+    "lastNamePlaceholder": "What’s your last name",
+    "regionLabel": "Region",
+    "locationPlaceholder": "Search for your location",
+    "selectLocation": "Select a location"
+  },
+  "step3": {
+    "noImage": "No image selected",
+    "uploadImage": "Upload Image",
+    "remove": "Remove",
+    "confirm": "Confirm",
+    "creating": "Creating account…"
+  },
+  "step4": {
+    "title": "Success",
+    "subtitle": "Welcome to\nGuardians of the Future"
+  },
+  "termsAndConditions": "Terms and Condition",
+  "errors": {
+    "credentialsRequired": "Please enter an email or phone number.",
+    "passwordRequired": "Please create a password.",
+    "passwordMismatch": "Passwords do not match."
+  }
+}

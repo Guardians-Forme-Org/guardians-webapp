@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/contexts/AuthContext";
 import SearchBar from "@/components/ui/SearchBar";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -35,31 +36,33 @@ const circles: Circle[] = [
   { id: 3, rank: 3, name: "Eco Homes", joinDate: "24 February" },
 ];
 
-const badgeStats = [
-  { label: "Avoided CO₂", value: "20kg" },
-  { label: "Generated Area", value: "750m²" },
-  { label: "Processed Waste", value: "32kg" },
-];
-
-const activityStats = [
-  { label: "Challenges", value: "4" },
-  { label: "Circles", value: "2" },
-  { label: "", value: "" },
-];
-
 export default function HomeScreen() {
   const { user } = useAuth();
   const router = useRouter();
+  const t = useTranslations("home");
 
   const displayName =
     user?.user_metadata.firstName ||
     user?.email?.split("@")[0] ||
     "Guardian";
 
+  const badgeStats = [
+    { label: t("avoidedCO2"),     value: "20kg"  },
+    { label: t("generatedArea"),  value: "750m²" },
+    { label: t("processedWaste"), value: "32kg"  },
+  ];
+
+  const activityStats = [
+    { label: t("challengesStat"), value: "4" },
+    { label: t("circlesStat"),    value: "2" },
+    { label: "",                  value: ""  },
+  ];
+
   return (
     <div className="flex flex-col min-h-full bg-white gap-4">
       <HomeHeader name={displayName} avatarUrl={user?.user_metadata.avatarUrl} hasNotification />
       <SearchBar
+        placeholder={t("searchPlaceholder")}
         onSubmit={(q) => router.push(`/discover${q ? `?q=${encodeURIComponent(q)}` : ""}`)}
       />
       <LocationPill
@@ -69,10 +72,9 @@ export default function HomeScreen() {
 
       <ImpactSection badgeStats={badgeStats} activityStats={activityStats} />
 
-      {/* Continue */}
       <section className="mb-6">
         <div className="px-5">
-          <SectionHeader title="Active Challenges" href="/discover" />
+          <SectionHeader title={t("activeChallenges")} href="/discover" />
         </div>
         <div className="flex gap-3 pl-5 overflow-x-auto no-scrollbar pb-1">
           {continueChallenges.map((challenge) => (
@@ -82,9 +84,8 @@ export default function HomeScreen() {
         </div>
       </section>
 
-      {/* Circles — floating panel */}
       <section className="bg-white rounded-t-[20px] shadow-[0_-5px_20px_0_rgba(0,0,0,0.05)] px-5 pt-6 pb-8 -mt-2">
-        <SectionHeader title="Active Circles" href="/discover" />
+        <SectionHeader title={t("activeCircles")} href="/discover" />
         <div className="flex flex-col gap-7.5">
           {circles.map((circle) => (
             <CircleListItem key={circle.id} circle={circle} />

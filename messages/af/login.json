@@ -1,0 +1,19 @@
+{
+  "emailLabel": "E-posadres",
+  "phoneLabel": "Telefoonnommer",
+  "emailPlaceholder": "Voer jou e-posadres in",
+  "phonePlaceholder": "Voer jou telefoonnommer in",
+  "passwordLabel": "Wagwoord",
+  "passwordPlaceholder": "Voer jou wagwoord in",
+  "loginWithEmail": "Teken in met e-pos",
+  "loginWithMobile": "Teken in met selfoon",
+  "loggingIn": "Besig om in te teken…",
+  "switchToEmail": "Gaan voort met e-pos",
+  "switchToMobile": "Gaan voort met selfoon",
+  "noAccount": "Het jy nie 'n rekening nie?",
+  "signUp": "Registreer",
+  "tos": "Deur in te teken, stem jy saam met “Bewaarders van die Toekoms” en erken die",
+  "termsOfService": "Diensvoorwaardes",
+  "privacyPolicy": "Privaatheidsbeleid",
+  "validationError": "Voer asseblief jou aanmeldbesonderhede en wagwoord in."
+}

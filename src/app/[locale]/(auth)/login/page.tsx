@@ -1,0 +1,187 @@
+"use client";
+
+import { useLogin } from "@/lib/hooks/auth";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
+import { Eye, EyeOff, X } from "lucide-react";
+import { useState } from "react";
+
+type Mode = "mobile" | "email";
+
+export default function LoginPage() {
+  const router = useRouter();
+  const { mutate: login, isPending, error: apiError } = useLogin();
+  const t = useTranslations("login");
+
+  const [mode, setMode] = useState<Mode>("email");
+  const [credential, setCredential] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const error =
+    validationError ?? (apiError instanceof Error ? apiError.message : null);
+
+  const handleLogin = () => {
+    if (!credential.trim() || !password.trim()) {
+      setValidationError(t("validationError"));
+      return;
+    }
+    setValidationError(null);
+    login(
+      { emailOrMobile: credential.trim(), password },
+      { onSuccess: () => router.push("/home") },
+    );
+  };
+
+  return (
+    <div className="min-h-dvh flex flex-col bg-[#013818]">
+      {/* Top — hero section */}
+      <div className="relative flex-1 flex flex-col overflow-hidden">
+        <img
+          src="/images/get-started.png"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        />
+
+        {/* Logo + Close */}
+        <div className="relative z-10 flex items-center justify-between px-10 pt-10">
+          <img
+            src="/images/Guardians Logo-logo.png"
+            alt=""
+            className="w-8 h-8 object-contain"
+            style={{ filter: "brightness(0) invert(1) opacity(0.8)" }}
+          />
+          <button
+            onClick={() => router.push("/get-started")}
+            aria-label="Close"
+            className="text-white/60"
+          >
+            <X size={22} />
+          </button>
+        </div>
+
+        {/* Wordmark */}
+        <div className="relative z-10 px-10 mt-8">
+          <img
+            src="/images/Guardians Logo-word-white.png"
+            alt="Guardians of the Future"
+            className="w-[99%] object-contain translate-y-1/2"
+          />
+        </div>
+      </div>
+
+      {/* Bottom white card */}
+      <div className="bg-white rounded-t-[20px] shadow-[0_-25px_50px_0_rgba(0,56,24,0.06)] px-10 pt-8 pb-10">
+        {/* Credential field */}
+        <div className="flex flex-col gap-2 mb-5">
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            {mode === "mobile" ? t("phoneLabel") : t("emailLabel")}
+          </label>
+          <input
+            type={mode === "email" ? "email" : "tel"}
+            value={credential}
+            onChange={(e) => {
+              setCredential(e.target.value);
+              setValidationError(null);
+            }}
+            placeholder={
+              mode === "mobile" ? t("phonePlaceholder") : t("emailPlaceholder")
+            }
+            className="h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 text-base placeholder:text-[#9a9898] outline-none"
+          />
+        </div>
+
+        {/* Password field */}
+        <div className="flex flex-col gap-2 mb-5">
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            {t("passwordLabel")}
+          </label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setValidationError(null);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+              placeholder={t("passwordPlaceholder")}
+              className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#9a9898] outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+
+        {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+
+        {/* Login button */}
+        <button
+          onClick={handleLogin}
+          disabled={isPending}
+          className="w-full h-14 bg-black text-white rounded-full text-base font-medium mb-4 disabled:opacity-50"
+        >
+          {isPending
+            ? t("loggingIn")
+            : mode === "mobile"
+              ? t("loginWithMobile")
+              : t("loginWithEmail")}
+        </button>
+
+        {/* Toggle mode */}
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={() => {
+              setMode(mode === "mobile" ? "email" : "mobile");
+              setCredential("");
+              setValidationError(null);
+            }}
+            className="text-base text-[#3875e9]"
+          >
+            {mode === "mobile" ? t("switchToEmail") : t("switchToMobile")}
+          </button>
+        </div>
+
+        {/* Sign Up link */}
+        <div className="flex justify-center gap-2 mb-6">
+          <span className="text-base text-black">{t("noAccount")}</span>
+          <Link href="/signup" className="text-base text-[#3875e9]">
+            {t("signUp")}
+          </Link>
+        </div>
+
+        <div className="border-t border-progress-track mb-4" />
+
+        {/* ToS */}
+        <p className="text-xs text-[#767676] leading-relaxed text-center">
+          {t("tos")}{" "}
+          <a
+            href="https://theguardians.world/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#3875e9] underline"
+          >
+            {t("termsOfService")}
+          </a>{" "}
+          and{" "}
+          <a
+            href="https://theguardians.world/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#3875e9] underline"
+          >
+            {t("privacyPolicy")}
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+}
