@@ -5,7 +5,7 @@ import Text from "@/components/ui/Text";
 
 type ImpactStat = {
   label: string;
-  value: string;
+  value: string | number;
 };
 
 type Props = {
