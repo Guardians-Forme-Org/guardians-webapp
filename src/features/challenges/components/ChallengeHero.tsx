@@ -4,16 +4,22 @@ import { ChevronLeft, Share2, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type Props = {
+  bannerUrl?: string;
   heightClass?: string;
   showPlayButton?: boolean;
 };
 
-export default function ChallengeHero({ heightClass = "h-60", showPlayButton }: Props) {
+export default function ChallengeHero({ bannerUrl, heightClass = "h-60", showPlayButton }: Props) {
   const router = useRouter();
 
   return (
     <div className={`relative ${heightClass} bg-zinc-900 overflow-hidden shrink-0`}>
-      <div className="absolute inset-0 bg-black/40 z-10" />
+      <div className="absolute inset-0 bg-black/40 z-10">
+        {bannerUrl
+          ? <img src={bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover -z-10" />
+          : <img src="/images/Guardians Logo-full.png" alt="" className="absolute inset-0 m-auto w-24 h-24 object-contain opacity-20 -z-10" />
+        }
+      </div>
 
       {showPlayButton && (
         <div className="absolute inset-0 flex items-center justify-center z-20">

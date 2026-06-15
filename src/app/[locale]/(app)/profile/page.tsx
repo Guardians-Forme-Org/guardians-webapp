@@ -23,16 +23,6 @@ import Text from "@/components/ui/Text";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import { useState } from "react";
 
-// ─── Data ────────────────────────────────────────────────────────────────────
-
-const impactStats = [
-  { label: "My CO₂ Avoided",            value: "20kg"      },
-  { label: "Circles CO₂ Avoided",       value: "1840kg"    },
-  { label: "My Area Generated",         value: "750m²"     },
-  { label: "Circle's Area Generated",   value: "50 000m²"  },
-  { label: "My Waste Processed",        value: "32kg"      },
-  { label: "Circle's Waste Processed",  value: "525kg"     },
-];
 
 const markers = [
   { label: "First Impact",  icon: Zap,         earned: true  },
@@ -77,7 +67,7 @@ function formatJoinDate(iso: string): string {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, loginData } = useAuth();
   const [showLanguage, setShowLanguage] = useState(false);
 
   const meta = user?.user_metadata;
@@ -86,6 +76,22 @@ export default function ProfilePage() {
     user?.email ||
     "Guardian";
   const joinDate = user?.created_at ? formatJoinDate(user.created_at) : "";
+
+  const avatarUrl =
+    meta?.avatarUrl ||
+    loginData?.circles.flatMap((c) => c.members).find((m) => m.userId === user?.id)?.avatarUrl ||
+    loginData?.challenges.flatMap((c) => c.members ?? []).find((m) => m.userId === user?.id)?.avatarUrl;
+
+  const userRecords = loginData?.impactRecords ?? [];
+  const circleRecords = (loginData?.circles ?? []).flatMap((c) => c.impactRecords ?? []);
+  const impactStats = userRecords.slice(0, 3).flatMap((ur, i) => {
+    const cr = circleRecords[i];
+    const label = ur.impactSummary.contribution.unitOfMeasure;
+    return [
+      { label: `My ${label}`,      value: ur.impactSummary.contribution.displayName },
+      { label: `Circle ${label}`,  value: cr?.impactSummary.contribution.displayName ?? "—" },
+    ];
+  });
 
   return (
     <div className="flex flex-col min-h-full bg-white">
@@ -105,8 +111,8 @@ export default function ProfilePage() {
       {/* Identity */}
       <div className="flex flex-col items-center gap-1 pb-8 pt-2">
         <div className="w-30 h-30 rounded-full bg-surface border-2 border-border flex items-center justify-center mb-3 overflow-hidden">
-          {meta?.avatarUrl ? (
-            <img src={meta.avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
           ) : (
             <User size={48} className="text-text-muted" />
           )}

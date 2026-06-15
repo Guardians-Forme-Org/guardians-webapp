@@ -91,6 +91,9 @@ export type LoginResponse = {
   id: string;
   email: string;
   metaData: AuthMetadata;
+  challenges: import("./circles").ApiCircleChallenge[];
+  circles: import("./circles").ApiCircle[];
+  impactRecords: import("./circles").ApiImpactRecord[];
   challengesCount: { total: number; label: string; displayValue: string };
   circlesCount: { total: number; label: string; displayValue: string };
   contributionMarkers: unknown | null;

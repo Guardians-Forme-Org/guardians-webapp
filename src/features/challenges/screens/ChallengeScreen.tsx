@@ -198,7 +198,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
 
   return (
     <div className="flex flex-col bg-white min-h-full">
-      <ChallengeHero />
+      <ChallengeHero bannerUrl={challenge.bannerUrl} />
 
       <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
 

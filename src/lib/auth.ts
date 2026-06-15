@@ -1,4 +1,6 @@
-import type { AuthMetadata, AuthUser, Language } from "./types/auth";
+import type { AuthMetadata, AuthUser, Language, LoginResponse } from "./types/auth";
+
+export type LoginData = Pick<LoginResponse, "challenges" | "circles" | "impactRecords" | "challengesCount" | "circlesCount">;
 
 const KEYS = {
   token: "gotf_token",
@@ -6,6 +8,7 @@ const KEYS = {
   expiresAt: "gotf_expires_at",
   user: "gotf_user",
   preferredLanguage: "gotf_lang",
+  loginData: "gotf_login_data",
 } as const;
 
 export function saveSession(meta: AuthMetadata, lang?: Language): void {
@@ -17,6 +20,10 @@ export function saveSession(meta: AuthMetadata, lang?: Language): void {
   if (lang?.id) {
     localStorage.setItem(KEYS.preferredLanguage, JSON.stringify(lang));
   }
+}
+
+export function saveLoginData(data: LoginData): void {
+  localStorage.setItem(KEYS.loginData, JSON.stringify(data));
 }
 
 export function getToken(): string | null {
@@ -34,14 +41,16 @@ export function getStoredSession(): {
   token: string | null;
   user: AuthUser | null;
   preferredLanguage: Language | null;
+  loginData: LoginData | null;
 } {
   if (typeof window === "undefined") {
-    return { token: null, user: null, preferredLanguage: null };
+    return { token: null, user: null, preferredLanguage: null, loginData: null };
   }
   const token = getToken();
   const user = parseJson<AuthUser>(localStorage.getItem(KEYS.user));
   const preferredLanguage = parseJson<Language>(localStorage.getItem(KEYS.preferredLanguage));
-  return { token, user, preferredLanguage };
+  const loginData = parseJson<LoginData>(localStorage.getItem(KEYS.loginData));
+  return { token, user, preferredLanguage, loginData };
 }
 
 export function clearSession(): void {

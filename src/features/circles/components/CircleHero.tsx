@@ -4,15 +4,21 @@ import { ChevronLeft, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type Props = {
+  bannerUrl?: string;
   heightClass?: string;
 };
 
-export default function CircleHero({ heightClass = "h-65" }: Props) {
+export default function CircleHero({ bannerUrl, heightClass = "h-65" }: Props) {
   const router = useRouter();
 
   return (
     <div className={`relative ${heightClass} bg-zinc-900 overflow-hidden shrink-0`}>
-      <div className="absolute inset-0 bg-black/20 z-10" />
+      <div className="absolute inset-0 bg-black/20 z-10">
+        {bannerUrl
+          ? <img src={bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover -z-10" />
+          : <img src="/images/Guardians Logo-full.png" alt="" className="absolute inset-0 m-auto w-24 h-24 object-contain opacity-20 -z-10" />
+        }
+      </div>
 
       <button
         onClick={() => router.back()}

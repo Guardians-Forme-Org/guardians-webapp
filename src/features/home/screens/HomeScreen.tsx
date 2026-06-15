@@ -1,97 +1,106 @@
 "use client";
 
-import { useRouter } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
-import { useAuth } from "@/contexts/AuthContext";
 import SearchBar from "@/components/ui/SearchBar";
 import SectionHeader from "@/components/ui/SectionHeader";
-import ChallengeCard, { type Challenge } from "../components/ChallengeCard";
-import CircleListItem, { type Circle } from "../components/CircleListItem";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
+import ChallengeCard from "../components/ChallengeCard";
+import CircleListItem from "../components/CircleListItem";
 import HomeHeader from "../components/HomeHeader";
 import ImpactSection from "../components/ImpactSection";
 import LocationPill from "../components/LocationPill";
 
-const continueChallenges: Challenge[] = [
-  {
-    id: 1,
-    title: "Separate plastic b...",
-    challengeName: "Plastic Free Challenge",
-    circleName: "Soweto Green Circle",
-    currentStep: 2,
-    totalSteps: 5,
-  },
-  {
-    id: 2,
-    title: "Plant seeds",
-    challengeName: "1 Tree at a Time Challenge",
-    circleName: "Jozi Youth",
-    currentStep: 11,
-    totalSteps: 15,
-  },
-];
-
-const circles: Circle[] = [
-  { id: 1, rank: 1, name: "Green Urban Youth", joinDate: "12 March" },
-  { id: 2, rank: 2, name: "Park Watch", joinDate: "1 December" },
-  { id: 3, rank: 3, name: "Eco Homes", joinDate: "24 February" },
-];
-
 export default function HomeScreen() {
-  const { user } = useAuth();
+  const { user, loginData } = useAuth();
   const router = useRouter();
   const t = useTranslations("home");
 
   const displayName =
-    user?.user_metadata.firstName ||
-    user?.email?.split("@")[0] ||
-    "Guardian";
+    user?.user_metadata.firstName || user?.email?.split("@")[0] || "Guardian";
 
-  const badgeStats = [
-    { label: t("avoidedCO2"),     value: "20kg"  },
-    { label: t("generatedArea"),  value: "750m²" },
-    { label: t("processedWaste"), value: "32kg"  },
-  ];
+  const impactRecords = loginData?.impactRecords ?? [];
+  const badgeStats = impactRecords.slice(0, 3).map((r) => ({
+    label: r.impactSummary.contribution.unitOfMeasure,
+    value: r.impactSummary.contribution.value,
+  }));
+
+  const avatarUrl =
+    user?.user_metadata.avatarUrl ||
+    loginData?.circles
+      .flatMap((c) => c.members)
+      .find((m) => m.userId === user?.id)?.avatarUrl ||
+    loginData?.challenges
+      .flatMap((c) => c.members ?? [])
+      .find((m) => m.userId === user?.id)?.avatarUrl;
 
   const activityStats = [
-    { label: t("challengesStat"), value: "4" },
-    { label: t("circlesStat"),    value: "2" },
-    { label: "",                  value: ""  },
+    {
+      label: t("challengesStat"),
+      value: loginData?.challengesCount.displayValue ?? "0",
+    },
+    {
+      label: t("circlesStat"),
+      value: loginData?.circlesCount.displayValue ?? "0",
+    },
+    { label: "", value: "" },
   ];
+
+  const challenges = loginData?.challenges ?? [];
+  const circles = loginData?.circles ?? [];
 
   return (
     <div className="flex flex-col min-h-full bg-white gap-4">
-      <HomeHeader name={displayName} avatarUrl={user?.user_metadata.avatarUrl} hasNotification />
+      <HomeHeader name={displayName} avatarUrl={avatarUrl} hasNotification />
       <SearchBar
         placeholder={t("searchPlaceholder")}
-        onSubmit={(q) => router.push(`/discover${q ? `?q=${encodeURIComponent(q)}` : ""}`)}
+        onSubmit={(q) =>
+          router.push(`/discover${q ? `?q=${encodeURIComponent(q)}` : ""}`)
+        }
       />
       <LocationPill
-        city={user?.user_metadata.location.city || user?.user_metadata.location.formattedAddress || user?.user_metadata.location.address || ""}
+        city={
+          user?.user_metadata.location.city ||
+          user?.user_metadata.location.formattedAddress ||
+          user?.user_metadata.location.address ||
+          ""
+        }
         country={user?.user_metadata.location.country || ""}
       />
 
       <ImpactSection badgeStats={badgeStats} activityStats={activityStats} />
 
-      <section className="mb-6">
-        <div className="px-5">
-          <SectionHeader title={t("activeChallenges")} href="/discover" />
-        </div>
-        <div className="flex gap-3 pl-5 overflow-x-auto no-scrollbar pb-1">
-          {continueChallenges.map((challenge) => (
-            <ChallengeCard key={challenge.id} challenge={challenge} />
-          ))}
-          <div className="w-5 shrink-0" aria-hidden="true" />
-        </div>
-      </section>
+      {challenges.length > 0 && (
+        <section className="mb-6">
+          <div className="px-5">
+            <SectionHeader title={t("activeChallenges")} href="/discover" />
+          </div>
+          <div className="flex gap-3 pl-5 overflow-x-auto no-scrollbar pb-1">
+            {challenges.map((challenge) => (
+              <ChallengeCard
+                key={challenge.challengeId}
+                challenge={challenge}
+              />
+            ))}
+            <div className="w-5 shrink-0" aria-hidden="true" />
+          </div>
+        </section>
+      )}
 
-      <section className="bg-white rounded-t-[20px] shadow-[0_-5px_20px_0_rgba(0,0,0,0.05)] px-5 pt-6 pb-8 -mt-2">
-        <SectionHeader title={t("activeCircles")} href="/discover" />
-        <div className="flex flex-col gap-7.5">
-          {circles.map((circle) => (
-            <CircleListItem key={circle.id} circle={circle} />
-          ))}
-        </div>
-      </section>
+      {circles.length > 0 && (
+        <section className="bg-white rounded-t-[20px] shadow-[0_-5px_20px_0_rgba(0,0,0,0.05)] px-5 pt-6 pb-8 -mt-2">
+          <SectionHeader title={t("activeCircles")} href="/discover" />
+          <div className="flex flex-col gap-7.5">
+            {circles.map((circle, i) => (
+              <CircleListItem
+                key={circle.circleId}
+                circle={circle}
+                rank={i + 1}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

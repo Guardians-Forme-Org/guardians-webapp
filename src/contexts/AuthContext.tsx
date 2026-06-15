@@ -14,6 +14,8 @@ import {
   clearSession,
   getStoredSession,
   saveSession,
+  saveLoginData,
+  type LoginData,
 } from "@/lib/auth";
 import type {
   AuthUser,
@@ -28,6 +30,7 @@ type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
   preferredLanguage: Language | null;
+  loginData: LoginData | null;
   loading: boolean;
   login: (emailOrMobile: string, password: string) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
@@ -43,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [preferredLanguage, setPreferredLanguage] = useState<Language | null>(null);
+  const [loginData, setLoginData] = useState<LoginData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(stored.token);
       setUser(stored.user);
       setPreferredLanguage(stored.preferredLanguage);
+      setLoginData(stored.loginData);
     }
     setLoading(false);
   }, []);
@@ -63,9 +68,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { metaData } = response;
     const lang = metaData.user.user_metadata?.preferredLanguage ?? null;
     saveSession(metaData, lang ?? undefined);
+
+    const data: LoginData = {
+      challenges: response.challenges ?? [],
+      circles: response.circles ?? [],
+      impactRecords: response.impactRecords ?? [],
+      challengesCount: response.challengesCount,
+      circlesCount: response.circlesCount,
+    };
+    saveLoginData(data);
+
     setToken(metaData.access_token);
     setUser(metaData.user);
     setPreferredLanguage(lang?.id ? lang : null);
+    setLoginData(data);
   }, []);
 
   const register = useCallback(async (data: RegisterRequest) => {
@@ -77,11 +93,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUser(null);
     setPreferredLanguage(null);
+    setLoginData(null);
     router.push("/login");
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, token, preferredLanguage, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, preferredLanguage, loginData, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

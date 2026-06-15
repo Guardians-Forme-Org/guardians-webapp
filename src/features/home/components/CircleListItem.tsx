@@ -1,32 +1,31 @@
+import Link from "next/link";
 import Text from "@/components/ui/Text";
 import { ChevronRight } from "lucide-react";
-
-export type Circle = {
-  id: number;
-  rank: number;
-  name: string;
-  joinDate: string;
-  image?: string;
-};
+import type { ApiCircle } from "@/lib/types/circles";
 
 type Props = {
-  circle: Circle;
+  circle: ApiCircle;
+  rank: number;
 };
 
-export default function CircleListItem({ circle }: Props) {
+export default function CircleListItem({ circle, rank }: Props) {
+  const myMember = circle.members?.[0];
+  const joinDate = myMember?.joinedAt
+    ? new Date(myMember.joinedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" })
+    : null;
+
   return (
-    <div className="flex items-center gap-3.75">
+    <Link href={`/circles/${circle.circleId}`} className="flex items-center gap-3.75">
       <Text
         variant="body"
         className="w-2.5 text-center font-medium text-text-primary shrink-0"
       >
-        {circle.rank}
+        {rank}
       </Text>
       <div className="size-15 rounded-lg bg-[#D1D5DB] overflow-hidden shrink-0">
-        {circle.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
+        {circle.bannerUrl ? (
           <img
-            src={circle.image}
+            src={circle.bannerUrl}
             alt={circle.name}
             className="w-full h-full object-cover"
           />
@@ -43,11 +42,13 @@ export default function CircleListItem({ circle }: Props) {
         >
           {circle.name}
         </Text>
-        <Text variant="caption" className="block text-text-muted">
-          Joined {circle.joinDate}
-        </Text>
+        {joinDate && (
+          <Text variant="caption" className="block text-text-muted">
+            Joined {joinDate}
+          </Text>
+        )}
       </div>
       <ChevronRight size={16} className="text-text-muted shrink-0" />
-    </div>
+    </Link>
   );
 }

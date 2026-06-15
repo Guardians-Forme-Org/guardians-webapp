@@ -102,7 +102,7 @@ export default function CircleScreen({ circleId }: Props) {
 
   return (
     <div className="flex flex-col bg-white min-h-full">
-      <CircleHero />
+      <CircleHero bannerUrl={circle.bannerUrl} />
 
       {/* White card */}
       <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">

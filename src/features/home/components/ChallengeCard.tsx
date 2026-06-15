@@ -1,32 +1,27 @@
+import Link from "next/link";
 import Text from "@/components/ui/Text";
-
-export type Challenge = {
-  id: number;
-  title: string;
-  challengeName: string;
-  circleName: string;
-  currentStep: number;
-  totalSteps: number;
-  image?: string;
-};
+import type { ApiCircleChallenge } from "@/lib/types/circles";
 
 type Props = {
-  challenge: Challenge;
+  challenge: ApiCircleChallenge;
 };
 
 export default function ChallengeCard({ challenge }: Props) {
-  const progress = Math.round(
-    (challenge.currentStep / challenge.totalSteps) * 100,
-  );
+  const progress = challenge.steps > 0
+    ? Math.round((challenge.currentStep / challenge.steps) * 100)
+    : 0;
+
+  const location = challenge.location?.city
+    ? [challenge.location.city, challenge.location.province].filter(Boolean).join(", ")
+    : null;
 
   return (
-    <div className="w-[55%] shrink-0 overflow-hidden bg-white ">
+    <Link href={`/challenges/${challenge.challengeId}`} className="w-[55%] shrink-0 overflow-hidden bg-white">
       <div className="h-24 bg-[#D1D5DB] relative overflow-hidden rounded-xl">
-        {challenge.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
+        {challenge.bannerUrl ? (
           <img
-            src={challenge.image}
-            alt={challenge.title}
+            src={challenge.bannerUrl}
+            alt={challenge.name}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -40,14 +35,13 @@ export default function ChallengeCard({ challenge }: Props) {
           variant="subheading"
           className="block font-bold text-text-primary truncate mb-0.5 tracking-normal"
         >
-          {challenge.title}
+          {challenge.name}
         </Text>
-        <Text variant="caption" className="block truncate mb-0.5 font-semibold">
-          {challenge.challengeName}
-        </Text>
-        <Text variant="caption" className="block text-text-muted truncate mb-3">
-          {challenge.circleName}
-        </Text>
+        {location && (
+          <Text variant="caption" className="block text-text-muted truncate mb-3">
+            {location}
+          </Text>
+        )}
         <div className="h-1 rounded-full overflow-hidden mb-1.5 flex">
           <div
             className="h-full bg-gotf-yellow transition-all"
@@ -55,13 +49,13 @@ export default function ChallengeCard({ challenge }: Props) {
           />
           <div
             className="h-full bg-progress-track transition-all"
-            style={{ width: `${101 - progress}%` }}
+            style={{ width: `${100 - progress}%` }}
           />
         </div>
         <Text variant="caption" className="text-text-muted">
-          {challenge.currentStep} of {challenge.totalSteps} Steps
+          {challenge.currentStep} of {challenge.steps} Steps
         </Text>
       </div>
-    </div>
+    </Link>
   );
 }
