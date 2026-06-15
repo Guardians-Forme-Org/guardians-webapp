@@ -125,7 +125,7 @@ export default function ProfilePage() {
           ))}
         </div>
       ) : (
-        <div className="mx-7.5 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-8">
+        <div className="mx-7.5 mb-6 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-8">
           <img
             src="/images/Guardians Logo-full.png"
             alt=""
