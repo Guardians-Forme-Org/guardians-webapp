@@ -75,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       impactRecords: response.impactRecords ?? [],
       challengesCount: response.challengesCount,
       circlesCount: response.circlesCount,
+      contributionMarkers: response.contributionMarkers,
     };
     saveLoginData(data);
 

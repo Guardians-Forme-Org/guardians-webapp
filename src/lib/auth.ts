@@ -1,6 +1,6 @@
 import type { AuthMetadata, AuthUser, Language, LoginResponse } from "./types/auth";
 
-export type LoginData = Pick<LoginResponse, "challenges" | "circles" | "impactRecords" | "challengesCount" | "circlesCount">;
+export type LoginData = Pick<LoginResponse, "challenges" | "circles" | "impactRecords" | "challengesCount" | "circlesCount" | "contributionMarkers">;
 
 const KEYS = {
   token: "gotf_token",
