@@ -87,16 +87,13 @@ export type AuthMetadata = {
   provider_refresh_token: string;
 };
 
-export type LoginResponseData = {
+export type LoginResponse = {
   id: string;
   email: string;
-  preferredLanguage: Language;
   metaData: AuthMetadata;
-};
-
-export type LoginResponse = {
-  data: LoginResponseData;
-  success: boolean;
+  challengesCount: { total: number; label: string; displayValue: string };
+  circlesCount: { total: number; label: string; displayValue: string };
+  contributionMarkers: unknown | null;
 };
 
 export type ApiError = {

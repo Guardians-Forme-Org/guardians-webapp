@@ -8,20 +8,27 @@ import { ArrowRight, MapPin } from "lucide-react";
 import SearchBar from "@/components/ui/SearchBar";
 import { api } from "@/lib/api";
 import type { CirclesListResponse } from "@/lib/types/circles";
+import { useChallenges } from "@/lib/hooks/challenges";
+import ChallengeCard from "@/features/challenges/components/ChallengeCard";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type Tab = "challenges" | "circles";
 
-type ChallengeItem = {
-  id: number;
-  title: string;
-  since: string;
-  circle: string;
-  progress: number;
-  guardians: number;
-  image?: string;
-};
+function AvatarStack({ avatars }: { avatars: string[] }) {
+  return (
+    <div className="flex items-center">
+      {avatars.slice(0, 5).map((url, i) => (
+        <div
+          key={i}
+          className={`size-8 rounded-full border-2 border-white overflow-hidden bg-[#d9d9d9] shrink-0 ${i > 0 ? "-ml-2" : ""}`}
+        >
+          {url ? <img src={url} alt="" className="w-full h-full object-cover" /> : null}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 type CircleItem = {
   id: string | number;
@@ -32,73 +39,6 @@ type CircleItem = {
   memberAvatars: string[];
   image?: string;
 };
-
-// ── Data ──────────────────────────────────────────────────────────────────────
-
-const challenges: ChallengeItem[] = [
-  { id: 1, title: "Re-Greening",      since: "12 March",    circle: "Green Urban Youth", progress: 68, guardians: 17 },
-  { id: 2, title: "Waste Compost",    since: "1 December",  circle: "Urban Watch",       progress: 68, guardians: 53 },
-  { id: 3, title: "Change Tracking",  since: "24 February", circle: "Eco Homes",         progress: 68, guardians: 38 },
-];
-
-// ── Avatar Stack ──────────────────────────────────────────────────────────────
-
-function AvatarStack({ avatars }: { avatars: string[] }) {
-  const visible = avatars.slice(0, 5);
-  return (
-    <div className="flex items-center">
-      {visible.map((url, i) => (
-        <div
-          key={i}
-          className={`size-8 rounded-full border-2 border-white overflow-hidden bg-[#d9d9d9] shrink-0 ${i > 0 ? "-ml-2" : ""}`}
-        >
-          {url ? (
-            <img src={url} alt="" className="w-full h-full object-cover" />
-          ) : null}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Challenge Card ─────────────────────────────────────────────────────────────
-
-function ChallengeCard({ item }: { item: ChallengeItem }) {
-  return (
-    <Link href={`/challenges/${item.id}`} className="flex h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white">
-      {/* Left image strip */}
-      <div className="w-[120px] shrink-0 bg-surface flex items-center justify-center">
-        <img
-          src={item.image || "/images/Guardians Logo-full.png"}
-          alt={item.title}
-          className={item.image ? "w-full h-full object-cover" : "w-16 h-16 object-contain opacity-20"}
-        />
-      </div>
-
-      {/* Right content */}
-      <div className="flex-1 relative overflow-hidden pt-[19px] px-4 pr-8 flex flex-col">
-        <ArrowRight size={20} className="absolute right-3 top-4 text-text-muted" />
-
-        <p className="text-[18px] font-bold text-text-subheading leading-tight">{item.title}</p>
-        <p className="text-[14px] text-text-subheading mt-1">Since {item.since}</p>
-        <p className="text-[14px] text-text-muted">by {item.circle}</p>
-
-        {/* Progress bar */}
-        <div className="mx-[-4px] mt-2.5 h-[4px] bg-[#787878] rounded-full overflow-hidden">
-          <div className="h-full bg-gotf-yellow rounded-full" style={{ width: `${item.progress}%` }} />
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-2">
-          <p className="text-[14px] text-text-muted">
-            <span className="font-bold">{item.guardians}</span> Guardians
-          </p>
-          <AvatarStack avatars={[]} />
-        </div>
-      </div>
-    </Link>
-  );
-}
 
 // ── Circle Card ────────────────────────────────────────────────────────────────
 
@@ -149,9 +89,11 @@ export default function DiscoverScreen() {
     queryFn: () => api.get<CirclesListResponse>("/circles"),
   });
 
+  const { data: apiChallenges, isLoading: challengesLoading } = useChallenges();
+
   const lq = query.toLowerCase();
-  const filteredChallenges = challenges.filter(
-    (c) => !lq || c.title.toLowerCase().includes(lq) || c.circle.toLowerCase().includes(lq),
+  const filteredChallenges = (apiChallenges ?? []).filter(
+    (c) => !lq || c.name.toLowerCase().includes(lq),
   );
 
   return (
@@ -203,7 +145,9 @@ export default function DiscoverScreen() {
       {/* Cards */}
       <div className="px-5 flex flex-col gap-4 pb-8">
         {tab === "challenges"
-          ? filteredChallenges.map((c) => <ChallengeCard key={c.id} item={c} />)
+          ? challengesLoading
+            ? <p className="text-sm text-text-muted text-center pt-6">Loading challenges…</p>
+            : filteredChallenges.map((c) => <ChallengeCard key={c.challengeId} item={c} />)
           : circlesLoading
             ? <p className="text-sm text-text-muted text-center pt-6">Loading circles…</p>
             : (apiCircles ?? [])

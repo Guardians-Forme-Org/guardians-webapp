@@ -14,7 +14,6 @@ export const metadata: Metadata = {
   title: "GOTF",
   description:
     "Guardians of the Future is a civic action platform that makes real-world community impact honest, visible, and worth proving.",
-  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {

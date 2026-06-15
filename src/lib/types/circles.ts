@@ -18,6 +18,107 @@ export type CreateCircleRequest = {
   };
 };
 
+export type ApiImpactRecord = {
+  id: string;
+  impactRecordId: string;
+  thingUUID: string;
+  thingId: string;
+  impactSummary: {
+    contribution: {
+      value: number;
+      unitOfMeasure: string;
+      displayName: string;
+    };
+    impact: {
+      value: number;
+      unitOfMeasure: string;
+      displayName: string;
+      siUnit: string;
+      summary: string;
+    };
+  };
+  verifiedDate: string | null;
+  verifiedBy: string | null;
+  verified: boolean;
+  impactType: string;
+  validationTier: string | null;
+  siUnit: string;
+  createdAt: string;
+  modifiedAt: string;
+};
+
+export type CircleCommunicationChannel = {
+  name: string;
+  url: string;
+  icon: string;
+};
+
+export type CircleStatus = {
+  id: string;
+  name: string;
+  code: string;
+  color: string;
+  createdAt: string;
+};
+
+export type ApiCircleChallengeMember = {
+  userId: string;
+  challengeId: string;
+  joinedAt: string;
+  role: string;
+  permissions: string[];
+  avatarUrl: string;
+};
+
+export type ApiCircleChallenge = {
+  id: string;
+  challengeId: string;
+  challengeCode: string;
+  name: string;
+  description: string;
+  bannerUrl: string;
+  circleId: string;
+  region: {
+    city: string;
+    suburb: string;
+    province: string;
+    country: string;
+    countryCode: string;
+    latitude: number;
+    longitude: number;
+    formattedAddress: string;
+    postalCode: string;
+  };
+  location: {
+    city: string;
+    suburb: string;
+    province: string;
+    country: string;
+    countryCode: string;
+    latitude: number;
+    longitude: number;
+    formattedAddress: string;
+    postalCode: string;
+  };
+  members: ApiCircleChallengeMember[] | null;
+  facilitator: unknown | null;
+  duration: unknown | null;
+  equipments: unknown[];
+  status: CircleStatus;
+  templateId: string;
+  activatedDate: string | null;
+  completedDate: string | null;
+  createdAt: string;
+  modifiedAt: string;
+  partner: unknown | null;
+  createdBy: string;
+  steps: number;
+  currentStep: number;
+  impactRecords: ApiImpactRecord[] | null;
+  joinLink: string;
+  communicationChannels: CircleCommunicationChannel[];
+};
+
 export type CircleMember = {
   circleId: string;
   userId: string;
@@ -41,12 +142,15 @@ export type ApiCircle = {
     address: string;
     what3words: string;
   };
-  challenges: unknown[];
+  challenges: ApiCircleChallenge[];
   circleLead: null | unknown;
   members: CircleMember[];
   joinLink: string;
   createdBy: string;
   bannerUrl: string;
+  communicationChannels: CircleCommunicationChannel[];
+  status: CircleStatus;
+  impactRecords: ApiImpactRecord[];
 };
 
 export type CreateCircleResponse = ApiCircle;

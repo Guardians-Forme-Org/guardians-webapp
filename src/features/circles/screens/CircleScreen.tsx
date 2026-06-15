@@ -5,26 +5,30 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, ChevronRight } from "lucide-react";
 import CircleHero from "../components/CircleHero";
-import { type CircleChallenge } from "../data";
 import Text from "@/components/ui/Text";
 import { api } from "@/lib/api";
-import type { ApiCircle, CircleMember } from "@/lib/types/circles";
+import type { ApiCircle, ApiCircleChallenge, CircleMember } from "@/lib/types/circles";
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-function CircleChallengeRow({ item }: { item: CircleChallenge }) {
+function CircleChallengeRow({ item, rank }: { item: ApiCircleChallenge; rank: number }) {
+  const progress = item.steps > 0 ? Math.round((item.currentStep / item.steps) * 100) : 0;
+  const since = new Date(item.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+
   return (
-    <Link href={`/challenges/${item.id}`}>
+    <Link href={`/challenges/${item.challengeId}`}>
       <div className="flex items-center gap-3.75">
-        <span className="w-2.5 text-center font-medium text-base text-black shrink-0">
-          {item.rank}
-        </span>
-        <div className="size-15 rounded-lg overflow-hidden shrink-0 bg-surface" />
+        <span className="w-2.5 text-center font-medium text-base text-black shrink-0">{rank}</span>
+        <div className="size-15 rounded-lg overflow-hidden shrink-0 bg-surface">
+          {item.bannerUrl ? (
+            <img src={item.bannerUrl} alt="" className="w-full h-full object-cover" />
+          ) : null}
+        </div>
         <div className="flex-1 min-w-0 px-1">
           <p className="text-base font-semibold text-text-primary leading-tight">{item.name}</p>
-          <p className="text-xs text-text-secondary mt-0.5">Joined {item.joinedDate}</p>
+          <p className="text-xs text-text-secondary mt-0.5">Since {since}</p>
           <div className="mt-1.5 h-[3px] bg-[#787878] rounded-full overflow-hidden">
-            <div className="h-full bg-gotf-yellow rounded-full" style={{ width: `${item.progress}%` }} />
+            <div className="h-full bg-gotf-yellow rounded-full" style={{ width: `${progress}%` }} />
           </div>
         </div>
         <ChevronRight size={24} className="text-text-muted shrink-0" />
@@ -142,6 +146,27 @@ export default function CircleScreen({ circleId }: Props) {
           </div>
         </div>
 
+        {/* Impact */}
+        <div className="border-b border-progress-track">
+          <p className="px-10 pt-7.5 pb-5 text-xl font-bold text-text-subheading">Impact</p>
+          {!circle.impactRecords?.length ? (
+            <p className="px-10 pb-7.5 text-sm text-text-muted">No impact recorded yet.</p>
+          ) : (
+            circle.impactRecords.map((record, i) => (
+              <div key={record.impactRecordId ?? i} className="flex items-start gap-4 px-7.5 pb-6 border-t border-[#e6e6e6]">
+                <div className="flex-1 pt-5">
+                  <p className="text-2xl font-semibold text-[#333]">{record.impactSummary.impact.displayName}</p>
+                  <p className="text-xs text-[#767676] mt-1 leading-snug">{record.impactSummary.impact.summary}</p>
+                </div>
+                <div className="pt-5 text-right shrink-0">
+                  <p className="text-base font-semibold text-text-subheading">{record.impactSummary.contribution.displayName}</p>
+                  <p className="text-xs text-text-muted mt-0.5">contributed</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
         {/* Description */}
         <div className="px-10 py-7.5 border-b border-progress-track">
           <p className={`text-base text-text-primary leading-relaxed ${!expanded ? "line-clamp-4" : ""}`}>
@@ -178,8 +203,8 @@ export default function CircleScreen({ circleId }: Props) {
             <p className="text-sm text-text-muted">No challenges yet.</p>
           ) : (
             <div className="flex flex-col gap-7.5">
-              {(circle.challenges as CircleChallenge[]).map((challenge) => (
-                <CircleChallengeRow key={challenge.id} item={challenge} />
+              {circle.challenges.map((challenge, i) => (
+                <CircleChallengeRow key={challenge.challengeId} item={challenge} rank={i + 1} />
               ))}
             </div>
           )}

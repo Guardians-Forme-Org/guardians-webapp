@@ -60,8 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       username: emailOrMobile,
       password,
     });
-    const { metaData, preferredLanguage: lang } = response.data;
-    saveSession(metaData, lang);
+    const { metaData } = response;
+    const lang = metaData.user.user_metadata?.preferredLanguage ?? null;
+    saveSession(metaData, lang ?? undefined);
     setToken(metaData.access_token);
     setUser(metaData.user);
     setPreferredLanguage(lang?.id ? lang : null);

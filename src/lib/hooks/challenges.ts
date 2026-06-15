@@ -5,11 +5,27 @@ import type {
   CreateChallengeRequest,
   TemplatesListResponse,
 } from "@/lib/types/challenges";
+import type { ApiCircleChallenge } from "@/lib/types/circles";
 
 export function useTemplates() {
   return useQuery({
     queryKey: ["templates"],
     queryFn: () => api.get<TemplatesListResponse>("/templates"),
+  });
+}
+
+export function useChallenges() {
+  return useQuery({
+    queryKey: ["challenges"],
+    queryFn: () => api.get<ApiCircleChallenge[]>("/challenges"),
+  });
+}
+
+export function useChallenge(challengeId: string) {
+  return useQuery({
+    queryKey: ["challenge", challengeId],
+    queryFn: () => api.get<ApiCircleChallenge>(`/challenges/${challengeId}`),
+    enabled: !!challengeId,
   });
 }
 
