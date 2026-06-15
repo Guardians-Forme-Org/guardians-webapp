@@ -70,37 +70,64 @@ export default function HomeScreen() {
 
       <ImpactSection badgeStats={badgeStats} activityStats={activityStats} />
 
-      {challenges.length > 0 && (
-        <section className="mb-6">
-          <div className="px-5">
-            <SectionHeader title={t("activeChallenges")} href="/discover" />
-          </div>
+      <section className="mb-6">
+        <div className="px-5">
+          <SectionHeader title={t("activeChallenges")} href="/discover" />
+        </div>
+        {challenges.length > 0 ? (
           <div className="flex gap-3 pl-5 overflow-x-auto no-scrollbar pb-1">
             {challenges.map((challenge) => (
-              <ChallengeCard
-                key={challenge.challengeId}
-                challenge={challenge}
-              />
+              <ChallengeCard key={challenge.challengeId} challenge={challenge} />
             ))}
             <div className="w-5 shrink-0" aria-hidden="true" />
           </div>
-        </section>
-      )}
+        ) : (
+          <div className="mx-5 mt-2 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-8">
+            <img
+              src="/images/Guardians Logo-full.png"
+              alt=""
+              className="w-14 h-14 object-contain opacity-20"
+            />
+            <p className="text-sm text-text-muted text-center">
+              You haven&apos;t joined any challenges yet.
+            </p>
+            <button
+              onClick={() => router.push("/discover")}
+              className="px-5 h-9 rounded-full bg-gotf-green text-white text-sm font-semibold"
+            >
+              Find a Challenge
+            </button>
+          </div>
+        )}
+      </section>
 
-      {circles.length > 0 && (
-        <section className="bg-white rounded-t-[20px] shadow-[0_-5px_20px_0_rgba(0,0,0,0.05)] px-5 pt-6 pb-8 -mt-2">
-          <SectionHeader title={t("activeCircles")} href="/discover" />
+      <section className="bg-white rounded-t-[20px] shadow-[0_-5px_20px_0_rgba(0,0,0,0.05)] px-5 pt-6 pb-8 -mt-2">
+        <SectionHeader title={t("activeCircles")} href="/discover" />
+        {circles.length > 0 ? (
           <div className="flex flex-col gap-7.5">
             {circles.map((circle, i) => (
-              <CircleListItem
-                key={circle.circleId}
-                circle={circle}
-                rank={i + 1}
-              />
+              <CircleListItem key={circle.circleId} circle={circle} rank={i + 1} />
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <div className="mt-2 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-8">
+            <img
+              src="/images/Guardians Logo-logo.png"
+              alt=""
+              className="w-10 h-10 object-contain opacity-20"
+            />
+            <p className="text-sm text-text-muted text-center">
+              You&apos;re not part of any circles yet.
+            </p>
+            <button
+              onClick={() => router.push("/discover")}
+              className="px-5 h-9 rounded-full bg-gotf-green text-white text-sm font-semibold"
+            >
+              Join a Circle
+            </button>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

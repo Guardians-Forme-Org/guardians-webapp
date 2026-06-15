@@ -121,27 +121,31 @@ function HomeTab({ challenge, circleName }: { challenge: ApiCircleChallenge; cir
       )}
 
       {/* Impact */}
-      {(challenge.impactRecords ?? []).map((record) => (
-          <div key={record.impactRecordId} className="flex border-b border-progress-track">
-            <div className="flex-1 flex flex-col gap-2 px-10 pt-6 pb-7.5 border-r border-[#e6e6e6]">
-              <Text variant="caption" className="text-text-muted">
-                {record.impactSummary.contribution.unitOfMeasure} contributed
-              </Text>
-              <p className="text-2xl font-semibold text-text-subheading">
-                {record.impactSummary.contribution.displayName}
-              </p>
+      <div className="border-t border-progress-track">
+        <p className="px-10 pt-7.5 pb-5 text-xl font-bold text-text-subheading">Impact</p>
+        {!(challenge.impactRecords ?? []).length ? (
+          <p className="px-10 pb-7.5 text-sm text-text-muted">No impact recorded yet.</p>
+        ) : (
+          (challenge.impactRecords ?? []).map((record) => (
+            <div key={record.impactRecordId} className="flex items-start gap-4 px-10 pb-6 border-t border-[#e6e6e6]">
+              <div className="flex-1 pt-5">
+                <p className="text-2xl font-semibold text-[#333]">
+                  {record.impactSummary.impact.displayName}
+                </p>
+                <p className="text-xs text-[#767676] mt-1 leading-snug">
+                  {record.impactSummary.impact.summary}
+                </p>
+              </div>
+              <div className="pt-5 text-right shrink-0">
+                <p className="text-base font-semibold text-text-subheading">
+                  {record.impactSummary.contribution.displayName}
+                </p>
+                <p className="text-xs text-text-muted mt-0.5">contributed</p>
+              </div>
             </div>
-            <div className="flex-1 flex flex-col gap-2 px-5 pt-6 pb-7.5">
-              <Text variant="caption" className="text-text-muted">
-                {record.impactSummary.impact.unitOfMeasure} impact
-              </Text>
-              <p className="text-2xl font-semibold text-text-subheading">
-                {record.impactSummary.impact.displayName}
-              </p>
-            </div>
-          </div>
-        ))
-      }
+          ))
+        )}
+      </div>
 
       {/* Steps summary */}
       <div className="py-7.5 px-10">

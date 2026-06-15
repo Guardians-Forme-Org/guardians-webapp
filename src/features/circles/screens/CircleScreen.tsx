@@ -1,34 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { MapPin, ChevronRight } from "lucide-react";
-import CircleHero from "../components/CircleHero";
 import Text from "@/components/ui/Text";
 import { api } from "@/lib/api";
-import type { ApiCircle, ApiCircleChallenge, CircleMember } from "@/lib/types/circles";
+import type {
+  ApiCircle,
+  ApiCircleChallenge,
+  CircleMember,
+} from "@/lib/types/circles";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronRight, MapPin } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import CircleHero from "../components/CircleHero";
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-function CircleChallengeRow({ item, rank }: { item: ApiCircleChallenge; rank: number }) {
-  const progress = item.steps > 0 ? Math.round((item.currentStep / item.steps) * 100) : 0;
-  const since = new Date(item.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+function CircleChallengeRow({
+  item,
+  rank,
+}: {
+  item: ApiCircleChallenge;
+  rank: number;
+}) {
+  const progress =
+    item.steps > 0 ? Math.round((item.currentStep / item.steps) * 100) : 0;
+  const since = new Date(item.createdAt).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+  });
 
   return (
     <Link href={`/challenges/${item.challengeId}`}>
       <div className="flex items-center gap-3.75">
-        <span className="w-2.5 text-center font-medium text-base text-black shrink-0">{rank}</span>
+        <span className="w-2.5 text-center font-medium text-base text-black shrink-0">
+          {rank}
+        </span>
         <div className="size-15 rounded-lg overflow-hidden shrink-0 bg-surface">
           {item.bannerUrl ? (
-            <img src={item.bannerUrl} alt="" className="w-full h-full object-cover" />
+            <img
+              src={item.bannerUrl}
+              alt=""
+              className="w-full h-full object-cover"
+            />
           ) : null}
         </div>
         <div className="flex-1 min-w-0 px-1">
-          <p className="text-base font-semibold text-text-primary leading-tight">{item.name}</p>
+          <p className="text-base font-semibold text-text-primary leading-tight">
+            {item.name}
+          </p>
           <p className="text-xs text-text-secondary mt-0.5">Since {since}</p>
           <div className="mt-1.5 h-[3px] bg-[#787878] rounded-full overflow-hidden">
-            <div className="h-full bg-gotf-yellow rounded-full" style={{ width: `${progress}%` }} />
+            <div
+              className="h-full bg-gotf-yellow rounded-full"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
         <ChevronRight size={24} className="text-text-muted shrink-0" />
@@ -37,30 +62,55 @@ function CircleChallengeRow({ item, rank }: { item: ApiCircleChallenge; rank: nu
   );
 }
 
-function GuardianRow({ circleId, members }: { circleId: string; members: CircleMember[] }) {
+function GuardianRow({ members }: { members: CircleMember[] }) {
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? members : members.slice(0, 5);
+
   return (
     <div className="py-7.5 border-b border-progress-track">
       <div className="flex items-center justify-between px-7.5 mb-6">
         <p className="text-xl font-bold text-text-subheading">Guardians</p>
-        <Link href={`/circles/${circleId}/members`} className="text-base text-gotf-blue">
-          See all
-        </Link>
+        {members.length > 5 && (
+          <button
+            onClick={() => setShowAll((v) => !v)}
+            className="text-base text-gotf-blue"
+          >
+            {showAll ? "Show less" : `See all (${members.length})`}
+          </button>
+        )}
       </div>
 
-      <div className="flex justify-between px-7.5">
-        {members.slice(0, 5).map((member) => (
-          <div key={member.userId} className="flex flex-col items-center gap-2">
-            <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
-              {member.avatarUrl ? (
-                <img src={member.avatarUrl} alt="" className="w-full h-full object-cover" />
-              ) : null}
+      {showAll ? (
+        <div className="flex flex-wrap gap-x-5 gap-y-6 px-7.5">
+          {visible.map((member) => (
+            <div key={member.userId} className="flex flex-col items-center gap-2 w-16">
+              <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
+                {member.avatarUrl ? (
+                  <img src={member.avatarUrl} alt="" className="w-full h-full object-cover" />
+                ) : null}
+              </div>
+              <Text variant="caption" className="text-text-subheading capitalize text-center leading-tight">
+                {member.role.toLowerCase().replace(/_/g, " ")}
+              </Text>
             </div>
-            <Text variant="caption" className="text-text-subheading capitalize">
-              {member.role.toLowerCase()}
-            </Text>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex justify-between px-7.5">
+          {visible.map((member) => (
+            <div key={member.userId} className="flex flex-col items-center gap-2">
+              <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
+                {member.avatarUrl ? (
+                  <img src={member.avatarUrl} alt="" className="w-full h-full object-cover" />
+                ) : null}
+              </div>
+              <Text variant="caption" className="text-text-subheading capitalize">
+                {member.role.toLowerCase().replace(/_/g, " ")}
+              </Text>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -73,7 +123,11 @@ export default function CircleScreen({ circleId }: Props) {
   const [joined, setJoined] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
-  const { data: circle, isLoading, error } = useQuery({
+  const {
+    data: circle,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["circle", circleId],
     queryFn: () => api.get<ApiCircle>(`/circles/${circleId}`),
   });
@@ -106,16 +160,19 @@ export default function CircleScreen({ circleId }: Props) {
 
       {/* White card */}
       <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
-
         {/* Identity */}
         <div className="px-10 pt-7.5">
-          <h1 className="text-[28px] font-bold text-text-subheading leading-tight">{circle.name}</h1>
+          <h1 className="text-[28px] font-bold text-text-subheading leading-tight">
+            {circle.name}
+          </h1>
           <p className="text-base text-[#666] mt-1">Since {joinedDate}</p>
 
           {circle.region.address && (
             <div className="flex items-center gap-1.5 mt-2">
               <MapPin size={16} className="text-gotf-green shrink-0" />
-              <p className="text-base text-text-primary">{circle.region.address}</p>
+              <p className="text-base text-text-primary">
+                {circle.region.address}
+              </p>
             </div>
           )}
 
@@ -123,7 +180,9 @@ export default function CircleScreen({ circleId }: Props) {
             <button
               onClick={() => setJoined((v) => !v)}
               className={`px-5 h-10 text-base font-semibold rounded-full text-white transition-all shadow-[0_2px_10px_rgba(0,0,0,0.15)] ${
-                joined ? "bg-[#333] w-36" : "bg-linear-to-r from-[#008000] to-[#129612]"
+                joined
+                  ? "bg-[#333] w-36"
+                  : "bg-linear-to-r from-[#008000] to-[#129612]"
               }`}
             >
               {joined ? "Circle joined" : "Join Circle"}
@@ -132,34 +191,55 @@ export default function CircleScreen({ circleId }: Props) {
         </div>
 
         {/* Guardians */}
-        <GuardianRow circleId={circle.circleId} members={circle.members} />
+        <GuardianRow members={circle.members} />
 
         {/* Stats */}
         <div className="flex border-b border-progress-track">
           <div className="flex-1 flex flex-col gap-2 px-10 pt-6 pb-5">
-            <Text variant="caption" className="text-text-muted">Guardians</Text>
-            <p className="text-2xl font-semibold text-text-subheading">{circle.members.length}</p>
+            <Text variant="caption" className="text-text-muted">
+              Guardians
+            </Text>
+            <p className="text-2xl font-semibold text-text-subheading">
+              {circle.members.length}
+            </p>
           </div>
           <div className="flex-1 flex flex-col gap-2 px-5 pt-6 pb-5">
-            <Text variant="caption" className="text-text-muted">Active Challenges</Text>
-            <p className="text-2xl font-semibold text-text-subheading">{circle.challenges.length}</p>
+            <Text variant="caption" className="text-text-muted">
+              Active Challenges
+            </Text>
+            <p className="text-2xl font-semibold text-text-subheading">
+              {circle.challenges.length}
+            </p>
           </div>
         </div>
 
         {/* Impact */}
         <div className="border-b border-progress-track">
-          <p className="px-10 pt-7.5 pb-5 text-xl font-bold text-text-subheading">Impact</p>
+          <p className="px-10 pt-7.5 pb-5 text-xl font-bold text-text-subheading">
+            Impact
+          </p>
           {!circle.impactRecords?.length ? (
-            <p className="px-10 pb-7.5 text-sm text-text-muted">No impact recorded yet.</p>
+            <p className="px-10 pb-7.5 text-sm text-text-muted">
+              No impact recorded yet.
+            </p>
           ) : (
             circle.impactRecords.map((record, i) => (
-              <div key={record.impactRecordId ?? i} className="flex items-start gap-4 px-7.5 pb-6 border-t border-[#e6e6e6]">
+              <div
+                key={record.impactRecordId ?? i}
+                className="flex items-start gap-4 px-10 pb-6 border-t border-[#e6e6e6]"
+              >
                 <div className="flex-1 pt-5">
-                  <p className="text-2xl font-semibold text-[#333]">{record.impactSummary.impact.displayName}</p>
-                  <p className="text-xs text-[#767676] mt-1 leading-snug">{record.impactSummary.impact.summary}</p>
+                  <p className="text-2xl font-semibold text-[#333]">
+                    {record.impactSummary.impact.displayName}
+                  </p>
+                  <p className="text-xs text-[#767676] mt-1 leading-snug">
+                    {record.impactSummary.impact.summary}
+                  </p>
                 </div>
                 <div className="pt-5 text-right shrink-0">
-                  <p className="text-base font-semibold text-text-subheading">{record.impactSummary.contribution.displayName}</p>
+                  <p className="text-base font-semibold text-text-subheading">
+                    {record.impactSummary.contribution.displayName}
+                  </p>
                   <p className="text-xs text-text-muted mt-0.5">contributed</p>
                 </div>
               </div>
@@ -169,10 +249,15 @@ export default function CircleScreen({ circleId }: Props) {
 
         {/* Description */}
         <div className="px-10 py-7.5 border-b border-progress-track">
-          <p className={`text-base text-text-primary leading-relaxed ${!expanded ? "line-clamp-4" : ""}`}>
+          <p
+            className={`text-base text-text-primary leading-relaxed ${!expanded ? "line-clamp-4" : ""}`}
+          >
             {circle.description}
           </p>
-          <button onClick={() => setExpanded((v) => !v)} className="text-base text-gotf-blue mt-2">
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="text-base text-gotf-blue mt-2"
+          >
             {expanded ? "Show less" : "Show more"}
           </button>
         </div>
@@ -182,7 +267,9 @@ export default function CircleScreen({ circleId }: Props) {
           <div className="flex items-center gap-5 px-7.5 py-7.5 border-b border-progress-track">
             <div className="size-10 rounded-full bg-surface border border-border shrink-0" />
             <div>
-              <p className="text-xl font-semibold text-text-primary">Circle Lead</p>
+              <p className="text-xl font-semibold text-text-primary">
+                Circle Lead
+              </p>
             </div>
           </div>
         )}
@@ -204,12 +291,15 @@ export default function CircleScreen({ circleId }: Props) {
           ) : (
             <div className="flex flex-col gap-7.5">
               {circle.challenges.map((challenge, i) => (
-                <CircleChallengeRow key={challenge.challengeId} item={challenge} rank={i + 1} />
+                <CircleChallengeRow
+                  key={challenge.challengeId}
+                  item={challenge}
+                  rank={i + 1}
+                />
               ))}
             </div>
           )}
         </div>
-
       </div>
     </div>
   );
