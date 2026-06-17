@@ -16,7 +16,8 @@ export function useLogin() {
 export function useRegister() {
   const { register } = useAuth();
   return useMutation({
-    mutationFn: (data: RegisterRequest) => register(data),
+    mutationFn: ({ data, avatarFile }: { data: RegisterRequest; avatarFile?: File }) =>
+      register(data, avatarFile),
     onError: (error) => {
       console.error("[register] error:", error);
     },

@@ -23,8 +23,10 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = getToken();
 
+  const isFormData = options.body instanceof FormData;
+
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     "Accept-Language": options.lang ?? DEFAULT_LANG,
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(API_KEY ? { "X-Api-Key": API_KEY } : {}),
@@ -32,17 +34,26 @@ export async function apiFetch<T>(
   };
 
   const method = options.method ?? "GET";
-  console.log(
-    `[api] ${method} ${BASE_URL}${path}\n` +
-    JSON.stringify({ headers, body: options.body ?? null }, null, 2)
-  );
+  if (isFormData) {
+    const entries: Record<string, unknown> = {};
+    for (const [key, val] of (options.body as FormData).entries()) {
+      entries[key] = val instanceof File ? `File(${val.name}, ${val.size}b)` : val;
+    }
+    console.log(`[api] ${method} ${BASE_URL}${path}\n` + JSON.stringify({ headers, body: entries }, null, 2));
+  } else {
+    console.log(`[api] ${method} ${BASE_URL}${path}\n` + JSON.stringify({ headers, body: options.body ?? null }, null, 2));
+  }
+
+  const body = isFormData
+    ? (options.body as FormData)
+    : options.body !== undefined
+      ? JSON.stringify(options.body)
+      : undefined;
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method,
     headers,
-    ...(options.body !== undefined
-      ? { body: JSON.stringify(options.body) }
-      : {}),
+    ...(body !== undefined ? { body } : {}),
   });
 
   const json = await response.json().catch(() => null);

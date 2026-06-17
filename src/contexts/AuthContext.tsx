@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, apiFetch } from "@/lib/api";
 import {
   clearSession,
   getStoredSession,
@@ -33,7 +33,7 @@ type AuthContextValue = {
   loginData: LoginData | null;
   loading: boolean;
   login: (emailOrMobile: string, password: string) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
+  register: (data: RegisterRequest, avatarFile?: File) => Promise<void>;
   logout: () => void;
 };
 
@@ -85,8 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoginData(data);
   }, []);
 
-  const register = useCallback(async (data: RegisterRequest) => {
-    await api.post("/register", data);
+  const register = useCallback(async (data: RegisterRequest, avatarFile?: File) => {
+    const formData = new FormData();
+    formData.append("metadata", JSON.stringify(data));
+    if (avatarFile) formData.append("avatarFile", avatarFile);
+    await apiFetch("/signup", { method: "POST", body: formData });
   }, []);
 
   const logout = useCallback(() => {

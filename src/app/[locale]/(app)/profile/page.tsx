@@ -2,6 +2,8 @@
 
 import {
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   X,
   User,
   LogOut,
@@ -14,11 +16,14 @@ import {
   Eye,
   Lightbulb,
   Shuffle,
+  MapPin,
 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Text from "@/components/ui/Text";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import AccountDetailsSheet from "@/components/ui/AccountDetailsSheet";
+import LocationSheet from "@/components/ui/LocationSheet";
 import { useState } from "react";
 
 const ALL_MARKERS = [
@@ -32,7 +37,6 @@ const ALL_MARKERS = [
   { label: "Multiplier",    icon: Shuffle     },
 ];
 
-const settingsItems = ["Account Details", "Notifications", "Location", "Settings"];
 
 function formatJoinDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", {
@@ -48,6 +52,8 @@ export default function ProfilePage() {
   const router = useRouter();
   const { user, logout, loginData } = useAuth();
   const [showLanguage, setShowLanguage] = useState(false);
+  const [showAccountDetails, setShowAccountDetails] = useState(false);
+  const [showLocation, setShowLocation] = useState(false);
 
   const meta = user?.user_metadata;
   const fullName =
@@ -63,18 +69,17 @@ export default function ProfilePage() {
 
   const userRecords = loginData?.impactRecords ?? [];
   const circleRecords = (loginData?.circles ?? []).flatMap((c) => c.impactRecords ?? []);
-  const impactStats = userRecords.slice(0, 3).flatMap((ur, i) => {
-    const cr = circleRecords[i];
-    const label = ur.impactSummary.contribution.unitOfMeasure;
-    return [
-      { label: `My ${label}`,      value: ur.impactSummary.contribution.displayName },
-      { label: `Circle ${label}`,  value: cr?.impactSummary.contribution.displayName ?? "—" },
-    ];
-  });
 
-  // contributionMarkers shape is TBD — treat any non-null value as "has earned markers"
+  const [activeTab, setActiveTab] = useState<"challenges" | "circles" | null>(null);
+  const [expandedImpact, setExpandedImpact] = useState<number | null>(null);
+
+  const challengesCount = loginData?.challengesCount?.total ?? 0;
+  const circlesCount = loginData?.circlesCount?.total ?? 0;
+  const location = meta?.location;
+  const locationLabel = (location as { address?: string; formattedAddress?: string } | undefined)?.address
+    || (location as { formattedAddress?: string } | undefined)?.formattedAddress;
+
   const earnedLabels: Set<string> = new Set();
-  const hasTrace = false; // no endpoint yet
 
   return (
     <div className="flex flex-col min-h-full bg-white">
@@ -92,7 +97,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Identity */}
-      <div className="flex flex-col items-center gap-1 pb-8 pt-2">
+      <div className="flex flex-col items-center gap-1 pb-6 pt-2">
         <div className="w-30 h-30 rounded-full bg-surface border-2 border-border flex items-center justify-center mb-3 overflow-hidden">
           {avatarUrl ? (
             <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
@@ -105,24 +110,144 @@ export default function ProfilePage() {
         {joinDate && (
           <p className="text-base text-text-secondary">Joined {joinDate}</p>
         )}
+        {locationLabel && (
+          <div className="flex items-center gap-1 mt-1">
+            <MapPin size={13} className="text-gotf-green shrink-0" />
+            <p className="text-sm text-text-muted">{locationLabel}</p>
+          </div>
+        )}
       </div>
 
-      {/* Impact stats */}
-      {impactStats.length > 0 ? (
-        <div className="px-7.5">
-          {[0, 1, 2].map((row) => (
-            <div key={row} className="flex">
-              {impactStats.slice(row * 2, row * 2 + 2).map(({ label, value }) => (
-                <div
-                  key={label}
-                  className="flex-1 flex flex-col gap-2 pt-6 pb-8 px-1 border-b border-progress-track"
-                >
-                  <Text variant="caption" className="text-text-muted">{label}</Text>
-                  <p className="text-2xl font-semibold text-text-subheading">{value}</p>
+      {/* Challenges / Circles count bar */}
+      {(challengesCount > 0 || circlesCount > 0) && (
+        <>
+          <div className="flex border-y border-progress-track mx-7.5">
+            <button
+              onClick={() => setActiveTab(activeTab === "challenges" ? null : "challenges")}
+              className={`flex-1 flex flex-col items-center py-4 gap-0.5 transition-colors ${activeTab === "challenges" ? "bg-surface" : ""}`}
+            >
+              <p className="text-2xl font-bold text-text-subheading">{challengesCount}</p>
+              <span className={`flex items-center gap-1 ${activeTab === "challenges" ? "text-gotf-green" : "text-text-muted"}`}>
+                <Text variant="caption">Challenges</Text>
+                {activeTab === "challenges" ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </span>
+            </button>
+            <div className="w-px bg-progress-track" />
+            <button
+              onClick={() => setActiveTab(activeTab === "circles" ? null : "circles")}
+              className={`flex-1 flex flex-col items-center py-4 gap-0.5 transition-colors ${activeTab === "circles" ? "bg-surface" : ""}`}
+            >
+              <p className="text-2xl font-bold text-text-subheading">{circlesCount}</p>
+              <span className={`flex items-center gap-1 ${activeTab === "circles" ? "text-gotf-green" : "text-text-muted"}`}>
+                <Text variant="caption">Circles</Text>
+                {activeTab === "circles" ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </span>
+            </button>
+          </div>
+
+          {/* Expandable challenges list */}
+          {activeTab === "challenges" && (
+            <div className="flex flex-col gap-2 px-7.5 py-3 border-b border-progress-track">
+              {(loginData?.challenges ?? []).length === 0 ? (
+                <p className="text-sm text-text-muted text-center py-2">No challenges yet.</p>
+              ) : (loginData?.challenges ?? []).map((ch) => (
+                <div key={ch.challengeId} className="flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3">
+                  <div className="size-10 rounded-lg bg-zinc-200 overflow-hidden shrink-0">
+                    {ch.bannerUrl ? (
+                      <img src={ch.bannerUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <img src="/images/Guardians Logo-full.png" alt="" className="w-full h-full object-contain p-2 opacity-20" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-text-primary leading-tight truncate">{ch.name}</p>
+                    <p className="text-xs text-text-muted mt-0.5 truncate">
+                      {ch.region?.formattedAddress || [ch.region?.city, ch.region?.province].filter(Boolean).join(", ") || ch.status?.name}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className="text-xs font-medium text-text-muted bg-surface rounded-full px-2 py-0.5">{ch.status?.name}</span>
+                    {(ch.membersCount?.total ?? (ch.members?.length ?? 0)) > 0 && (
+                      <span className="text-xs text-text-muted">{ch.membersCount?.total ?? ch.members?.length} guardians</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
-          ))}
+          )}
+
+          {/* Expandable circles list */}
+          {activeTab === "circles" && (
+            <div className="flex flex-col gap-2 px-7.5 py-3 border-b border-progress-track">
+              {(loginData?.circles ?? []).length === 0 ? (
+                <p className="text-sm text-text-muted text-center py-2">No circles yet.</p>
+              ) : (loginData?.circles ?? []).map((ci) => (
+                <div key={ci.circleId} className="flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3">
+                  <div className="size-10 rounded-lg bg-zinc-200 overflow-hidden shrink-0">
+                    {ci.bannerUrl ? (
+                      <img src={ci.bannerUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <img src="/images/Guardians Logo-full.png" alt="" className="w-full h-full object-contain p-2 opacity-20" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-text-primary leading-tight truncate">{ci.name}</p>
+                    <p className="text-xs text-text-muted mt-0.5 truncate">
+                      {ci.region?.formattedAddress || [ci.region?.city, ci.region?.province].filter(Boolean).join(", ")}
+                    </p>
+                  </div>
+                  <span className="text-xs font-medium text-text-muted shrink-0">
+                    {ci.membersCount?.total ?? ci.members?.length ?? 0} guardians
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Impact stats */}
+      {userRecords.length > 0 ? (
+        <div className="px-7.5">
+          {userRecords.map((ur, i) => {
+            const cr = circleRecords.find((r) => r.siUnit === ur.siUnit);
+            const unit = ur.impactSummary.contribution.unitOfMeasure;
+            const isOpen = expandedImpact === i;
+            return (
+              <div key={ur.impactRecordId ?? i}>
+                <button
+                  onClick={() => setExpandedImpact(isOpen ? null : i)}
+                  className="flex items-end w-full border-b border-progress-track"
+                >
+                  <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
+                    <Text variant="caption" className="text-text-muted">My {unit}</Text>
+                    <p className="text-2xl font-semibold text-text-subheading">{ur.impactSummary.contribution.displayName}</p>
+                  </div>
+                  <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
+                    <Text variant="caption" className="text-text-muted">Circle {unit}</Text>
+                    <p className="text-2xl font-semibold text-text-subheading">{cr?.impactSummary.contribution.displayName ?? "—"}</p>
+                  </div>
+                  <div className="pb-6 pl-2 shrink-0">
+                    {isOpen ? <ChevronUp size={14} className="text-text-muted" /> : <ChevronDown size={14} className="text-text-muted" />}
+                  </div>
+                </button>
+                {isOpen && (
+                  <div className="px-1 pt-3 pb-5 border-b border-progress-track flex flex-col gap-2.5">
+                    <p className="text-xs text-text-secondary leading-relaxed">{ur.impactSummary.impact.summary}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs border border-border rounded-full px-2.5 py-0.5 text-text-muted">{ur.impactType}</span>
+                      <span className="text-xs text-text-muted">→ {ur.impactSummary.impact.displayName}</span>
+                      {ur.verified && (
+                        <span className="text-xs bg-green-50 border border-gotf-green text-gotf-green rounded-full px-2.5 py-0.5 flex items-center gap-1">
+                          <CheckCircle size={10} />Verified
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="mx-7.5 mb-6 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-8">
@@ -164,33 +289,51 @@ export default function ProfilePage() {
       {/* The Trace */}
       <div className="px-7.5 pb-6 border-t border-progress-track">
         <Text variant="label" className="block mt-5 mb-3">The Trace</Text>
-        {hasTrace ? (
-          <div className="flex flex-col divide-y divide-progress-track">
-            {/* rendered when trace endpoint is available */}
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-5 py-5">
-            <img
-              src="/images/Guardians Logo-full.png"
-              alt=""
-              className="w-8 h-8 object-contain opacity-20 shrink-0"
-            />
-            <p className="text-sm text-text-muted">No activity recorded yet. Your challenge history will appear here.</p>
-          </div>
-        )}
+        <div className="flex items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-5 py-5">
+          <img
+            src="/images/Guardians Logo-full.png"
+            alt=""
+            className="w-8 h-8 object-contain opacity-20 shrink-0"
+          />
+          <p className="text-sm text-text-muted">No activity recorded yet. Your challenge history will appear here.</p>
+        </div>
       </div>
 
       {/* Settings list */}
       <div className="border-t border-progress-track">
-        {settingsItems.map((item) => (
-          <div
-            key={item}
-            className="flex items-center justify-between px-7.5 py-6 border-b border-progress-track"
-          >
-            <span className="text-base font-medium text-black">{item}</span>
-            <ChevronRight size={20} className="text-text-muted" />
+        <button
+          onClick={() => setShowAccountDetails(true)}
+          className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track"
+        >
+          <div className="flex items-center gap-3">
+            <User size={18} className="text-text-muted" />
+            <span className="text-base font-medium text-black">Account Details</span>
           </div>
-        ))}
+          <ChevronRight size={20} className="text-text-muted" />
+        </button>
+
+        {/* Notifications — pending endpoint */}
+        {/* <button className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track">
+          <span className="text-base font-medium text-black">Notifications</span>
+          <ChevronRight size={20} className="text-text-muted" />
+        </button> */}
+
+        <button
+          onClick={() => setShowLocation(true)}
+          className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track"
+        >
+          <div className="flex items-center gap-3">
+            <MapPin size={18} className="text-text-muted" />
+            <span className="text-base font-medium text-black">Location</span>
+          </div>
+          <ChevronRight size={20} className="text-text-muted" />
+        </button>
+
+        {/* Settings — pending endpoint */}
+        {/* <button className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track">
+          <span className="text-base font-medium text-black">Settings</span>
+          <ChevronRight size={20} className="text-text-muted" />
+        </button> */}
 
         {/* Language */}
         <button
@@ -215,6 +358,19 @@ export default function ProfilePage() {
       </div>
 
       {showLanguage && <LanguageSwitcher onClose={() => setShowLanguage(false)} />}
+      {showAccountDetails && user && (
+        <AccountDetailsSheet
+          user={user}
+          avatarUrl={avatarUrl}
+          onClose={() => setShowAccountDetails(false)}
+        />
+      )}
+      {showLocation && meta?.location && (
+        <LocationSheet
+          location={meta.location}
+          onClose={() => setShowLocation(false)}
+        />
+      )}
     </div>
   );
 }

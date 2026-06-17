@@ -1,7 +1,10 @@
 "use client";
 
 import Text from "@/components/ui/Text";
+import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
+import { useJoinCircle } from "@/lib/hooks/circles";
+import { useUsers } from "@/lib/hooks/users";
 import type {
   ApiCircle,
   ApiCircleChallenge,
@@ -64,7 +67,19 @@ function CircleChallengeRow({
 
 function GuardianRow({ members }: { members: CircleMember[] }) {
   const [showAll, setShowAll] = useState(false);
+  const { data: users = [] } = useUsers();
   const visible = showAll ? members : members.slice(0, 5);
+
+  const avatar = (member: CircleMember) =>
+    member.avatarUrl ||
+    users.find((u) => u.id === member.userId)?.user_metadata?.avatarUrl;
+
+  const firstName = (member: CircleMember) => {
+    const u = users.find((u) => u.id === member.userId);
+    return (
+      u?.user_metadata?.firstName || u?.user_metadata?.lastName || member.userId
+    );
+  };
 
   return (
     <div className="py-7.5 border-b border-progress-track">
@@ -80,37 +95,32 @@ function GuardianRow({ members }: { members: CircleMember[] }) {
         )}
       </div>
 
-      {showAll ? (
-        <div className="flex flex-wrap gap-x-5 gap-y-6 px-7.5">
-          {visible.map((member) => (
-            <div key={member.userId} className="flex flex-col items-center gap-2 w-16">
-              <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
-                {member.avatarUrl ? (
-                  <img src={member.avatarUrl} alt="" className="w-full h-full object-cover" />
-                ) : null}
-              </div>
-              <Text variant="caption" className="text-text-subheading capitalize text-center leading-tight">
-                {member.role.toLowerCase().replace(/_/g, " ")}
-              </Text>
+      <div
+        className={`flex px-7.5 gap-2 ${showAll ? "flex-wrap gap-y-6" : ""}`}
+      >
+        {visible.map((member) => (
+          <div
+            key={member.userId}
+            className="flex flex-col items-center gap-2 w-16"
+          >
+            <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
+              {avatar(member) && (
+                <img
+                  src={avatar(member)}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex justify-between px-7.5">
-          {visible.map((member) => (
-            <div key={member.userId} className="flex flex-col items-center gap-2">
-              <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
-                {member.avatarUrl ? (
-                  <img src={member.avatarUrl} alt="" className="w-full h-full object-cover" />
-                ) : null}
-              </div>
-              <Text variant="caption" className="text-text-subheading capitalize">
-                {member.role.toLowerCase().replace(/_/g, " ")}
-              </Text>
-            </div>
-          ))}
-        </div>
-      )}
+            <Text
+              variant="caption"
+              className="text-text-subheading text-center leading-tight"
+            >
+              {firstName(member)}
+            </Text>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -120,8 +130,9 @@ function GuardianRow({ members }: { members: CircleMember[] }) {
 type Props = { circleId: string };
 
 export default function CircleScreen({ circleId }: Props) {
-  const [joined, setJoined] = useState(false);
+  const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
+  const joinCircle = useJoinCircle();
 
   const {
     data: circle,
@@ -167,27 +178,46 @@ export default function CircleScreen({ circleId }: Props) {
           </h1>
           <p className="text-base text-[#666] mt-1">Since {joinedDate}</p>
 
-          {circle.region.address && (
+          {(circle.region.formattedAddress || circle.region.city) && (
             <div className="flex items-center gap-1.5 mt-2">
               <MapPin size={16} className="text-gotf-green shrink-0" />
               <p className="text-base text-text-primary">
-                {circle.region.address}
+                {circle.region.formattedAddress ||
+                  [circle.region.city, circle.region.province]
+                    .filter(Boolean)
+                    .join(", ")}
               </p>
             </div>
           )}
 
-          <div className="mt-3 mb-6">
-            <button
-              onClick={() => setJoined((v) => !v)}
-              className={`px-5 h-10 text-base font-semibold rounded-full text-white transition-all shadow-[0_2px_10px_rgba(0,0,0,0.15)] ${
-                joined
-                  ? "bg-[#333] w-36"
-                  : "bg-linear-to-r from-[#008000] to-[#129612]"
-              }`}
-            >
-              {joined ? "Circle joined" : "Join Circle"}
-            </button>
-          </div>
+          {(() => {
+            const isMember =
+              !!user && circle.members.some((m) => m.userId === user.id);
+            const isPending = joinCircle.isPending;
+            const isDisabled = isMember || isPending;
+            return (
+              <div className="mt-3 mb-6">
+                <button
+                  disabled={isDisabled}
+                  onClick={() => {
+                    if (!user) return;
+                    joinCircle.mutate({ circleId, userId: user.id });
+                  }}
+                  className={`px-5 h-10 text-base font-semibold rounded-full text-white transition-all shadow-[0_2px_10px_rgba(0,0,0,0.15)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                    isMember
+                      ? "bg-[#333] w-36"
+                      : "bg-linear-to-r from-[#008000] to-[#129612]"
+                  }`}
+                >
+                  {isMember
+                    ? "Circle joined"
+                    : isPending
+                      ? "Joining…"
+                      : "Join Circle"}
+                </button>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Guardians */}

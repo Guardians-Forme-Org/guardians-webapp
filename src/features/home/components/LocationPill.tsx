@@ -4,11 +4,12 @@ import { ChevronDown, MapPin } from "lucide-react";
 type Props = {
   city: string;
   country: string;
+  onClick?: () => void;
 };
 
-export default function LocationPill({ city, country }: Props) {
+export default function LocationPill({ city, country, onClick }: Props) {
   return (
-    <button className="flex items-center justify-center gap-1.5 px-5 mb-5">
+    <button onClick={onClick} className="flex items-center justify-center gap-1.5 px-5 mb-5">
       <MapPin size={13} className="text-gotf-green shrink-0" />
       <Text variant="body" className="text-gotf-green font-medium">
         {city ? `${city}${country ? "," : ""}` : "Set location"}

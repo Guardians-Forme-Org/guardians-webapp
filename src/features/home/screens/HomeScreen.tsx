@@ -66,6 +66,7 @@ export default function HomeScreen() {
           ""
         }
         country={user?.user_metadata.location.country || ""}
+        onClick={() => router.push("/profile")}
       />
 
       <ImpactSection badgeStats={badgeStats} activityStats={activityStats} />

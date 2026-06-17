@@ -7,17 +7,24 @@ type Props = {
   placeholder?: string;
   defaultValue?: string;
   onSubmit?: (value: string) => void;
+  onChange?: (value: string) => void;
 };
 
 export default function SearchBar({
   placeholder = "Find challenges and circles near you",
   defaultValue = "",
   onSubmit,
+  onChange,
 }: Props) {
   const [value, setValue] = useState(defaultValue);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") onSubmit?.(value);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+    onChange?.(e.target.value);
   };
 
   return (
@@ -27,7 +34,7 @@ export default function SearchBar({
         <input
           type="text"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"

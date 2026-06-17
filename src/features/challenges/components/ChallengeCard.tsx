@@ -66,7 +66,7 @@ export default function ChallengeCard({ item }: Props) {
         {/* Footer */}
         <div className="flex items-center justify-between mt-2">
           <p className="text-[14px] text-text-muted">
-            <span className="font-bold">{item.members?.length ?? 0}</span> Guardians
+            <span className="font-bold">{item.membersCount?.total ?? item.members?.length ?? 0}</span> {item.membersCount?.label ?? "Guardians"}
           </p>
           <AvatarStack avatars={avatars} />
         </div>

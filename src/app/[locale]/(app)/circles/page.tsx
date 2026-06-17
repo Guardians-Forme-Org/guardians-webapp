@@ -14,7 +14,7 @@ import type { ApiCircle, CirclesListResponse } from "@/lib/types/circles";
 // ── Circle card ───────────────────────────────────────────────────────────────
 
 function CircleCard({ circle, role }: { circle: ApiCircle; role?: string }) {
-  const location = circle.region.address || "—";
+  const location = circle.region.formattedAddress || [circle.region.city, circle.region.province].filter(Boolean).join(", ") || "—";
 
   return (
     <Link
@@ -47,7 +47,7 @@ function CircleCard({ circle, role }: { circle: ApiCircle; role?: string }) {
           </Text>
         </div>
         <Text variant="label" className="normal-case tracking-normal mt-0.5">
-          {circle.members.length} members · {circle.challenges.length} challenges
+          {circle.membersCount?.total ?? circle.members.length} {circle.membersCount?.label?.toLowerCase() ?? "guardians"} · {circle.challenges.length} challenges
         </Text>
       </div>
 

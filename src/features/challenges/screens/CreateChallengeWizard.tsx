@@ -7,13 +7,15 @@ import SearchBar from "@/components/ui/SearchBar";
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateChallenge, useTemplates } from "@/lib/hooks/challenges";
+import { useUsers } from "@/lib/hooks/users";
+import type { AuthUser } from "@/lib/types/auth";
 import type { ApiTemplate } from "@/lib/types/challenges";
 import {
   ChevronLeft,
   ChevronRight,
-  Download,
   ExternalLink,
   Globe,
+  ImageIcon,
   Mail,
   MapPin,
   MessageCircle,
@@ -21,15 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-
-const FACILITATORS = [
-  { id: "1", rank: 1, name: "Yolanda", joinDate: "12 March 2026" },
-  { id: "2", rank: 2, name: "Xavier", joinDate: "1 December 2026" },
-  { id: "3", rank: 3, name: "Thabang", joinDate: "4 April 2026", locked: true },
-  { id: "4", rank: 4, name: "Thabang", joinDate: "24 August 2026" },
-  { id: "5", rank: 5, name: "Victor", joinDate: "24 February 2026" },
-];
+import { useRef, useState } from "react";
 
 const CHANNELS = [
   { id: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle },
@@ -51,6 +45,7 @@ type FormData = {
   facilitatorId: string;
   channel: Channel;
   channelLink: string;
+  bannerUrl: string;
 };
 
 const initialForm: FormData = {
@@ -63,6 +58,7 @@ const initialForm: FormData = {
   facilitatorId: "",
   channel: "whatsapp",
   channelLink: "",
+  bannerUrl: "",
 };
 
 // ── Progress bar ───────────────────────────────────────────────────────────────
@@ -73,7 +69,7 @@ const PROGRESS_FILLED: Record<number, number> = {
   3: 2,
   4: 3,
   5: 5,
-  6: 6,
+  6: 0,
   7: 0, // done — no bar
 };
 
@@ -161,7 +157,7 @@ function WizardNextButton({
   onClick: () => void;
 }) {
   return (
-    <div className="px-5 pb-10 pt-4 shrink-0">
+    <div className="px-5 mb-20 pt-4 shrink-0">
       <button
         onClick={onClick}
         className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
@@ -205,7 +201,7 @@ function Step1({
 
       {/* Search */}
       <div className="px-10 mb-6">
-        <div className="flex items-center gap-2 bg-white shadow-sm rounded-full px-5 h-[50px]">
+        <div className="flex items-center gap-2 bg-white shadow-sm rounded-full px-5 h-12.5">
           <Search size={16} className="text-text-muted shrink-0" />
           <span className="text-base text-[#737373]">
             Find challenge templates
@@ -219,7 +215,7 @@ function Step1({
           Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="h-[86px] rounded-[16px] border border-border bg-surface animate-pulse"
+              className="h-21.5 rounded-2xl border border-border bg-surface animate-pulse"
             />
           ))
         ) : templates.length === 0 ? (
@@ -233,7 +229,7 @@ function Step1({
               <button
                 key={t.templateId}
                 onClick={() => onChange(t.templateId)}
-                className={`flex items-center justify-between pl-[30px] pr-5 py-[18px] rounded-[16px] text-left transition-colors ${
+                className={`flex items-center justify-between pl-7.5 pr-5 py-4.5 rounded-2xl text-left transition-colors ${
                   selected
                     ? "border-2 border-gotf-green"
                     : "border border-border"
@@ -375,7 +371,9 @@ function Step2({
             onClick={() => setEquipmentOpen((o) => !o)}
             className="flex items-center justify-between w-full px-10 mb-4"
           >
-            <p className="text-xl font-semibold text-text-subheading">Equipment</p>
+            <p className="text-xl font-semibold text-text-subheading">
+              Equipment
+            </p>
             <ChevronRight
               size={20}
               className={`text-text-muted transition-transform duration-200 ${
@@ -387,9 +385,16 @@ function Step2({
           {equipmentOpen && (
             <div className="flex flex-col gap-3 px-6">
               {template.equipments.map((eq, i) => (
-                <div key={i} className="border border-[#eee] rounded-[10px] px-4 py-3">
-                  <p className="text-base font-semibold text-[#1a1a1a]">{eq.name}</p>
-                  <p className="text-sm text-[#666] mt-1 leading-relaxed">{eq.description}</p>
+                <div
+                  key={i}
+                  className="border border-[#eee] rounded-[10px] px-4 py-3"
+                >
+                  <p className="text-base font-semibold text-[#1a1a1a]">
+                    {eq.name}
+                  </p>
+                  <p className="text-sm text-[#666] mt-1 leading-relaxed">
+                    {eq.description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -405,14 +410,26 @@ function Step2({
 function Step3({
   form,
   onChange,
+  onFileSelect,
   location,
   onLocationSelect,
 }: {
   form: FormData;
   onChange: (field: keyof FormData, value: string) => void;
+  onFileSelect: (file: File) => void;
   location: LocationResult | null;
   onLocationSelect: (place: LocationResult) => void;
 }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onChange("bannerUrl", URL.createObjectURL(file));
+      onFileSelect(file);
+    }
+  };
+
   return (
     <>
       <WizardTitle
@@ -462,6 +479,38 @@ function Step3({
           />
         </div>
 
+        {/* Banner image */}
+        <div className="flex flex-col gap-2">
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            Challenge Image
+          </label>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="w-full h-40 rounded-[12px] overflow-hidden border border-[#d9d9d9] bg-surface flex items-center justify-center"
+          >
+            {form.bannerUrl ? (
+              <img
+                src={form.bannerUrl}
+                alt="Challenge banner"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-text-muted">
+                <ImageIcon size={36} strokeWidth={1.2} />
+                <p className="text-sm">Tap to upload an image</p>
+              </div>
+            )}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFile}
+          />
+        </div>
+
         {/* Supported by — TODO: resolve circle name from circleId and display here */}
       </div>
     </>
@@ -470,13 +519,32 @@ function Step3({
 
 // ── Step 4 — Choose Facilitator ────────────────────────────────────────────────
 
+function displayName(u: AuthUser) {
+  const first = u.user_metadata.firstName?.trim();
+  const last = u.user_metadata.lastName?.trim();
+  if (first || last) return [first, last].filter(Boolean).join(" ");
+  return u.user_metadata.username || u.email;
+}
+
 function Step4({
   form,
   onChange,
+  users,
+  isLoading,
 }: {
   form: FormData;
   onChange: (id: string) => void;
+  users: AuthUser[];
+  isLoading: boolean;
 }) {
+  const [search, setSearch] = useState("");
+
+  const filtered = search
+    ? users.filter((u) =>
+        displayName(u).toLowerCase().includes(search.toLowerCase()),
+      )
+    : users;
+
   return (
     <>
       <WizardTitle
@@ -485,43 +553,61 @@ function Step4({
         boldWord="facilitators"
       />
 
-      <SearchBar placeholder="Find a facilitator" />
+      <div className="sticky top-0 bg-white z-10">
+        <SearchBar placeholder="Find a facilitator" onChange={setSearch} />
+      </div>
 
-      <div className="flex flex-col gap-7.5 px-7.5">
-        {FACILITATORS.map((f) => {
-          const selected = form.facilitatorId === f.id;
-          return (
-            <button
-              key={f.id}
-              onClick={() => onChange(f.id)}
-              className="flex items-center gap-3.75 w-full text-left"
-            >
-              <span className="w-2.5 text-center font-medium text-base text-black shrink-0">
-                {f.rank}
-              </span>
-              <div
-                className={`size-15 rounded-full overflow-hidden shrink-0 border-2 border-white ${
-                  f.locked ? "bg-[#ccc] opacity-50" : "bg-[#d9d9d9]"
-                }`}
-              />
-              <div className="flex-1 min-w-0">
-                <p
-                  className={`text-base font-semibold ${selected ? "text-gotf-green" : "text-text-primary"}`}
-                >
-                  {f.name}
-                </p>
-                <Text variant="caption" className="text-text-secondary">
-                  Joined {f.joinDate}
-                </Text>
-              </div>
-              {selected ? (
-                <RadioCircle selected />
-              ) : (
-                <ChevronRight size={24} className="text-text-muted shrink-0" />
-              )}
-            </button>
-          );
-        })}
+      <div className="flex flex-col gap-7.5 px-7.5 pb-6">
+        {isLoading ? (
+          <p className="text-text-secondary text-sm">Loading facilitators…</p>
+        ) : (
+          filtered.map((u, i) => {
+            const name = displayName(u);
+            const joinDate = new Date(u.created_at).toLocaleDateString(
+              "en-GB",
+              { day: "numeric", month: "long", year: "numeric" },
+            );
+            const selected = form.facilitatorId === u.id;
+            return (
+              <button
+                key={u.id}
+                onClick={() => onChange(u.id)}
+                className="flex items-center gap-3.75 w-full text-left"
+              >
+                <span className="w-2.5 text-center font-medium text-base text-black shrink-0">
+                  {i + 1}
+                </span>
+                <div className="size-15 rounded-full overflow-hidden shrink-0 border-2 border-white bg-[#d9d9d9]">
+                  {u.user_metadata.avatarUrl && (
+                    <img
+                      src={u.user_metadata.avatarUrl}
+                      alt={name}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className={`text-base font-semibold ${selected ? "text-gotf-green" : "text-text-primary"}`}
+                  >
+                    {name}
+                  </p>
+                  <Text variant="caption" className="text-text-secondary">
+                    Joined {joinDate}
+                  </Text>
+                </div>
+                {selected ? (
+                  <RadioCircle selected />
+                ) : (
+                  <ChevronRight
+                    size={24}
+                    className="text-text-muted shrink-0"
+                  />
+                )}
+              </button>
+            );
+          })
+        )}
       </div>
     </>
   );
@@ -593,27 +679,92 @@ function Step5({
 
 // ── Step 6 — Review & Publish ─────────────────────────────────────────────────
 
+function haversineKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDistance(km: number): string {
+  if (km < 1) return `${Math.round(km * 1000)}m from you`;
+  return `${km.toFixed(1)}km from you`;
+}
+
 function Step6({
   form,
   onPublish,
   templates,
   isPending,
+  users,
+  location,
 }: {
   form: FormData;
   onPublish: () => void;
   templates: ApiTemplate[];
   isPending: boolean;
+  users: AuthUser[];
+  location: import("@/components/ui/LocationPicker").LocationResult | null;
 }) {
+  const { user, loginData } = useAuth();
+
   const template =
     templates.find((t) => t.templateId === form.templateId) ?? templates[0];
   const templateSteps = template?.steps ?? [];
-  const facilitator =
-    FACILITATORS.find((f) => f.id === form.facilitatorId) ?? FACILITATORS[0];
+
+  const facilitatorUser = users.find((u) => u.id === form.facilitatorId);
+  const facilitatorName = facilitatorUser
+    ? displayName(facilitatorUser)
+    : "Facilitator";
+  const facilitatorAvatar = facilitatorUser?.user_metadata.avatarUrl ?? "";
+
+  const circle = loginData?.circles.find((c) => c.circleId === form.circleId);
+  const circleMembers = circle?.members ?? [];
+
+  const today = new Date().toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const userLat = user?.user_metadata.location?.latitude;
+  const userLon = user?.user_metadata.location?.longitude;
+  const userHasLocation =
+    userLat != null && userLon != null && !(userLat === 0 && userLon === 0);
+  const distanceLabel =
+    location && userHasLocation
+      ? formatDistance(
+          haversineKm(
+            userLat!,
+            userLon!,
+            location.latitude,
+            location.longitude,
+          ),
+        )
+      : null;
 
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <div className="h-60 bg-zinc-900 shrink-0 relative">
+      <div className="h-60 bg-zinc-900 shrink-0 relative overflow-hidden">
+        {(form.bannerUrl || circle?.bannerUrl) && (
+          <img
+            src={form.bannerUrl || circle!.bannerUrl}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-black/40" />
       </div>
 
@@ -626,7 +777,7 @@ function Step6({
           <h1 className="text-[28px] font-bold text-text-subheading mt-3 leading-tight">
             {form.name || template?.name}
           </h1>
-          <p className="text-base text-[#666] mt-1">Since 12 March</p>
+          <p className="text-base text-[#666] mt-1">Since {today}</p>
 
           <div className="mt-3 mb-6">
             <button
@@ -648,18 +799,26 @@ function Step6({
         <div className="border-t border-progress-track" />
 
         {/* Location */}
-        <div className="px-10 py-5">
-          <div className="flex items-center gap-1.5">
-            <MapPin size={16} className="text-gotf-green shrink-0" />
-            <p className="text-base">
-              <span className="font-semibold text-text-primary">
-                {form.region || "Durban"}
-              </span>
-              <span className="text-[#666]">, KwaZulu Natal</span>
-            </p>
+        {location && (
+          <div className="px-10 py-5">
+            <div className="flex items-center gap-1.5">
+              <MapPin size={16} className="text-gotf-green shrink-0" />
+              <p className="text-base">
+                <span className="font-semibold text-text-primary">
+                  {location.city}
+                </span>
+                {location.province && (
+                  <span className="text-[#666]">, {location.province}</span>
+                )}
+              </p>
+            </div>
+            {distanceLabel && (
+              <p className="text-base text-[#666] mt-1 ml-5.5">
+                {distanceLabel}
+              </p>
+            )}
           </div>
-          <p className="text-base text-[#666] mt-1 ml-5.5">300m from you</p>
-        </div>
+        )}
 
         <div className="border-t border-progress-track" />
 
@@ -685,35 +844,24 @@ function Step6({
               <p className="text-xl text-text-primary shrink-0">0%</p>
             </div>
           </div>
-          <div className="flex items-stretch">
-            <div className="flex flex-col gap-2.5">
-              <Text variant="caption" className="text-text-muted">
-                Target date
-              </Text>
-              <p className="text-base font-semibold text-text-subheading">
-                27 September 2026
-              </p>
-            </div>
-            <div className="mx-7.5 border-r border-progress-track" />
-            <div className="flex flex-col gap-2.5">
-              <Text variant="caption" className="text-text-muted">
-                Time left
-              </Text>
-              <p className="text-base font-semibold text-text-subheading">
-                1 week
-              </p>
-            </div>
-          </div>
         </div>
 
         <div className="border-t border-progress-track" />
 
         {/* Facilitator */}
         <div className="flex items-center gap-5 px-7.5 py-5 border-b border-progress-track">
-          <div className="size-10 rounded-full bg-surface border border-border shrink-0" />
+          <div className="size-10 rounded-full bg-surface border border-border shrink-0 overflow-hidden">
+            {facilitatorAvatar && (
+              <img
+                src={facilitatorAvatar}
+                alt={facilitatorName}
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
           <div>
             <p className="text-xl font-semibold text-text-primary">
-              {facilitator.name}
+              {facilitatorName}
             </p>
             <p className="text-base font-medium text-text-secondary">
               Facilitator
@@ -728,19 +876,42 @@ function Step6({
               <span className="font-normal">by</span>{" "}
               {form.supportedBy || "Green Urban youth"}
             </p>
-            <button className="text-base text-gotf-blue">See all</button>
+            {/* <button className="text-base text-gotf-blue">See all</button> */}
           </div>
 
-          <div className="flex justify-between px-7.5 pb-6">
-            {["Jabu", "Xoliswa", "Thabang", "Mpho", "Roni"].map((name) => (
-              <div key={name} className="flex flex-col items-center gap-2">
-                <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white" />
-                <Text variant="caption" className="text-text-subheading">
-                  {name}
-                </Text>
-              </div>
-            ))}
-          </div>
+          {circleMembers.length > 0 && (
+            <div className="flex gap-2 px-7.5 pb-4">
+              {circleMembers.slice(0, 5).map((m) => {
+                const memberUser = users.find((u) => u.id === m.userId);
+                const name = memberUser ? displayName(memberUser) : m.userId;
+                const avatar = m.avatarUrl || memberUser?.user_metadata?.avatarUrl;
+                return (
+                  <div
+                    key={m.userId}
+                    className="flex flex-col items-center gap-2"
+                  >
+                    <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
+                      {avatar && (
+                        <img
+                          src={avatar}
+                          alt={name}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <Text variant="caption" className="text-text-subheading">
+                      {name.split(" ")[0]}
+                    </Text>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <p className="text-xs text-text-muted px-7.5 pb-4">
+            Showing circle members. Challenge members will appear once
+            published.
+          </p>
 
           <div className="flex justify-center pb-7">
             <button className="flex items-center gap-2.5 px-5 h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)]">
@@ -807,12 +978,12 @@ function Step7({ onDone }: { onDone: () => void }) {
           Challenge created
         </h1>
 
-        <button className="flex items-center gap-5 w-full max-w-[322px] h-[60px] bg-white border border-border rounded-full px-10 mb-8">
+        {/* <button className="flex items-center gap-5 w-full max-w-[322px] h-[60px] bg-white border border-border rounded-full px-10 mb-8">
           <Download size={20} className="text-text-primary shrink-0" />
           <span className="text-base font-medium text-text-primary">
             Challenge Details PDF
           </span>
-        </button>
+        </button> */}
       </div>
 
       {/* Done button */}
@@ -838,13 +1009,19 @@ const NEXT_LABELS: Record<number, string> = {
   5: "Review and Publish",
 };
 
-export default function CreateChallengeWizard({ circleId }: { circleId: string }) {
+export default function CreateChallengeWizard({
+  circleId,
+}: {
+  circleId: string;
+}) {
   const router = useRouter();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>({ ...initialForm, circleId });
   const [location, setLocation] = useState<LocationResult | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
   const { data: templates = [], isLoading: templatesLoading } = useTemplates();
+  const { data: users = [], isLoading: usersLoading } = useUsers();
   const createChallenge = useCreateChallenge();
 
   const next = () => setStep((s) => Math.min(s + 1, 7));
@@ -858,17 +1035,36 @@ export default function CreateChallengeWizard({ circleId }: { circleId: string }
     setForm((f) => ({ ...f, [field]: value }));
 
   const handlePublish = () => {
+    const selectedChannel = CHANNELS.find((c) => c.id === form.channel);
     createChallenge.mutate(
       {
-        name: form.name,
-        description: form.description,
-        circleId: form.circleId,
-        templateId: form.templateId,
-        challengeCode: form.templateId,
-        createdBy: user?.id ?? "",
-        equipments: [],
-        location: location ? { ...location, address: location.formattedAddress } : null,
-        region: location ? { ...location, address: location.formattedAddress } : null,
+        metadata: {
+          name: form.name,
+          description: form.description,
+          circleId: form.circleId,
+          templateId: form.templateId,
+          challengeCode: form.templateId,
+          createdBy: user?.id ?? "",
+          facilitatorId: form.facilitatorId,
+          equipments: [],
+          communicationChannels:
+            selectedChannel && form.channelLink
+              ? [
+                  {
+                    name: selectedChannel.label,
+                    url: form.channelLink,
+                    icon: selectedChannel.label,
+                  },
+                ]
+              : [],
+          location: location
+            ? { ...location, address: location.formattedAddress }
+            : null,
+          region: location
+            ? { ...location, address: location.formattedAddress }
+            : null,
+        },
+        bannerFile: bannerFile ?? undefined,
       },
       { onSuccess: next },
     );
@@ -894,6 +1090,7 @@ export default function CreateChallengeWizard({ circleId }: { circleId: string }
           <Step3
             form={form}
             onChange={updateForm}
+            onFileSelect={setBannerFile}
             location={location}
             onLocationSelect={setLocation}
           />
@@ -902,6 +1099,8 @@ export default function CreateChallengeWizard({ circleId }: { circleId: string }
           <Step4
             form={form}
             onChange={(id) => updateForm("facilitatorId", id)}
+            users={users}
+            isLoading={usersLoading}
           />
         )}
         {step === 5 && (
@@ -917,6 +1116,8 @@ export default function CreateChallengeWizard({ circleId }: { circleId: string }
             onPublish={handlePublish}
             templates={templates}
             isPending={createChallenge.isPending}
+            users={users}
+            location={location}
           />
         )}
       </div>

@@ -291,6 +291,7 @@ function Step2({
 function Step3({
   form,
   onChange,
+  onFileSelect,
   onConfirm,
   onClose,
   loading,
@@ -298,6 +299,7 @@ function Step3({
 }: {
   form: FormData;
   onChange: (f: keyof FormData, v: string) => void;
+  onFileSelect: (file: File) => void;
   onConfirm: () => void;
   onClose: () => void;
   loading: boolean;
@@ -307,7 +309,10 @@ function Step3({
   const fileRef = useRef<HTMLInputElement>(null);
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) onChange("imagePreview", URL.createObjectURL(file));
+    if (file) {
+      onChange("imagePreview", URL.createObjectURL(file));
+      onFileSelect(file);
+    }
   };
 
   return (
@@ -391,6 +396,7 @@ export default function SignUpPage() {
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>(initForm);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const next = () => setStep((s) => s + 1);
@@ -438,7 +444,7 @@ export default function SignUpPage() {
         formattedAddress: "",
       },
     };
-    register(payload, { onSuccess: next });
+    register({ data: payload, avatarFile: avatarFile ?? undefined }, { onSuccess: next });
   };
 
   const submitError =
@@ -461,6 +467,7 @@ export default function SignUpPage() {
       <Step3
         form={form}
         onChange={updateForm}
+        onFileSelect={setAvatarFile}
         onConfirm={handleSubmit}
         onClose={close}
         loading={isPending}

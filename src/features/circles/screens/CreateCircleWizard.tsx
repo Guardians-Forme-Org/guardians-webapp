@@ -1,28 +1,58 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import {
-  ChevronLeft,
-  X,
-  Search,
-  Link2,
-  Download,
-  Image as ImageIcon,
-} from "lucide-react";
+import LocationPicker, {
+  type LocationResult,
+} from "@/components/ui/LocationPicker";
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateCircle } from "@/lib/hooks/circles";
+import { useUsers } from "@/lib/hooks/users";
+import type { AuthUser } from "@/lib/types/auth";
 import type { CreateCircleResponse } from "@/lib/types/circles";
-import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
+import {
+  ChevronLeft,
+  Globe,
+  Image as ImageIcon,
+  Link2,
+  Mail,
+  MessageCircle,
+  Search,
+  X,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 
 // ── Form state ─────────────────────────────────────────────────────────────────
+
+type ChannelId = "whatsapp" | "facebook" | "email";
+
+const CHANNELS: {
+  id: ChannelId;
+  label: string;
+  name: string;
+  icon: typeof MessageCircle;
+}[] = [
+  { id: "whatsapp", label: "WhatsApp", name: "WhatsApp", icon: MessageCircle },
+  { id: "facebook", label: "Facebook", name: "Facebook", icon: Globe },
+  { id: "email", label: "Email", name: "Email", icon: Mail },
+];
+
+function RadioCircle({ selected }: { selected: boolean }) {
+  return selected ? (
+    <div className="size-5 rounded-full border-2 border-gotf-green flex items-center justify-center shrink-0">
+      <div className="size-2.5 rounded-full bg-gotf-green" />
+    </div>
+  ) : (
+    <div className="size-5 rounded-full border-2 border-[#ccc] shrink-0" />
+  );
+}
 
 type CircleFormData = {
   name: string;
   leads: string;
   description: string;
-  channelLink: string;
+  channelType: ChannelId | "";
+  channelUrl: string;
   region: string;
   imagePreview: string;
 };
@@ -31,7 +61,8 @@ const initialForm: CircleFormData = {
   name: "",
   leads: "",
   description: "",
-  channelLink: "",
+  channelType: "",
+  channelUrl: "",
   region: "",
   imagePreview: "",
 };
@@ -61,11 +92,19 @@ function WizardHeader({
             className="w-8 h-8 object-contain"
           />
         ) : (
-          <button onClick={onBack} className="size-10 flex items-center" aria-label="Back">
+          <button
+            onClick={onBack}
+            className="size-10 flex items-center"
+            aria-label="Back"
+          >
             <ChevronLeft size={20} className="text-text-muted" />
           </button>
         )}
-        <button onClick={onClose} className="size-10 flex items-center justify-end" aria-label="Close">
+        <button
+          onClick={onClose}
+          className="size-10 flex items-center justify-end"
+          aria-label="Close"
+        >
           <X size={20} className="text-text-muted" />
         </button>
       </div>
@@ -96,21 +135,35 @@ function WizardTitle({
   const parts = boldWord && description ? description.split(boldWord) : null;
   return (
     <div className="px-10 mt-7 mb-7">
-      <h1 className="text-[32px] font-bold text-gotf-green leading-tight">{title}</h1>
+      <h1 className="text-[32px] font-bold text-gotf-green leading-tight">
+        {title}
+      </h1>
       {description && (
         <p className="text-[18px] text-black mt-4 leading-relaxed">
           {parts ? (
-            <>{parts[0]}<strong>{boldWord}</strong>{parts[1]}</>
-          ) : description}
+            <>
+              {parts[0]}
+              <strong>{boldWord}</strong>
+              {parts[1]}
+            </>
+          ) : (
+            description
+          )}
         </p>
       )}
     </div>
   );
 }
 
-function WizardNextButton({ label, onClick }: { label: string; onClick: () => void }) {
+function WizardNextButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
   return (
-    <div className="px-5 pb-10 pt-4 shrink-0">
+    <div className="px-5 mb-20 pt-4 shrink-0">
       <button
         onClick={onClick}
         className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
@@ -126,10 +179,28 @@ function WizardNextButton({ label, onClick }: { label: string; onClick: () => vo
 function Step1({
   form,
   onChange,
+  selectedLead,
+  onSelectLead,
+  onRemoveLead,
 }: {
   form: CircleFormData;
   onChange: (f: keyof CircleFormData, v: string) => void;
+  selectedLead: AuthUser | null;
+  onSelectLead: (user: AuthUser) => void;
+  onRemoveLead: () => void;
 }) {
+  const { data: users = [] } = useUsers();
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const query = form.leads.trim().toLowerCase();
+  const filtered = query
+    ? users.filter((u) => {
+        const name =
+          `${u.user_metadata.firstName} ${u.user_metadata.lastName}`.toLowerCase();
+        return name.includes(query) || u.email.toLowerCase().includes(query);
+      })
+    : [];
+
   return (
     <>
       <WizardTitle
@@ -146,7 +217,9 @@ function Step1({
               Circle Name
             </label>
             <div className="size-4 rounded-full border border-text-muted flex items-center justify-center shrink-0">
-              <span className="text-[10px] text-text-muted font-semibold leading-none">i</span>
+              <span className="text-[10px] text-text-muted font-semibold leading-none">
+                i
+              </span>
             </div>
           </div>
           <input
@@ -162,21 +235,83 @@ function Step1({
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
             Circle Lead(s){" "}
-            <span className="text-[rgba(60,60,67,0.29)] font-normal">(Optional)</span>
+            <span className="text-[rgba(60,60,67,0.29)] font-normal">
+              (Optional)
+            </span>
           </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={form.leads}
-              onChange={(e) => onChange("leads", e.target.value)}
-              placeholder="Search circle lead(s)"
-              className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
-            />
-            <Search
-              size={16}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-            />
-          </div>
+
+          {selectedLead ? (
+            <div className="flex items-center gap-3 h-[60px] border border-[#d9d9d9] rounded-[8px] px-4">
+              <div className="size-8 rounded-full bg-[#d9d9d9] overflow-hidden shrink-0">
+                {selectedLead.user_metadata.avatarUrl && (
+                  <img
+                    src={selectedLead.user_metadata.avatarUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
+              <span className="flex-1 text-base text-text-primary">
+                {selectedLead.user_metadata.firstName}{" "}
+                {selectedLead.user_metadata.lastName}
+              </span>
+              <button onClick={onRemoveLead} className="text-text-muted">
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              <input
+                type="text"
+                value={form.leads}
+                onChange={(e) => {
+                  onChange("leads", e.target.value);
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+                placeholder="Search circle lead(s)"
+                className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
+              />
+              <Search
+                size={16}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+              />
+
+              {showDropdown && filtered.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#d9d9d9] rounded-[8px] shadow-lg z-50 max-h-[200px] overflow-y-auto">
+                  {filtered.map((u) => (
+                    <button
+                      key={u.id}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        onSelectLead(u);
+                        onChange("leads", "");
+                        setShowDropdown(false);
+                      }}
+                      className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-[#f5f5f5]"
+                    >
+                      <div className="size-8 rounded-full bg-[#d9d9d9] overflow-hidden shrink-0">
+                        {u.user_metadata.avatarUrl && (
+                          <img
+                            src={u.user_metadata.avatarUrl}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-text-primary">
+                          {u.user_metadata.firstName} {u.user_metadata.lastName}
+                        </p>
+                        <p className="text-xs text-text-muted">{u.email}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Circle Description */}
@@ -193,25 +328,56 @@ function Step1({
           />
         </div>
 
-        {/* Communication Channel Link */}
+        {/* Communication Channel */}
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            Communication Channel Link{" "}
-            <span className="text-[rgba(60,60,67,0.29)] font-normal">(Optional)</span>
+            Communication Channel{" "}
+            <span className="text-[rgba(60,60,67,0.29)] font-normal">
+              (Optional)
+            </span>
           </label>
-          <div className="relative">
-            <input
-              type="url"
-              value={form.channelLink}
-              onChange={(e) => onChange("channelLink", e.target.value)}
-              placeholder="e.g. WhatsApp, Telegram, Slack link"
-              className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
-            />
-            <Link2
-              size={16}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-            />
+          <div className="flex flex-col gap-2.5">
+            {CHANNELS.map(({ id, label, icon: Icon }) => {
+              const selected = form.channelType === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => onChange("channelType", id)}
+                  className={`flex items-center justify-between h-[50px] px-5 rounded-[8px] border transition-colors ${
+                    selected ? "border-gotf-green" : "border-border"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon
+                      size={22}
+                      className={
+                        selected ? "text-gotf-green" : "text-text-muted"
+                      }
+                    />
+                    <span className="text-base text-text-primary">{label}</span>
+                  </div>
+                  <RadioCircle selected={selected} />
+                </button>
+              );
+            })}
           </div>
+
+          {form.channelType && (
+            <div className="relative mt-1">
+              <input
+                type="url"
+                value={form.channelUrl}
+                onChange={(e) => onChange("channelUrl", e.target.value)}
+                placeholder="Paste your group or channel link"
+                className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
+              />
+              <Link2
+                size={16}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+              />
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -263,10 +429,14 @@ function Step2({
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                 <div className="size-10 rounded-full bg-white shadow-sm flex items-center justify-center">
-                  <Text variant="caption" className="text-gotf-green text-xl">📍</Text>
+                  <Text variant="caption" className="text-gotf-green text-xl">
+                    📍
+                  </Text>
                 </div>
                 <div className="bg-white/90 rounded-full px-3 py-1">
-                  <Text variant="caption" className="text-text-subheading">Select a location</Text>
+                  <Text variant="caption" className="text-text-subheading">
+                    Select a location
+                  </Text>
                 </div>
               </div>
             </>
@@ -282,12 +452,14 @@ function Step2({
 function Step3({
   form,
   onChange,
+  onFileSelect,
   onConfirm,
   loading,
   error,
 }: {
   form: CircleFormData;
   onChange: (f: keyof CircleFormData, v: string) => void;
+  onFileSelect: (file: File) => void;
   onConfirm: () => void;
   loading: boolean;
   error: string | null;
@@ -297,8 +469,8 @@ function Step3({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      onChange("imagePreview", url);
+      onChange("imagePreview", URL.createObjectURL(file));
+      onFileSelect(file);
     }
   };
 
@@ -396,7 +568,10 @@ function Step4({
 
   const handleShare = async () => {
     try {
-      await navigator.share({ url: joinLink, title: `Join ${circleName} on Guardians` });
+      await navigator.share({
+        url: joinLink,
+        title: `Join ${circleName} on Guardians`,
+      });
     } catch {
       // not supported or dismissed
     }
@@ -404,7 +579,12 @@ function Step4({
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-dvh bg-white overflow-hidden">
-      <img src="/images/success-logo.png" alt="" aria-hidden className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full pointer-events-none" />
+      <img
+        src="/images/success-logo.png"
+        alt=""
+        aria-hidden
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full pointer-events-none"
+      />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center px-10">
@@ -413,7 +593,9 @@ function Step4({
           alt="Guardians"
           className="w-12 h-12 object-contain mb-4"
         />
-        <h1 className="text-[32px] font-bold text-gotf-green mb-3">{circleName}</h1>
+        <h1 className="text-[32px] font-bold text-gotf-green mb-3">
+          {circleName}
+        </h1>
         <p className="text-[18px] text-[#333] mb-8 max-w-[288px] leading-snug">
           Copy and share this link to invite people to join this circle
         </p>
@@ -428,21 +610,23 @@ function Step4({
             <span className="text-base font-bold text-black">
               {copied ? "Copied!" : "Copy invitation link"}
             </span>
-            <span className="text-base text-[#bfbfbf] truncate">{joinLink}</span>
+            <span className="text-base text-[#bfbfbf] truncate">
+              {joinLink}
+            </span>
           </div>
         </button>
 
         {/* Circle Details PDF */}
-        <button
+        {/* <button
           className="flex items-center gap-5 w-full max-w-[322px] h-[60px] border border-[#ccc] rounded-full px-10"
         >
           <Download size={20} className="text-text-primary shrink-0" />
           <span className="text-base font-medium text-black">Circle Details PDF</span>
-        </button>
+        </button> */}
       </div>
 
       {/* Done */}
-      <div className="absolute bottom-10 left-0 right-0 px-5">
+      <div className="absolute mb-20 left-0 right-0 px-5">
         <button
           onClick={onDone}
           className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
@@ -459,12 +643,19 @@ function Step4({
 export default function CreateCircleWizard() {
   const router = useRouter();
   const { user } = useAuth();
-  const { mutate: createCircle, isPending, error: apiError } = useCreateCircle();
+  const {
+    mutate: createCircle,
+    isPending,
+    error: apiError,
+  } = useCreateCircle();
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<CircleFormData>(initialForm);
   const [location, setLocation] = useState<LocationResult | null>(null);
-  const [createdCircle, setCreatedCircle] = useState<CreateCircleResponse | null>(null);
+  const [selectedLead, setSelectedLead] = useState<AuthUser | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [createdCircle, setCreatedCircle] =
+    useState<CreateCircleResponse | null>(null);
 
   const next = () => setStep((s) => Math.min(s + 1, 4));
   const back = () => {
@@ -477,32 +668,46 @@ export default function CreateCircleWizard() {
 
   const handleSubmit = () => {
     if (!user) return;
+    const selectedChannel = CHANNELS.find((c) => c.id === form.channelType);
     createCircle(
       {
-        name: form.name,
-        description: form.description,
-        createdBy: user.id,
-        creatorAvatarUrl: user.user_metadata.avatarUrl,
-        channelLink: form.channelLink,
-        region: {
-          placeId: location?.placeId ?? "",
-          city: location?.city ?? "",
-          suburb: location?.suburb ?? "",
-          province: location?.province ?? "",
-          country: location?.country ?? "",
-          countryCode: location?.countryCode ?? "",
-          postalCode: location?.postalCode ?? "",
-          latitude: location?.latitude ?? 0,
-          longitude: location?.longitude ?? 0,
-          formattedAddress: location?.formattedAddress ?? "",
+        metadata: {
+          name: form.name,
+          description: form.description,
+          createdBy: user.id,
+          creatorAvatarUrl: user.user_metadata.avatarUrl,
+          communicationChannels:
+            selectedChannel && form.channelUrl
+              ? [
+                  {
+                    name: selectedChannel.name,
+                    url: form.channelUrl,
+                    icon: selectedChannel.name,
+                  },
+                ]
+              : [],
+          ...(selectedLead ? { circleLeadId: selectedLead.id } : {}),
+          region: {
+            placeId: location?.placeId ?? "",
+            city: location?.city ?? "",
+            suburb: location?.suburb ?? "",
+            province: location?.province ?? "",
+            country: location?.country ?? "",
+            countryCode: location?.countryCode ?? "",
+            postalCode: location?.postalCode ?? "",
+            latitude: location?.latitude ?? 0,
+            longitude: location?.longitude ?? 0,
+            formattedAddress: location?.formattedAddress ?? "",
+          },
         },
+        bannerFile: bannerFile ?? undefined,
       },
       {
         onSuccess: (response) => {
           setCreatedCircle(response);
           next();
         },
-      }
+      },
     );
   };
 
@@ -512,12 +717,20 @@ export default function CreateCircleWizard() {
     return (
       <div className="relative min-h-dvh">
         <div className="absolute top-8 left-10 z-20">
-          <button onClick={back} className="size-10 flex items-center" aria-label="Back">
+          <button
+            onClick={back}
+            className="size-10 flex items-center"
+            aria-label="Back"
+          >
             <ChevronLeft size={20} className="text-text-muted" />
           </button>
         </div>
         <div className="absolute top-8 right-10 z-20">
-          <button onClick={close} className="size-10 flex items-center justify-end" aria-label="Close">
+          <button
+            onClick={close}
+            className="size-10 flex items-center justify-end"
+            aria-label="Close"
+          >
             <X size={20} className="text-text-muted" />
           </button>
         </div>
@@ -535,12 +748,21 @@ export default function CreateCircleWizard() {
       <WizardHeader step={step} onBack={back} onClose={close} />
 
       <div className="flex-1 overflow-y-auto">
-        {step === 1 && <Step1 form={form} onChange={updateForm} />}
+        {step === 1 && (
+          <Step1
+            form={form}
+            onChange={updateForm}
+            selectedLead={selectedLead}
+            onSelectLead={setSelectedLead}
+            onRemoveLead={() => setSelectedLead(null)}
+          />
+        )}
         {step === 2 && <Step2 location={location} onSelect={setLocation} />}
         {step === 3 && (
           <Step3
             form={form}
             onChange={updateForm}
+            onFileSelect={setBannerFile}
             onConfirm={handleSubmit}
             loading={isPending}
             error={submitError}

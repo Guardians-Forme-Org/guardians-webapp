@@ -159,8 +159,8 @@ export default function DiscoverScreen() {
                       id: c.circleId,
                       name: c.name,
                       since: new Date(c.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" }),
-                      location: c.region.address || "—",
-                      members: c.members.length,
+                      location: c.region.formattedAddress || [c.region.city, c.region.province].filter(Boolean).join(", ") || "—",
+                      members: c.membersCount?.total ?? c.members.length,
                       memberAvatars: c.members.map((m) => m.avatarUrl),
                       image: c.bannerUrl || undefined,
                     }}

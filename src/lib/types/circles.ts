@@ -3,7 +3,8 @@ export type CreateCircleRequest = {
   description: string;
   createdBy: string;
   creatorAvatarUrl: string;
-  channelLink: string;
+  communicationChannels: { name: string; url: string; icon: string }[];
+  circleLeadId?: string;
   region: {
     placeId: string;
     city: string;
@@ -70,6 +71,12 @@ export type ApiCircleChallengeMember = {
   avatarUrl: string;
 };
 
+export type MembersCount = {
+  total: number;
+  label: string;
+  displayValue: string;
+};
+
 export type ApiCircleChallenge = {
   id: string;
   challengeId: string;
@@ -78,6 +85,7 @@ export type ApiCircleChallenge = {
   description: string;
   bannerUrl: string;
   circleId: string;
+  membersCount: MembersCount | null;
   region: {
     city: string;
     suburb: string;
@@ -135,12 +143,18 @@ export type ApiCircle = {
   description: string;
   createdAt: string;
   updatedAt: string;
+  membersCount: MembersCount | null;
   region: {
-    id: string;
+    placeId: string;
+    suburb: string;
+    city: string;
+    country: string;
+    countryCode: string;
+    province: string;
     latitude: number;
     longitude: number;
-    address: string;
-    what3words: string;
+    formattedAddress: string;
+    postalCode: string;
   };
   challenges: ApiCircleChallenge[];
   circleLead: null | unknown;

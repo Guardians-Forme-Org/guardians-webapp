@@ -52,7 +52,9 @@ export type CreateChallengeRequest = {
   templateId: string;
   challengeCode: string;
   createdBy: string;
+  facilitatorId: string;
   equipments: unknown[];
+  communicationChannels: { name: string; url: string; icon: string }[];
   location: ChallengeLocation | null;
   region: ChallengeLocation | null;
 };

@@ -1,5 +1,5 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, apiFetch } from "@/lib/api";
 import type { CreateCircleRequest, CreateCircleResponse, CirclesListResponse } from "@/lib/types/circles";
 
 export function useCircles() {
@@ -11,10 +11,42 @@ export function useCircles() {
 
 export function useCreateCircle() {
   return useMutation({
-    mutationFn: (data: CreateCircleRequest) =>
-      api.post<CreateCircleResponse>("/circles", data),
+    mutationFn: ({ metadata, bannerFile }: { metadata: CreateCircleRequest; bannerFile?: File }) => {
+      const formData = new FormData();
+      formData.append("metadata", JSON.stringify(metadata));
+      if (bannerFile) formData.append("bannerFile", bannerFile);
+      return apiFetch<CreateCircleResponse>("/createcircle", { method: "POST", body: formData });
+    },
     onError: (error) => {
       console.error("[createCircle] error:", error);
+    },
+  });
+}
+
+export function useJoinCircle() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ circleId, userId }: { circleId: string; userId: string }) =>
+      apiFetch<void>(`/circles/${circleId}/members`, {
+        method: "PUT",
+        headers: { "X-User-ID": userId },
+      }),
+    onSuccess: (_data, { circleId }) => {
+      queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
+    },
+  });
+}
+
+export function useAssignCircleLead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ circleId, userId }: { circleId: string; userId: string }) =>
+      apiFetch<void>(`/circles/${circleId}/leads`, {
+        method: "PUT",
+        headers: { "X-User-ID": userId },
+      }),
+    onSuccess: (_data, { circleId }) => {
+      queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
     },
   });
 }
