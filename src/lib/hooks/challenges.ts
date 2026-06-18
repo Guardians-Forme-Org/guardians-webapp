@@ -1,4 +1,5 @@
 import { api, apiFetch } from "@/lib/api";
+import { getToken } from "@/lib/auth";
 import type {
   ApiChallenge,
   CreateChallengeRequest,
@@ -66,6 +67,60 @@ export function useJoinChallenge() {
         method: "PUT",
         headers: { "X-User-ID": userId },
       }),
+    onSuccess: (_data, { challengeId }) => {
+      queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+    },
+  });
+}
+
+export function useDeleteChallenge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (challengeId: string) =>
+      apiFetch<void>(`/challenges/${challengeId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["challenges"] });
+    },
+  });
+}
+
+type SubmitEvidencePayload = {
+  stepId: string;
+  stepNumber: number;
+  challengeCode: string;
+  circleId: string;
+  thingId: string;
+  thingUUID: string;
+  submittedBy: string;
+  approvalRequired: boolean;
+  volunteerHours: { value: number; unitOfMeasure: string; SiUnit: string };
+  contributors: string[];
+  data: {
+    measurement: { value: number; unitofMeasure: string; SiUnit: string };
+    description: string;
+  };
+};
+
+export function useSubmitEvidence() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      challengeCode,
+      challengeId,
+      payload,
+    }: {
+      challengeCode: string;
+      challengeId: string;
+      payload: SubmitEvidencePayload;
+    }) => {
+      const token = getToken();
+      const endpoint = `/submit${challengeCode.replace("-", "")}`;
+      return apiFetch<void>(endpoint, {
+        method: "POST",
+        body: payload,
+        headers: token ? { Auth: `Bearer ${token}` } : {},
+      });
+    },
     onSuccess: (_data, { challengeId }) => {
       queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
     },

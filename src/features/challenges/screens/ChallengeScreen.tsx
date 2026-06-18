@@ -3,12 +3,14 @@
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import { useChallenge, useJoinChallenge } from "@/lib/hooks/challenges";
+import { useChallenge, useDeleteChallenge, useJoinChallenge, useSubmitEvidence } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
+import { canManageCircle, isWhitelisted } from "@/lib/permissions";
 import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Trash2, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
 
@@ -220,18 +222,90 @@ function ActivitiesTab() {
 
 // ── Main Screen ────────────────────────────────────────────────────────────────
 
+type ChallengeStep = { stepNumber: number; stepType: string; stepId: string; title: string; description: string };
+
+const SI_UNIT_LABELS: Record<string, string> = {
+  MASS: "kg",
+  VOLUME: "L",
+  AREA: "m²",
+  COUNT: "items",
+};
+
 type Props = { challengeId: string };
 
 export default function ChallengeScreen({ challengeId }: Props) {
   const { user } = useAuth();
+  const router = useRouter();
   const [tab, setTab] = useState<"home" | "activities">("home");
+  const [showEvidence, setShowEvidence] = useState(false);
+  const [evidenceStep, setEvidenceStep] = useState<ChallengeStep | null>(null);
+  const [evidenceForm, setEvidenceForm] = useState({
+    volunteerHours: "",
+    contributors: [] as string[],
+    siUnit: "MASS" as "MASS" | "VOLUME" | "AREA" | "COUNT",
+    measurementValue: "",
+    description: "",
+  });
   const joinChallenge = useJoinChallenge();
+  const deleteChallenge = useDeleteChallenge();
+  const submitEvidence = useSubmitEvidence();
+  const isAdmin = isWhitelisted(user?.email);
+  const { data: users = [] } = useUsers();
   const { data: challenge, isLoading, error } = useChallenge(challengeId);
   const { data: circle } = useQuery({
     queryKey: ["circle", challenge?.circleId],
     queryFn: () => api.get<ApiCircle>(`/circles/${challenge!.circleId}`),
     enabled: !!challenge?.circleId,
   });
+
+  const canSubmit =
+    isWhitelisted(user?.email) ||
+    (!!circle && canManageCircle(user?.email, user?.id, circle));
+
+  const submittableSteps = (challenge?.challengeSteps ?? []).filter(
+    (s) => s.stepType !== "Registration" && s.stepType !== "Completion"
+  ) as ChallengeStep[];
+
+  const handleSubmitEvidence = () => {
+    if (!user || !evidenceStep || !challenge) return;
+    submitEvidence.mutate(
+      {
+        challengeCode: challenge.challengeCode,
+        challengeId: challenge.challengeId,
+        payload: {
+          stepId: evidenceStep.stepId,
+          stepNumber: evidenceStep.stepNumber,
+          challengeCode: challenge.challengeCode,
+          circleId: challenge.circleId,
+          thingId: challenge.challengeId,
+          thingUUID: challenge.impactRecords?.[0]?.thingUUID ?? "",
+          submittedBy: user.id,
+          approvalRequired: false,
+          volunteerHours: {
+            value: Number(evidenceForm.volunteerHours) || 0,
+            unitOfMeasure: "hours",
+            SiUnit: "TIME",
+          },
+          contributors: evidenceForm.contributors,
+          data: {
+            measurement: {
+              value: Number(evidenceForm.measurementValue) || 0,
+              unitofMeasure: SI_UNIT_LABELS[evidenceForm.siUnit] ?? evidenceForm.siUnit,
+              SiUnit: evidenceForm.siUnit,
+            },
+            description: evidenceForm.description,
+          },
+        },
+      },
+      {
+        onSuccess: () => {
+          setShowEvidence(false);
+          setEvidenceStep(null);
+          setEvidenceForm({ volunteerHours: "", contributors: [], siUnit: "MASS", measurementValue: "", description: "" });
+        },
+      }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -255,6 +329,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
   });
 
   return (
+    <>
     <div className="flex flex-col bg-white min-h-full">
       <ChallengeHero bannerUrl={challenge.bannerUrl} />
 
@@ -268,7 +343,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
             {challenge.name}
           </h1>
           <p className="text-base text-[#666] mt-1">Since {since}</p>
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-3">
             {(() => {
               const isMember =
                 !!user &&
@@ -296,6 +371,14 @@ export default function ChallengeScreen({ challengeId }: Props) {
                 </button>
               );
             })()}
+            {canSubmit && submittableSteps.length > 0 && (
+              <button
+                onClick={() => setShowEvidence(true)}
+                className="px-5 h-10 text-base font-semibold rounded-full border border-[#1a1a1a] text-[#1a1a1a] shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
+              >
+                Submit Evidence
+              </button>
+            )}
           </div>
         </div>
 
@@ -322,7 +405,194 @@ export default function ChallengeScreen({ challengeId }: Props) {
         ) : (
           <ActivitiesTab />
         )}
+
+        {/* Danger zone */}
+        {isAdmin && (
+          <div className="px-7.5 pt-4 pb-10">
+            <button
+              disabled={deleteChallenge.isPending}
+              onClick={() => {
+                if (!window.confirm(`Delete challenge "${challenge.name}"? This cannot be undone.`)) return;
+                deleteChallenge.mutate(challenge.challengeId, { onSuccess: () => router.back() });
+              }}
+              className="flex items-center gap-2 px-4 h-10 rounded-full border border-red-300 text-sm font-medium text-red-500 disabled:opacity-50"
+            >
+              <Trash2 size={14} />
+              {deleteChallenge.isPending ? "Deleting…" : "Delete Challenge"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
+
+    {/* Submit Evidence sheet */}
+    {showEvidence && (
+      <div
+        className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40"
+        onClick={() => { setShowEvidence(false); setEvidenceStep(null); }}
+      >
+        <div
+          className="bg-white rounded-t-[20px] max-h-[88dvh] flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Handle */}
+          <div className="flex justify-center pt-3 pb-1 shrink-0">
+            <div className="w-10 h-1 bg-[#d9d9d9] rounded-full" />
+          </div>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-progress-track">
+            {evidenceStep ? (
+              <button
+                onClick={() => setEvidenceStep(null)}
+                className="flex items-center gap-1 text-sm text-text-muted"
+              >
+                <ChevronLeft size={16} /> Back
+              </button>
+            ) : (
+              <p className="text-lg font-bold text-text-primary">Submit Evidence</p>
+            )}
+            <button onClick={() => { setShowEvidence(false); setEvidenceStep(null); }}>
+              <X size={20} className="text-text-muted" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="overflow-y-auto flex-1 px-6 py-5">
+            {!evidenceStep ? (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm text-text-muted mb-1">Choose the step to submit evidence for:</p>
+                {submittableSteps.map((step) => (
+                  <button
+                    key={step.stepId}
+                    onClick={() => setEvidenceStep(step)}
+                    className="flex items-center justify-between p-4 border border-[rgba(26,26,24,0.14)] rounded-xl text-left"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">Step {step.stepNumber}</p>
+                      <p className="text-sm text-text-muted mt-0.5">{step.title}</p>
+                    </div>
+                    <ChevronRight size={16} className="text-text-muted shrink-0" />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-5 pb-4">
+                <div>
+                  <p className="text-lg font-bold text-text-primary">{evidenceStep.title}</p>
+                  <p className="text-sm text-text-muted mt-0.5">Step {evidenceStep.stepNumber}</p>
+                </div>
+
+                {/* Volunteer Hours */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-text-primary">Volunteer Hours</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={evidenceForm.volunteerHours}
+                    onChange={(e) => setEvidenceForm((f) => ({ ...f, volunteerHours: e.target.value }))}
+                    placeholder="e.g. 3"
+                    className="h-11 border border-[rgba(26,26,24,0.28)] rounded-lg px-3 text-base outline-none"
+                  />
+                </div>
+
+                {/* Contributors */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-text-primary">Contributors</label>
+                  <div className="flex flex-col gap-2 max-h-40 overflow-y-auto border border-[rgba(26,26,24,0.14)] rounded-lg p-3">
+                    {(challenge.members ?? []).map((m) => {
+                      const u = users.find((u) => u.id === m.userId);
+                      const name = u
+                        ? `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""}`.trim()
+                        : m.userId;
+                      const checked = evidenceForm.contributors.includes(m.userId);
+                      return (
+                        <label key={m.userId} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() =>
+                              setEvidenceForm((f) => ({
+                                ...f,
+                                contributors: checked
+                                  ? f.contributors.filter((id) => id !== m.userId)
+                                  : [...f.contributors, m.userId],
+                              }))
+                            }
+                            className="size-4"
+                          />
+                          <span className="text-sm text-text-primary">{name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Measurement Type */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-text-primary">Measurement Type</label>
+                  <select
+                    value={evidenceForm.siUnit}
+                    onChange={(e) =>
+                      setEvidenceForm((f) => ({ ...f, siUnit: e.target.value as typeof f.siUnit }))
+                    }
+                    className="h-11 border border-[rgba(26,26,24,0.28)] rounded-lg px-3 text-base outline-none bg-white"
+                  >
+                    <option value="MASS">Mass (kg)</option>
+                    <option value="VOLUME">Volume (L)</option>
+                    <option value="AREA">Area (m²)</option>
+                    <option value="COUNT">Count (items)</option>
+                  </select>
+                </div>
+
+                {/* Measurement Value */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-text-primary">
+                    Amount ({SI_UNIT_LABELS[evidenceForm.siUnit]})
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={evidenceForm.measurementValue}
+                    onChange={(e) => setEvidenceForm((f) => ({ ...f, measurementValue: e.target.value }))}
+                    placeholder="0"
+                    className="h-11 border border-[rgba(26,26,24,0.28)] rounded-lg px-3 text-base outline-none"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-text-primary">Description</label>
+                  <textarea
+                    value={evidenceForm.description}
+                    onChange={(e) => setEvidenceForm((f) => ({ ...f, description: e.target.value }))}
+                    placeholder="Describe the activity…"
+                    rows={3}
+                    className="border border-[rgba(26,26,24,0.28)] rounded-lg px-3 py-2.5 text-base outline-none resize-none"
+                  />
+                </div>
+
+                <button
+                  disabled={submitEvidence.isPending}
+                  onClick={handleSubmitEvidence}
+                  className="w-full h-12 bg-[#1a1a1a] text-white rounded-full text-base font-semibold disabled:opacity-50 mt-1"
+                >
+                  {submitEvidence.isPending ? "Submitting…" : "Submit Evidence"}
+                </button>
+
+                {submitEvidence.isError && (
+                  <p className="text-sm text-red-500 text-center">
+                    {submitEvidence.error instanceof Error
+                      ? submitEvidence.error.message
+                      : "Submission failed. Please try again."}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

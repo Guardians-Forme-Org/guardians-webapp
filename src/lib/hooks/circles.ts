@@ -37,6 +37,17 @@ export function useJoinCircle() {
   });
 }
 
+export function useDeleteCircle() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (circleId: string) =>
+      apiFetch<void>(`/circles/${circleId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["circles"] });
+    },
+  });
+}
+
 export function useAssignCircleLead() {
   const queryClient = useQueryClient();
   return useMutation({

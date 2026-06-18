@@ -626,7 +626,7 @@ function Step4({
       </div>
 
       {/* Done */}
-      <div className="absolute mb-20 left-0 right-0 px-5">
+      <div className="left-0 right-0 w-full px-5 z-10 mt-5">
         <button
           onClick={onDone}
           className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"

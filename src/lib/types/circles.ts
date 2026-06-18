@@ -124,7 +124,14 @@ export type ApiCircleChallenge = {
   currentStep: number;
   impactRecords: ApiImpactRecord[] | null;
   joinLink: string;
-  communicationChannels: CircleCommunicationChannel[];
+  communicationChannels: CircleCommunicationChannel[] | null;
+  challengeSteps: Array<{
+    stepNumber: number;
+    stepType: string;
+    stepId: string;
+    title: string;
+    description: string;
+  }> | null;
 };
 
 export type CircleMember = {
