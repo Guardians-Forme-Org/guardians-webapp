@@ -9,6 +9,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
+import { isWhitelisted } from "@/lib/permissions";
 import type { ApiCircle, CirclesListResponse } from "@/lib/types/circles";
 
 // ── Circle card ───────────────────────────────────────────────────────────────
@@ -85,13 +86,15 @@ export default function CirclesPage() {
         <PageHeader
           title="Circles"
           action={
-            <Link
-              href="/circles/create"
-              className="flex items-center gap-1.5 bg-gotf-green text-white text-xs font-medium px-3 py-2 rounded-xl"
-            >
-              <Plus size={13} />
-              Create
-            </Link>
+            isWhitelisted(user?.email) ? (
+              <Link
+                href="/circles/create"
+                className="flex items-center gap-1.5 bg-gotf-green text-white text-xs font-medium px-3 py-2 rounded-xl"
+              >
+                <Plus size={13} />
+                Create
+              </Link>
+            ) : null
           }
         />
         <SearchBar placeholder="Search circles..." />

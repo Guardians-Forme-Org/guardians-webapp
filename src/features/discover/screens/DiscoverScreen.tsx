@@ -7,6 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, MapPin } from "lucide-react";
 import SearchBar from "@/components/ui/SearchBar";
 import { api } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { isWhitelisted } from "@/lib/permissions";
 import type { CirclesListResponse } from "@/lib/types/circles";
 import { useChallenges } from "@/lib/hooks/challenges";
 import ChallengeCard from "@/features/challenges/components/ChallengeCard";
@@ -80,6 +82,7 @@ function CircleCard({ item }: { item: CircleItem }) {
 // ── Main Screen ────────────────────────────────────────────────────────────────
 
 export default function DiscoverScreen() {
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>("challenges");
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
@@ -130,8 +133,8 @@ export default function DiscoverScreen() {
         onSubmit={setQuery}
       />
 
-      {/* Create CTA — only available on circles tab; challenges must start from within a circle */}
-      {tab === "circles" && (
+      {/* Create CTA — only available on circles tab for whitelisted users */}
+      {tab === "circles" && isWhitelisted(user?.email) && (
         <div className="px-5 mb-6">
           <Link
             href="/circles/create"
