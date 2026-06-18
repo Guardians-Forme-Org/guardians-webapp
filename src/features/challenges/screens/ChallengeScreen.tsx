@@ -16,17 +16,21 @@ import ChallengeHero from "../components/ChallengeHero";
 
 function HomeTab({
   challenge,
+  challengeId,
   circleName,
 }: {
   challenge: ApiCircleChallenge;
+  challengeId: string;
   circleName?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [showAllMembers, setShowAllMembers] = useState(false);
   const { data: users = [] } = useUsers();
   const progress =
     challenge.steps > 0
       ? Math.round((challenge.currentStep / challenge.steps) * 100)
       : 0;
+  const members = challenge.members ?? [];
 
   return (
     <>
@@ -112,7 +116,7 @@ function HomeTab({
       })()}
 
       {/* Members */}
-      {(challenge.members ?? []).length > 0 && (
+      {members.length > 0 && (
         <>
           <div className="py-7.5">
             <div className="flex items-center justify-between px-7.5 mb-5">
@@ -125,34 +129,30 @@ function HomeTab({
                   {circleName ?? challenge.circleId}
                 </Link>
               </p>
+              {members.length > 5 && (
+                <button
+                  onClick={() => setShowAllMembers((v) => !v)}
+                  className="text-base text-gotf-blue"
+                >
+                  {showAllMembers ? "Show less" : `See all (${members.length})`}
+                </button>
+              )}
             </div>
 
-            <div className="flex gap-2 px-7.5 mb-6">
-              {(challenge.members ?? []).slice(0, 5).map((member) => {
+            <div className={`flex px-7.5 mb-6 gap-2 ${showAllMembers ? "flex-wrap gap-y-6" : ""}`}>
+              {(showAllMembers ? members : members.slice(0, 5)).map((member) => {
                 const memberUser = users.find((u) => u.id === member.userId);
                 const name = memberUser ? `${memberUser.user_metadata.firstName ?? ""}`.trim() || member.userId : member.userId;
                 const av = member.avatarUrl || memberUser?.user_metadata?.avatarUrl;
                 return (
-                <div
-                  key={member.userId}
-                  className="flex flex-col items-center gap-2"
-                >
-                  <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
-                    {av ? (
-                      <img
-                        src={av}
-                        alt={name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : null}
+                  <div key={member.userId} className="flex flex-col items-center gap-2 w-16">
+                    <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
+                      {av && <img src={av} alt={name} className="w-full h-full object-cover" />}
+                    </div>
+                    <Text variant="caption" className="text-text-subheading text-center leading-tight">
+                      {name.split(" ")[0]}
+                    </Text>
                   </div>
-                  <Text
-                    variant="caption"
-                    className="text-text-subheading"
-                  >
-                    {name.split(" ")[0]}
-                  </Text>
-                </div>
                 );
               })}
             </div>
@@ -168,46 +168,54 @@ function HomeTab({
       )}
 
       {/* Impact */}
-      <div className="border-t border-progress-track">
-        <p className="px-10 pt-7.5 pb-5 text-xl font-bold text-text-subheading">
-          Impact
-        </p>
-        {!(challenge.impactRecords ?? []).length ? (
-          <p className="px-10 pb-7.5 text-sm text-text-muted">
-            No impact recorded yet.
-          </p>
-        ) : (
-          (challenge.impactRecords ?? []).map((record) => (
-            <div
-              key={record.impactRecordId}
-              className="flex items-start gap-4 px-10 pb-6 border-t border-[#e6e6e6]"
-            >
-              <div className="flex-1 pt-5">
+      {(challenge.impactRecords ?? []).length > 0 && (
+        <div className="border-t border-[#e6e6e6]">
+          <div className="grid grid-cols-2">
+            {(challenge.impactRecords ?? []).map((record, i) => (
+              <div
+                key={record.impactRecordId}
+                className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-2 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}
+              >
+                <p className="text-[12px] text-[#767676] leading-snug">
+                  {record.impactSummary.impact.summary}
+                </p>
                 <p className="text-2xl font-semibold text-[#333]">
                   {record.impactSummary.impact.displayName}
                 </p>
-                <p className="text-xs text-[#767676] mt-1 leading-snug">
-                  {record.impactSummary.impact.summary}
+                <p className="text-[11px] text-text-muted">
+                  {record.impactSummary.contribution.displayName} contributed
                 </p>
               </div>
-              <div className="pt-5 text-right shrink-0">
-                <p className="text-base font-semibold text-text-subheading">
-                  {record.impactSummary.contribution.displayName}
-                </p>
-                <p className="text-xs text-text-muted mt-0.5">contributed</p>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-      {/* Steps summary */}
-      <div className="py-7.5 px-10">
-        <p className="text-xl font-semibold text-text-subheading mb-2">Steps</p>
-        <p className="text-base text-text-muted">
-          Step {challenge.currentStep} of {challenge.steps} completed
-        </p>
-      </div>
+      {/* Steps */}
+      {(challenge.challengeSteps ?? []).length > 0 && (
+        <div className="border-t border-progress-track py-7.5">
+          <p className="px-10 text-xl font-semibold text-text-subheading mb-5">Steps</p>
+          <div className="flex flex-col gap-3 px-6">
+            {(challenge.challengeSteps ?? []).map((step) => (
+              <div
+                key={step.stepId}
+                className="flex items-center gap-4 border border-[#eee] rounded-[10px] px-4 py-2.5"
+              >
+                <p className="text-base font-medium text-black w-3 shrink-0 text-center">{step.stepNumber}</p>
+                <div className="size-[60px] rounded-[8px] bg-[#eee] shrink-0" />
+                <div className="flex-1 min-w-0 px-1">
+                  <p className="text-base font-semibold text-[#1a1a1a] truncate">{step.title}</p>
+                  <p className="text-[12px] text-[#1a1a1a] truncate">{step.description}</p>
+                  {step.stepType && (
+                    <p className="text-[12px] text-[#999]">{step.stepType}</p>
+                  )}
+                </div>
+                <ChevronRight size={16} className="text-text-muted shrink-0" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -336,9 +344,16 @@ export default function ChallengeScreen({ challengeId }: Props) {
       <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
         {/* Identity */}
         <div className="px-10 pt-7.5 pb-0">
-          <span className="inline-block bg-[#d9d9d9] rounded-[20px] px-3 py-1 text-[14px] text-text-subheading">
-            {circle?.name ?? challenge.circleId}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-block bg-[#d9d9d9] rounded-[20px] px-3 py-1 text-[14px] text-text-subheading">
+              {circle?.name ?? challenge.circleId}
+            </span>
+            {challenge.template?.targetSDG?.code && (
+              <span className="inline-block bg-[rgba(86,192,43,0.2)] rounded-[20px] px-3 py-1 text-[14px] font-medium text-text-subheading">
+                {challenge.template.targetSDG.code.replace("SDG", "SDG ")}
+              </span>
+            )}
+          </div>
           <h1 className="text-[28px] font-bold text-text-subheading mt-3 leading-tight">
             {challenge.name}
           </h1>
@@ -401,7 +416,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
         <div className="border-t border-progress-track" />
 
         {tab === "home" ? (
-          <HomeTab challenge={challenge} circleName={circle?.name} />
+          <HomeTab challenge={challenge} challengeId={challengeId} circleName={circle?.name} />
         ) : (
           <ActivitiesTab />
         )}

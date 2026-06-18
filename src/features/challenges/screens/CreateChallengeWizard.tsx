@@ -1015,7 +1015,7 @@ export default function CreateChallengeWizard({
   circleId: string;
 }) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loginData } = useAuth();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>({ ...initialForm, circleId });
   const [location, setLocation] = useState<LocationResult | null>(null);

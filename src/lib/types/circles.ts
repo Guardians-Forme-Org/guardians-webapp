@@ -132,6 +132,9 @@ export type ApiCircleChallenge = {
     title: string;
     description: string;
   }> | null;
+  template?: {
+    targetSDG?: { code: string; title: string; infoUrl?: string } | null;
+  } | null;
 };
 
 export type CircleMember = {
