@@ -3,7 +3,7 @@
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import { useAssignCircleLead, useDeleteCircle, useJoinCircle } from "@/lib/hooks/circles";
+import { useAssignCircleLead, useJoinCircle } from "@/lib/hooks/circles";
 import { canManageCircle, isWhitelisted } from "@/lib/permissions";
 import { useUsers } from "@/lib/hooks/users";
 import type {
@@ -12,9 +12,8 @@ import type {
   CircleMember,
 } from "@/lib/types/circles";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, MapPin, Trash2, UserPlus } from "lucide-react";
+import { ChevronRight, MapPin, UserPlus } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import CircleHero from "../components/CircleHero";
 
@@ -119,16 +118,13 @@ type Props = { circleId: string };
 
 export default function CircleScreen({ circleId }: Props) {
   const { user } = useAuth();
-  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [showLeadPicker, setShowLeadPicker] = useState(false);
   const [leadSearch, setLeadSearch] = useState("");
   const joinCircle = useJoinCircle();
   const assignLead = useAssignCircleLead();
   const queryClient = useQueryClient();
-  const deleteCircle = useDeleteCircle();
   const { data: users = [] } = useUsers();
-  const isAdmin = isWhitelisted(user?.email);
 
   const {
     data: circle,
@@ -404,22 +400,6 @@ export default function CircleScreen({ circleId }: Props) {
           )}
         </div>
 
-        {/* Danger zone */}
-        {isAdmin && (
-          <div className="px-7.5 pt-4 pb-10">
-            <button
-              disabled={deleteCircle.isPending}
-              onClick={() => {
-                if (!window.confirm(`Delete circle "${circle.name}"? This cannot be undone.`)) return;
-                deleteCircle.mutate(circle.circleId, { onSuccess: () => router.push("/circles") });
-              }}
-              className="flex items-center gap-2 px-4 h-10 rounded-full border border-red-300 text-sm font-medium text-red-500 disabled:opacity-50"
-            >
-              <Trash2 size={14} />
-              {deleteCircle.isPending ? "Deleting…" : "Delete Circle"}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

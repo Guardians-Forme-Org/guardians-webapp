@@ -3,15 +3,12 @@
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import { useChallenge, useDeleteChallenge, useJoinChallenge } from "@/lib/hooks/challenges";
+import { useChallenge, useJoinChallenge } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
-import { canManageCircle, isWhitelisted } from "@/lib/permissions";
 import type { ApiCircle, ApiCircleChallenge, ApiImpactRecord, ApiCircleChallengeMember } from "@/lib/types/circles";
-import { STEP_FORM_CONFIGS } from "../stepFormConfig";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, MapPin, Trash2, X } from "lucide-react";
+import { ChevronRight, MapPin } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
 
@@ -277,12 +274,8 @@ type Props = { challengeId: string };
 
 export default function ChallengeScreen({ challengeId }: Props) {
   const { user } = useAuth();
-  const router = useRouter();
   const [tab, setTab] = useState<"home" | "activities">("home");
-  const [showEvidence, setShowEvidence] = useState(false);
   const joinChallenge = useJoinChallenge();
-  const deleteChallenge = useDeleteChallenge();
-  const isAdmin = isWhitelisted(user?.email);
   const { data: users = [] } = useUsers();
   const { data: challenge, isLoading, error } = useChallenge(challengeId);
   const { data: circle } = useQuery({
@@ -290,14 +283,6 @@ export default function ChallengeScreen({ challengeId }: Props) {
     queryFn: () => api.get<ApiCircle>(`/circles/${challenge!.circleId}`),
     enabled: !!challenge?.circleId,
   });
-
-  const canSubmit =
-    isWhitelisted(user?.email) ||
-    (!!circle && canManageCircle(user?.email, user?.id, circle));
-
-  const submittableSteps = (challenge?.challengeSteps ?? []).filter(
-    (s) => s.stepId in STEP_FORM_CONFIGS
-  );
 
   if (isLoading) {
     return (
@@ -370,14 +355,6 @@ export default function ChallengeScreen({ challengeId }: Props) {
                 </button>
               );
             })()}
-            {canSubmit && submittableSteps.length > 0 && (
-              <button
-                onClick={() => setShowEvidence(true)}
-                className="px-5 h-10 text-base font-semibold rounded-full border border-[#1a1a1a] text-[#1a1a1a] shadow-[0_2px_10px_rgba(0,0,0,0.08)]"
-              >
-                Submit Evidence
-              </button>
-            )}
           </div>
         </div>
 
@@ -408,66 +385,9 @@ export default function ChallengeScreen({ challengeId }: Props) {
           />
         )}
 
-        {/* Danger zone */}
-        {isAdmin && (
-          <div className="px-7.5 pt-4 pb-10">
-            <button
-              disabled={deleteChallenge.isPending}
-              onClick={() => {
-                if (!window.confirm(`Delete challenge "${challenge.name}"? This cannot be undone.`)) return;
-                deleteChallenge.mutate(challenge.challengeId, { onSuccess: () => router.back() });
-              }}
-              className="flex items-center gap-2 px-4 h-10 rounded-full border border-red-300 text-sm font-medium text-red-500 disabled:opacity-50"
-            >
-              <Trash2 size={14} />
-              {deleteChallenge.isPending ? "Deleting…" : "Delete Challenge"}
-            </button>
-          </div>
-        )}
       </div>
     </div>
 
-    {/* Step picker sheet — routes to LogEvidenceWizard for the selected step */}
-    {showEvidence && (
-      <div
-        className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40"
-        onClick={() => setShowEvidence(false)}
-      >
-        <div
-          className="bg-white rounded-t-[20px] max-h-[88dvh] flex flex-col"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex justify-center pt-3 pb-1 shrink-0">
-            <div className="w-10 h-1 bg-[#d9d9d9] rounded-full" />
-          </div>
-          <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-progress-track">
-            <p className="text-lg font-bold text-text-primary">Log Activity</p>
-            <button onClick={() => setShowEvidence(false)}>
-              <X size={20} className="text-text-muted" />
-            </button>
-          </div>
-          <div className="overflow-y-auto flex-1 px-6 py-5">
-            <div className="flex flex-col gap-3">
-              <p className="text-sm text-text-muted mb-1">Choose the step to log activity for:</p>
-              {submittableSteps.map((step) => (
-                <Link
-                  key={step.stepId}
-                  href={`/challenges/${challengeId}/steps/${step.stepId}/log`}
-                  onClick={() => setShowEvidence(false)}
-                  className="flex items-center justify-between p-4 border border-[rgba(26,26,24,0.14)] rounded-xl"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-text-primary">Step {step.stepNumber}</p>
-                    <p className="text-sm text-text-muted mt-0.5">{step.title}</p>
-                  </div>
-                  <ChevronRight size={16} className="text-text-muted shrink-0" />
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    )}
-    </>
+</>
   );
 }

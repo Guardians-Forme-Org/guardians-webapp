@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { ChevronRight, FileText, Image as ImageIcon, Plus, Search, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronRight, FileText, Plus, Search, X } from "lucide-react";
 import { SaveButton } from "../shared";
 import type { ApiCircleChallengeMember } from "@/lib/types/circles";
 import type { LogFormData } from "../types";
@@ -18,6 +18,25 @@ type Props = {
   members: ApiCircleChallengeMember[];
   users: UserLike[];
 };
+
+function FileThumb({ file }: { file: File }) {
+  const [src, setSrc] = useState("");
+
+  useEffect(() => {
+    if (!file.type.startsWith("image/")) return;
+    const url = URL.createObjectURL(file);
+    setSrc(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  if (file.type.startsWith("image/")) {
+    return src ? <img src={src} alt="" className="w-full h-full object-cover" /> : null;
+  }
+  if (file.type.includes("pdf")) {
+    return <FileText size={20} className="text-red-500" />;
+  }
+  return <FileText size={20} className="text-[#8f8f8c]" />;
+}
 
 export default function FileUploadStep({ form, update, onNext, nextLabel, members, users }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,15 +108,11 @@ export default function FileUploadStep({ form, update, onNext, nextLabel, member
             className="flex items-center gap-3 border border-[rgba(26,26,24,0.14)] rounded-[12px] p-4"
           >
             <div
-              className={`size-10 rounded-[8px] flex items-center justify-center shrink-0 ${
-                file.type.includes("pdf") ? "bg-red-50" : "bg-blue-50"
+              className={`size-10 rounded-[8px] overflow-hidden flex items-center justify-center shrink-0 ${
+                file.type.startsWith("image/") ? "bg-[#f0f0ee]" : file.type.includes("pdf") ? "bg-red-50" : "bg-[#f5f5f5]"
               }`}
             >
-              {file.type.includes("pdf") ? (
-                <FileText size={20} className="text-red-500" />
-              ) : (
-                <ImageIcon size={20} className="text-blue-500" />
-              )}
+              <FileThumb file={file} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-base font-semibold text-text-primary truncate">{file.name}</p>
