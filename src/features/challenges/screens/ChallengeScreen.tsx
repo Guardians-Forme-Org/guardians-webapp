@@ -197,8 +197,9 @@ function HomeTab({
           <p className="px-10 text-xl font-semibold text-text-subheading mb-5">Steps</p>
           <div className="flex flex-col gap-3 px-6">
             {(challenge.challengeSteps ?? []).map((step) => (
-              <div
+              <Link
                 key={step.stepId}
+                href={`/challenges/${challengeId}/steps/${step.stepId}`}
                 className="flex items-center gap-4 border border-[#eee] rounded-[10px] px-4 py-2.5"
               >
                 <p className="text-base font-medium text-black w-3 shrink-0 text-center">{step.stepNumber}</p>
@@ -211,7 +212,7 @@ function HomeTab({
                   )}
                 </div>
                 <ChevronRight size={16} className="text-text-muted shrink-0" />
-              </div>
+              </Link>
             ))}
           </div>
         </div>
