@@ -3,12 +3,13 @@
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import { useChallenge, useDeleteChallenge, useJoinChallenge, useSubmitEvidence } from "@/lib/hooks/challenges";
+import { useChallenge, useDeleteChallenge, useJoinChallenge } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle, isWhitelisted } from "@/lib/permissions";
-import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
+import type { ApiCircle, ApiCircleChallenge, ApiImpactRecord, ApiCircleChallengeMember } from "@/lib/types/circles";
+import { STEP_FORM_CONFIGS } from "../stepFormConfig";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, MapPin, Trash2, X } from "lucide-react";
+import { ChevronRight, MapPin, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -221,24 +222,56 @@ function HomeTab({
   );
 }
 
-function ActivitiesTab() {
+function ActivitiesTab({
+  impactRecords,
+  members,
+}: {
+  impactRecords: ApiImpactRecord[];
+  members: ApiCircleChallengeMember[];
+}) {
+  if (impactRecords.length === 0) {
+    return (
+      <div className="px-10 py-7.5">
+        <p className="text-sm text-text-muted">No activities yet.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="px-10 py-7.5">
-      <p className="text-sm text-text-muted">No activities yet.</p>
+    <div className="px-6 py-7.5 flex flex-col gap-6">
+      {impactRecords.map((record) => (
+        <div key={record.impactRecordId} className="flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <p className="text-lg font-semibold text-[#1a1a1a]">
+              {record.impactSummary.contribution.displayName}
+            </p>
+            <p className="text-sm text-[#999]">
+              {new Date(record.modifiedAt).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
+          </div>
+          <div className="flex -space-x-2">
+            {members.slice(0, 2).map((m) => (
+              <div
+                key={m.userId}
+                className="size-8 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden shrink-0"
+              >
+                {m.avatarUrl && (
+                  <img src={m.avatarUrl} alt="" className="w-full h-full object-cover" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
 // ── Main Screen ────────────────────────────────────────────────────────────────
-
-type ChallengeStep = { stepNumber: number; stepType: string; stepId: string; title: string; description: string };
-
-const SI_UNIT_LABELS: Record<string, string> = {
-  MASS: "kg",
-  VOLUME: "L",
-  AREA: "m²",
-  COUNT: "items",
-};
 
 type Props = { challengeId: string };
 
@@ -247,17 +280,8 @@ export default function ChallengeScreen({ challengeId }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<"home" | "activities">("home");
   const [showEvidence, setShowEvidence] = useState(false);
-  const [evidenceStep, setEvidenceStep] = useState<ChallengeStep | null>(null);
-  const [evidenceForm, setEvidenceForm] = useState({
-    volunteerHours: "",
-    contributors: [] as string[],
-    siUnit: "MASS" as "MASS" | "VOLUME" | "AREA" | "COUNT",
-    measurementValue: "",
-    description: "",
-  });
   const joinChallenge = useJoinChallenge();
   const deleteChallenge = useDeleteChallenge();
-  const submitEvidence = useSubmitEvidence();
   const isAdmin = isWhitelisted(user?.email);
   const { data: users = [] } = useUsers();
   const { data: challenge, isLoading, error } = useChallenge(challengeId);
@@ -272,49 +296,8 @@ export default function ChallengeScreen({ challengeId }: Props) {
     (!!circle && canManageCircle(user?.email, user?.id, circle));
 
   const submittableSteps = (challenge?.challengeSteps ?? []).filter(
-    (s) => s.stepType !== "Registration" && s.stepType !== "Completion"
-  ) as ChallengeStep[];
-
-  const handleSubmitEvidence = () => {
-    if (!user || !evidenceStep || !challenge) return;
-    submitEvidence.mutate(
-      {
-        challengeCode: challenge.challengeCode,
-        challengeId: challenge.challengeId,
-        payload: {
-          stepId: evidenceStep.stepId,
-          stepNumber: evidenceStep.stepNumber,
-          challengeCode: challenge.challengeCode,
-          circleId: challenge.circleId,
-          thingId: challenge.challengeId,
-          thingUUID: challenge.impactRecords?.[0]?.thingUUID ?? "",
-          submittedBy: user.id,
-          approvalRequired: false,
-          volunteerHours: {
-            value: Number(evidenceForm.volunteerHours) || 0,
-            unitOfMeasure: "hours",
-            SiUnit: "TIME",
-          },
-          contributors: evidenceForm.contributors,
-          data: {
-            measurement: {
-              value: Number(evidenceForm.measurementValue) || 0,
-              unitofMeasure: SI_UNIT_LABELS[evidenceForm.siUnit] ?? evidenceForm.siUnit,
-              SiUnit: evidenceForm.siUnit,
-            },
-            description: evidenceForm.description,
-          },
-        },
-      },
-      {
-        onSuccess: () => {
-          setShowEvidence(false);
-          setEvidenceStep(null);
-          setEvidenceForm({ volunteerHours: "", contributors: [], siUnit: "MASS", measurementValue: "", description: "" });
-        },
-      }
-    );
-  };
+    (s) => s.stepId in STEP_FORM_CONFIGS
+  );
 
   if (isLoading) {
     return (
@@ -419,7 +402,10 @@ export default function ChallengeScreen({ challengeId }: Props) {
         {tab === "home" ? (
           <HomeTab challenge={challenge} challengeId={challengeId} circleName={circle?.name} />
         ) : (
-          <ActivitiesTab />
+          <ActivitiesTab
+            impactRecords={challenge.impactRecords ?? []}
+            members={challenge.members ?? []}
+          />
         )}
 
         {/* Danger zone */}
@@ -441,170 +427,43 @@ export default function ChallengeScreen({ challengeId }: Props) {
       </div>
     </div>
 
-    {/* Submit Evidence sheet */}
+    {/* Step picker sheet — routes to LogEvidenceWizard for the selected step */}
     {showEvidence && (
       <div
         className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40"
-        onClick={() => { setShowEvidence(false); setEvidenceStep(null); }}
+        onClick={() => setShowEvidence(false)}
       >
         <div
           className="bg-white rounded-t-[20px] max-h-[88dvh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Handle */}
           <div className="flex justify-center pt-3 pb-1 shrink-0">
             <div className="w-10 h-1 bg-[#d9d9d9] rounded-full" />
           </div>
-
-          {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-progress-track">
-            {evidenceStep ? (
-              <button
-                onClick={() => setEvidenceStep(null)}
-                className="flex items-center gap-1 text-sm text-text-muted"
-              >
-                <ChevronLeft size={16} /> Back
-              </button>
-            ) : (
-              <p className="text-lg font-bold text-text-primary">Submit Evidence</p>
-            )}
-            <button onClick={() => { setShowEvidence(false); setEvidenceStep(null); }}>
+            <p className="text-lg font-bold text-text-primary">Log Activity</p>
+            <button onClick={() => setShowEvidence(false)}>
               <X size={20} className="text-text-muted" />
             </button>
           </div>
-
-          {/* Content */}
           <div className="overflow-y-auto flex-1 px-6 py-5">
-            {!evidenceStep ? (
-              <div className="flex flex-col gap-3">
-                <p className="text-sm text-text-muted mb-1">Choose the step to submit evidence for:</p>
-                {submittableSteps.map((step) => (
-                  <button
-                    key={step.stepId}
-                    onClick={() => setEvidenceStep(step)}
-                    className="flex items-center justify-between p-4 border border-[rgba(26,26,24,0.14)] rounded-xl text-left"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-text-primary">Step {step.stepNumber}</p>
-                      <p className="text-sm text-text-muted mt-0.5">{step.title}</p>
-                    </div>
-                    <ChevronRight size={16} className="text-text-muted shrink-0" />
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-5 pb-4">
-                <div>
-                  <p className="text-lg font-bold text-text-primary">{evidenceStep.title}</p>
-                  <p className="text-sm text-text-muted mt-0.5">Step {evidenceStep.stepNumber}</p>
-                </div>
-
-                {/* Volunteer Hours */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">Volunteer Hours</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={evidenceForm.volunteerHours}
-                    onChange={(e) => setEvidenceForm((f) => ({ ...f, volunteerHours: e.target.value }))}
-                    placeholder="e.g. 3"
-                    className="h-11 border border-[rgba(26,26,24,0.28)] rounded-lg px-3 text-base outline-none"
-                  />
-                </div>
-
-                {/* Contributors */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">Contributors</label>
-                  <div className="flex flex-col gap-2 max-h-40 overflow-y-auto border border-[rgba(26,26,24,0.14)] rounded-lg p-3">
-                    {(challenge.members ?? []).map((m) => {
-                      const u = users.find((u) => u.id === m.userId);
-                      const name = u
-                        ? `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""}`.trim()
-                        : m.userId;
-                      const checked = evidenceForm.contributors.includes(m.userId);
-                      return (
-                        <label key={m.userId} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() =>
-                              setEvidenceForm((f) => ({
-                                ...f,
-                                contributors: checked
-                                  ? f.contributors.filter((id) => id !== m.userId)
-                                  : [...f.contributors, m.userId],
-                              }))
-                            }
-                            className="size-4"
-                          />
-                          <span className="text-sm text-text-primary">{name}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Measurement Type */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">Measurement Type</label>
-                  <select
-                    value={evidenceForm.siUnit}
-                    onChange={(e) =>
-                      setEvidenceForm((f) => ({ ...f, siUnit: e.target.value as typeof f.siUnit }))
-                    }
-                    className="h-11 border border-[rgba(26,26,24,0.28)] rounded-lg px-3 text-base outline-none bg-white"
-                  >
-                    <option value="MASS">Mass (kg)</option>
-                    <option value="VOLUME">Volume (L)</option>
-                    <option value="AREA">Area (m²)</option>
-                    <option value="COUNT">Count (items)</option>
-                  </select>
-                </div>
-
-                {/* Measurement Value */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">
-                    Amount ({SI_UNIT_LABELS[evidenceForm.siUnit]})
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={evidenceForm.measurementValue}
-                    onChange={(e) => setEvidenceForm((f) => ({ ...f, measurementValue: e.target.value }))}
-                    placeholder="0"
-                    className="h-11 border border-[rgba(26,26,24,0.28)] rounded-lg px-3 text-base outline-none"
-                  />
-                </div>
-
-                {/* Description */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">Description</label>
-                  <textarea
-                    value={evidenceForm.description}
-                    onChange={(e) => setEvidenceForm((f) => ({ ...f, description: e.target.value }))}
-                    placeholder="Describe the activity…"
-                    rows={3}
-                    className="border border-[rgba(26,26,24,0.28)] rounded-lg px-3 py-2.5 text-base outline-none resize-none"
-                  />
-                </div>
-
-                <button
-                  disabled={submitEvidence.isPending}
-                  onClick={handleSubmitEvidence}
-                  className="w-full h-12 bg-[#1a1a1a] text-white rounded-full text-base font-semibold disabled:opacity-50 mt-1"
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-text-muted mb-1">Choose the step to log activity for:</p>
+              {submittableSteps.map((step) => (
+                <Link
+                  key={step.stepId}
+                  href={`/challenges/${challengeId}/steps/${step.stepId}/log`}
+                  onClick={() => setShowEvidence(false)}
+                  className="flex items-center justify-between p-4 border border-[rgba(26,26,24,0.14)] rounded-xl"
                 >
-                  {submitEvidence.isPending ? "Submitting…" : "Submit Evidence"}
-                </button>
-
-                {submitEvidence.isError && (
-                  <p className="text-sm text-red-500 text-center">
-                    {submitEvidence.error instanceof Error
-                      ? submitEvidence.error.message
-                      : "Submission failed. Please try again."}
-                  </p>
-                )}
-              </div>
-            )}
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary">Step {step.stepNumber}</p>
+                    <p className="text-sm text-text-muted mt-0.5">{step.title}</p>
+                  </div>
+                  <ChevronRight size={16} className="text-text-muted shrink-0" />
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>

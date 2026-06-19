@@ -3,35 +3,21 @@
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import { useChallenge, useSubmitEvidence } from "@/lib/hooks/challenges";
+import { useChallenge } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle, isWhitelisted } from "@/lib/permissions";
 import type { ApiCircle } from "@/lib/types/circles";
+import { STEP_FORM_CONFIGS } from "../stepFormConfig";
 import { useQuery } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
-
-const SI_UNIT_LABELS: Record<string, string> = {
-  MASS: "kg",
-  VOLUME: "L",
-  AREA: "m²",
-  COUNT: "items",
-};
 
 type Props = { challengeId: string; stepId: string };
 
 export default function StepScreen({ challengeId, stepId }: Props) {
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
-  const [showEvidence, setShowEvidence] = useState(false);
-  const [evidenceForm, setEvidenceForm] = useState({
-    volunteerHours: "",
-    contributors: [] as string[],
-    siUnit: "MASS" as "MASS" | "VOLUME" | "AREA" | "COUNT",
-    measurementValue: "",
-    description: "",
-  });
 
   const { data: challenge, isLoading } = useChallenge(challengeId);
   const { data: users = [] } = useUsers();
@@ -40,18 +26,13 @@ export default function StepScreen({ challengeId, stepId }: Props) {
     queryFn: () => api.get<ApiCircle>(`/circles/${challenge!.circleId}`),
     enabled: !!challenge?.circleId,
   });
-  const submitEvidence = useSubmitEvidence();
-
   const step = challenge?.challengeSteps?.find((s) => s.stepId === stepId);
 
   const canSubmit =
     isWhitelisted(user?.email) ||
     (!!circle && canManageCircle(user?.email, user?.id, circle));
 
-  const isActionable =
-    !!step &&
-    step.stepType !== "Registration" &&
-    step.stepType !== "Completion";
+  const isActionable = !!step && step.stepId in STEP_FORM_CONFIGS;
 
   const progress =
     challenge && challenge.steps > 0
@@ -71,53 +52,6 @@ export default function StepScreen({ challengeId, stepId }: Props) {
         .filter(Boolean)
         .join(" ")
     : (f?.name ?? "Facilitator");
-
-  const handleSubmitEvidence = () => {
-    if (!user || !step || !challenge) return;
-    submitEvidence.mutate(
-      {
-        challengeCode: challenge.challengeCode,
-        challengeId: challenge.challengeId,
-        payload: {
-          stepId: step.stepId,
-          stepNumber: step.stepNumber,
-          challengeCode: challenge.challengeCode,
-          circleId: challenge.circleId,
-          thingId: challenge.challengeId,
-          thingUUID: challenge.impactRecords?.[0]?.thingUUID ?? "",
-          submittedBy: user.id,
-          approvalRequired: false,
-          volunteerHours: {
-            value: Number(evidenceForm.volunteerHours) || 0,
-            unitOfMeasure: "hours",
-            SiUnit: "TIME",
-          },
-          contributors: evidenceForm.contributors,
-          data: {
-            measurement: {
-              value: Number(evidenceForm.measurementValue) || 0,
-              unitofMeasure:
-                SI_UNIT_LABELS[evidenceForm.siUnit] ?? evidenceForm.siUnit,
-              SiUnit: evidenceForm.siUnit,
-            },
-            description: evidenceForm.description,
-          },
-        },
-      },
-      {
-        onSuccess: () => {
-          setShowEvidence(false);
-          setEvidenceForm({
-            volunteerHours: "",
-            contributors: [],
-            siUnit: "MASS",
-            measurementValue: "",
-            description: "",
-          });
-        },
-      },
-    );
-  };
 
   if (isLoading) {
     return (
@@ -173,18 +107,18 @@ export default function StepScreen({ challengeId, stepId }: Props) {
 
             {canSubmit && isActionable && (
               <div className="flex flex-col gap-2.5">
-                <button
-                  onClick={() => setShowEvidence(true)}
-                  className="w-full h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full"
+                <Link
+                  href={`/challenges/${challengeId}/steps/${stepId}/log`}
+                  className="w-full h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full flex items-center justify-center"
                 >
                   Upload Evidence
-                </button>
-                <button
-                  onClick={() => setShowEvidence(true)}
-                  className="w-full h-12 border border-[#1a1a1a] text-[#1a1a1a] text-base font-semibold rounded-full"
+                </Link>
+                <Link
+                  href={`/challenges/${challengeId}/steps/${stepId}/log`}
+                  className="w-full h-12 border border-[#1a1a1a] text-[#1a1a1a] text-base font-semibold rounded-full flex items-center justify-center"
                 >
                   Mark Complete
-                </button>
+                </Link>
               </div>
             )}
           </div>
@@ -284,177 +218,6 @@ export default function StepScreen({ challengeId, stepId }: Props) {
         </div>
       </div>
 
-      {/* Evidence sheet */}
-      {showEvidence && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40"
-          onClick={() => setShowEvidence(false)}
-        >
-          <div
-            className="bg-white rounded-t-[20px] max-h-[88dvh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-10 h-1 bg-[#d9d9d9] rounded-full" />
-            </div>
-            <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-progress-track">
-              <p className="text-lg font-bold text-text-primary">
-                Submit Evidence
-              </p>
-              <button onClick={() => setShowEvidence(false)}>
-                <X size={20} className="text-text-muted" />
-              </button>
-            </div>
-            <div className="overflow-y-auto flex-1 px-6 py-5">
-              <div className="flex flex-col gap-5 pb-4">
-                <div>
-                  <p className="text-lg font-bold text-text-primary">
-                    {step.title}
-                  </p>
-                  <p className="text-sm text-text-muted mt-0.5">
-                    Step {step.stepNumber}
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">
-                    Volunteer Hours
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={evidenceForm.volunteerHours}
-                    onChange={(e) =>
-                      setEvidenceForm((f) => ({
-                        ...f,
-                        volunteerHours: e.target.value,
-                      }))
-                    }
-                    placeholder="e.g. 3"
-                    className="h-11 border border-[rgba(26,26,24,0.28)] rounded-lg px-3 text-base outline-none"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">
-                    Contributors
-                  </label>
-                  <div className="flex flex-col gap-2 max-h-40 overflow-y-auto border border-[rgba(26,26,24,0.14)] rounded-lg p-3">
-                    {(challenge.members ?? []).map((m) => {
-                      const u = users.find((u) => u.id === m.userId);
-                      const name = u
-                        ? `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""}`.trim()
-                        : m.userId;
-                      const checked = evidenceForm.contributors.includes(
-                        m.userId,
-                      );
-                      return (
-                        <label
-                          key={m.userId}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() =>
-                              setEvidenceForm((f) => ({
-                                ...f,
-                                contributors: checked
-                                  ? f.contributors.filter(
-                                      (id) => id !== m.userId,
-                                    )
-                                  : [...f.contributors, m.userId],
-                              }))
-                            }
-                            className="size-4"
-                          />
-                          <span className="text-sm text-text-primary">
-                            {name}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">
-                    Measurement Type
-                  </label>
-                  <select
-                    value={evidenceForm.siUnit}
-                    onChange={(e) =>
-                      setEvidenceForm((f) => ({
-                        ...f,
-                        siUnit: e.target.value as typeof f.siUnit,
-                      }))
-                    }
-                    className="h-11 border border-[rgba(26,26,24,0.28)] rounded-lg px-3 text-base outline-none bg-white"
-                  >
-                    <option value="MASS">Mass (kg)</option>
-                    <option value="VOLUME">Volume (L)</option>
-                    <option value="AREA">Area (m²)</option>
-                    <option value="COUNT">Count (items)</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">
-                    Amount ({SI_UNIT_LABELS[evidenceForm.siUnit]})
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={evidenceForm.measurementValue}
-                    onChange={(e) =>
-                      setEvidenceForm((f) => ({
-                        ...f,
-                        measurementValue: e.target.value,
-                      }))
-                    }
-                    placeholder="0"
-                    className="h-11 border border-[rgba(26,26,24,0.28)] rounded-lg px-3 text-base outline-none"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">
-                    Description
-                  </label>
-                  <textarea
-                    value={evidenceForm.description}
-                    onChange={(e) =>
-                      setEvidenceForm((f) => ({
-                        ...f,
-                        description: e.target.value,
-                      }))
-                    }
-                    placeholder="Describe the activity…"
-                    rows={3}
-                    className="border border-[rgba(26,26,24,0.28)] rounded-lg px-3 py-2.5 text-base outline-none resize-none"
-                  />
-                </div>
-
-                <button
-                  disabled={submitEvidence.isPending}
-                  onClick={handleSubmitEvidence}
-                  className="w-full h-12 bg-[#1a1a1a] text-white rounded-full text-base font-semibold disabled:opacity-50 mt-1"
-                >
-                  {submitEvidence.isPending ? "Submitting…" : "Submit Evidence"}
-                </button>
-
-                {submitEvidence.isError && (
-                  <p className="text-sm text-red-500 text-center">
-                    {submitEvidence.error instanceof Error
-                      ? submitEvidence.error.message
-                      : "Submission failed. Please try again."}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
