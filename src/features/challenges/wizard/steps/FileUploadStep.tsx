@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { ChevronRight, FileText, Plus, Search, X } from "lucide-react";
-import { SaveButton } from "../shared";
+import { useRef, useState } from "react";
+import { ChevronRight, Plus, Search, X } from "lucide-react";
+import { FileThumb, SaveButton } from "../shared";
 import type { ApiCircleChallengeMember } from "@/lib/types/circles";
 import type { LogFormData } from "../types";
 
@@ -19,25 +19,6 @@ type Props = {
   users: UserLike[];
 };
 
-function FileThumb({ file }: { file: File }) {
-  const [src, setSrc] = useState("");
-
-  useEffect(() => {
-    if (!file.type.startsWith("image/")) return;
-    const url = URL.createObjectURL(file);
-    setSrc(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
-
-  if (file.type.startsWith("image/")) {
-    return src ? <img src={src} alt="" className="w-full h-full object-cover" /> : null;
-  }
-  if (file.type.includes("pdf")) {
-    return <FileText size={20} className="text-red-500" />;
-  }
-  return <FileText size={20} className="text-[#8f8f8c]" />;
-}
-
 export default function FileUploadStep({ form, update, onNext, nextLabel, members, users }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
@@ -48,7 +29,7 @@ export default function FileUploadStep({ form, update, onNext, nextLabel, member
     const name = u
       ? `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""}`.trim() || m.userId
       : m.userId;
-    return { id: m.userId, name, avatarUrl: u?.user_metadata.avatarUrl ?? "", email: u?.email ?? "" };
+    return { id: m.userId, name, avatarUrl: m.avatarUrl || u?.user_metadata.avatarUrl || "", email: u?.email ?? "" };
   });
 
   const filtered = people.filter((p) => {
@@ -116,7 +97,6 @@ export default function FileUploadStep({ form, update, onNext, nextLabel, member
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-base font-semibold text-text-primary truncate">{file.name}</p>
-              <p className="text-sm text-[#8f8f8c]">Done by individual</p>
             </div>
             <button
               onClick={() => removeFile(i)}

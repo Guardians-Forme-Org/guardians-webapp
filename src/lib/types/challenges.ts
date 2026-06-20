@@ -67,4 +67,5 @@ export type ApiChallenge = {
   circleId: string;
   status: string;
   createdAt: string;
+  joinLink?: string;
 };

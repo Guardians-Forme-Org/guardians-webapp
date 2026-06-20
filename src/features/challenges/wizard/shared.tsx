@@ -1,10 +1,11 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
   X,
   Camera,
   AlertTriangle,
   ExternalLink,
+  FileText,
   Plus,
   Minus,
   CheckCircle,
@@ -352,4 +353,25 @@ export function ReadOnlyField({
       )}
     </div>
   );
+}
+
+// ── File thumbnail ─────────────────────────────────────────────────────────────
+
+export function FileThumb({ file }: { file: File }) {
+  const [src, setSrc] = useState("");
+
+  useEffect(() => {
+    if (!file.type.startsWith("image/")) return;
+    const url = URL.createObjectURL(file);
+    setSrc(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  if (file.type.startsWith("image/")) {
+    return src ? <img src={src} alt="" className="w-full h-full object-cover" /> : null;
+  }
+  if (file.type.includes("pdf")) {
+    return <FileText size={20} className="text-red-500" />;
+  }
+  return <FileText size={20} className="text-[#8f8f8c]" />;
 }

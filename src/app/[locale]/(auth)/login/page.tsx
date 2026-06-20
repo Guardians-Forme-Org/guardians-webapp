@@ -30,7 +30,13 @@ export default function LoginPage() {
     setValidationError(null);
     login(
       { emailOrMobile: credential.trim(), password },
-      { onSuccess: () => router.push("/home") },
+      {
+        onSuccess: () => {
+          const returnTo = sessionStorage.getItem("guardians_return_to");
+          sessionStorage.removeItem("guardians_return_to");
+          router.push(returnTo ?? "/home");
+        },
+      },
     );
   };
 
@@ -137,7 +143,7 @@ export default function LoginPage() {
         </button>
 
         {/* Toggle mode */}
-        <div className="flex justify-center mb-4">
+        {/* <div className="flex justify-center mb-4">
           <button
             onClick={() => {
               setMode(mode === "mobile" ? "email" : "mobile");
@@ -148,7 +154,7 @@ export default function LoginPage() {
           >
             {mode === "mobile" ? t("switchToEmail") : t("switchToMobile")}
           </button>
-        </div>
+        </div> */}
 
         {/* Sign Up link */}
         <div className="flex justify-center gap-2 mb-6">

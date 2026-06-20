@@ -27,12 +27,13 @@ export default function AppLayoutClient({
   const router = useRouter();
   const wizard = isWizardPath(pathname);
 
-  // Auth gate — redirect to login if no valid token
+  // Auth gate — save intended path then redirect to login
   useEffect(() => {
     if (!getToken()) {
+      sessionStorage.setItem("guardians_return_to", pathname);
       router.replace("/login");
     }
-  }, [router]);
+  }, [router, pathname]);
 
   // While auth check runs, render nothing to avoid flash
   if (typeof window !== "undefined" && !getToken()) return null;

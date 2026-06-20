@@ -4,12 +4,13 @@ import LocationPicker, {
   type LocationResult,
 } from "@/components/ui/LocationPicker";
 import SearchBar from "@/components/ui/SearchBar";
+import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateChallenge, useTemplates } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import type { AuthUser } from "@/lib/types/auth";
-import type { ApiTemplate } from "@/lib/types/challenges";
+import type { ApiChallenge, ApiTemplate } from "@/lib/types/challenges";
 import {
   ChevronLeft,
   ChevronRight,
@@ -957,48 +958,6 @@ function Step6({
 
 // ── Step 7 — Done ─────────────────────────────────────────────────────────────
 
-function Step7({ onDone }: { onDone: () => void }) {
-  return (
-    <div className="relative flex flex-col items-center justify-center min-h-dvh bg-white overflow-hidden">
-      <img
-        src="/images/success-logo.png"
-        alt=""
-        aria-hidden
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full pointer-events-none"
-      />
-
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center px-10">
-        <img
-          src="/images/Guardians Logo-logo.png"
-          alt="Guardians"
-          className="w-12 h-12 object-contain mb-6"
-        />
-        <h1 className="text-[32px] font-bold text-gotf-green mb-8">
-          Challenge created
-        </h1>
-
-        {/* <button className="flex items-center gap-5 w-full max-w-[322px] h-[60px] bg-white border border-border rounded-full px-10 mb-8">
-          <Download size={20} className="text-text-primary shrink-0" />
-          <span className="text-base font-medium text-text-primary">
-            Challenge Details PDF
-          </span>
-        </button> */}
-      </div>
-
-      {/* Done button */}
-      <div className="absolute bottom-10 left-0 right-0 px-5">
-        <button
-          onClick={onDone}
-          className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
-        >
-          Done
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ── Wizard shell ───────────────────────────────────────────────────────────────
 
 const NEXT_LABELS: Record<number, string> = {
@@ -1020,6 +979,7 @@ export default function CreateChallengeWizard({
   const [form, setForm] = useState<FormData>({ ...initialForm, circleId });
   const [location, setLocation] = useState<LocationResult | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [createdChallenge, setCreatedChallenge] = useState<ApiChallenge | null>(null);
   const { data: templates = [], isLoading: templatesLoading } = useTemplates();
   const { data: users = [], isLoading: usersLoading } = useUsers();
   const createChallenge = useCreateChallenge();
@@ -1066,11 +1026,23 @@ export default function CreateChallengeWizard({
         },
         bannerFile: bannerFile ?? undefined,
       },
-      { onSuccess: next },
+      { onSuccess: (data) => { setCreatedChallenge(data); next(); } },
     );
   };
 
-  if (step === 7) return <Step7 onDone={close} />;
+  if (step === 7) {
+    const inviteLink = createdChallenge
+      ? `${window.location.origin}/challenges/${createdChallenge.challengeId}`
+      : undefined;
+    return (
+      <WizardSuccessScreen
+        title="Challenge created"
+        subtitle="Copy and share this link to invite people to join this challenge"
+        inviteLink={inviteLink}
+        onDone={close}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-full bg-white">

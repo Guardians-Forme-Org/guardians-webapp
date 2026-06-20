@@ -16,7 +16,7 @@ import MetricsStep from "../wizard/steps/MetricsStep";
 import FileUploadStep from "../wizard/steps/FileUploadStep";
 import MarkCompleteStep from "../wizard/steps/MarkCompleteStep";
 import ReviewStep from "../wizard/steps/ReviewStep";
-import SuccessScreen from "../wizard/SuccessScreen";
+import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 
 const STORAGE_KEY = (stepId: string) => `log-evidence-draft-${stepId}`;
 
@@ -118,8 +118,10 @@ export default function LogEvidenceWizard({ challengeId, stepId }: Props) {
 
   if (submitted) {
     return (
-      <SuccessScreen
-        joinLink={challenge?.joinLink ?? ""}
+      <WizardSuccessScreen
+        title="Activity Uploaded"
+        subtitle="Copy and share this link to invite people to join this challenge"
+        inviteLink={`${window.location.origin}/challenges/${challengeId}`}
         onDone={() => router.push(`/challenges/${challengeId}`)}
       />
     );

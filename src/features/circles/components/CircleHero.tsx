@@ -1,7 +1,8 @@
 "use client";
 
-import { ChevronLeft, Share2 } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import ShareButton from "@/components/ui/ShareButton";
 
 type Props = {
   bannerUrl?: string;
@@ -32,12 +33,7 @@ export default function CircleHero({ bannerUrl, heightClass = "h-65" }: Props) {
         <ChevronLeft size={20} className="text-text-primary" />
       </button>
 
-      <button
-        className="absolute right-7.5 top-7.5 size-10 rounded-full bg-white border border-border flex items-center justify-center z-20"
-        aria-label="Share"
-      >
-        <Share2 size={16} className="text-text-primary" />
-      </button>
+      <ShareButton className="absolute right-7.5 top-7.5 size-10 rounded-full bg-white border border-border flex items-center justify-center z-20" />
     </div>
   );
 }

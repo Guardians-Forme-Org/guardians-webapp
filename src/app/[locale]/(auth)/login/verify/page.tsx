@@ -40,7 +40,11 @@ export default function LoginVerifyPage() {
       {/* Confirm */}
       <div className="pb-10">
         <button
-          onClick={() => router.push("/home")}
+          onClick={() => {
+            const returnTo = sessionStorage.getItem("guardians_return_to");
+            sessionStorage.removeItem("guardians_return_to");
+            router.push(returnTo ?? "/home");
+          }}
           className="w-full h-14 bg-black text-white rounded-full text-base font-medium"
         >
           Confirm

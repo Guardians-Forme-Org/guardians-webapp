@@ -8,6 +8,7 @@ import { useUsers } from "@/lib/hooks/users";
 import type { ApiCircle, ApiCircleChallenge, ApiImpactRecord, ApiCircleChallengeMember } from "@/lib/types/circles";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, MapPin } from "lucide-react";
+import JoinConversationButton from "@/components/ui/JoinConversationButton";
 import Link from "next/link";
 import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
@@ -156,9 +157,7 @@ function HomeTab({
             </div>
 
             <div className="flex justify-center">
-              <button className="px-5 h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)]">
-                Join Conversation
-              </button>
+              <JoinConversationButton channels={challenge.communicationChannels} />
             </div>
           </div>
           <div className="border-t border-progress-track" />

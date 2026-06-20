@@ -1,5 +1,4 @@
-import { FileText, Image as ImageIcon } from "lucide-react";
-import { ReadOnlyField } from "../shared";
+import { FileThumb, ReadOnlyField } from "../shared";
 import type { WizardStepType } from "../../stepFormConfig";
 import type { LogFormData } from "../types";
 
@@ -41,15 +40,11 @@ export default function ReviewStep({ form, stepTypes, onDelete, onUpload, isPend
                     className="flex items-center gap-3 border border-[rgba(26,26,24,0.14)] rounded-[12px] p-4"
                   >
                     <div
-                      className={`size-10 rounded-[8px] flex items-center justify-center shrink-0 ${
-                        file.type.includes("pdf") ? "bg-red-50" : "bg-blue-50"
+                      className={`size-10 rounded-[8px] overflow-hidden flex items-center justify-center shrink-0 ${
+                        file.type.startsWith("image/") ? "bg-[#f0f0ee]" : file.type.includes("pdf") ? "bg-red-50" : "bg-[#f5f5f5]"
                       }`}
                     >
-                      {file.type.includes("pdf") ? (
-                        <FileText size={20} className="text-red-500" />
-                      ) : (
-                        <ImageIcon size={20} className="text-blue-500" />
-                      )}
+                      <FileThumb file={file} />
                     </div>
                     <p className="flex-1 text-base font-semibold text-text-primary truncate">{file.name}</p>
                   </div>

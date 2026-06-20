@@ -4,6 +4,7 @@ import LocationPicker, {
   type LocationResult,
 } from "@/components/ui/LocationPicker";
 import Text from "@/components/ui/Text";
+import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
@@ -545,99 +546,6 @@ function Step3({
 
 // ── Step 4 — Done ─────────────────────────────────────────────────────────────
 
-function Step4({
-  circleName,
-  joinLink,
-  onDone,
-}: {
-  circleName: string;
-  joinLink: string;
-  onDone: () => void;
-}) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(joinLink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // fallback: silent fail
-    }
-  };
-
-  const handleShare = async () => {
-    try {
-      await navigator.share({
-        url: joinLink,
-        title: `Join ${circleName} on Guardians`,
-      });
-    } catch {
-      // not supported or dismissed
-    }
-  };
-
-  return (
-    <div className="relative flex flex-col items-center justify-center min-h-dvh bg-white overflow-hidden">
-      <img
-        src="/images/success-logo.png"
-        alt=""
-        aria-hidden
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full pointer-events-none"
-      />
-
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center px-10">
-        <img
-          src="/images/Guardians Logo-logo.png"
-          alt="Guardians"
-          className="w-12 h-12 object-contain mb-4"
-        />
-        <h1 className="text-[32px] font-bold text-gotf-green mb-3">
-          {circleName}
-        </h1>
-        <p className="text-[18px] text-[#333] mb-8 max-w-[288px] leading-snug">
-          Copy and share this link to invite people to join this circle
-        </p>
-
-        {/* Copy invitation link */}
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-5 w-full max-w-[322px] border border-[#ccc] rounded-[10px] px-10 py-5 mb-3 text-left"
-        >
-          <Link2 size={20} className="text-text-primary shrink-0" />
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-base font-bold text-black">
-              {copied ? "Copied!" : "Copy invitation link"}
-            </span>
-            <span className="text-base text-[#bfbfbf] truncate">
-              {joinLink}
-            </span>
-          </div>
-        </button>
-
-        {/* Circle Details PDF */}
-        {/* <button
-          className="flex items-center gap-5 w-full max-w-[322px] h-[60px] border border-[#ccc] rounded-full px-10"
-        >
-          <Download size={20} className="text-text-primary shrink-0" />
-          <span className="text-base font-medium text-black">Circle Details PDF</span>
-        </button> */}
-      </div>
-
-      {/* Done */}
-      <div className="left-0 right-0 w-full px-5 z-10 mt-5">
-        <button
-          onClick={onDone}
-          className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
-        >
-          Done
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ── Wizard shell ───────────────────────────────────────────────────────────────
 
 export default function CreateCircleWizard() {
@@ -715,31 +623,12 @@ export default function CreateCircleWizard() {
 
   if (step === 4 && createdCircle) {
     return (
-      <div className="relative min-h-dvh">
-        <div className="absolute top-8 left-10 z-20">
-          <button
-            onClick={back}
-            className="size-10 flex items-center"
-            aria-label="Back"
-          >
-            <ChevronLeft size={20} className="text-text-muted" />
-          </button>
-        </div>
-        <div className="absolute top-8 right-10 z-20">
-          <button
-            onClick={close}
-            className="size-10 flex items-center justify-end"
-            aria-label="Close"
-          >
-            <X size={20} className="text-text-muted" />
-          </button>
-        </div>
-        <Step4
-          circleName={createdCircle.name}
-          joinLink={createdCircle.joinLink}
-          onDone={close}
-        />
-      </div>
+      <WizardSuccessScreen
+        title={createdCircle.name}
+        subtitle="Copy and share this link to invite people to join this circle"
+        inviteLink={`${window.location.origin}/circles/${createdCircle.circleId}`}
+        onDone={close}
+      />
     );
   }
 

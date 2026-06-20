@@ -16,6 +16,7 @@ import { ChevronRight, MapPin, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import CircleHero from "../components/CircleHero";
+import JoinConversationButton from "@/components/ui/JoinConversationButton";
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -214,6 +215,11 @@ export default function CircleScreen({ circleId }: Props) {
 
         {/* Guardians */}
         <GuardianRow members={circle.members} />
+        {circle.communicationChannels?.length ? (
+          <div className="flex justify-center py-5">
+            <JoinConversationButton channels={circle.communicationChannels} />
+          </div>
+        ) : null}
 
         {/* Stats */}
         <div className="flex border-b border-progress-track">
