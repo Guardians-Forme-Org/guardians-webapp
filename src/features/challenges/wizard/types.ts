@@ -18,6 +18,9 @@ export type LogFormData = {
   evidenceFiles: File[];
   impactDescription: string;
   contributors: string[];
+  volunteerHours: string;
+  measurementValue: string;
+  measurementType: "VOLUME" | "MASS";
 };
 
 export const initForm = (): LogFormData => ({
@@ -37,4 +40,7 @@ export const initForm = (): LogFormData => ({
   evidenceFiles: [],
   impactDescription: "",
   contributors: [],
+  volunteerHours: "",
+  measurementValue: "",
+  measurementType: "VOLUME",
 });

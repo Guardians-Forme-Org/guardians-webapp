@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import BottomNavBar from "@/components/nav/BottomNavBar";
-import { getToken } from "@/lib/auth";
+import { getToken, getStoredSession } from "@/lib/auth";
 
 // Wizard flows — no bottom nav, no pb-safe-nav padding
 const WIZARD_PATHS = [
@@ -26,6 +26,16 @@ export default function AppLayoutClient({
   const pathname = usePathname();
   const router = useRouter();
   const wizard = isWizardPath(pathname);
+  const { user, loginData } = getStoredSession();
+  const avatarUrl =
+    user?.user_metadata?.avatarUrl ||
+    loginData?.circles
+      ?.flatMap((c) => c.members)
+      .find((m) => m.userId === user?.id)?.avatarUrl ||
+    loginData?.challenges
+      ?.flatMap((c) => c.members ?? [])
+      .find((m) => m.userId === user?.id)?.avatarUrl ||
+    undefined;
 
   // Auth gate — save intended path then redirect to login
   useEffect(() => {
@@ -47,7 +57,7 @@ export default function AppLayoutClient({
       <main className={`flex-1 overflow-y-auto ${wizard ? "" : "pb-safe-nav"}`}>
         {children}
       </main>
-      {!wizard && <BottomNavBar />}
+      {!wizard && <BottomNavBar avatarUrl={avatarUrl} />}
     </div>
   );
 }

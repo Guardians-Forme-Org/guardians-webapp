@@ -1,5 +1,6 @@
-import { FileThumb, ReadOnlyField } from "../shared";
+import { Pencil } from "lucide-react";
 import type { WizardStepType } from "../../stepFormConfig";
+import { FileThumb, ReadOnlyField } from "../shared";
 import type { LogFormData } from "../types";
 
 type UserLike = {
@@ -12,75 +13,207 @@ type Props = {
   stepTypes: WizardStepType[];
   onDelete: () => void;
   onUpload: () => void;
+  onGoToStep: (step: number) => void;
   isPending?: boolean;
   error?: string | null;
   users?: UserLike[];
 };
 
-export default function ReviewStep({ form, stepTypes, onDelete, onUpload, isPending, error, users }: Props) {
+function ReviewSection({
+  label,
+  stepIndex,
+  onEdit,
+  children,
+}: {
+  label: string;
+  stepIndex: number;
+  onEdit: (step: number) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+          {label}
+        </p>
+        <button
+          onClick={() => onEdit(stepIndex)}
+          className="flex items-center gap-1 text-xs font-medium text-text-muted active:opacity-60"
+          aria-label={`Edit ${label}`}
+        >
+          <Pencil size={13} />
+          Edit
+        </button>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+export default function ReviewStep({
+  form,
+  stepTypes,
+  onDelete,
+  onUpload,
+  onGoToStep,
+  isPending,
+  error,
+  users,
+}: Props) {
+  const idx = (type: WizardStepType) => stepTypes.indexOf(type) + 1;
+
   const hasFileUpload = stepTypes.includes("file-upload");
+  const hasVolunteerHours = stepTypes.includes("volunteer-hours");
+  const hasImpact = stepTypes.includes("impact");
+  const hasMeasurement = stepTypes.includes("measurement");
+  const hasRegion = stepTypes.includes("region");
+  const hasContributors = stepTypes.includes("contributors");
   const hasSiteDetails = stepTypes.includes("site-details");
 
   return (
     <>
       <div className="px-5 mt-7 mb-6">
         <h1 className="text-[32px] font-bold text-black">Review</h1>
-        <p className="text-[18px] text-black mt-1">Read Only</p>
+        <p className="text-base text-text-muted mt-1">
+          Check your details before uploading.
+        </p>
       </div>
 
-      <div className="flex flex-col gap-5 px-5">
-        {hasFileUpload && (
-          <>
-            {form.evidenceFiles.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <label className="text-base font-medium text-text-primary">Files</label>
-                {form.evidenceFiles.map((file, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 border border-[rgba(26,26,24,0.14)] rounded-[12px] p-4"
-                  >
-                    <div
-                      className={`size-10 rounded-[8px] overflow-hidden flex items-center justify-center shrink-0 ${
-                        file.type.startsWith("image/") ? "bg-[#f0f0ee]" : file.type.includes("pdf") ? "bg-red-50" : "bg-[#f5f5f5]"
-                      }`}
-                    >
-                      <FileThumb file={file} />
-                    </div>
-                    <p className="flex-1 text-base font-semibold text-text-primary truncate">{file.name}</p>
-                  </div>
-                ))}
+      <div className="flex flex-col gap-6 px-5">
+        {hasFileUpload && form.evidenceFiles.length > 0 && (
+          <ReviewSection
+            label="Evidence files"
+            stepIndex={idx("file-upload")}
+            onEdit={onGoToStep}
+          >
+            {form.evidenceFiles.map((file, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 border border-[rgba(26,26,24,0.14)] rounded-[12px] p-4"
+              >
+                <div
+                  className={`size-10 rounded-[8px] overflow-hidden flex items-center justify-center shrink-0 ${
+                    file.type.startsWith("image/")
+                      ? "bg-[#f0f0ee]"
+                      : file.type.includes("pdf")
+                        ? "bg-red-50"
+                        : "bg-[#f5f5f5]"
+                  }`}
+                >
+                  <FileThumb file={file} />
+                </div>
+                <p className="flex-1 text-base font-semibold text-text-primary truncate">
+                  {file.name}
+                </p>
               </div>
-            )}
-            {form.impactDescription && (
-              <ReadOnlyField label="Impact" value={form.impactDescription} multiline />
-            )}
-            {form.contributors.length > 0 && (
+            ))}
+          </ReviewSection>
+        )}
+
+        {hasVolunteerHours && form.volunteerHours && (
+          <ReviewSection
+            label="Volunteer hours"
+            stepIndex={idx("volunteer-hours")}
+            onEdit={onGoToStep}
+          >
+            <ReadOnlyField label="Hours" value={`${form.volunteerHours} hrs`} />
+          </ReviewSection>
+        )}
+
+        {hasMeasurement && (
+          <ReviewSection
+            label="Measurement"
+            stepIndex={idx("measurement")}
+            onEdit={onGoToStep}
+          >
+            {form.measurementValue && (
               <ReadOnlyField
-                label="Contributors"
-                value={form.contributors
-                  .map((id) => {
-                    const u = users?.find((u) => u.id === id);
-                    return u
-                      ? `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""}`.trim() || id
-                      : id;
-                  })
-                  .join(", ")}
+                label="Amount"
+                value={`${form.measurementValue} ${form.measurementType === "VOLUME" ? "L" : "kg"}`}
               />
             )}
-          </>
+            {form.impactDescription && (
+              <ReadOnlyField
+                label="Description"
+                value={form.impactDescription}
+                multiline
+              />
+            )}
+          </ReviewSection>
+        )}
+
+        {hasImpact && form.impactDescription && (
+          <ReviewSection
+            label="Impact"
+            stepIndex={idx("impact")}
+            onEdit={onGoToStep}
+          >
+            <ReadOnlyField
+              label="Description"
+              value={form.impactDescription}
+              multiline
+            />
+          </ReviewSection>
+        )}
+
+        {hasRegion && form.locationResult && (
+          <ReviewSection
+            label="Region"
+            stepIndex={idx("region")}
+            onEdit={onGoToStep}
+          >
+            <ReadOnlyField
+              label="Location"
+              value={form.locationResult.formattedAddress}
+            />
+          </ReviewSection>
+        )}
+
+        {hasContributors && form.contributors.length > 0 && (
+          <ReviewSection
+            label="Contributors"
+            stepIndex={idx("contributors")}
+            onEdit={onGoToStep}
+          >
+            <ReadOnlyField
+              label="Members"
+              value={form.contributors
+                .map((id) => {
+                  const u = users?.find((u) => u.id === id);
+                  return u
+                    ? `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""}`.trim() ||
+                        id
+                    : id;
+                })
+                .join(", ")}
+            />
+          </ReviewSection>
         )}
 
         {hasSiteDetails && (
-          <>
-            {form.siteName && <ReadOnlyField label="Site Name" value={form.siteName} />}
+          <ReviewSection
+            label="Site details"
+            stepIndex={idx("site-details")}
+            onEdit={onGoToStep}
+          >
+            {form.siteName && (
+              <ReadOnlyField label="Site Name" value={form.siteName} />
+            )}
             {form.permissionHolder && (
-              <ReadOnlyField label="Permission Holder" value={form.permissionHolder} />
+              <ReadOnlyField
+                label="Permission Holder"
+                value={form.permissionHolder}
+              />
             )}
 
             <div className="border border-[rgba(26,26,24,0.14)] rounded-[12px] p-[14.5px] flex gap-3 items-start">
               <div className="flex-1">
-                <p className="text-[14px] font-semibold text-text-primary">Written permission confirmed</p>
-                <p className="text-xs text-[#5c5c59] mt-1">Confirm you have signed permission from the landowner.</p>
+                <p className="text-[14px] font-semibold text-text-primary">
+                  Written permission confirmed
+                </p>
+                <p className="text-xs text-[#5c5c59] mt-1">
+                  Confirm you have signed permission from the landowner.
+                </p>
               </div>
               <div
                 className={`relative shrink-0 w-11 h-[26px] rounded-full mt-0.5 ${
@@ -91,7 +224,9 @@ export default function ReviewStep({ form, stepTypes, onDelete, onUpload, isPend
               >
                 <div
                   className={`absolute top-1 size-[18px] rounded-full ${
-                    form.permissionConfirmed ? "bg-white translate-x-[18px]" : "bg-[#8f8f8c] translate-x-1"
+                    form.permissionConfirmed
+                      ? "bg-white translate-x-[18px]"
+                      : "bg-[#8f8f8c] translate-x-1"
                   }`}
                 />
               </div>
@@ -99,9 +234,13 @@ export default function ReviewStep({ form, stepTypes, onDelete, onUpload, isPend
 
             {form.locationResult && (
               <div className="flex flex-col gap-2">
-                <label className="text-base font-medium text-text-primary">Location</label>
+                <label className="text-base font-medium text-text-primary">
+                  Location
+                </label>
                 <div className="h-[44px] border border-[rgba(26,26,24,0.14)] rounded-[8px] px-3 flex items-center bg-[#f9f9f9]">
-                  <p className="text-base text-text-primary truncate">{form.locationResult.formattedAddress}</p>
+                  <p className="text-base text-text-primary truncate">
+                    {form.locationResult.formattedAddress}
+                  </p>
                 </div>
                 <iframe
                   src={`https://www.openstreetmap.org/export/embed.html?bbox=${form.locationResult.longitude - 0.015},${form.locationResult.latitude - 0.01},${form.locationResult.longitude + 0.015},${form.locationResult.latitude + 0.01}&layer=mapnik&marker=${form.locationResult.latitude},${form.locationResult.longitude}`}
@@ -113,7 +252,9 @@ export default function ReviewStep({ form, stepTypes, onDelete, onUpload, isPend
 
             {form.plantingPhoto && (
               <div className="flex flex-col gap-2">
-                <label className="text-base font-medium text-text-primary">Planting Photo</label>
+                <label className="text-base font-medium text-text-primary">
+                  Planting Photo
+                </label>
                 <img
                   src={form.plantingPhoto}
                   alt=""
@@ -130,14 +271,18 @@ export default function ReviewStep({ form, stepTypes, onDelete, onUpload, isPend
             )}
 
             {form.siteCondition && (
-              <ReadOnlyField label="Current Site Condition" value={form.siteCondition} multiline />
+              <ReadOnlyField
+                label="Current Site Condition"
+                value={form.siteCondition}
+                multiline
+              />
             )}
-          </>
+          </ReviewSection>
         )}
       </div>
 
       <div className="flex-1" />
-      <div className="px-5 pb-8 pt-4 flex flex-col gap-3 shrink-0">
+      <div className="px-5 pb-8 pt-12 flex flex-col gap-3 shrink-0">
         {error && <p className="text-sm text-red-500 text-center">{error}</p>}
         <button
           onClick={onDelete}

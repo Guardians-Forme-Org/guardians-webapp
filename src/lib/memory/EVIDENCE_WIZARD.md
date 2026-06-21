@@ -24,11 +24,14 @@ src/features/challenges/
       InterventionsStep.tsx
       MetricsStep.tsx
       FileUploadStep.tsx
+      ImpactStep.tsx
+      RegionStep.tsx
+      ContributorsStep.tsx
       MarkCompleteStep.tsx
       ReviewStep.tsx
     SuccessScreen.tsx
   screens/
-    LogEvidenceWizard.tsx    ← thin shell only (~115 lines)
+    LogEvidenceWizard.tsx    ← thin shell only (~130 lines)
 ```
 
 ---
@@ -46,6 +49,8 @@ export const STEP_FORM_CONFIGS: Record<string, FormConfig> = {
   MY_NEW_STEP_ID: {
     wizardSteps: [
       { type: "file-upload" },
+      { type: "impact" },
+      { type: "contributors" },
       { type: "review" },
     ],
   },
@@ -60,12 +65,25 @@ Available `WizardStepType` values:
 | `site-condition` | Site area, condition textarea, surface type dropdowns |
 | `interventions` | Planting/intervention rows with species + count |
 | `metrics` | Read-only computed impact metrics |
-| `file-upload` | File drop zone, uploaded file list, impact textarea, who performed |
+| `file-upload` | File drop zone + uploaded file list (images, PDFs, CSVs) |
+| `impact` | Impact description textarea |
+| `region` | Location picker (standalone region search) |
+| `contributors` | Member search/chips — who performed the action |
 | `mark-complete` | Simple confirmation button |
 | `review` | Read-only summary of all collected data + Upload/Delete buttons |
 
 > `review` should almost always be the last step before success.
 > `mark-complete` submits directly (no review step needed).
+
+### Typical compositions
+
+```ts
+// evidence upload flow
+{ type: "file-upload" }, { type: "impact" }, { type: "contributors" }, { type: "review" }
+
+// site registration flow
+{ type: "file-upload" }, { type: "region" }, { type: "contributors" }, { type: "review" }
+```
 
 ---
 
@@ -106,7 +124,7 @@ export default function MyNewStep({ form, update, onNext, nextLabel }: Props) {
 export type WizardStepType =
   | "site-details"
   // ... existing types
-  | "my-new-step";   // ← add here
+  | "my-new-step"; // ← add here
 ```
 
 4. **Register it in the wizard shell** (`screens/LogEvidenceWizard.tsx`):
@@ -115,9 +133,16 @@ export type WizardStepType =
 import MyNewStep from "../wizard/steps/MyNewStep";
 
 // inside the step renderer:
-{currentStepType === "my-new-step" && (
-  <MyNewStep form={form} update={update} onNext={next} nextLabel={nextLabel} />
-)}
+{
+  currentStepType === "my-new-step" && (
+    <MyNewStep
+      form={form}
+      update={update}
+      onNext={next}
+      nextLabel={nextLabel}
+    />
+  );
+}
 ```
 
 5. **Handle it in ReviewStep** (`wizard/steps/ReviewStep.tsx`) if the review should
@@ -133,6 +158,7 @@ const hasMyStep = stepTypes.includes("my-new-step");
 ## Updating an Existing Step
 
 Edit the component file directly in `wizard/steps/`. Each component receives:
+
 - `form: LogFormData` — full form state (read-only, use `update()` to change)
 - `update(key, value)` — updates a single field in form state
 - `onNext()` — advance to the next step (or submit if last step)
@@ -140,6 +166,9 @@ Edit the component file directly in `wizard/steps/`. Each component receives:
 
 Changes to a step's fields should also be reflected in `ReviewStep.tsx` if that
 step's data is shown in the review summary.
+
+> `ContributorsStep` additionally receives `members` and `users` props from the
+> wizard shell — it is the only step that needs them.
 
 ---
 
@@ -154,9 +183,11 @@ and applied to `<SaveButton label={nextLabel} />`. No manual config needed.
 ## localStorage Draft
 
 The wizard auto-saves form state on every change:
+
 ```
 key: log-evidence-draft-${stepId}
 ```
+
 `File` objects are excluded (not serialisable). On reload, `evidenceFiles` is reset
 to `[]`. The draft is cleared on successful submission and on "Delete Impact".
 
@@ -166,7 +197,7 @@ to `[]`. The draft is cleared on successful submission and on "Delete Impact".
 
 The wizard submits via `useSubmitEvidence()` in the shell. It builds the payload from
 `form.impactDescription || form.siteCondition` as the description, and
-`form.performedBy` as the single contributor.
+`form.contributors` as the contributor list.
 
 When the BE adds richer payload fields per step type, update the `submit()` function
 in `LogEvidenceWizard.tsx` — it's the only place API calls happen.

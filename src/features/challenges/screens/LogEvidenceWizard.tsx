@@ -14,6 +14,11 @@ import SiteConditionStep from "../wizard/steps/SiteConditionStep";
 import InterventionsStep from "../wizard/steps/InterventionsStep";
 import MetricsStep from "../wizard/steps/MetricsStep";
 import FileUploadStep from "../wizard/steps/FileUploadStep";
+import ImpactStep from "../wizard/steps/ImpactStep";
+import MeasurementStep from "../wizard/steps/MeasurementStep";
+import VolunteerHoursStep from "../wizard/steps/VolunteerHoursStep";
+import RegionStep from "../wizard/steps/RegionStep";
+import ContributorsStep from "../wizard/steps/ContributorsStep";
 import MarkCompleteStep from "../wizard/steps/MarkCompleteStep";
 import ReviewStep from "../wizard/steps/ReviewStep";
 import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
@@ -84,6 +89,8 @@ export default function LogEvidenceWizard({ challengeId, stepId }: Props) {
       {
         challengeCode: challenge.challengeCode,
         challengeId: challenge.challengeId,
+        stepId: stepMeta.stepId,
+        userId: user.id,
         payload: {
           stepId: stepMeta.stepId,
           stepNumber: stepMeta.stepNumber,
@@ -93,10 +100,18 @@ export default function LogEvidenceWizard({ challengeId, stepId }: Props) {
           thingUUID: challenge.impactRecords?.[0]?.thingUUID ?? "",
           submittedBy: user.id,
           approvalRequired: false,
-          volunteerHours: { value: 0, unitOfMeasure: "hours", SiUnit: "TIME" },
+          volunteerHours: {
+            value: parseFloat(form.volunteerHours) || 0,
+            unitOfMeasure: "hours",
+            SiUnit: "TIME",
+          },
           contributors,
           data: {
-            measurement: { value: 0, unitofMeasure: "kg", SiUnit: "MASS" },
+            measurement: {
+              value: parseFloat(form.measurementValue) || 0,
+              unitofMeasure: form.measurementType === "VOLUME" ? "L" : "kg",
+              SiUnit: form.measurementType,
+            },
             description,
           },
         },
@@ -148,7 +163,22 @@ export default function LogEvidenceWizard({ challengeId, stepId }: Props) {
           <MetricsStep onNext={next} nextLabel={nextLabel} />
         )}
         {currentStepType === "file-upload" && (
-          <FileUploadStep
+          <FileUploadStep form={form} update={update} onNext={next} nextLabel={nextLabel} />
+        )}
+        {currentStepType === "impact" && (
+          <ImpactStep form={form} update={update} onNext={next} nextLabel={nextLabel} />
+        )}
+        {currentStepType === "volunteer-hours" && (
+          <VolunteerHoursStep form={form} update={update} onNext={next} nextLabel={nextLabel} />
+        )}
+        {currentStepType === "measurement" && (
+          <MeasurementStep form={form} update={update} onNext={next} nextLabel={nextLabel} />
+        )}
+        {currentStepType === "region" && (
+          <RegionStep form={form} update={update} onNext={next} nextLabel={nextLabel} />
+        )}
+        {currentStepType === "contributors" && (
+          <ContributorsStep
             form={form}
             update={update}
             onNext={next}
@@ -166,6 +196,7 @@ export default function LogEvidenceWizard({ challengeId, stepId }: Props) {
             stepTypes={config.wizardSteps.map((s) => s.type)}
             onDelete={() => { setForm(initForm()); setStep(1); }}
             onUpload={submit}
+            onGoToStep={setStep}
             isPending={submitEvidence.isPending}
             error={submitError}
             users={users}

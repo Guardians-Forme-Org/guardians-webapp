@@ -107,10 +107,14 @@ export function useSubmitEvidence() {
     mutationFn: ({
       challengeCode,
       challengeId,
+      stepId,
+      userId,
       payload,
     }: {
       challengeCode: string;
       challengeId: string;
+      stepId: string;
+      userId: string;
       payload: SubmitEvidencePayload;
     }) => {
       const token = getToken();
@@ -118,7 +122,11 @@ export function useSubmitEvidence() {
       return apiFetch<void>(endpoint, {
         method: "POST",
         body: payload,
-        headers: token ? { Auth: `Bearer ${token}` } : {},
+        headers: {
+          ...(token ? { Auth: `Bearer ${token}` } : {}),
+          "X-Step-ID": stepId,
+          "X-User-Id": userId,
+        },
       });
     },
     onSuccess: (_data, { challengeId }) => {

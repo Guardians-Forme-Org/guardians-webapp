@@ -980,7 +980,10 @@ export default function CreateChallengeWizard({
   const [location, setLocation] = useState<LocationResult | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [createdChallenge, setCreatedChallenge] = useState<ApiChallenge | null>(null);
-  const { data: templates = [], isLoading: templatesLoading } = useTemplates();
+  const { data: rawTemplates = [], isLoading: templatesLoading } = useTemplates();
+  const templates = rawTemplates.filter((t) =>
+    t.name.toLowerCase().includes("compost"),
+  );
   const { data: users = [], isLoading: usersLoading } = useUsers();
   const createChallenge = useCreateChallenge();
 
