@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight, ChevronRight, MapPin } from "lucide-react";
 import SearchBar from "@/components/ui/SearchBar";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { isWhitelisted } from "@/lib/permissions";
-import type { CirclesListResponse } from "@/lib/types/circles";
+import { isWhitelisted, canManageCircle } from "@/lib/permissions";
+import type { ApiCircle, CirclesListResponse } from "@/lib/types/circles";
 import { useChallenges } from "@/lib/hooks/challenges";
 import ChallengeCard from "@/features/challenges/components/ChallengeCard";
 
@@ -79,13 +79,68 @@ function CircleCard({ item }: { item: CircleItem }) {
   );
 }
 
+// ── Circle Picker Sheet ────────────────────────────────────────────────────────
+
+function CirclePickerSheet({
+  circles,
+  onClose,
+}: {
+  circles: ApiCircle[];
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 z-[60]" onClick={onClose} />
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[20px] z-[70] px-5 pt-5 pb-10">
+        <div className="w-10 h-1 bg-[#d9d9d9] rounded-full mx-auto mb-6" />
+        <p className="text-xl font-bold text-text-subheading mb-5">
+          Which circle is this challenge for?
+        </p>
+        <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto">
+          {circles.map((c) => (
+            <button
+              key={c.circleId}
+              onClick={() =>
+                router.push(`/challenges/create?circleId=${c.circleId}`)
+              }
+              className="flex items-center gap-4 h-16 px-4 border border-border rounded-[12px] text-left active:bg-surface"
+            >
+              <div className="size-10 rounded-full bg-surface overflow-hidden shrink-0">
+                {c.bannerUrl && (
+                  <img
+                    src={c.bannerUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-base font-semibold text-text-primary truncate">
+                  {c.name}
+                </p>
+                {c.region.city && (
+                  <p className="text-xs text-text-muted">{c.region.city}</p>
+                )}
+              </div>
+              <ChevronRight size={20} className="text-text-muted shrink-0" />
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ── Main Screen ────────────────────────────────────────────────────────────────
 
 export default function DiscoverScreen() {
   const { user } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>("challenges");
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [showCirclePicker, setShowCirclePicker] = useState(false);
 
   const { data: apiCircles, isLoading: circlesLoading } = useQuery({
     queryKey: ["circles"],
@@ -93,6 +148,18 @@ export default function DiscoverScreen() {
   });
 
   const { data: apiChallenges, isLoading: challengesLoading } = useChallenges();
+
+  const myCircles = (apiCircles ?? []).filter((c) =>
+    canManageCircle(user?.email, user?.id, c),
+  );
+
+  const handleCreateChallenge = () => {
+    if (myCircles.length === 1) {
+      router.push(`/challenges/create?circleId=${myCircles[0].circleId}`);
+    } else {
+      setShowCirclePicker(true);
+    }
+  };
 
   const lq = query.toLowerCase();
   const filteredChallenges = (apiChallenges ?? []).filter(
@@ -133,7 +200,7 @@ export default function DiscoverScreen() {
         onSubmit={setQuery}
       />
 
-      {/* Create CTA — only available on circles tab for whitelisted users */}
+      {/* Create CTAs */}
       {tab === "circles" && isWhitelisted(user?.email) && (
         <div className="px-5 mb-6">
           <Link
@@ -142,6 +209,16 @@ export default function DiscoverScreen() {
           >
             Create Circle
           </Link>
+        </div>
+      )}
+      {tab === "challenges" && myCircles.length > 0 && (
+        <div className="px-5 mb-6">
+          <button
+            onClick={handleCreateChallenge}
+            className="flex items-center justify-center w-full h-14 bg-black text-white rounded-full text-lg font-medium"
+          >
+            Create Challenge
+          </button>
         </div>
       )}
 
@@ -172,6 +249,12 @@ export default function DiscoverScreen() {
         }
       </div>
 
+      {showCirclePicker && (
+        <CirclePickerSheet
+          circles={myCircles}
+          onClose={() => setShowCirclePicker(false)}
+        />
+      )}
     </div>
   );
 }

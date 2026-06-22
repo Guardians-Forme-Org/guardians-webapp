@@ -16,7 +16,9 @@ import {
   Image as ImageIcon,
   Link2,
   Mail,
+  MapPin,
   MessageCircle,
+  Pencil,
   Search,
   X,
 } from "lucide-react";
@@ -70,7 +72,7 @@ const initialForm: CircleFormData = {
 
 // ── Shared sub-components ──────────────────────────────────────────────────────
 
-const PROGRESS_FILLED: Record<number, number> = { 1: 1, 2: 2, 3: 3, 4: 0 };
+const PROGRESS_FILLED: Record<number, number> = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 0 };
 
 function WizardHeader({
   step,
@@ -112,7 +114,7 @@ function WizardHeader({
 
       {filled > 0 && (
         <div className="flex gap-2.5">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
               className={`flex-1 h-2 rounded-full ${i < filled ? "bg-gotf-green" : "bg-[#ccc]"}`}
@@ -454,16 +456,12 @@ function Step3({
   form,
   onChange,
   onFileSelect,
-  onConfirm,
-  loading,
-  error,
+  onNext,
 }: {
   form: CircleFormData;
   onChange: (f: keyof CircleFormData, v: string) => void;
   onFileSelect: (file: File) => void;
-  onConfirm: () => void;
-  loading: boolean;
-  error: string | null;
+  onNext: () => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -529,22 +527,138 @@ function Step3({
           Remove
         </button>
 
-        {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-
-        {/* Confirm */}
         <button
-          onClick={onConfirm}
-          disabled={loading}
-          className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium disabled:opacity-50"
+          onClick={onNext}
+          className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
         >
-          {loading ? "Creating…" : "Confirm"}
+          Review
         </button>
       </div>
     </>
   );
 }
 
-// ── Step 4 — Done ─────────────────────────────────────────────────────────────
+// ── Step 4 — Review ───────────────────────────────────────────────────────────
+
+function ReviewSection({
+  label,
+  stepIndex,
+  onEdit,
+  children,
+}: {
+  label: string;
+  stepIndex: number;
+  onEdit: (step: number) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">{label}</p>
+        <button
+          onClick={() => onEdit(stepIndex)}
+          className="flex items-center gap-1 text-xs font-medium text-text-muted active:opacity-60"
+        >
+          <Pencil size={13} />
+          Edit
+        </button>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function ReadOnlyRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-base font-medium text-text-primary">{label}</label>
+      <div className="min-h-[44px] border border-[rgba(26,26,24,0.14)] rounded-[8px] px-3 py-2.5 flex items-center bg-[#f9f9f9]">
+        <p className="text-base text-text-primary">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function Step4Review({
+  form,
+  location,
+  selectedLead,
+  onGoToStep,
+  onConfirm,
+  isPending,
+  error,
+}: {
+  form: CircleFormData;
+  location: LocationResult | null;
+  selectedLead: AuthUser | null;
+  onGoToStep: (step: number) => void;
+  onConfirm: () => void;
+  isPending: boolean;
+  error: string | null;
+}) {
+  const channelLabel = CHANNELS.find((c) => c.id === form.channelType)?.label;
+
+  return (
+    <>
+      <div className="px-10 mt-7 mb-6">
+        <h1 className="text-[32px] font-bold text-gotf-green leading-tight">Review</h1>
+        <p className="text-base text-text-muted mt-1">Check your details before creating.</p>
+      </div>
+
+      <div className="flex flex-col gap-6 px-10">
+        <ReviewSection label="Circle details" stepIndex={1} onEdit={onGoToStep}>
+          {form.name && <ReadOnlyRow label="Name" value={form.name} />}
+          {form.description && <ReadOnlyRow label="Description" value={form.description} />}
+          {selectedLead && (
+            <ReadOnlyRow
+              label="Circle Lead"
+              value={`${selectedLead.user_metadata.firstName ?? ""} ${selectedLead.user_metadata.lastName ?? ""}`.trim()}
+            />
+          )}
+          {channelLabel && (
+            <ReadOnlyRow
+              label="Channel"
+              value={form.channelUrl ? `${channelLabel} — ${form.channelUrl}` : channelLabel}
+            />
+          )}
+        </ReviewSection>
+
+        {location && (
+          <ReviewSection label="Location" stepIndex={2} onEdit={onGoToStep}>
+            <div className="flex items-center gap-2 min-h-[44px] border border-[rgba(26,26,24,0.14)] rounded-[8px] px-3 py-2.5 bg-[#f9f9f9]">
+              <MapPin size={14} className="text-gotf-green shrink-0" />
+              <p className="text-base text-text-primary">{location.formattedAddress}</p>
+            </div>
+          </ReviewSection>
+        )}
+
+        {form.imagePreview && (
+          <ReviewSection label="Profile photo" stepIndex={3} onEdit={onGoToStep}>
+            <img
+              src={form.imagePreview}
+              alt="Circle profile"
+              className="w-full h-48 object-cover rounded-[12px] border border-[rgba(26,26,24,0.14)]"
+            />
+          </ReviewSection>
+        )}
+      </div>
+
+      <div className="flex-1" />
+      <div className="px-10 pb-8 pt-4 flex flex-col gap-3 shrink-0">
+        {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+        <button
+          onClick={onConfirm}
+          disabled={isPending}
+          className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium disabled:opacity-50"
+        >
+          {isPending ? "Creating…" : "Create Circle"}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ── Step 5 — Done ─────────────────────────────────────────────────────────────
 
 // ── Wizard shell ───────────────────────────────────────────────────────────────
 
@@ -565,7 +679,7 @@ export default function CreateCircleWizard() {
   const [createdCircle, setCreatedCircle] =
     useState<CreateCircleResponse | null>(null);
 
-  const next = () => setStep((s) => Math.min(s + 1, 4));
+  const next = () => setStep((s) => Math.min(s + 1, 5));
   const back = () => {
     if (step <= 1) router.back();
     else setStep((s) => s - 1);
@@ -621,7 +735,7 @@ export default function CreateCircleWizard() {
 
   const submitError = apiError instanceof Error ? apiError.message : null;
 
-  if (step === 4 && createdCircle) {
+  if (step === 5 && createdCircle) {
     return (
       <WizardSuccessScreen
         title={createdCircle.name}
@@ -652,8 +766,17 @@ export default function CreateCircleWizard() {
             form={form}
             onChange={updateForm}
             onFileSelect={setBannerFile}
+            onNext={next}
+          />
+        )}
+        {step === 4 && (
+          <Step4Review
+            form={form}
+            location={location}
+            selectedLead={selectedLead}
+            onGoToStep={setStep}
             onConfirm={handleSubmit}
-            loading={isPending}
+            isPending={isPending}
             error={submitError}
           />
         )}

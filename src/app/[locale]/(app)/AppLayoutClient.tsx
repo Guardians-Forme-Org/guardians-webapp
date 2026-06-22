@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import BottomNavBar from "@/components/nav/BottomNavBar";
 import { getToken, getStoredSession } from "@/lib/auth";
@@ -26,6 +26,7 @@ export default function AppLayoutClient({
   const pathname = usePathname();
   const router = useRouter();
   const wizard = isWizardPath(pathname);
+  const mainRef = useRef<HTMLElement>(null);
   const { user, loginData } = getStoredSession();
   const avatarUrl =
     user?.user_metadata?.avatarUrl ||
@@ -45,6 +46,12 @@ export default function AppLayoutClient({
     }
   }, [router, pathname]);
 
+  // Reset scroll on every navigation — Next.js only resets window.scrollY,
+  // not the scroll position of inner overflow-y-auto containers.
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0);
+  }, [pathname]);
+
   // While auth check runs, render nothing to avoid flash
   if (typeof window !== "undefined" && !getToken()) return null;
 
@@ -54,7 +61,7 @@ export default function AppLayoutClient({
         wizard ? "overflow-hidden" : ""
       }`}
     >
-      <main className={`flex-1 overflow-y-auto ${wizard ? "" : "pb-safe-nav"}`}>
+      <main ref={mainRef} className={`flex-1 overflow-y-auto ${wizard ? "" : "pb-safe-nav"}`}>
         {children}
       </main>
       {!wizard && <BottomNavBar avatarUrl={avatarUrl} />}

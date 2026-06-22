@@ -379,17 +379,18 @@ export default function CircleScreen({ circleId }: Props) {
 
         {/* Challenges */}
         <div className="px-7.5 py-7.5 pb-10">
-          <div className="flex items-center justify-between mb-7.5">
+          <div className="flex items-center justify-between mb-4">
             <p className="text-xl font-bold text-text-subheading">Challenges</p>
-            {canManageCircle(user?.email, user?.id, circle) && (
-              <Link
-                href={`/challenges/create?circleId=${circle.circleId}`}
-                className="text-base font-medium text-gotf-green"
-              >
-                + Start Challenge
-              </Link>
-            )}
           </div>
+
+          {canManageCircle(user?.email, user?.id, circle) && (
+            <Link
+              href={`/challenges/create?circleId=${circle.circleId}`}
+              className="flex items-center justify-center w-full h-14 bg-linear-to-r from-[#008000] to-[#129612] text-white text-lg font-medium rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] mb-6"
+            >
+              Start Challenge
+            </Link>
+          )}
 
           {circle.challenges.length === 0 ? (
             <p className="text-sm text-text-muted">No challenges yet.</p>

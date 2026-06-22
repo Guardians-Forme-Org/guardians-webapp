@@ -8,9 +8,11 @@ import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateChallenge, useTemplates } from "@/lib/hooks/challenges";
+import { useCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
 import type { AuthUser } from "@/lib/types/auth";
 import type { ApiChallenge, ApiTemplate } from "@/lib/types/challenges";
+import type { ApiCircle } from "@/lib/types/circles";
 import {
   ChevronLeft,
   ChevronRight,
@@ -20,6 +22,7 @@ import {
   Mail,
   MapPin,
   MessageCircle,
+  Pencil,
   Search,
   X,
 } from "lucide-react";
@@ -702,6 +705,18 @@ function formatDistance(km: number): string {
   return `${km.toFixed(1)}km from you`;
 }
 
+function EditButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1 text-xs font-medium text-text-muted active:opacity-60 shrink-0"
+    >
+      <Pencil size={12} />
+      {label}
+    </button>
+  );
+}
+
 function Step6({
   form,
   onPublish,
@@ -709,6 +724,8 @@ function Step6({
   isPending,
   users,
   location,
+  onGoToStep,
+  circle,
 }: {
   form: FormData;
   onPublish: () => void;
@@ -716,8 +733,10 @@ function Step6({
   isPending: boolean;
   users: AuthUser[];
   location: import("@/components/ui/LocationPicker").LocationResult | null;
+  onGoToStep: (step: number) => void;
+  circle: ApiCircle | undefined;
 }) {
-  const { user, loginData } = useAuth();
+  const { user } = useAuth();
 
   const template =
     templates.find((t) => t.templateId === form.templateId) ?? templates[0];
@@ -729,7 +748,6 @@ function Step6({
     : "Facilitator";
   const facilitatorAvatar = facilitatorUser?.user_metadata.avatarUrl ?? "";
 
-  const circle = loginData?.circles.find((c) => c.circleId === form.circleId);
   const circleMembers = circle?.members ?? [];
 
   const today = new Date().toLocaleDateString("en-GB", {
@@ -772,12 +790,17 @@ function Step6({
       {/* White card overlapping hero */}
       <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
         <div className="px-10 pt-7.5">
-          <span className="inline-block bg-[#d9d9d9] rounded-[20px] px-3 py-1 text-[14px] text-text-subheading">
-            {form.supportedBy || "Urban Greening"}
-          </span>
-          <h1 className="text-[28px] font-bold text-text-subheading mt-3 leading-tight">
-            {form.name || template?.name}
-          </h1>
+          {circle?.name && (
+            <span className="inline-block bg-[#d9d9d9] rounded-[20px] px-3 py-1 text-[14px] text-text-subheading">
+              {circle.name}
+            </span>
+          )}
+          <div className="flex items-start justify-between mt-3 gap-2">
+            <h1 className="text-[28px] font-bold text-text-subheading leading-tight">
+              {form.name || template?.name}
+            </h1>
+            <EditButton label="Edit" onClick={() => onGoToStep(3)} />
+          </div>
           <p className="text-base text-[#666] mt-1">Since {today}</p>
 
           <div className="mt-3 mb-6">
@@ -802,6 +825,10 @@ function Step6({
         {/* Location */}
         {location && (
           <div className="px-10 py-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">Location</span>
+              <EditButton label="Edit" onClick={() => onGoToStep(3)} />
+            </div>
             <div className="flex items-center gap-1.5">
               <MapPin size={16} className="text-gotf-green shrink-0" />
               <p className="text-base">
@@ -825,11 +852,11 @@ function Step6({
 
         {/* Description */}
         <div className="px-10 py-5">
-          <p className="text-base text-[#666] leading-relaxed line-clamp-3">
-            {form.description ||
-              `"${template?.name ?? "This"} is a challenge focused on building community environmental impact through practical, shared action."`}
-          </p>
-          <button className="text-base text-gotf-blue mt-2">Show more</button>
+          {form.description && (
+            <p className="text-base text-[#666] leading-relaxed">
+              {form.description}
+            </p>
+          )}
         </div>
 
         <div className="border-t border-progress-track" />
@@ -851,6 +878,8 @@ function Step6({
 
         {/* Facilitator */}
         <div className="flex items-center gap-5 px-7.5 py-5 border-b border-progress-track">
+          <div className="flex items-center justify-between w-full gap-3">
+          <div className="flex items-center gap-5 flex-1">
           <div className="size-10 rounded-full bg-surface border border-border shrink-0 overflow-hidden">
             {facilitatorAvatar && (
               <img
@@ -868,16 +897,20 @@ function Step6({
               Facilitator
             </p>
           </div>
+          </div>
+          <EditButton label="Edit" onClick={() => onGoToStep(4)} />
+          </div>
         </div>
 
         {/* Members */}
         <div className="border-b border-progress-track">
           <div className="flex items-center justify-between px-7.5 pt-7 pb-5">
-            <p className="text-xl font-bold text-text-subheading">
-              <span className="font-normal">by</span>{" "}
-              {form.supportedBy || "Green Urban youth"}
-            </p>
-            {/* <button className="text-base text-gotf-blue">See all</button> */}
+            {circle?.name && (
+              <p className="text-xl font-bold text-text-subheading">
+                <span className="font-normal">by</span>{" "}
+                {circle.name}
+              </p>
+            )}
           </div>
 
           {circleMembers.length > 0 && (
@@ -915,10 +948,28 @@ function Step6({
           </p>
 
           <div className="flex justify-center pb-7">
-            <button className="flex items-center gap-2.5 px-5 h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)]">
-              <MessageCircle size={20} className="fill-white text-white" />
-              Join Conversation
-            </button>
+            {form.channelLink ? (
+              <div className="flex items-center gap-3">
+                <a
+                  href={form.channelLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 px-5 h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)]"
+                >
+                  <MessageCircle size={20} className="fill-white text-white" />
+                  Join Conversation
+                </a>
+                <EditButton label="Edit" onClick={() => onGoToStep(5)} />
+              </div>
+            ) : (
+              <button
+                onClick={() => onGoToStep(5)}
+                className="flex items-center gap-1.5 text-sm text-text-muted underline underline-offset-2"
+              >
+                <MessageCircle size={14} />
+                Add a communication link
+              </button>
+            )}
           </div>
         </div>
 
@@ -974,7 +1025,7 @@ export default function CreateChallengeWizard({
   circleId: string;
 }) {
   const router = useRouter();
-  const { user, loginData } = useAuth();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>({ ...initialForm, circleId });
   const [location, setLocation] = useState<LocationResult | null>(null);
@@ -985,6 +1036,7 @@ export default function CreateChallengeWizard({
     t.name.toLowerCase().includes("compost"),
   );
   const { data: users = [], isLoading: usersLoading } = useUsers();
+  const { data: selectedCircle } = useCircle(circleId);
   const createChallenge = useCreateChallenge();
 
   const next = () => setStep((s) => Math.min(s + 1, 7));
@@ -1093,6 +1145,8 @@ export default function CreateChallengeWizard({
             isPending={createChallenge.isPending}
             users={users}
             location={location}
+            onGoToStep={setStep}
+            circle={selectedCircle}
           />
         )}
       </div>
