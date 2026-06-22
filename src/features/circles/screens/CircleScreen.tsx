@@ -4,6 +4,7 @@ import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { useAssignCircleLead, useJoinCircle } from "@/lib/hooks/circles";
+import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
 import { canManageCircle, isWhitelisted } from "@/lib/permissions";
 import { useUsers } from "@/lib/hooks/users";
 import type {
@@ -241,38 +242,12 @@ export default function CircleScreen({ circleId }: Props) {
           </div>
         </div>
 
-        {/* Impact */}
+        {/* Recent Activities */}
         <div className="border-b border-progress-track">
           <p className="px-10 pt-7.5 pb-5 text-xl font-bold text-text-subheading">
-            Impact
+            Recent Activities
           </p>
-          {!circle.impactRecords?.length ? (
-            <p className="px-10 pb-7.5 text-sm text-text-muted">
-              No impact recorded yet.
-            </p>
-          ) : (
-            circle.impactRecords.map((record, i) => (
-              <div
-                key={record.impactRecordId ?? i}
-                className="flex items-start gap-4 px-10 pb-6 border-t border-[#e6e6e6]"
-              >
-                <div className="flex-1 pt-5">
-                  <p className="text-2xl font-semibold text-[#333]">
-                    {record.impactSummary.impact.displayName}
-                  </p>
-                  <p className="text-xs text-[#767676] mt-1 leading-snug">
-                    {record.impactSummary.impact.summary}
-                  </p>
-                </div>
-                <div className="pt-5 text-right shrink-0">
-                  <p className="text-base font-semibold text-text-subheading">
-                    {record.impactSummary.contribution.displayName}
-                  </p>
-                  <p className="text-xs text-text-muted mt-0.5">contributed</p>
-                </div>
-              </div>
-            ))
-          )}
+          <RecentActivitiesList thingId={circle.circleId} />
         </div>
 
         {/* Description */}

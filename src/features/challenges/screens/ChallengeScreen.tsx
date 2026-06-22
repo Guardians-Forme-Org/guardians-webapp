@@ -5,7 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { useChallenge, useJoinChallenge } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
-import type { ApiCircle, ApiCircleChallenge, ApiImpactRecord, ApiCircleChallengeMember } from "@/lib/types/circles";
+import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
+import type { ApiCircle, ApiCircleChallenge, ApiCircleChallengeMember } from "@/lib/types/circles";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, MapPin } from "lucide-react";
 import JoinConversationButton from "@/components/ui/JoinConversationButton";
@@ -218,51 +219,10 @@ function HomeTab({
   );
 }
 
-function ActivitiesTab({
-  impactRecords,
-  members,
-}: {
-  impactRecords: ApiImpactRecord[];
-  members: ApiCircleChallengeMember[];
-}) {
-  if (impactRecords.length === 0) {
-    return (
-      <div className="px-10 py-7.5">
-        <p className="text-sm text-text-muted">No activities yet.</p>
-      </div>
-    );
-  }
-
+function ActivitiesTab({ challengeId }: { challengeId: string }) {
   return (
-    <div className="px-6 py-7.5 flex flex-col gap-6">
-      {impactRecords.map((record) => (
-        <div key={record.impactRecordId} className="flex items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <p className="text-lg font-semibold text-[#1a1a1a]">
-              {record.impactSummary.contribution.displayName}
-            </p>
-            <p className="text-sm text-[#999]">
-              {new Date(record.modifiedAt).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-          </div>
-          <div className="flex -space-x-2">
-            {members.slice(0, 2).map((m) => (
-              <div
-                key={m.userId}
-                className="size-8 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden shrink-0"
-              >
-                {m.avatarUrl && (
-                  <img src={m.avatarUrl} alt="" className="w-full h-full object-cover" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
+    <div className="pt-7.5">
+      <RecentActivitiesList thingId={challengeId} />
     </div>
   );
 }
@@ -378,10 +338,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
         {tab === "home" ? (
           <HomeTab challenge={challenge} challengeId={challengeId} circleName={circle?.name} />
         ) : (
-          <ActivitiesTab
-            impactRecords={challenge.impactRecords ?? []}
-            members={challenge.members ?? []}
-          />
+          <ActivitiesTab challengeId={challenge.challengeId} />
         )}
 
       </div>

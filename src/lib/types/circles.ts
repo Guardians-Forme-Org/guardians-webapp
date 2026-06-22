@@ -1,3 +1,38 @@
+export type ApiRecentActivity = {
+  id: string;
+  circleId: string;
+  challengeCode: string;
+  thingId: string;
+  thingUUID: string;
+  submittedBy: string;
+  contributors: string[];
+  data: {
+    measurement: {
+      value: number;
+      unitOfMeasure: string;
+      siUnit: string;
+    };
+    description?: string;
+  };
+  stepId: string;
+  stepNumber: number;
+  status: {
+    id: string;
+    name: string;
+    code: string;
+    color: string;
+    createdAt: string;
+  };
+  createdAt: string;
+  modifiedAt: string;
+  locksOnCompletion: boolean;
+  volunteerHours: {
+    value: number;
+    unitOfMeasure: string;
+    siUnit: string;
+  };
+};
+
 export type CreateCircleRequest = {
   name: string;
   description: string;
@@ -35,6 +70,7 @@ export type ApiImpactRecord = {
       unitOfMeasure: string;
       displayName: string;
       siUnit: string;
+      shortSummary?: string;
       summary: string;
     };
   };
