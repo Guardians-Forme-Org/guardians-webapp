@@ -1,6 +1,5 @@
 "use client";
 
-import AccountDetailsSheet from "@/components/ui/AccountDetailsSheet";
 import RoleBadge from "@/components/ui/RoleBadge";
 import { computeGlobalRoles } from "@/lib/roles";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
@@ -24,6 +23,7 @@ import {
   Lightbulb,
   LogOut,
   MapPin,
+  Pencil,
   Shuffle,
   User,
   X,
@@ -97,7 +97,6 @@ export default function ProfilePage() {
   const router = useRouter();
   const { user, logout, loginData } = useAuth();
   const [showLanguage, setShowLanguage] = useState(false);
-  const [showAccountDetails, setShowAccountDetails] = useState(false);
   const [showLocation, setShowLocation] = useState(false);
 
   const meta = user?.user_metadata;
@@ -163,9 +162,14 @@ export default function ProfilePage() {
             <User size={48} className="text-text-muted" />
           )}
         </div>
-        <h1 className="text-[32px] font-bold text-black leading-tight">
-          {fullName}
-        </h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-[32px] font-bold text-black leading-tight">
+            {fullName}
+          </h1>
+          <button onClick={() => router.push("/profile/edit")} aria-label="Edit profile" className="p-1 mt-1 shrink-0">
+            <Pencil size={16} className="text-text-muted" />
+          </button>
+        </div>
         <p className="text-base font-medium text-text-muted mt-0.5">Guardian</p>
         <RoleBadge roles={computeGlobalRoles(user?.id, user?.email, loginData)} />
         {joinDate && (
@@ -451,7 +455,7 @@ export default function ProfilePage() {
       {/* Settings list */}
       <div className="border-t border-progress-track">
         <button
-          onClick={() => setShowAccountDetails(true)}
+          onClick={() => router.push("/profile/edit")}
           className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track"
         >
           <div className="flex items-center gap-3">
@@ -510,13 +514,6 @@ export default function ProfilePage() {
 
       {showLanguage && (
         <LanguageSwitcher onClose={() => setShowLanguage(false)} />
-      )}
-      {showAccountDetails && user && (
-        <AccountDetailsSheet
-          user={user}
-          avatarUrl={avatarUrl}
-          onClose={() => setShowAccountDetails(false)}
-        />
       )}
       {showLocation && meta?.location && (
         <LocationSheet

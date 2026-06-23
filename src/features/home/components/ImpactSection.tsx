@@ -1,22 +1,73 @@
 "use client";
 
 import Text from "@/components/ui/Text";
+import type { ImpactMatrixItem, ThingsMatrixItem } from "@/lib/hooks/metrics";
+import { deriveImpactLabel, formatImpactDisplayValue } from "@/lib/utils";
 import { useState } from "react";
 
-type ImpactStat = {
+type PersonalStat = {
   label: string;
   value: string | number;
 };
 
 type Props = {
-  badgeStats: ImpactStat[];
-  activityStats: ImpactStat[];
-  globalStats?: ImpactStat[];
+  badgeStats: PersonalStat[];
+  activityStats: PersonalStat[];
+  impactMatrix?: ImpactMatrixItem[];
+  thingsMatrix?: ThingsMatrixItem[];
 };
 
-function StatRow({ stats }: { stats: ImpactStat[] }) {
+function ImpactGrid({ items }: { items: ImpactMatrixItem[] }) {
   return (
-    <div className="flex items-center gap-10.25 px-5 py-5">
+    <div className="grid grid-cols-3 gap-x-2 gap-y-5 px-5 py-5">
+      {items.map((item) => {
+        const label = deriveImpactLabel(item.impactSummary.impact.shortSummary);
+        const value = formatImpactDisplayValue(item.impactSummary.impact.displayName);
+        return (
+          <div key={item.id} className="flex flex-col items-center">
+            <Text variant="caption" className="text-text-secondary leading-tight text-center text-balance">
+              {label}
+            </Text>
+            <p className="text-[22px] font-semibold text-text-primary leading-tight mt-0.5">
+              {value}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MadeByRow({ items }: { items: ThingsMatrixItem[] }) {
+  const displayItems = items.map((item) => ({
+    ...item,
+    displayName: item.name === "Users" ? "Guardians" : item.name,
+  }));
+
+  return (
+    <div>
+      <Text variant="caption" className="text-text-muted px-5 pb-1">
+        made by
+      </Text>
+      <div className="flex items-center px-5 pb-5">
+        {displayItems.map((item) => (
+          <div key={item.name} className="flex flex-col items-center w-full">
+            <Text variant="caption" className="text-text-secondary">
+              {item.displayName}
+            </Text>
+            <p className="text-[25px] font-semibold text-text-primary leading-tight mt-0.5">
+              {item.displayValue}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PersonalStatRow({ stats }: { stats: PersonalStat[] }) {
+  return (
+    <div className="flex items-center gap-10 px-5 py-5">
       {stats.map((stat) => (
         <div key={stat.label} className="flex flex-col items-center w-full">
           <Text variant="caption" className="text-text-secondary">
@@ -31,18 +82,22 @@ function StatRow({ stats }: { stats: ImpactStat[] }) {
   );
 }
 
-export default function ImpactSection({ badgeStats, activityStats, globalStats }: Props) {
-  const [mode, setMode] = useState<"my" | "global">("my");
-  const showToggle = !!globalStats?.length;
+export default function ImpactSection({
+  badgeStats,
+  activityStats,
+  impactMatrix,
+  thingsMatrix,
+}: Props) {
+  const hasGlobal = !!(impactMatrix?.length || thingsMatrix?.length);
+  const [mode, setMode] = useState<"my" | "global">(hasGlobal ? "global" : "my");
 
   return (
     <section className="border-y border-progress-track">
-      {/* Header + toggle */}
       <div className="flex items-center px-5 pt-5 pb-1">
         <Text variant="heading">
-          {mode === "my" ? "My Impact" : "Global Impact"}
+          {mode === "my" ? "My Impact" : "Impact"}
         </Text>
-        {showToggle && (
+        {hasGlobal && (
           <div className="ml-auto flex bg-[#f0f0f0] rounded-full p-0.5">
             <button
               onClick={() => setMode("my")}
@@ -64,10 +119,26 @@ export default function ImpactSection({ badgeStats, activityStats, globalStats }
         )}
       </div>
 
-      {mode === "my" ? (
+      {mode === "global" ? (
+        <>
+          {impactMatrix && impactMatrix.length > 0 ? (
+            <ImpactGrid items={impactMatrix} />
+          ) : (
+            <div className="px-5 py-5">
+              <p className="text-sm text-text-muted">No global impact data yet.</p>
+            </div>
+          )}
+          {thingsMatrix && thingsMatrix.length > 0 && (
+            <>
+              <div className="mx-5 border-t border-progress-track" />
+              <MadeByRow items={thingsMatrix} />
+            </>
+          )}
+        </>
+      ) : (
         <>
           {badgeStats.length > 0 ? (
-            <StatRow stats={badgeStats} />
+            <PersonalStatRow stats={badgeStats} />
           ) : (
             <div className="flex items-center gap-3 px-7 py-5">
               <img
@@ -80,11 +151,9 @@ export default function ImpactSection({ badgeStats, activityStats, globalStats }
               </p>
             </div>
           )}
-          <div className="mx-7.5 border-t border-progress-track" />
-          <StatRow stats={activityStats} />
+          <div className="mx-5 border-t border-progress-track" />
+          <PersonalStatRow stats={activityStats} />
         </>
-      ) : (
-        <StatRow stats={globalStats!} />
       )}
     </section>
   );

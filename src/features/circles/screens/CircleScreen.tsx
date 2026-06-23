@@ -12,9 +12,9 @@ import type {
   ApiCircleChallenge,
   CircleMember,
 } from "@/lib/types/circles";
-import { calcChallengeProgress } from "@/lib/utils";
+import { calcChallengeProgress, deriveImpactLabel, formatImpactDisplayValue } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, MapPin, UserPlus } from "lucide-react";
+import { ChevronRight, MapPin, Pencil, UserPlus } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import Link from "next/link";
 import { useState } from "react";
@@ -158,6 +158,7 @@ export default function CircleScreen({ circleId }: Props) {
   }
 
   const isMember = !!user && circle.members.some((m) => m.userId === user.id);
+  const canEdit = isWhitelisted(user?.email) || canManageCircle(user?.email, user?.id, circle);
 
   const joinedDate = new Date(circle.createdAt).toLocaleDateString("en-GB", {
     day: "numeric",
@@ -173,9 +174,16 @@ export default function CircleScreen({ circleId }: Props) {
       <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
         {/* Identity */}
         <div className="px-10 pt-7.5">
-          <h1 className="text-[28px] font-bold text-text-subheading leading-tight">
-            {circle.name}
-          </h1>
+          <div className="flex items-start justify-between gap-2">
+            <h1 className="text-[28px] font-bold text-text-subheading leading-tight flex-1">
+              {circle.name}
+            </h1>
+            {canEdit && (
+              <Link href={`/circles/${circleId}/edit`} className="p-1 mt-1 shrink-0">
+                <Pencil size={18} className="text-text-muted" />
+              </Link>
+            )}
+          </div>
           <p className="text-base text-[#666] mt-1">Since {joinedDate}</p>
 
           {(circle.region.formattedAddress || circle.region.city) && (
@@ -256,6 +264,33 @@ export default function CircleScreen({ circleId }: Props) {
             </p>
           </div>
         </div>
+
+        {/* Impact */}
+        {(circle.impactRecords ?? []).length > 0 && (
+          <div className="border-b border-progress-track">
+            <p className="px-10 pt-7.5 pb-4 text-xl font-bold text-text-subheading">
+              Impact
+            </p>
+            <div className="grid grid-cols-2 border-t border-[#e6e6e6]">
+              {(circle.impactRecords ?? []).map((record, i) => (
+                <div
+                  key={record.impactRecordId}
+                  className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-1.5 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}
+                >
+                  <p className="text-[12px] text-[#767676] leading-snug">
+                    {deriveImpactLabel(record.impactSummary.impact.shortSummary ?? record.impactSummary.impact.summary)}
+                  </p>
+                  <p className="text-2xl font-semibold text-[#333]">
+                    {formatImpactDisplayValue(record.impactSummary.impact.displayName)}
+                  </p>
+                  <p className="text-[11px] text-text-muted">
+                    {formatImpactDisplayValue(record.impactSummary.contribution.displayName)} contributed
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Recent Activities */}
         <div className="border-b border-progress-track">

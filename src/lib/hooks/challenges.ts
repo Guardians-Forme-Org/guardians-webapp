@@ -143,6 +143,75 @@ export function useSubmitEvidence() {
   });
 }
 
+export function useUpdateEvidence() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      evidenceId,
+      challengeId,
+      stepId,
+      userId,
+      payload,
+    }: {
+      evidenceId: string;
+      challengeId: string;
+      stepId: string;
+      userId: string;
+      payload: SubmitEvidencePayload;
+    }) => {
+      const token = getToken();
+      return apiFetch<void>(`/evidences/${evidenceId}`, {
+        method: "PUT",
+        body: payload,
+        headers: {
+          ...(token ? { Auth: `Bearer ${token}` } : {}),
+          "X-Step-ID": stepId,
+          "X-User-Id": userId,
+        },
+      });
+    },
+    onSuccess: (_data, { challengeId }) => {
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
+      queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+    },
+  });
+}
+
+export function useUpdateChallenge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      challengeId,
+      payload,
+      bannerFile,
+    }: {
+      challengeId: string;
+      payload: Record<string, unknown>;
+      bannerFile?: File;
+    }) => {
+      if (bannerFile) {
+        const formData = new FormData();
+        formData.append("metadata", JSON.stringify(payload));
+        formData.append("bannerFile", bannerFile);
+        return apiFetch<ApiCircleChallenge>(`/challenges/${challengeId}`, {
+          method: "PUT",
+          body: formData,
+        });
+      }
+      return apiFetch<ApiCircleChallenge>(`/challenges/${challengeId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: (_data, { challengeId }) => {
+      queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+      queryClient.invalidateQueries({ queryKey: ["challenges"] });
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
+    },
+  });
+}
+
 export function useAssignChallengeFacilitator() {
   const queryClient = useQueryClient();
   return useMutation({

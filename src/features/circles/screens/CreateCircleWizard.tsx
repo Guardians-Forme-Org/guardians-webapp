@@ -6,10 +6,10 @@ import LocationPicker, {
 import Text from "@/components/ui/Text";
 import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreateCircle } from "@/lib/hooks/circles";
+import { useCreateCircle, useUpdateCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
 import type { AuthUser } from "@/lib/types/auth";
-import type { CreateCircleResponse } from "@/lib/types/circles";
+import type { ApiCircle, CreateCircleResponse } from "@/lib/types/circles";
 import {
   ChevronLeft,
   Globe,
@@ -587,6 +587,7 @@ function Step4Review({
   onConfirm,
   isPending,
   error,
+  isEdit,
 }: {
   form: CircleFormData;
   location: LocationResult | null;
@@ -595,6 +596,7 @@ function Step4Review({
   onConfirm: () => void;
   isPending: boolean;
   error: string | null;
+  isEdit?: boolean;
 }) {
   const channelLabel = CHANNELS.find((c) => c.id === form.channelType)?.label;
 
@@ -651,7 +653,7 @@ function Step4Review({
           disabled={isPending}
           className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium disabled:opacity-50"
         >
-          {isPending ? "Creating…" : "Create Circle"}
+          {isPending ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Save Changes" : "Create Circle")}
         </button>
       </div>
     </>
@@ -662,80 +664,127 @@ function Step4Review({
 
 // ── Wizard shell ───────────────────────────────────────────────────────────────
 
-export default function CreateCircleWizard() {
+function channelIdFromName(name: string): ChannelId | "" {
+  const lower = name.toLowerCase();
+  if (lower.includes("whatsapp")) return "whatsapp";
+  if (lower.includes("facebook")) return "facebook";
+  if (lower.includes("email")) return "email";
+  return "";
+}
+
+export default function CreateCircleWizard({
+  editCircle,
+}: {
+  editCircle?: ApiCircle;
+}) {
   const router = useRouter();
   const { user } = useAuth();
-  const {
-    mutate: createCircle,
-    isPending,
-    error: apiError,
-  } = useCreateCircle();
+  const isEdit = !!editCircle;
+
+  const ch0 = editCircle?.communicationChannels?.[0];
+
+  const createCircle = useCreateCircle();
+  const updateCircle = useUpdateCircle();
 
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState<CircleFormData>(initialForm);
+  const [form, setForm] = useState<CircleFormData>(
+    isEdit
+      ? {
+          name: editCircle.name,
+          leads: "",
+          description: editCircle.description,
+          channelType: ch0 ? channelIdFromName(ch0.name) : "",
+          channelUrl: ch0?.url ?? "",
+          region: editCircle.region?.formattedAddress ?? "",
+          imagePreview: editCircle.bannerUrl ?? "",
+        }
+      : initialForm,
+  );
   const [location, setLocation] = useState<LocationResult | null>(null);
   const [selectedLead, setSelectedLead] = useState<AuthUser | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [createdCircle, setCreatedCircle] =
-    useState<CreateCircleResponse | null>(null);
+  const [createdCircle, setCreatedCircle] = useState<CreateCircleResponse | null>(null);
 
-  const next = () => setStep((s) => Math.min(s + 1, 5));
-  const back = () => {
-    if (step <= 1) router.back();
-    else setStep((s) => s - 1);
+  const next = () => {
+    // In edit mode skip step 2 (location)
+    if (isEdit && step === 1) { setStep(3); return; }
+    if (isEdit && step === 3) { setStep(4); return; }
+    setStep((s) => Math.min(s + 1, 5));
   };
-  const close = () => router.push("/discover");
+
+  const back = () => {
+    if (step <= 1) { router.back(); return; }
+    // In edit mode skip step 2 going backwards
+    if (isEdit && step === 3) { setStep(1); return; }
+    setStep((s) => s - 1);
+  };
+
+  const close = () =>
+    isEdit ? router.push(`/circles/${editCircle!.circleId}`) : router.push("/discover");
+
   const updateForm = (field: keyof CircleFormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
 
-  const handleSubmit = () => {
-    if (!user) return;
+  const buildChannels = () => {
     const selectedChannel = CHANNELS.find((c) => c.id === form.channelType);
-    createCircle(
-      {
-        metadata: {
-          name: form.name,
-          description: form.description,
-          createdBy: user.id,
-          creatorAvatarUrl: user.user_metadata.avatarUrl,
-          communicationChannels:
-            selectedChannel && form.channelUrl
-              ? [
-                  {
-                    name: selectedChannel.name,
-                    url: form.channelUrl,
-                    icon: selectedChannel.name,
-                  },
-                ]
-              : [],
-          ...(selectedLead ? { circleLeadId: selectedLead.id } : {}),
-          region: {
-            placeId: location?.placeId ?? "",
-            city: location?.city ?? "",
-            suburb: location?.suburb ?? "",
-            province: location?.province ?? "",
-            country: location?.country ?? "",
-            countryCode: location?.countryCode ?? "",
-            postalCode: location?.postalCode ?? "",
-            latitude: location?.latitude ?? 0,
-            longitude: location?.longitude ?? 0,
-            formattedAddress: location?.formattedAddress ?? "",
-          },
-        },
-        bannerFile: bannerFile ?? undefined,
-      },
-      {
-        onSuccess: (response) => {
-          setCreatedCircle(response);
-          next();
-        },
-      },
-    );
+    return selectedChannel && form.channelUrl
+      ? [{ name: selectedChannel.name, url: form.channelUrl, icon: selectedChannel.name }]
+      : [];
   };
 
+  const handleSubmit = () => {
+    if (!user) return;
+
+    if (isEdit) {
+      updateCircle.mutate(
+        {
+          circleId: editCircle!.circleId,
+          payload: {
+            name: form.name,
+            description: form.description,
+            communicationChannels: buildChannels(),
+            ...(selectedLead ? { circleLeadId: selectedLead.id } : {}),
+            ...(bannerFile ? {} : { bannerUrl: form.imagePreview }),
+          },
+          bannerFile: bannerFile ?? undefined,
+        },
+        { onSuccess: () => router.push(`/circles/${editCircle!.circleId}`) },
+      );
+    } else {
+      createCircle.mutate(
+        {
+          metadata: {
+            name: form.name,
+            description: form.description,
+            createdBy: user.id,
+            creatorAvatarUrl: user.user_metadata.avatarUrl,
+            communicationChannels: buildChannels(),
+            ...(selectedLead ? { circleLeadId: selectedLead.id } : {}),
+            region: {
+              placeId: location?.placeId ?? "",
+              city: location?.city ?? "",
+              suburb: location?.suburb ?? "",
+              province: location?.province ?? "",
+              country: location?.country ?? "",
+              countryCode: location?.countryCode ?? "",
+              postalCode: location?.postalCode ?? "",
+              latitude: location?.latitude ?? 0,
+              longitude: location?.longitude ?? 0,
+              formattedAddress: location?.formattedAddress ?? "",
+            },
+          },
+          bannerFile: bannerFile ?? undefined,
+        },
+        { onSuccess: (response) => { setCreatedCircle(response); next(); } },
+      );
+    }
+  };
+
+  const isPending = isEdit ? updateCircle.isPending : createCircle.isPending;
+  const apiError = isEdit ? updateCircle.error : createCircle.error;
   const submitError = apiError instanceof Error ? apiError.message : null;
 
-  if (step === 5 && createdCircle) {
+  if (!isEdit && step === 5 && createdCircle) {
     return (
       <WizardSuccessScreen
         title={createdCircle.name}
@@ -778,6 +827,7 @@ export default function CreateCircleWizard() {
             onConfirm={handleSubmit}
             isPending={isPending}
             error={submitError}
+            isEdit={isEdit}
           />
         )}
       </div>

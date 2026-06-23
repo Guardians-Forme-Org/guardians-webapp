@@ -63,6 +63,38 @@ export function useDeleteCircle() {
   });
 }
 
+export function useUpdateCircle() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      circleId,
+      payload,
+      bannerFile,
+    }: {
+      circleId: string;
+      payload: Record<string, unknown>;
+      bannerFile?: File;
+    }) => {
+      if (bannerFile) {
+        const formData = new FormData();
+        formData.append("metadata", JSON.stringify(payload));
+        formData.append("bannerFile", bannerFile);
+        return apiFetch<ApiCircle>(`/circles/${circleId}`, { method: "PUT", body: formData });
+      }
+      return apiFetch<ApiCircle>(`/circles/${circleId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: (_data, { circleId }) => {
+      queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
+      queryClient.invalidateQueries({ queryKey: ["circles"] });
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
+    },
+  });
+}
+
 export function useAssignCircleLead() {
   const queryClient = useQueryClient();
   return useMutation({

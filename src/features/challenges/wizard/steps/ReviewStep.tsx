@@ -129,7 +129,7 @@ export default function ReviewStep({
             onEdit={onGoToStep}
             showEdit={showEdit}
           >
-            <ReadOnlyField label="Hours" value={`${form.volunteerHours} hrs`} />
+            <ReadOnlyField label="Hours" value={`${form.volunteerHours} hours`} />
           </ReviewSection>
         )}
 

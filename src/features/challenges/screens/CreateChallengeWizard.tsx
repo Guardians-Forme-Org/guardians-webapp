@@ -7,12 +7,12 @@ import SearchBar from "@/components/ui/SearchBar";
 import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreateChallenge, useTemplates } from "@/lib/hooks/challenges";
+import { useCreateChallenge, useUpdateChallenge, useTemplates } from "@/lib/hooks/challenges";
 import { useCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
 import type { AuthUser } from "@/lib/types/auth";
 import type { ApiChallenge, ApiTemplate } from "@/lib/types/challenges";
-import type { ApiCircle } from "@/lib/types/circles";
+import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
 import {
   ChevronLeft,
   ChevronRight,
@@ -417,12 +417,14 @@ function Step3({
   onFileSelect,
   location,
   onLocationSelect,
+  isEdit,
 }: {
   form: FormData;
   onChange: (field: keyof FormData, value: string) => void;
   onFileSelect: (file: File) => void;
   location: LocationResult | null;
   onLocationSelect: (place: LocationResult) => void;
+  isEdit?: boolean;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -458,16 +460,28 @@ function Step3({
         </div>
 
         {/* Region */}
-        <div className="flex flex-col gap-2">
-          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            Region
-          </label>
-          <LocationPicker
-            defaultValue={location?.formattedAddress}
-            onSelect={onLocationSelect}
-            placeholder="Where is this challenge located?"
-          />
-        </div>
+        {!isEdit && (
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+              Region
+            </label>
+            <LocationPicker
+              defaultValue={location?.formattedAddress}
+              onSelect={onLocationSelect}
+              placeholder="Where is this challenge located?"
+            />
+          </div>
+        )}
+        {isEdit && form.region && (
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+              Region
+            </label>
+            <div className="h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 flex items-center bg-[#f9f9f9]">
+              <p className="text-base text-text-muted">{form.region}</p>
+            </div>
+          </div>
+        )}
 
         {/* Description */}
         <div className="flex flex-col gap-2">
@@ -726,6 +740,7 @@ function Step6({
   location,
   onGoToStep,
   circle,
+  isEdit,
 }: {
   form: FormData;
   onPublish: () => void;
@@ -735,6 +750,7 @@ function Step6({
   location: import("@/components/ui/LocationPicker").LocationResult | null;
   onGoToStep: (step: number) => void;
   circle: ApiCircle | undefined;
+  isEdit?: boolean;
 }) {
   const { user } = useAuth();
 
@@ -809,7 +825,7 @@ function Step6({
               disabled={isPending}
               className="px-5 h-10 bg-linear-to-r from-[#008000] to-[#129612] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] disabled:opacity-60"
             >
-              {isPending ? "Publishing…" : "Publish"}
+              {isPending ? (isEdit ? "Saving…" : "Publishing…") : (isEdit ? "Save Changes" : "Publish")}
             </button>
           </div>
         </div>
@@ -1019,15 +1035,47 @@ const NEXT_LABELS: Record<number, string> = {
   5: "Review and Publish",
 };
 
+function channelIdFromName(name: string): Channel {
+  const lower = name.toLowerCase();
+  if (lower.includes("whatsapp")) return "whatsapp";
+  if (lower.includes("facebook")) return "facebook";
+  return "email";
+}
+
 export default function CreateChallengeWizard({
   circleId,
+  editChallenge,
 }: {
   circleId: string;
+  editChallenge?: ApiCircleChallenge;
 }) {
   const router = useRouter();
   const { user } = useAuth();
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormData>({ ...initialForm, circleId });
+  const isEdit = !!editChallenge;
+
+  const ch0 = editChallenge?.communicationChannels?.[0];
+  const facilitatorId =
+    (editChallenge?.facilitator as { id?: string; userId?: string } | null)?.id ??
+    (editChallenge?.facilitator as { id?: string; userId?: string } | null)?.userId ??
+    "";
+
+  const [step, setStep] = useState(isEdit ? 3 : 1);
+  const [form, setForm] = useState<FormData>(
+    isEdit
+      ? {
+          templateId: editChallenge.templateId ?? editChallenge.challengeCode,
+          name: editChallenge.name,
+          region: editChallenge.region?.formattedAddress ?? "",
+          description: editChallenge.description,
+          circleId: editChallenge.circleId,
+          supportedBy: "",
+          facilitatorId,
+          channel: ch0 ? channelIdFromName(ch0.name) : "whatsapp",
+          channelLink: ch0?.url ?? "",
+          bannerUrl: editChallenge.bannerUrl ?? "",
+        }
+      : { ...initialForm, circleId },
+  );
   const [location, setLocation] = useState<LocationResult | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [createdChallenge, setCreatedChallenge] = useState<ApiChallenge | null>(null);
@@ -1038,54 +1086,73 @@ export default function CreateChallengeWizard({
   const { data: users = [], isLoading: usersLoading } = useUsers();
   const { data: selectedCircle } = useCircle(circleId);
   const createChallenge = useCreateChallenge();
+  const updateChallenge = useUpdateChallenge();
 
   const next = () => setStep((s) => Math.min(s + 1, 7));
   const back = () => {
-    if (step <= 1) router.back();
+    if (isEdit && step <= 3) router.back();
+    else if (!isEdit && step <= 1) router.back();
     else setStep((s) => s - 1);
   };
-  const close = () => router.push("/discover");
+  const close = () =>
+    isEdit
+      ? router.push(`/challenges/${editChallenge!.challengeId}`)
+      : router.push("/discover");
 
   const updateForm = (field: keyof FormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
 
-  const handlePublish = () => {
+  const buildChannels = () => {
     const selectedChannel = CHANNELS.find((c) => c.id === form.channel);
-    createChallenge.mutate(
-      {
-        metadata: {
-          name: form.name,
-          description: form.description,
-          circleId: form.circleId,
-          templateId: form.templateId,
-          challengeCode: form.templateId,
-          createdBy: user?.id ?? "",
-          facilitatorId: form.facilitatorId,
-          equipments: [],
-          communicationChannels:
-            selectedChannel && form.channelLink
-              ? [
-                  {
-                    name: selectedChannel.label,
-                    url: form.channelLink,
-                    icon: selectedChannel.label,
-                  },
-                ]
-              : [],
-          location: location
-            ? { ...location, address: location.formattedAddress }
-            : null,
-          region: location
-            ? { ...location, address: location.formattedAddress }
-            : null,
-        },
-        bannerFile: bannerFile ?? undefined,
-      },
-      { onSuccess: (data) => { setCreatedChallenge(data); next(); } },
-    );
+    return selectedChannel && form.channelLink
+      ? [{ name: selectedChannel.label, url: form.channelLink, icon: selectedChannel.label }]
+      : [];
   };
 
-  if (step === 7) {
+  const handlePublish = () => {
+    const locationPayload = location
+      ? { ...location, address: location.formattedAddress }
+      : null;
+
+    if (isEdit) {
+      updateChallenge.mutate(
+        {
+          challengeId: editChallenge!.challengeId,
+          payload: {
+            name: form.name,
+            description: form.description,
+            facilitatorId: form.facilitatorId,
+            communicationChannels: buildChannels(),
+            ...(bannerFile ? {} : { bannerUrl: form.bannerUrl }),
+          },
+          bannerFile: bannerFile ?? undefined,
+        },
+        { onSuccess: () => router.push(`/challenges/${editChallenge!.challengeId}`) },
+      );
+    } else {
+      createChallenge.mutate(
+        {
+          metadata: {
+            name: form.name,
+            description: form.description,
+            circleId: form.circleId,
+            templateId: form.templateId,
+            challengeCode: form.templateId,
+            createdBy: user?.id ?? "",
+            facilitatorId: form.facilitatorId,
+            equipments: [],
+            communicationChannels: buildChannels(),
+            location: locationPayload,
+            region: locationPayload,
+          },
+          bannerFile: bannerFile ?? undefined,
+        },
+        { onSuccess: (data) => { setCreatedChallenge(data); next(); } },
+      );
+    }
+  };
+
+  if (!isEdit && step === 7) {
     const inviteLink = createdChallenge
       ? `${window.location.origin}/challenges/${createdChallenge.challengeId}`
       : undefined;
@@ -1099,12 +1166,14 @@ export default function CreateChallengeWizard({
     );
   }
 
+  const isPending = isEdit ? updateChallenge.isPending : createChallenge.isPending;
+
   return (
     <div className="flex flex-col min-h-full bg-white">
       <WizardHeader step={step} onBack={back} onClose={close} />
 
       <div className="flex-1 overflow-y-auto">
-        {step === 1 && (
+        {step === 1 && !isEdit && (
           <Step1
             form={form}
             onChange={(id) => updateForm("templateId", id)}
@@ -1112,7 +1181,7 @@ export default function CreateChallengeWizard({
             isLoading={templatesLoading}
           />
         )}
-        {step === 2 && <Step2 form={form} templates={templates} />}
+        {step === 2 && !isEdit && <Step2 form={form} templates={templates} />}
         {step === 3 && (
           <Step3
             form={form}
@@ -1120,6 +1189,7 @@ export default function CreateChallengeWizard({
             onFileSelect={setBannerFile}
             location={location}
             onLocationSelect={setLocation}
+            isEdit={isEdit}
           />
         )}
         {step === 4 && (
@@ -1142,16 +1212,16 @@ export default function CreateChallengeWizard({
             form={form}
             onPublish={handlePublish}
             templates={templates}
-            isPending={createChallenge.isPending}
+            isPending={isPending}
             users={users}
             location={location}
             onGoToStep={setStep}
             circle={selectedCircle}
+            isEdit={isEdit}
           />
         )}
       </div>
 
-      {/* Only steps 1–5 use the bottom Next button; step 6 uses the inline Publish */}
       {step <= 5 && (
         <WizardNextButton label={NEXT_LABELS[step] ?? "Next"} onClick={next} />
       )}

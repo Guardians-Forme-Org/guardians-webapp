@@ -28,7 +28,7 @@ export default function VolunteerHoursStep({ form, update, onNext, nextLabel }: 
             className="flex-1 h-[52px] px-3 text-xl text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none bg-white"
           />
           <div className="h-[52px] px-4 flex items-center bg-[#f0efeb] border-l border-[rgba(26,26,24,0.14)]">
-            <span className="text-base font-semibold text-text-primary">hrs</span>
+            <span className="text-base font-semibold text-text-primary">hours</span>
           </div>
         </div>
       </div>

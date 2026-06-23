@@ -7,14 +7,17 @@ import { useChallenge, useJoinChallenge } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
 import type { ApiCircle, ApiCircleChallenge, ApiCircleChallengeMember } from "@/lib/types/circles";
-import { calcChallengeProgress } from "@/lib/utils";
+import { calcChallengeProgress, deriveImpactLabel, formatImpactDisplayValue } from "@/lib/utils";
+import { canManageCircle, isWhitelisted } from "@/lib/permissions";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle, ChevronRight, MapPin } from "lucide-react";
+import { CheckCircle, ChevronRight, MapPin, Pencil } from "lucide-react";
 import JoinConversationButton from "@/components/ui/JoinConversationButton";
 import { useRouter } from "@/i18n/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
+import RoleBadge from "@/components/ui/RoleBadge";
+import { computeChallengeRoles } from "@/lib/roles";
 
 function HomeTab({
   challenge,
@@ -177,16 +180,16 @@ function HomeTab({
             {(challenge.impactRecords ?? []).map((record, i) => (
               <div
                 key={record.impactRecordId}
-                className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-2 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}
+                className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-1.5 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}
               >
                 <p className="text-[12px] text-[#767676] leading-snug">
-                  {record.impactSummary.impact.summary}
+                  {deriveImpactLabel(record.impactSummary.impact.shortSummary ?? record.impactSummary.impact.summary)}
                 </p>
                 <p className="text-2xl font-semibold text-[#333]">
-                  {record.impactSummary.impact.displayName}
+                  {formatImpactDisplayValue(record.impactSummary.impact.displayName)}
                 </p>
                 <p className="text-[11px] text-text-muted">
-                  {record.impactSummary.contribution.displayName} contributed
+                  {formatImpactDisplayValue(record.impactSummary.contribution.displayName)} contributed
                 </p>
               </div>
             ))}
@@ -272,6 +275,18 @@ export default function ChallengeScreen({ challengeId }: Props) {
 
   const isMember = !!user && (challenge.members ?? []).some((m) => m.userId === user.id);
 
+  const facilitator = challenge.facilitator as { id?: string; userId?: string } | null;
+  const isFacilitator =
+    !!user &&
+    !!(
+      (facilitator?.id && facilitator.id === user.id) ||
+      (facilitator?.userId && facilitator.userId === user.id)
+    );
+  const canEdit =
+    isWhitelisted(user?.email) ||
+    isFacilitator ||
+    canManageCircle(user?.email, user?.id, circle ?? { createdBy: challenge.createdBy });
+
   const since = new Date(challenge.createdAt).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
@@ -295,10 +310,20 @@ export default function ChallengeScreen({ challengeId }: Props) {
               </span>
             )}
           </div>
-          <h1 className="text-[28px] font-bold text-text-subheading mt-3 leading-tight">
-            {challenge.name}
-          </h1>
-          <p className="text-base text-[#666] mt-1">Since {since}</p>
+          <div className="flex items-start justify-between mt-3 gap-2">
+            <h1 className="text-[28px] font-bold text-text-subheading leading-tight flex-1">
+              {challenge.name}
+            </h1>
+            {canEdit && (
+              <Link href={`/challenges/${challengeId}/edit`} className="p-1 mt-1 shrink-0">
+                <Pencil size={18} className="text-text-muted" />
+              </Link>
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <p className="text-base text-[#666]">Since {since}</p>
+            <RoleBadge roles={computeChallengeRoles(user?.id, user?.email, challenge)} />
+          </div>
           <div className="mt-3 flex items-center gap-3">
             {(() => {
               const isPending = joinChallenge.isPending;

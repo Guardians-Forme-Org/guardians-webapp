@@ -48,10 +48,6 @@ export default function HomeScreen() {
   ];
 
   const { data: publicMetrics } = usePublicMetrics();
-  const globalStats = (publicMetrics ?? []).map((m) => ({
-    label: m.name,
-    value: m.displayValue,
-  }));
 
   const challenges = loginData?.challenges ?? [];
   const circles = loginData?.circles ?? [];
@@ -76,7 +72,12 @@ export default function HomeScreen() {
         onClick={() => router.push("/profile")}
       />
 
-      <ImpactSection badgeStats={badgeStats} activityStats={activityStats} globalStats={globalStats} />
+      <ImpactSection
+        badgeStats={badgeStats}
+        activityStats={activityStats}
+        impactMatrix={publicMetrics?.impactMatrix}
+        thingsMatrix={publicMetrics?.thingsMatrix}
+      />
 
       <section className="mb-6">
         <div className="px-5">
