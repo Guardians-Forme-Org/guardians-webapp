@@ -334,7 +334,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
                   onClick={() => {
                     if (!user) {
                       sessionStorage.setItem("guardians_return_to", `/challenges/${challengeId}`);
-                      router.push("/login");
+                      router.push("/");
                       return;
                     }
                     joinChallenge.mutate({ challengeId, userId: user.id });

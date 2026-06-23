@@ -736,6 +736,7 @@ function Step6({
   onPublish,
   templates,
   isPending,
+  error,
   users,
   location,
   onGoToStep,
@@ -746,6 +747,7 @@ function Step6({
   onPublish: () => void;
   templates: ApiTemplate[];
   isPending: boolean;
+  error: string | null;
   users: AuthUser[];
   location: import("@/components/ui/LocationPicker").LocationResult | null;
   onGoToStep: (step: number) => void;
@@ -819,11 +821,14 @@ function Step6({
           </div>
           <p className="text-base text-[#666] mt-1">Since {today}</p>
 
-          <div className="mt-3 mb-6">
+          <div className="mt-3 mb-6 flex flex-col gap-2">
+            {error && (
+              <p className="text-sm text-red-600">{error}</p>
+            )}
             <button
               onClick={onPublish}
               disabled={isPending}
-              className="px-5 h-10 bg-linear-to-r from-[#008000] to-[#129612] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] disabled:opacity-60"
+              className="px-5 h-10 bg-linear-to-r from-[#008000] to-[#129612] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] disabled:opacity-60 self-start"
             >
               {isPending ? (isEdit ? "Saving…" : "Publishing…") : (isEdit ? "Save Changes" : "Publish")}
             </button>
@@ -1167,6 +1172,8 @@ export default function CreateChallengeWizard({
   }
 
   const isPending = isEdit ? updateChallenge.isPending : createChallenge.isPending;
+  const apiError = isEdit ? updateChallenge.error : createChallenge.error;
+  const submitError = apiError instanceof Error ? apiError.message : null;
 
   return (
     <div className="flex flex-col min-h-full bg-white">
@@ -1213,6 +1220,7 @@ export default function CreateChallengeWizard({
             onPublish={handlePublish}
             templates={templates}
             isPending={isPending}
+            error={submitError}
             users={users}
             location={location}
             onGoToStep={setStep}

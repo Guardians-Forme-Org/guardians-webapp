@@ -208,7 +208,7 @@ export default function CircleScreen({ circleId }: Props) {
                   onClick={() => {
                     if (!user) {
                       sessionStorage.setItem("guardians_return_to", `/circles/${circleId}`);
-                      router.push("/login");
+                      router.push("/");
                       return;
                     }
                     joinCircle.mutate({ circleId, userId: user.id });

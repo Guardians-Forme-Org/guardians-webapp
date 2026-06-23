@@ -8,7 +8,7 @@ import { ArrowRight, ChevronRight, MapPin } from "lucide-react";
 import SearchBar from "@/components/ui/SearchBar";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { isWhitelisted, canManageCircle } from "@/lib/permissions";
+import { isWhitelisted, isCircleLead } from "@/lib/permissions";
 import type { ApiCircle, CirclesListResponse } from "@/lib/types/circles";
 import { useChallenges } from "@/lib/hooks/challenges";
 import ChallengeCard from "@/features/challenges/components/ChallengeCard";
@@ -149,8 +149,10 @@ export default function DiscoverScreen() {
 
   const { data: apiChallenges, isLoading: challengesLoading } = useChallenges();
 
+  // Only admins and circle leads can create challenges
+  // Admins see all circles; circle leads see only their circles
   const myCircles = (apiCircles ?? []).filter((c) =>
-    canManageCircle(user?.email, user?.id, c),
+    isWhitelisted(user?.email) || isCircleLead(user?.id, c),
   );
 
   const handleCreateChallenge = () => {

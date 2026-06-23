@@ -14,6 +14,15 @@ export const metadata: Metadata = {
   title: "GOTF",
   description:
     "Guardians of the Future is a civic action platform that makes real-world community impact honest, visible, and worth proving.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "GOTF",
+  },
+  icons: {
+    apple: "/images/192.jpg",
+    icon: "/images/192.jpg",
+  },
 };
 
 export const viewport: Viewport = {

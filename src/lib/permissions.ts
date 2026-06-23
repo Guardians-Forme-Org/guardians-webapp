@@ -21,6 +21,15 @@ type CircleRef = {
   circleLead?: unknown;
 };
 
+export function isCircleLead(
+  userId: string | null | undefined,
+  circle: CircleRef,
+): boolean {
+  if (!userId) return false;
+  const lead = circle.circleLead as { id?: string; userId?: string } | null;
+  return !!(lead && (userId === lead.id || userId === lead.userId));
+}
+
 export function canManageCircle(
   userEmail: string | null | undefined,
   userId: string | null | undefined,

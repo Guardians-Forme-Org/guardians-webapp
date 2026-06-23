@@ -51,11 +51,11 @@ export default function AppLayoutClient({
       .find((m) => m.userId === user?.id)?.avatarUrl ||
     undefined;
 
-  // Auth gate — save intended path then redirect to login (skip for public routes)
+  // Auth gate — save intended path then redirect to onboarding (skip for public routes)
   useEffect(() => {
     if (!getToken() && !isPublic) {
       sessionStorage.setItem("guardians_return_to", pathname);
-      router.replace("/login");
+      router.replace("/");
     }
   }, [router, pathname, isPublic]);
 

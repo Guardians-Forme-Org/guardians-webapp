@@ -31,7 +31,7 @@ export default function BottomNavBar({ avatarUrl, isAuthenticated = true }: Prop
                 key={href}
                 onClick={() => {
                   sessionStorage.setItem("guardians_return_to", "/profile");
-                  router.push("/login");
+                  router.push("/");
                 }}
                 className="flex flex-col items-center gap-1 py-3 px-6 min-w-15"
               >
