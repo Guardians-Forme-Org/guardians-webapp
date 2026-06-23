@@ -20,7 +20,7 @@ export type LogFormData = {
   contributors: string[];
   volunteerHours: string;
   measurementValue: string;
-  measurementType: "VOLUME" | "MASS";
+  measurementType: "VOLUME" | "MASS" | "AREA";
 };
 
 export const initForm = (): LogFormData => ({

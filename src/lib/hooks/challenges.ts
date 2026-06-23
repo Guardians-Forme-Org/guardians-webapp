@@ -212,6 +212,96 @@ export function useUpdateChallenge() {
   });
 }
 
+type RegistrationPayload = {
+  stepId: string;
+  circleId: string;
+  stepNumber: number;
+  stepType: string;
+  challengeCode: string;
+  challengeId: string;
+  submittedBy: string;
+  volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
+  contributors: string[];
+  data: {
+    unitOfMeasure: "LOCATION";
+    currentActivity: string;
+    permission: { obtained: boolean; holder: string };
+    currentCondition: string;
+    measurement: { value: number; unitOfMeasure: string; siUnit: "AREA" };
+    location: Record<string, unknown> | null;
+  };
+};
+
+export function useSubmitRegistration() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      challengeCode,
+      challengeId,
+      stepId,
+      userId,
+      payload,
+      mediaFile,
+    }: {
+      challengeCode: string;
+      challengeId: string;
+      stepId: string;
+      userId: string;
+      payload: RegistrationPayload;
+      mediaFile?: File;
+    }) => {
+      const token = getToken();
+      const formData = new FormData();
+      formData.append("metadata", JSON.stringify(payload));
+      if (mediaFile) formData.append("mediaFile", mediaFile);
+      return apiFetch<void>("/challengeSetup", {
+        method: "POST",
+        body: formData,
+        headers: {
+          ...(token ? { Auth: `Bearer ${token}` } : {}),
+          "X-Step-ID": stepId,
+          "X-User-Id": userId,
+        },
+      });
+    },
+    onSuccess: (_data, { challengeId }) => {
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
+      queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+    },
+  });
+}
+
+type MarkStepCompletePayload = {
+  stepNumber: number;
+  stepType: string;
+  stepId: string;
+  title: string;
+  description: string;
+  isCompleted: boolean;
+};
+
+export function useMarkStepComplete() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      challengeId,
+      step,
+    }: {
+      challengeId: string;
+      step: MarkStepCompletePayload;
+    }) =>
+      apiFetch<void>(`/challenges/${challengeId}/steps`, {
+        method: "PUT",
+        body: step,
+        headers: { "X-Step-ID": step.stepId },
+      }),
+    onSuccess: (_data, { challengeId }) => {
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
+      queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+    },
+  });
+}
+
 export function useAssignChallengeFacilitator() {
   const queryClient = useQueryClient();
   return useMutation({

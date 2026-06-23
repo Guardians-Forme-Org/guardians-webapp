@@ -167,7 +167,7 @@ export type ApiCircleChallenge = {
     stepId: string;
     title: string;
     description: string;
-    completed?: boolean;
+    isCompleted: boolean;
   }> | null;
   template?: {
     targetSDG?: { code: string; title: string; infoUrl?: string } | null;

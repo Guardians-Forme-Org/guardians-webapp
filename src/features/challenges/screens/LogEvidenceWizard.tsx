@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useChallenge, useSubmitEvidence, useUpdateEvidence } from "@/lib/hooks/challenges";
+import { useChallenge, useSubmitEvidence, useSubmitRegistration, useUpdateEvidence } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import { EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
 import { computeChallengeRoles } from "@/lib/roles";
@@ -50,6 +50,9 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
   const { data: users = [] } = useUsers();
   const submitEvidence = useSubmitEvidence();
   const updateEvidence = useUpdateEvidence();
+  const submitRegistration = useSubmitRegistration();
+
+  const isRegistrationStep = stepId === "SETUP_AND_REGISTRATION";
 
   const config = STEP_FORM_CONFIGS[stepId] ?? DEFAULT_FORM_CONFIG;
   const totalSteps = config.wizardSteps.length;
@@ -57,7 +60,9 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
   const [step, setStep] = useState(() => viewId ? totalSteps : 1);
   const [isViewMode, setIsViewMode] = useState(!!viewId);
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState<LogFormData>(initForm);
+  const [form, setForm] = useState<LogFormData>(() =>
+    isRegistrationStep ? { ...initForm(), measurementType: "AREA" } : initForm()
+  );
 
   const currentStepType = config.wizardSteps[step - 1]?.type;
   const nextStepType = config.wizardSteps[step]?.type;
@@ -157,10 +162,78 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     };
   };
 
+  const buildRegistrationPayload = () => {
+    if (!user || !challenge || !stepMeta) throw new Error("Not ready");
+    return {
+      stepId: stepMeta.stepId,
+      circleId: challenge.circleId,
+      stepNumber: stepMeta.stepNumber,
+      stepType: stepMeta.stepType,
+      challengeCode: challenge.challengeCode,
+      challengeId: challenge.challengeId,
+      submittedBy: user.id,
+      volunteerHours: {
+        value: parseFloat(form.volunteerHours) || 0,
+        unitOfMeasure: "hours",
+        siUnit: "TIME",
+      },
+      contributors: form.contributors,
+      data: {
+        unitOfMeasure: "LOCATION" as const,
+        currentActivity: "",
+        permission: {
+          obtained: form.permissionConfirmed,
+          holder: form.permissionHolder,
+        },
+        currentCondition: form.siteCondition,
+        measurement: {
+          value: parseFloat(form.measurementValue) || 0,
+          unitOfMeasure: form.areaUnit,
+          siUnit: "AREA" as const,
+        },
+        location: form.locationResult
+          ? {
+              placeId: form.locationResult.placeId,
+              suburb: form.locationResult.suburb,
+              city: form.locationResult.city,
+              country: form.locationResult.country,
+              countryCode: form.locationResult.countryCode,
+              province: form.locationResult.province,
+              latitude: form.locationResult.latitude,
+              longitude: form.locationResult.longitude,
+              formattedAddress: form.locationResult.formattedAddress,
+              postalCode: form.locationResult.postalCode,
+            }
+          : null,
+      },
+    };
+  };
+
   const submit = () => {
     if (!user) throw new Error("Not authenticated");
     if (!challenge) throw new Error("Challenge not loaded");
     if (!stepMeta) throw new Error("Step not found in challenge");
+
+    if (isRegistrationStep) {
+      const payload = buildRegistrationPayload();
+      submitRegistration.mutate(
+        {
+          challengeCode: challenge.challengeCode,
+          challengeId: challenge.challengeId,
+          stepId: stepMeta.stepId,
+          userId: user.id,
+          payload,
+          mediaFile: form.evidenceFiles[0],
+        },
+        {
+          onSuccess: () => {
+            localStorage.removeItem(STORAGE_KEY(stepId));
+            setSubmitted(true);
+          },
+        },
+      );
+      return;
+    }
 
     const payload = buildPayload();
 
@@ -185,15 +258,19 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
   };
 
   const submitError =
-    submitEvidence.isError
-      ? submitEvidence.error instanceof Error
-        ? submitEvidence.error.message
+    submitRegistration.isError
+      ? submitRegistration.error instanceof Error
+        ? submitRegistration.error.message
         : "Submission failed. Please try again."
-      : updateEvidence.isError
-        ? updateEvidence.error instanceof Error
-          ? updateEvidence.error.message
-          : "Update failed. Please try again."
-        : null;
+      : submitEvidence.isError
+        ? submitEvidence.error instanceof Error
+          ? submitEvidence.error.message
+          : "Submission failed. Please try again."
+        : updateEvidence.isError
+          ? updateEvidence.error instanceof Error
+            ? updateEvidence.error.message
+            : "Update failed. Please try again."
+          : null;
 
   if (submitted) {
     return (
@@ -261,7 +338,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
             onDelete={() => { setForm(initForm()); setStep(1); }}
             onUpload={submit}
             onGoToStep={isViewMode ? handleGoToStep : setStep}
-            isPending={submitEvidence.isPending || updateEvidence.isPending}
+            isPending={submitRegistration.isPending || submitEvidence.isPending || updateEvidence.isPending}
             error={submitError}
             users={users}
             readOnly={isViewMode}

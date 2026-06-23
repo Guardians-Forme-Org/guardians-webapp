@@ -3,7 +3,7 @@
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import { useChallenge } from "@/lib/hooks/challenges";
+import { useChallenge, useMarkStepComplete } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle, isWhitelisted } from "@/lib/permissions";
 import { computeChallengeRoles } from "@/lib/roles";
@@ -21,6 +21,8 @@ type Props = { challengeId: string; stepId: string };
 export default function StepScreen({ challengeId, stepId }: Props) {
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const markComplete = useMarkStepComplete();
 
   const { data: challenge, isLoading } = useChallenge(challengeId);
   const { data: users = [] } = useUsers();
@@ -118,12 +120,57 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                 >
                   Upload Evidence
                 </Link>
-                <Link
-                  href={`/challenges/${challengeId}/steps/${stepId}/log`}
-                  className="w-full h-12 border border-[#1a1a1a] text-[#1a1a1a] text-base font-semibold rounded-full flex items-center justify-center"
-                >
-                  Mark Complete
-                </Link>
+
+                {step.isCompleted ? (
+                  <div className="w-full h-12 border border-gotf-green text-gotf-green text-base font-semibold rounded-full flex items-center justify-center gap-2">
+                    <span>✓</span> Completed
+                  </div>
+                ) : confirming ? (
+                  <div className="flex flex-col gap-2.5">
+                    {markComplete.isError && (
+                      <p className="text-red-500 text-sm text-center">
+                        {markComplete.error instanceof Error
+                          ? markComplete.error.message
+                          : "Failed. Please try again."}
+                      </p>
+                    )}
+                    <button
+                      onClick={() =>
+                        markComplete.mutate(
+                          {
+                            challengeId,
+                            step: {
+                              stepNumber: step.stepNumber,
+                              stepType: step.stepType,
+                              stepId: step.stepId,
+                              title: step.title,
+                              description: step.description,
+                              isCompleted: true,
+                            },
+                          },
+                          { onSuccess: () => setConfirming(false) },
+                        )
+                      }
+                      disabled={markComplete.isPending}
+                      className="w-full h-12 bg-gotf-green text-white text-base font-semibold rounded-full flex items-center justify-center"
+                    >
+                      {markComplete.isPending ? "Saving…" : "Confirm Complete"}
+                    </button>
+                    <button
+                      onClick={() => { setConfirming(false); markComplete.reset(); }}
+                      className="w-full h-12 border border-[#1a1a1a] text-[#1a1a1a] text-base font-semibold rounded-full flex items-center justify-center"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirming(true)}
+                    className="w-full h-12 border border-[#1a1a1a] text-[#1a1a1a] text-base font-semibold rounded-full flex items-center justify-center"
+                  >
+                    Mark Complete
+                  </button>
+                )}
               </div>
             )}
           </div>

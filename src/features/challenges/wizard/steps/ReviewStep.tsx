@@ -143,10 +143,14 @@ export default function ReviewStep({
             {form.measurementValue && (
               <ReadOnlyField
                 label="Amount"
-                value={`${form.measurementValue} ${form.measurementType === "VOLUME" ? "L" : "kg"}`}
+                value={
+                  form.measurementType === "AREA"
+                    ? `${form.measurementValue} ${form.areaUnit}`
+                    : `${form.measurementValue} ${form.measurementType === "VOLUME" ? "L" : "kg"}`
+                }
               />
             )}
-            {form.impactDescription && (
+            {form.measurementType !== "AREA" && form.impactDescription && (
               <ReadOnlyField
                 label="Description"
                 value={form.impactDescription}

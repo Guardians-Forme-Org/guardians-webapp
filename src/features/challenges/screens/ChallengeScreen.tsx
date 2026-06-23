@@ -207,10 +207,10 @@ function HomeTab({
                 key={step.stepId}
                 href={`/challenges/${challengeId}/steps/${step.stepId}`}
                 className={`flex items-center gap-4 border rounded-[10px] px-4 py-2.5 ${
-                  step.completed ? "border-gotf-green bg-[#f0faf0]" : "border-[#eee]"
+                  step.isCompleted ? "border-gotf-green bg-[#f0faf0]" : "border-[#eee]"
                 }`}
               >
-                {step.completed
+                {step.isCompleted
                   ? <CheckCircle size={18} className="text-gotf-green shrink-0" />
                   : <p className="text-base font-medium text-black w-3 shrink-0 text-center">{step.stepNumber}</p>
                 }

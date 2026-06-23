@@ -19,6 +19,16 @@ export type FormConfig = {
 
 // FE mock — move stepId → formConfig mapping to BE later
 export const STEP_FORM_CONFIGS: Record<string, FormConfig> = {
+  SETUP_AND_REGISTRATION: {
+    wizardSteps: [
+      { type: "measurement" },
+      { type: "region" },
+      { type: "volunteer-hours" },
+      { type: "contributors" },
+      { type: "file-upload" },
+      { type: "review" },
+    ],
+  },
   ACTIVATION_MODEL_REGISTRATION: {
     wizardSteps: [
       { type: "file-upload" },
