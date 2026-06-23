@@ -19,7 +19,7 @@ export function formatImpactDisplayValue(displayName: string): string {
 export function calcChallengeProgress(challenge: {
   steps: number;
   currentStep: number;
-  challengeSteps?: Array<{ completed?: boolean }> | null;
+  challengeSteps?: Array<{ isCompleted: boolean }> | null;
 }): { percent: number; completedCount: number } {
   if (challenge.steps <= 0) return { percent: 0, completedCount: 0 };
   const steps = challenge.challengeSteps;

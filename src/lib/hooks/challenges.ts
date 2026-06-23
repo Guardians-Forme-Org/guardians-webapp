@@ -189,19 +189,12 @@ export function useUpdateChallenge() {
       payload: Record<string, unknown>;
       bannerFile?: File;
     }) => {
-      if (bannerFile) {
-        const formData = new FormData();
-        formData.append("metadata", JSON.stringify(payload));
-        formData.append("bannerFile", bannerFile);
-        return apiFetch<ApiCircleChallenge>(`/challenges/${challengeId}`, {
-          method: "PUT",
-          body: formData,
-        });
-      }
+      const formData = new FormData();
+      formData.append("metadata", JSON.stringify(payload));
+      if (bannerFile) formData.append("bannerFile", bannerFile);
       return apiFetch<ApiCircleChallenge>(`/challenges/${challengeId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: formData,
       });
     },
     onSuccess: (_data, { challengeId }) => {
