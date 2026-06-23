@@ -5,6 +5,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { usePublicMetrics } from "@/lib/hooks/metrics";
 import ChallengeCard from "../components/ChallengeCard";
 import CircleListItem from "../components/CircleListItem";
 import HomeHeader from "../components/HomeHeader";
@@ -46,6 +47,12 @@ export default function HomeScreen() {
     { label: "", value: "" },
   ];
 
+  const { data: publicMetrics } = usePublicMetrics();
+  const globalStats = (publicMetrics ?? []).map((m) => ({
+    label: m.name,
+    value: m.displayValue,
+  }));
+
   const challenges = loginData?.challenges ?? [];
   const circles = loginData?.circles ?? [];
 
@@ -69,7 +76,7 @@ export default function HomeScreen() {
         onClick={() => router.push("/profile")}
       />
 
-      <ImpactSection badgeStats={badgeStats} activityStats={activityStats} />
+      <ImpactSection badgeStats={badgeStats} activityStats={activityStats} globalStats={globalStats} />
 
       <section className="mb-6">
         <div className="px-5">

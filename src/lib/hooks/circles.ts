@@ -18,12 +18,17 @@ export function useCircle(circleId: string) {
 }
 
 export function useCreateCircle() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ metadata, bannerFile }: { metadata: CreateCircleRequest; bannerFile?: File }) => {
       const formData = new FormData();
       formData.append("metadata", JSON.stringify(metadata));
       if (bannerFile) formData.append("bannerFile", bannerFile);
       return apiFetch<CreateCircleResponse>("/createcircle", { method: "POST", body: formData });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
+      queryClient.invalidateQueries({ queryKey: ["circles"] });
     },
     onError: (error) => {
       console.error("[createCircle] error:", error);
@@ -40,6 +45,7 @@ export function useJoinCircle() {
         headers: { "X-User-ID": userId },
       }),
     onSuccess: (_data, { circleId }) => {
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
     },
   });
@@ -51,6 +57,7 @@ export function useDeleteCircle() {
     mutationFn: (circleId: string) =>
       apiFetch<void>(`/circles/${circleId}`, { method: "DELETE" }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["circles"] });
     },
   });

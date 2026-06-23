@@ -350,6 +350,13 @@ function Step3({
         >
           {loading ? t("step3.creating") : t("step3.confirm")}
         </button>
+        <button
+          onClick={onConfirm}
+          disabled={loading}
+          className="w-full py-2 text-sm text-[#666] text-center disabled:opacity-50"
+        >
+          Skip for now
+        </button>
       </div>
     </div>
   );

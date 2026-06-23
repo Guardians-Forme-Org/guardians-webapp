@@ -18,6 +18,18 @@ function isWizardPath(pathname: string) {
   return false;
 }
 
+// Public paths — readable without a session; auth prompt only on join actions
+function isPublicPath(pathname: string): boolean {
+  if (pathname === "/discover") return true;
+  if (pathname.startsWith("/circles/") && !pathname.startsWith("/circles/create")) return true;
+  if (
+    pathname.startsWith("/challenges/") &&
+    !pathname.startsWith("/challenges/create") &&
+    !pathname.includes("/log")
+  ) return true;
+  return false;
+}
+
 export default function AppLayoutClient({
   children,
 }: {
@@ -26,6 +38,7 @@ export default function AppLayoutClient({
   const pathname = usePathname();
   const router = useRouter();
   const wizard = isWizardPath(pathname);
+  const isPublic = isPublicPath(pathname);
   const mainRef = useRef<HTMLElement>(null);
   const { user, loginData } = getStoredSession();
   const avatarUrl =
@@ -38,13 +51,13 @@ export default function AppLayoutClient({
       .find((m) => m.userId === user?.id)?.avatarUrl ||
     undefined;
 
-  // Auth gate — save intended path then redirect to login
+  // Auth gate — save intended path then redirect to login (skip for public routes)
   useEffect(() => {
-    if (!getToken()) {
+    if (!getToken() && !isPublic) {
       sessionStorage.setItem("guardians_return_to", pathname);
       router.replace("/login");
     }
-  }, [router, pathname]);
+  }, [router, pathname, isPublic]);
 
   // Reset scroll on every navigation — Next.js only resets window.scrollY,
   // not the scroll position of inner overflow-y-auto containers.
@@ -52,8 +65,8 @@ export default function AppLayoutClient({
     mainRef.current?.scrollTo(0, 0);
   }, [pathname]);
 
-  // While auth check runs, render nothing to avoid flash
-  if (typeof window !== "undefined" && !getToken()) return null;
+  // While auth check runs, render nothing to avoid flash (public routes skip this)
+  if (typeof window !== "undefined" && !getToken() && !isPublic) return null;
 
   return (
     <div
@@ -64,7 +77,7 @@ export default function AppLayoutClient({
       <main ref={mainRef} className={`flex-1 overflow-y-auto ${wizard ? "" : "pb-safe-nav"}`}>
         {children}
       </main>
-      {!wizard && <BottomNavBar avatarUrl={avatarUrl} />}
+      {!wizard && <BottomNavBar avatarUrl={avatarUrl} isAuthenticated={!!getToken()} />}
     </div>
   );
 }

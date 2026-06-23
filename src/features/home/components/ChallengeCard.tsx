@@ -1,15 +1,14 @@
 import Link from "next/link";
 import Text from "@/components/ui/Text";
 import type { ApiCircleChallenge } from "@/lib/types/circles";
+import { calcChallengeProgress } from "@/lib/utils";
 
 type Props = {
   challenge: ApiCircleChallenge;
 };
 
 export default function ChallengeCard({ challenge }: Props) {
-  const progress = challenge.steps > 0
-    ? Math.round((challenge.currentStep / challenge.steps) * 100)
-    : 0;
+  const { percent: progress, completedCount } = calcChallengeProgress(challenge);
 
   const location = challenge.location?.city
     ? [challenge.location.city, challenge.location.province].filter(Boolean).join(", ")
@@ -53,7 +52,7 @@ export default function ChallengeCard({ challenge }: Props) {
           />
         </div>
         <Text variant="caption" className="text-text-muted">
-          {challenge.currentStep} of {challenge.steps} Steps
+          {completedCount} of {challenge.steps} Steps
         </Text>
       </div>
     </Link>

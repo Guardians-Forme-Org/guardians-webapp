@@ -1,12 +1,16 @@
 "use client";
 
 import AccountDetailsSheet from "@/components/ui/AccountDetailsSheet";
+import RoleBadge from "@/components/ui/RoleBadge";
+import { computeGlobalRoles } from "@/lib/roles";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import LocationSheet from "@/components/ui/LocationSheet";
 import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "@/i18n/navigation";
+import { PROFILE_CONFIG } from "@/lib/config";
+import type { ApiCircle, ApiImpactRecord } from "@/lib/types/circles";
 import {
   Calendar,
   CheckCircle,
@@ -46,6 +50,47 @@ function formatJoinDate(iso: string): string {
   });
 }
 
+function aggregateUserCircleImpact(circles: ApiCircle[]): ApiImpactRecord[] {
+  const allRecords = circles.flatMap((c) => c.impactRecords ?? []);
+
+  const grouped = new Map<string, ApiImpactRecord[]>();
+  for (const r of allRecords) {
+    const bucket = grouped.get(r.siUnit) ?? [];
+    bucket.push(r);
+    grouped.set(r.siUnit, bucket);
+  }
+
+  return Array.from(grouped.values()).map((bucket) => {
+    const first = bucket[0];
+    const totalContrib = bucket.reduce(
+      (s, r) => s + r.impactSummary.contribution.value,
+      0,
+    );
+    const totalImpact = bucket.reduce(
+      (s, r) => s + r.impactSummary.impact.value,
+      0,
+    );
+    const contribUnit = first.impactSummary.contribution.unitOfMeasure;
+    const impactUnit = first.impactSummary.impact.unitOfMeasure;
+
+    return {
+      ...first,
+      impactSummary: {
+        contribution: {
+          ...first.impactSummary.contribution,
+          value: totalContrib,
+          displayName: `${totalContrib.toLocaleString("en-GB", { maximumFractionDigits: 2 })} ${contribUnit}`,
+        },
+        impact: {
+          ...first.impactSummary.impact,
+          value: totalImpact,
+          displayName: `${totalImpact.toLocaleString("en-GB", { maximumFractionDigits: 2 })} ${impactUnit}`,
+        },
+      },
+    };
+  });
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
@@ -72,9 +117,9 @@ export default function ProfilePage() {
       .find((m) => m.userId === user?.id)?.avatarUrl;
 
   const userRecords = loginData?.impactRecords ?? [];
-  const circleRecords = (loginData?.circles ?? []).flatMap(
-    (c) => c.impactRecords ?? [],
-  );
+  const circleRecords = PROFILE_CONFIG.aggregateUserCircleImpact
+    ? aggregateUserCircleImpact(loginData?.circles ?? [])
+    : (loginData?.circles ?? []).flatMap((c) => c.impactRecords ?? []);
 
   const [activeTab, setActiveTab] = useState<"challenges" | "circles" | null>(
     null,
@@ -122,6 +167,7 @@ export default function ProfilePage() {
           {fullName}
         </h1>
         <p className="text-base font-medium text-text-muted mt-0.5">Guardian</p>
+        <RoleBadge roles={computeGlobalRoles(user?.id, user?.email, loginData)} />
         {joinDate && (
           <p className="text-base text-text-secondary">Joined {joinDate}</p>
         )}

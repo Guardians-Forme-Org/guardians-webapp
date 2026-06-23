@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
+import { calcChallengeProgress } from "@/lib/utils";
 
 function AvatarStack({ avatars }: { avatars: string[] }) {
   return (
@@ -24,7 +25,7 @@ function AvatarStack({ avatars }: { avatars: string[] }) {
 type Props = { item: ApiCircleChallenge };
 
 export default function ChallengeCard({ item }: Props) {
-  const progress = item.steps > 0 ? Math.round((item.currentStep / item.steps) * 100) : 0;
+  const { percent: progress } = calcChallengeProgress(item);
   const since = new Date(item.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
   const avatars = (item.members ?? []).map((m) => m.avatarUrl).filter(Boolean);
 

@@ -31,6 +31,7 @@ export function useChallenge(challengeId: string) {
 }
 
 export function useCreateChallenge() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
       metadata,
@@ -46,6 +47,10 @@ export function useCreateChallenge() {
         method: "POST",
         body: formData,
       });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
+      queryClient.invalidateQueries({ queryKey: ["challenges"] });
     },
     onError: (error) => {
       console.error("[createChallenge] error:", error);
@@ -68,6 +73,7 @@ export function useJoinChallenge() {
         headers: { "X-User-ID": userId },
       }),
     onSuccess: (_data, { challengeId }) => {
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
     },
   });
@@ -79,6 +85,7 @@ export function useDeleteChallenge() {
     mutationFn: (challengeId: string) =>
       apiFetch<void>(`/challenges/${challengeId}`, { method: "DELETE" }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
     },
   });
@@ -130,6 +137,7 @@ export function useSubmitEvidence() {
       });
     },
     onSuccess: (_data, { challengeId }) => {
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
     },
   });

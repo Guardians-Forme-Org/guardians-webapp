@@ -7,9 +7,11 @@ import { useChallenge, useJoinChallenge } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
 import type { ApiCircle, ApiCircleChallenge, ApiCircleChallengeMember } from "@/lib/types/circles";
+import { calcChallengeProgress } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, MapPin } from "lucide-react";
+import { CheckCircle, ChevronRight, MapPin } from "lucide-react";
 import JoinConversationButton from "@/components/ui/JoinConversationButton";
+import { useRouter } from "@/i18n/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
@@ -18,18 +20,17 @@ function HomeTab({
   challenge,
   challengeId,
   circleName,
+  userId,
 }: {
   challenge: ApiCircleChallenge;
   challengeId: string;
   circleName?: string;
+  userId?: string | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [showAllMembers, setShowAllMembers] = useState(false);
   const { data: users = [] } = useUsers();
-  const progress =
-    challenge.steps > 0
-      ? Math.round((challenge.currentStep / challenge.steps) * 100)
-      : 0;
+  const { percent: progress } = calcChallengeProgress(challenge);
   const members = challenge.members ?? [];
 
   return (
@@ -158,7 +159,11 @@ function HomeTab({
             </div>
 
             <div className="flex justify-center">
-              <JoinConversationButton channels={challenge.communicationChannels} />
+              <JoinConversationButton
+                channels={challenge.communicationChannels}
+                members={challenge.members}
+                userId={userId}
+              />
             </div>
           </div>
           <div className="border-t border-progress-track" />
@@ -198,9 +203,14 @@ function HomeTab({
               <Link
                 key={step.stepId}
                 href={`/challenges/${challengeId}/steps/${step.stepId}`}
-                className="flex items-center gap-4 border border-[#eee] rounded-[10px] px-4 py-2.5"
+                className={`flex items-center gap-4 border rounded-[10px] px-4 py-2.5 ${
+                  step.completed ? "border-gotf-green bg-[#f0faf0]" : "border-[#eee]"
+                }`}
               >
-                <p className="text-base font-medium text-black w-3 shrink-0 text-center">{step.stepNumber}</p>
+                {step.completed
+                  ? <CheckCircle size={18} className="text-gotf-green shrink-0" />
+                  : <p className="text-base font-medium text-black w-3 shrink-0 text-center">{step.stepNumber}</p>
+                }
                 <div className="size-[60px] rounded-[8px] bg-[#eee] shrink-0" />
                 <div className="flex-1 min-w-0 px-1">
                   <p className="text-base font-semibold text-[#1a1a1a] truncate">{step.title}</p>
@@ -233,6 +243,7 @@ type Props = { challengeId: string };
 
 export default function ChallengeScreen({ challengeId }: Props) {
   const { user } = useAuth();
+  const router = useRouter();
   const [tab, setTab] = useState<"home" | "activities">("home");
   const joinChallenge = useJoinChallenge();
   const { data: users = [] } = useUsers();
@@ -258,6 +269,8 @@ export default function ChallengeScreen({ challengeId }: Props) {
       </div>
     );
   }
+
+  const isMember = !!user && (challenge.members ?? []).some((m) => m.userId === user.id);
 
   const since = new Date(challenge.createdAt).toLocaleDateString("en-GB", {
     day: "numeric",
@@ -288,16 +301,17 @@ export default function ChallengeScreen({ challengeId }: Props) {
           <p className="text-base text-[#666] mt-1">Since {since}</p>
           <div className="mt-3 flex items-center gap-3">
             {(() => {
-              const isMember =
-                !!user &&
-                (challenge.members ?? []).some((m) => m.userId === user.id);
               const isPending = joinChallenge.isPending;
               const isDisabled = isMember || isPending;
               return (
                 <button
                   disabled={isDisabled}
                   onClick={() => {
-                    if (!user) return;
+                    if (!user) {
+                      sessionStorage.setItem("guardians_return_to", `/challenges/${challengeId}`);
+                      router.push("/login");
+                      return;
+                    }
                     joinChallenge.mutate({ challengeId, userId: user.id });
                   }}
                   className={`px-5 h-10 text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
@@ -336,7 +350,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
         <div className="border-t border-progress-track" />
 
         {tab === "home" ? (
-          <HomeTab challenge={challenge} challengeId={challengeId} circleName={circle?.name} />
+          <HomeTab challenge={challenge} challengeId={challengeId} circleName={circle?.name} userId={user?.id} />
         ) : (
           <ActivitiesTab challengeId={challenge.challengeId} />
         )}

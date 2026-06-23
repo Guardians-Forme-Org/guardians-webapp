@@ -6,8 +6,11 @@ import { api } from "@/lib/api";
 import { useChallenge } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle, isWhitelisted } from "@/lib/permissions";
+import { computeChallengeRoles } from "@/lib/roles";
+import RoleBadge from "@/components/ui/RoleBadge";
 import type { ApiCircle } from "@/lib/types/circles";
 import { STEP_FORM_CONFIGS } from "../stepFormConfig";
+import { calcChallengeProgress } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
@@ -28,23 +31,22 @@ export default function StepScreen({ challengeId, stepId }: Props) {
   });
   const step = challenge?.challengeSteps?.find((s) => s.stepId === stepId);
 
-  const canSubmit =
-    isWhitelisted(user?.email) ||
-    (!!circle && canManageCircle(user?.email, user?.id, circle));
-
-  const isActionable = !!step && step.stepId in STEP_FORM_CONFIGS;
-
-  const progress =
-    challenge && challenge.steps > 0
-      ? Math.round((challenge.currentStep / challenge.steps) * 100)
-      : 0;
-
   const f = challenge?.facilitator as {
     id?: string;
     userId?: string;
     avatarUrl?: string;
     name?: string;
   } | null;
+
+  const facilitatorId = f?.id ?? f?.userId;
+  const canSubmit =
+    isWhitelisted(user?.email) ||
+    (!!circle && canManageCircle(user?.email, user?.id, circle)) ||
+    (!!user?.id && !!facilitatorId && user.id === facilitatorId);
+
+  const isActionable = !!step && step.stepId in STEP_FORM_CONFIGS;
+
+  const { percent: progress } = challenge ? calcChallengeProgress(challenge) : { percent: 0 };
   const fUser = users.find((u) => u.id === (f?.id ?? f?.userId));
   const fAvatar = f?.avatarUrl || fUser?.user_metadata?.avatarUrl;
   const fName = fUser
@@ -83,7 +85,10 @@ export default function StepScreen({ challengeId, stepId }: Props) {
             <h1 className="text-[28px] font-bold text-text-subheading mt-3 leading-tight">
               {step.title}
             </h1>
-            <p className="text-base text-[#666] mt-1">Step {step.stepNumber}</p>
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <p className="text-base text-[#666]">Step {step.stepNumber}</p>
+              <RoleBadge roles={computeChallengeRoles(user?.id, user?.email, challenge)} />
+            </div>
           </div>
 
           {/* Progress + Actions */}

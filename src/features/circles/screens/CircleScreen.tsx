@@ -12,12 +12,16 @@ import type {
   ApiCircleChallenge,
   CircleMember,
 } from "@/lib/types/circles";
+import { calcChallengeProgress } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, MapPin, UserPlus } from "lucide-react";
+import { useRouter } from "@/i18n/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import CircleHero from "../components/CircleHero";
 import JoinConversationButton from "@/components/ui/JoinConversationButton";
+import RoleBadge from "@/components/ui/RoleBadge";
+import { computeCircleRoles } from "@/lib/roles";
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -28,8 +32,7 @@ function CircleChallengeRow({
   item: ApiCircleChallenge;
   rank: number;
 }) {
-  const progress =
-    item.steps > 0 ? Math.round((item.currentStep / item.steps) * 100) : 0;
+  const { percent: progress } = calcChallengeProgress(item);
   const since = new Date(item.createdAt).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
@@ -120,6 +123,7 @@ type Props = { circleId: string };
 
 export default function CircleScreen({ circleId }: Props) {
   const { user } = useAuth();
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [showLeadPicker, setShowLeadPicker] = useState(false);
   const [leadSearch, setLeadSearch] = useState("");
@@ -153,6 +157,8 @@ export default function CircleScreen({ circleId }: Props) {
     );
   }
 
+  const isMember = !!user && circle.members.some((m) => m.userId === user.id);
+
   const joinedDate = new Date(circle.createdAt).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
@@ -185,16 +191,18 @@ export default function CircleScreen({ circleId }: Props) {
           )}
 
           {(() => {
-            const isMember =
-              !!user && circle.members.some((m) => m.userId === user.id);
             const isPending = joinCircle.isPending;
             const isDisabled = isMember || isPending;
             return (
-              <div className="mt-3 mb-6">
+              <div className="mt-3 mb-6 flex items-center gap-3 flex-wrap">
                 <button
                   disabled={isDisabled}
                   onClick={() => {
-                    if (!user) return;
+                    if (!user) {
+                      sessionStorage.setItem("guardians_return_to", `/circles/${circleId}`);
+                      router.push("/login");
+                      return;
+                    }
                     joinCircle.mutate({ circleId, userId: user.id });
                   }}
                   className={`px-5 h-10 text-base font-semibold rounded-full text-white transition-all shadow-[0_2px_10px_rgba(0,0,0,0.15)] disabled:opacity-60 disabled:cursor-not-allowed ${
@@ -209,6 +217,9 @@ export default function CircleScreen({ circleId }: Props) {
                       ? "Joining…"
                       : "Join Circle"}
                 </button>
+                {isMember && (
+                  <RoleBadge roles={computeCircleRoles(user?.id, user?.email, circle)} />
+                )}
               </div>
             );
           })()}
@@ -218,7 +229,11 @@ export default function CircleScreen({ circleId }: Props) {
         <GuardianRow members={circle.members} />
         {circle.communicationChannels?.length ? (
           <div className="flex justify-center py-5">
-            <JoinConversationButton channels={circle.communicationChannels} />
+            <JoinConversationButton
+              channels={circle.communicationChannels}
+              members={circle.members}
+              userId={user?.id}
+            />
           </div>
         ) : null}
 

@@ -2,12 +2,19 @@ import type { CircleCommunicationChannel } from "@/lib/types/circles";
 
 type Props = {
   channels: CircleCommunicationChannel[] | null | undefined;
+  members?: Array<{ userId: string }> | null;
+  userId?: string | null;
   className?: string;
 };
 
-export default function JoinConversationButton({ channels, className }: Props) {
+export default function JoinConversationButton({ channels, members, userId, className }: Props) {
   const channel = channels?.[0];
   if (!channel) return null;
+
+  // When member data is provided, only render for members
+  if (members !== undefined && (!userId || !members?.some((m) => m.userId === userId))) {
+    return null;
+  }
 
   return (
     <a

@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, apiFetch } from "@/lib/api";
 import {
   clearSession,
@@ -23,6 +24,7 @@ import type {
   LoginResponse,
   RegisterRequest,
 } from "@/lib/types/auth";
+import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
 
 // ── Context shape ─────────────────────────────────────────────────────────────
 
@@ -39,70 +41,130 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+async function fetchDefaultAvatar(): Promise<File> {
+  const res = await fetch("/images/Guardians Logo-logo.png");
+  const blob = await res.blob();
+  return new File([blob], "avatar.png", { type: blob.type || "image/png" });
+}
+
+// Rebuilds loginData from live endpoints — called whenever ["loginData"] is invalidated.
+// impactRecords are aggregated from the user's circles (no dedicated endpoint yet).
+export async function fetchLoginData(userId: string): Promise<LoginData> {
+  const [challenges, circles] = await Promise.all([
+    api.get<ApiCircleChallenge[]>("/challenges"),
+    api.get<ApiCircle[]>("/circles"),
+  ]);
+  const userChallenges = challenges.filter((c) =>
+    (c.members ?? []).some((m) => m.userId === userId),
+  );
+  const userCircles = circles.filter((c) =>
+    c.members.some((m) => m.userId === userId),
+  );
+  return {
+    challenges: userChallenges,
+    circles: userCircles,
+    impactRecords: userCircles.flatMap((c) => c.impactRecords ?? []),
+    challengesCount: {
+      total: userChallenges.length,
+      label: "Challenges",
+      displayValue: String(userChallenges.length).padStart(2, "0"),
+    },
+    circlesCount: {
+      total: userCircles.length,
+      label: "Circles",
+      displayValue: String(userCircles.length).padStart(2, "0"),
+    },
+    contributionMarkers: null,
+  };
+}
+
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [preferredLanguage, setPreferredLanguage] = useState<Language | null>(null);
-  const [loginData, setLoginData] = useState<LoginData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // loginData lives in React Query — any mutation can invalidate ["loginData"] to trigger a refresh
+  const { data: loginData = null } = useQuery({
+    queryKey: ["loginData", user?.id],
+    queryFn: () => fetchLoginData(user!.id),
+    enabled: !!user?.id && !!token,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Keep localStorage in sync whenever React Query updates loginData
+  useEffect(() => {
+    if (loginData) saveLoginData(loginData);
+  }, [loginData]);
+
+  // Bootstrap from localStorage on mount
   useEffect(() => {
     const stored = getStoredSession();
     if (stored.token && stored.user) {
       setToken(stored.token);
       setUser(stored.user);
       setPreferredLanguage(stored.preferredLanguage);
-      setLoginData(stored.loginData);
+      if (stored.loginData) {
+        queryClient.setQueryData(["loginData", stored.user.id], stored.loginData);
+      }
     }
     setLoading(false);
-  }, []);
+  }, [queryClient]);
 
-  const login = useCallback(async (emailOrMobile: string, password: string) => {
-    const response = await api.post<LoginResponse>("/login", {
-      username: emailOrMobile,
-      password,
-    });
-    const { metaData } = response;
-    const lang = metaData.user.user_metadata?.preferredLanguage ?? null;
-    saveSession(metaData, lang ?? undefined);
+  const login = useCallback(
+    async (emailOrMobile: string, password: string) => {
+      const response = await api.post<LoginResponse>("/login", {
+        username: emailOrMobile,
+        password,
+      });
+      const { metaData } = response;
+      const lang = metaData.user.user_metadata?.preferredLanguage ?? null;
+      saveSession(metaData, lang ?? undefined);
 
-    const data: LoginData = {
-      challenges: response.challenges ?? [],
-      circles: response.circles ?? [],
-      impactRecords: response.impactRecords ?? [],
-      challengesCount: response.challengesCount,
-      circlesCount: response.circlesCount,
-      contributionMarkers: response.contributionMarkers,
-    };
-    saveLoginData(data);
+      const data: LoginData = {
+        challenges: response.challenges ?? [],
+        circles: response.circles ?? [],
+        impactRecords: response.impactRecords ?? [],
+        challengesCount: response.challengesCount,
+        circlesCount: response.circlesCount,
+        contributionMarkers: response.contributionMarkers,
+      };
+      saveLoginData(data);
+      queryClient.setQueryData(["loginData", metaData.user.id], data);
 
-    setToken(metaData.access_token);
-    setUser(metaData.user);
-    setPreferredLanguage(lang?.id ? lang : null);
-    setLoginData(data);
-  }, []);
+      setToken(metaData.access_token);
+      setUser(metaData.user);
+      setPreferredLanguage(lang?.id ? lang : null);
+    },
+    [queryClient],
+  );
 
   const register = useCallback(async (data: RegisterRequest, avatarFile?: File) => {
     const formData = new FormData();
     formData.append("metadata", JSON.stringify(data));
-    if (avatarFile) formData.append("avatarFile", avatarFile);
+    formData.append("avatarFile", avatarFile ?? await fetchDefaultAvatar());
     await apiFetch("/signup", { method: "POST", body: formData });
   }, []);
 
   const logout = useCallback(() => {
     clearSession();
+    queryClient.removeQueries({ queryKey: ["loginData"] });
     setToken(null);
     setUser(null);
     setPreferredLanguage(null);
-    setLoginData(null);
     router.push("/login");
-  }, [router]);
+  }, [router, queryClient]);
 
   return (
-    <AuthContext.Provider value={{ user, token, preferredLanguage, loginData, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, preferredLanguage, loginData, loading, login, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
