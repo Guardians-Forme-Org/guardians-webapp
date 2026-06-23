@@ -15,6 +15,7 @@ type Props = {
   activityStats: PersonalStat[];
   impactMatrix?: ImpactMatrixItem[];
   thingsMatrix?: ThingsMatrixItem[];
+  mode?: "my" | "global";
 };
 
 function ImpactGrid({ items }: { items: ImpactMatrixItem[] }) {
@@ -87,9 +88,12 @@ export default function ImpactSection({
   activityStats,
   impactMatrix,
   thingsMatrix,
+  mode: modeProp,
 }: Props) {
   const hasGlobal = !!(impactMatrix?.length || thingsMatrix?.length);
-  const [mode, setMode] = useState<"my" | "global">(hasGlobal ? "global" : "my");
+  const [internalMode, setInternalMode] = useState<"my" | "global">(hasGlobal ? "global" : "my");
+  const mode = modeProp ?? internalMode;
+  const showToggle = !modeProp && hasGlobal;
 
   return (
     <section className="border-y border-progress-track">
@@ -97,20 +101,20 @@ export default function ImpactSection({
         <Text variant="heading">
           {mode === "my" ? "My Impact" : "Impact"}
         </Text>
-        {hasGlobal && (
+        {showToggle && (
           <div className="ml-auto flex bg-[#f0f0f0] rounded-full p-0.5">
             <button
-              onClick={() => setMode("my")}
+              onClick={() => setInternalMode("my")}
               className={`px-3 h-7 rounded-full text-xs font-medium transition-all ${
-                mode === "my" ? "bg-white text-text-primary shadow-sm" : "text-text-muted"
+                internalMode === "my" ? "bg-white text-text-primary shadow-sm" : "text-text-muted"
               }`}
             >
               Mine
             </button>
             <button
-              onClick={() => setMode("global")}
+              onClick={() => setInternalMode("global")}
               className={`px-3 h-7 rounded-full text-xs font-medium transition-all ${
-                mode === "global" ? "bg-white text-text-primary shadow-sm" : "text-text-muted"
+                internalMode === "global" ? "bg-white text-text-primary shadow-sm" : "text-text-muted"
               }`}
             >
               Global
