@@ -17,3 +17,5 @@ export function useUserRecentActivities(userId: string) {
     enabled: !!userId,
   });
 }
+
+export const EVIDENCE_SESSION_KEY = (id: string) => `evidence_view_${id}`;

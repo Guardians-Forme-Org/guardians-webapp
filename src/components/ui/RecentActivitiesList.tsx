@@ -1,9 +1,10 @@
 "use client";
 
-import { useRecentActivities, useUserRecentActivities } from "@/lib/hooks/activities";
+import { useRecentActivities, useUserRecentActivities, EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUsers } from "@/lib/hooks/users";
 import { useMemo } from "react";
+import { useRouter } from "@/i18n/navigation";
 
 type Props =
   | { thingId: string; userId?: never }
@@ -14,7 +15,8 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
   const user = useUserRecentActivities(userId ?? "");
   const { data: activities = [], isLoading, error } = thingId ? thing : user;
   const { data: users = [] } = useUsers();
-  const { loginData } = useAuth();
+  const { loginData, user: authUser } = useAuth();
+  const router = useRouter();
 
   const avatarMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -57,8 +59,20 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
         const avatars = record.contributors.slice(0, 2).map((id) =>
           avatarMap.get(id) ?? null
         );
+        const isClickable = !!authUser;
+        const handleClick = () => {
+          sessionStorage.setItem(EVIDENCE_SESSION_KEY(record.id), JSON.stringify(record));
+          router.push(`/challenges/${record.thingId}/steps/${record.stepId}/log?view=${record.id}`);
+        };
         return (
-          <div key={record.id} className="flex items-center justify-between">
+          <div
+            key={record.id}
+            role={isClickable ? "button" : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+            onClick={isClickable ? handleClick : undefined}
+            onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") handleClick(); } : undefined}
+            className={`flex items-center justify-between ${isClickable ? "cursor-pointer active:opacity-70" : ""}`}
+          >
             <div className="flex flex-col gap-1">
               <div className="flex items-baseline gap-2">
                 <p className="text-[18px] font-semibold text-[#1a1a1a]">{title}</p>

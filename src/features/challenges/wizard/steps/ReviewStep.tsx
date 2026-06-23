@@ -17,17 +17,22 @@ type Props = {
   isPending?: boolean;
   error?: string | null;
   users?: UserLike[];
+  readOnly?: boolean;
+  canEdit?: boolean;
+  uploadLabel?: string;
 };
 
 function ReviewSection({
   label,
   stepIndex,
   onEdit,
+  showEdit = true,
   children,
 }: {
   label: string;
   stepIndex: number;
   onEdit: (step: number) => void;
+  showEdit?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -36,14 +41,16 @@ function ReviewSection({
         <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">
           {label}
         </p>
-        <button
-          onClick={() => onEdit(stepIndex)}
-          className="flex items-center gap-1 text-xs font-medium text-text-muted active:opacity-60"
-          aria-label={`Edit ${label}`}
-        >
-          <Pencil size={13} />
-          Edit
-        </button>
+        {showEdit && (
+          <button
+            onClick={() => onEdit(stepIndex)}
+            className="flex items-center gap-1 text-xs font-medium text-text-muted active:opacity-60"
+            aria-label={`Edit ${label}`}
+          >
+            <Pencil size={13} />
+            Edit
+          </button>
+        )}
       </div>
       {children}
     </div>
@@ -59,8 +66,12 @@ export default function ReviewStep({
   isPending,
   error,
   users,
+  readOnly,
+  canEdit,
+  uploadLabel = "Upload",
 }: Props) {
   const idx = (type: WizardStepType) => stepTypes.indexOf(type) + 1;
+  const showEdit = !readOnly || !!canEdit;
 
   const hasFileUpload = stepTypes.includes("file-upload");
   const hasVolunteerHours = stepTypes.includes("volunteer-hours");
@@ -85,6 +96,7 @@ export default function ReviewStep({
             label="Evidence files"
             stepIndex={idx("file-upload")}
             onEdit={onGoToStep}
+            showEdit={showEdit}
           >
             {form.evidenceFiles.map((file, i) => (
               <div
@@ -115,6 +127,7 @@ export default function ReviewStep({
             label="Volunteer hours"
             stepIndex={idx("volunteer-hours")}
             onEdit={onGoToStep}
+            showEdit={showEdit}
           >
             <ReadOnlyField label="Hours" value={`${form.volunteerHours} hrs`} />
           </ReviewSection>
@@ -125,6 +138,7 @@ export default function ReviewStep({
             label="Measurement"
             stepIndex={idx("measurement")}
             onEdit={onGoToStep}
+            showEdit={showEdit}
           >
             {form.measurementValue && (
               <ReadOnlyField
@@ -147,6 +161,7 @@ export default function ReviewStep({
             label="Impact"
             stepIndex={idx("impact")}
             onEdit={onGoToStep}
+            showEdit={showEdit}
           >
             <ReadOnlyField
               label="Description"
@@ -161,6 +176,7 @@ export default function ReviewStep({
             label="Region"
             stepIndex={idx("region")}
             onEdit={onGoToStep}
+            showEdit={showEdit}
           >
             <ReadOnlyField
               label="Location"
@@ -174,6 +190,7 @@ export default function ReviewStep({
             label="Contributors"
             stepIndex={idx("contributors")}
             onEdit={onGoToStep}
+            showEdit={showEdit}
           >
             <ReadOnlyField
               label="Members"
@@ -195,6 +212,7 @@ export default function ReviewStep({
             label="Site details"
             stepIndex={idx("site-details")}
             onEdit={onGoToStep}
+            showEdit={showEdit}
           >
             {form.siteName && (
               <ReadOnlyField label="Site Name" value={form.siteName} />
@@ -282,23 +300,25 @@ export default function ReviewStep({
       </div>
 
       <div className="flex-1" />
-      <div className="px-5 pb-8 pt-12 flex flex-col gap-3 shrink-0">
-        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-        <button
-          onClick={onDelete}
-          disabled={isPending}
-          className="w-full h-14 border border-[rgba(26,26,24,0.28)] rounded-full text-base font-medium text-text-primary disabled:opacity-50"
-        >
-          Delete Impact
-        </button>
-        <button
-          onClick={onUpload}
-          disabled={isPending}
-          className="w-full h-14 bg-black text-white rounded-full text-xl font-medium disabled:opacity-50"
-        >
-          {isPending ? "Uploading…" : "Upload"}
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="px-5 pb-8 pt-12 flex flex-col gap-3 shrink-0">
+          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          <button
+            onClick={onDelete}
+            disabled={isPending}
+            className="w-full h-14 border border-[rgba(26,26,24,0.28)] rounded-full text-base font-medium text-text-primary disabled:opacity-50"
+          >
+            Delete Impact
+          </button>
+          <button
+            onClick={onUpload}
+            disabled={isPending}
+            className="w-full h-14 bg-black text-white rounded-full text-xl font-medium disabled:opacity-50"
+          >
+            {isPending ? `${uploadLabel === "Update" ? "Updating" : "Uploading"}…` : uploadLabel}
+          </button>
+        </div>
+      )}
     </>
   );
 }
