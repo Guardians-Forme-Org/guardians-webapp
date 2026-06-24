@@ -5,6 +5,8 @@ export const WHITELISTED_EMAILS: string[] = [
   "tnemalili@gmail.com",
   "abel.siminya@gmail.com",
   "nhlanhla@alignd.co.za",
+  "contato@salve.games",
+  "phonti@gmail.com",
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
