@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
+import Avatar from "@/components/ui/Avatar";
 import { useTranslations } from "next-intl";
 
 type Props = { challengeId: string; stepId: string };
@@ -199,15 +200,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
             <>
               <div className="border-t border-progress-track" />
               <div className="flex items-center gap-5 px-10 py-5">
-                <div className="size-10 rounded-full bg-surface border border-border shrink-0 overflow-hidden">
-                  {fAvatar && (
-                    <img
-                      src={fAvatar}
-                      alt={fName}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
+                <Avatar src={fAvatar} alt={fName} className="size-10 rounded-full border border-border shrink-0" />
                 <div>
                   <p className="text-xl font-semibold text-text-primary">
                     {fName}

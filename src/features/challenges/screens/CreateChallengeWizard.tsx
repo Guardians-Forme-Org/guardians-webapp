@@ -29,6 +29,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import Avatar from "@/components/ui/Avatar";
 
 const CHANNELS = [
   { id: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle },
@@ -947,15 +948,7 @@ function Step6({
                     key={m.userId}
                     className="flex flex-col items-center gap-2"
                   >
-                    <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
-                      {avatar && (
-                        <img
-                          src={avatar}
-                          alt={name}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
+                    <Avatar src={avatar} alt={name} className="size-16 rounded-full border-2 border-white" />
                     <Text variant="caption" className="text-text-subheading">
                       {name.split(" ")[0]}
                     </Text>

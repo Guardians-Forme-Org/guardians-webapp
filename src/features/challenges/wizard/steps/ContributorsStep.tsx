@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronRight, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Avatar from "@/components/ui/Avatar";
 import { SaveButton } from "../shared";
 import type { ApiCircleChallengeMember } from "@/lib/types/circles";
 import type { LogFormData } from "../types";
@@ -67,11 +68,7 @@ export default function ContributorsStep({ form, update, onNext, nextLabel, memb
                     key={id}
                     className="flex items-center gap-1.5 h-8 bg-[#f5f5f5] border border-[rgba(26,26,24,0.14)] rounded-full pl-1 pr-2"
                   >
-                    <div className="size-6 rounded-full bg-[#d9d9d9] overflow-hidden shrink-0">
-                      {p?.avatarUrl && (
-                        <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
-                      )}
-                    </div>
+                    <Avatar src={p?.avatarUrl} className="size-6 rounded-full shrink-0" />
                     <span className="text-sm text-text-primary">{p?.name ?? id}</span>
                     <button
                       onMouseDown={(e) => e.preventDefault()}
@@ -109,11 +106,7 @@ export default function ContributorsStep({ form, update, onNext, nextLabel, memb
                       onClick={() => { toggle(p.id); setSearch(""); }}
                       className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-[#f5f5f5]"
                     >
-                      <div className="size-8 rounded-full bg-[#d9d9d9] overflow-hidden shrink-0">
-                        {p.avatarUrl && (
-                          <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
-                        )}
-                      </div>
+                      <Avatar src={p.avatarUrl} className="size-8 rounded-full shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium truncate ${selected ? "text-gotf-green" : "text-text-primary"}`}>
                           {p.name}

@@ -3,7 +3,8 @@
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateUser } from "@/lib/hooks/users";
-import { ChevronLeft, Image as ImageIcon, User } from "lucide-react";
+import { ChevronLeft, Image as ImageIcon } from "lucide-react";
+import Avatar from "@/components/ui/Avatar";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useRef, useState } from "react";
@@ -106,13 +107,7 @@ export default function EditProfileScreen() {
             className="relative"
             aria-label={t("tapToChangePhoto")}
           >
-            <div className="w-24 h-24 rounded-full bg-surface border-2 border-border overflow-hidden flex items-center justify-center">
-              {avatarPreview ? (
-                <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <User size={36} className="text-text-muted" />
-              )}
-            </div>
+            <Avatar src={avatarPreview} className="w-24 h-24 rounded-full border-2 border-border" />
             <div className="absolute bottom-0 right-0 size-7 rounded-full bg-gotf-green flex items-center justify-center shadow-sm">
               <ImageIcon size={14} className="text-white" />
             </div>

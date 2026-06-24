@@ -17,6 +17,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, MapPin, Pencil, UserPlus } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import Avatar from "@/components/ui/Avatar";
 import Link from "next/link";
 import { useState } from "react";
 import CircleHero from "../components/CircleHero";
@@ -106,11 +107,7 @@ function GuardianRow({ members }: { members: CircleMember[] }) {
       <div className={`flex px-7.5 gap-2 ${showAll ? "flex-wrap gap-y-6" : ""}`}>
         {visible.map((member) => (
           <div key={member.userId} className="flex flex-col items-center gap-2 w-16">
-            <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
-              {avatar(member) && (
-                <img src={avatar(member)} alt="" className="w-full h-full object-cover" />
-              )}
-            </div>
+            <Avatar src={avatar(member)} className="size-16 rounded-full border-2 border-white" />
             <Text variant="caption" className="text-text-subheading text-center leading-tight">
               {firstName(member)}
             </Text>
@@ -338,9 +335,7 @@ export default function CircleScreen({ circleId }: Props) {
             <div className="border-t border-progress-track border-b border-progress-track">
               {lead ? (
                 <div className="flex items-center gap-5 px-7.5 py-5">
-                  <div className="size-10 rounded-full bg-surface border border-border shrink-0 overflow-hidden">
-                    {leadAvatar && <img src={leadAvatar} alt={leadName} className="w-full h-full object-cover" />}
-                  </div>
+                  <Avatar src={leadAvatar} alt={leadName} className="size-10 rounded-full border border-border shrink-0" />
                   <div>
                     <p className="text-xl font-semibold text-text-primary">{leadName || t("circleLead")}</p>
                     <p className="text-base font-medium text-text-secondary">{t("circleLead")}</p>

@@ -9,17 +9,17 @@ import { api } from "@/lib/api";
 import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
 import { calcChallengeProgress } from "@/lib/utils";
 import { useTranslations, useLocale } from "next-intl";
+import Avatar from "@/components/ui/Avatar";
 
 function AvatarStack({ avatars }: { avatars: string[] }) {
   return (
     <div className="flex items-center">
       {avatars.slice(0, 5).map((url, i) => (
-        <div
+        <Avatar
           key={i}
-          className={`size-8 rounded-full border-2 border-white overflow-hidden bg-[#d9d9d9] shrink-0 ${i > 0 ? "-ml-2" : ""}`}
-        >
-          {url ? <img src={url} alt="" className="w-full h-full object-cover" /> : null}
-        </div>
+          src={url}
+          className={`size-8 rounded-full border-2 border-white shrink-0 ${i > 0 ? "-ml-2" : ""}`}
+        />
       ))}
     </div>
   );

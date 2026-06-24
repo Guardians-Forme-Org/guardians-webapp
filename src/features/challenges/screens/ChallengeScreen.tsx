@@ -1,24 +1,30 @@
 "use client";
 
+import Avatar from "@/components/ui/Avatar";
+import JoinConversationButton from "@/components/ui/JoinConversationButton";
+import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
+import RoleBadge from "@/components/ui/RoleBadge";
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "@/i18n/navigation";
 import { api } from "@/lib/api";
 import { useChallenge, useJoinChallenge } from "@/lib/hooks/challenges";
+import { useJoinCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
-import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
-import type { ApiCircle, ApiCircleChallenge, ApiCircleChallengeMember } from "@/lib/types/circles";
-import { calcChallengeProgress, deriveImpactLabel, formatImpactDisplayValue } from "@/lib/utils";
 import { canManageCircle, isWhitelisted } from "@/lib/permissions";
+import { computeChallengeRoles } from "@/lib/roles";
+import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
+import {
+  calcChallengeProgress,
+  deriveImpactLabel,
+  formatImpactDisplayValue,
+} from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, ChevronRight, MapPin, Pencil } from "lucide-react";
-import JoinConversationButton from "@/components/ui/JoinConversationButton";
-import { useRouter } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
-import RoleBadge from "@/components/ui/RoleBadge";
-import { computeChallengeRoles } from "@/lib/roles";
-import { useTranslations, useLocale } from "next-intl";
 
 function HomeTab({
   challenge,
@@ -98,28 +104,42 @@ function HomeTab({
       <div className="border-t border-progress-track" />
 
       {/* Facilitator */}
-      {!!challenge.facilitator && (() => {
-        const f = challenge.facilitator as { id?: string; userId?: string; avatarUrl?: string; name?: string } | null;
-        const fUser = users.find((u) => u.id === (f?.id ?? f?.userId));
-        const fAvatar = f?.avatarUrl || fUser?.user_metadata?.avatarUrl;
-        const fName = fUser
-          ? [fUser.user_metadata.firstName, fUser.user_metadata.lastName].filter(Boolean).join(" ")
-          : (f?.name ?? "Facilitator");
-        return (
-          <>
-            <div className="flex items-center gap-5 px-7.5 py-5">
-              <div className="size-10 rounded-full bg-surface border border-border shrink-0 overflow-hidden">
-                {fAvatar && <img src={fAvatar} alt={fName} className="w-full h-full object-cover" />}
+      {!!challenge.facilitator &&
+        (() => {
+          const f = challenge.facilitator as {
+            id?: string;
+            userId?: string;
+            avatarUrl?: string;
+            name?: string;
+          } | null;
+          const fUser = users.find((u) => u.id === (f?.id ?? f?.userId));
+          const fAvatar = f?.avatarUrl || fUser?.user_metadata?.avatarUrl;
+          const fName = fUser
+            ? [fUser.user_metadata.firstName, fUser.user_metadata.lastName]
+                .filter(Boolean)
+                .join(" ")
+            : (f?.name ?? "Facilitator");
+          return (
+            <>
+              <div className="flex items-center gap-5 px-7.5 py-5">
+                <Avatar
+                  src={fAvatar}
+                  alt={fName}
+                  className="size-10 rounded-full border border-border shrink-0"
+                />
+                <div>
+                  <p className="text-xl font-semibold text-text-primary">
+                    {fName}
+                  </p>
+                  <p className="text-base font-medium text-text-secondary">
+                    {t("facilitator")}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xl font-semibold text-text-primary">{fName}</p>
-                <p className="text-base font-medium text-text-secondary">{t("facilitator")}</p>
-              </div>
-            </div>
-            <div className="border-t border-progress-track" />
-          </>
-        );
-      })()}
+              <div className="border-t border-progress-track" />
+            </>
+          );
+        })()}
 
       {/* Members */}
       {members.length > 0 && (
@@ -140,27 +160,45 @@ function HomeTab({
                   onClick={() => setShowAllMembers((v) => !v)}
                   className="text-base text-gotf-blue"
                 >
-                  {showAllMembers ? t("showLess") : t("seeAll", { count: members.length })}
+                  {showAllMembers
+                    ? t("showLess")
+                    : t("seeAll", { count: members.length })}
                 </button>
               )}
             </div>
 
-            <div className={`flex px-7.5 mb-6 gap-2 ${showAllMembers ? "flex-wrap gap-y-6" : ""}`}>
-              {(showAllMembers ? members : members.slice(0, 5)).map((member) => {
-                const memberUser = users.find((u) => u.id === member.userId);
-                const name = memberUser ? `${memberUser.user_metadata.firstName ?? ""}`.trim() || member.userId : member.userId;
-                const av = member.avatarUrl || memberUser?.user_metadata?.avatarUrl;
-                return (
-                  <div key={member.userId} className="flex flex-col items-center gap-2 w-16">
-                    <div className="size-16 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden">
-                      {av && <img src={av} alt={name} className="w-full h-full object-cover" />}
+            <div
+              className={`flex px-7.5 mb-6 gap-2 ${showAllMembers ? "flex-wrap gap-y-6" : ""}`}
+            >
+              {(showAllMembers ? members : members.slice(0, 5)).map(
+                (member) => {
+                  const memberUser = users.find((u) => u.id === member.userId);
+                  const name = memberUser
+                    ? `${memberUser.user_metadata.firstName ?? ""}`.trim() ||
+                      member.userId
+                    : member.userId;
+                  const av =
+                    member.avatarUrl || memberUser?.user_metadata?.avatarUrl;
+                  return (
+                    <div
+                      key={member.userId}
+                      className="flex flex-col items-center gap-2 w-16"
+                    >
+                      <Avatar
+                        src={av}
+                        alt={name}
+                        className="size-16 rounded-full border-2 border-white"
+                      />
+                      <Text
+                        variant="caption"
+                        className="text-text-subheading text-center leading-tight"
+                      >
+                        {name.split(" ")[0]}
+                      </Text>
                     </div>
-                    <Text variant="caption" className="text-text-subheading text-center leading-tight">
-                      {name.split(" ")[0]}
-                    </Text>
-                  </div>
-                );
-              })}
+                  );
+                },
+              )}
             </div>
 
             <div className="flex justify-center">
@@ -185,13 +223,21 @@ function HomeTab({
                 className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-1.5 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}
               >
                 <p className="text-[12px] text-[#767676] leading-snug">
-                  {deriveImpactLabel(record.impactSummary.impact.shortSummary ?? record.impactSummary.impact.summary)}
+                  {deriveImpactLabel(
+                    record.impactSummary.impact.shortSummary ??
+                      record.impactSummary.impact.summary,
+                  )}
                 </p>
                 <p className="text-2xl font-semibold text-[#333]">
-                  {formatImpactDisplayValue(record.impactSummary.impact.displayName)}
+                  {formatImpactDisplayValue(
+                    record.impactSummary.impact.displayName,
+                  )}
                 </p>
                 <p className="text-[11px] text-text-muted">
-                  {formatImpactDisplayValue(record.impactSummary.contribution.displayName)} {t("contributed")}
+                  {formatImpactDisplayValue(
+                    record.impactSummary.contribution.displayName,
+                  )}{" "}
+                  {t("contributed")}
                 </p>
               </div>
             ))}
@@ -202,24 +248,38 @@ function HomeTab({
       {/* Steps */}
       {(challenge.challengeSteps ?? []).length > 0 && (
         <div className="border-t border-progress-track py-7.5">
-          <p className="px-10 text-xl font-semibold text-text-subheading mb-5">{t("steps")}</p>
+          <p className="px-10 text-xl font-semibold text-text-subheading mb-5">
+            {t("steps")}
+          </p>
           <div className="flex flex-col gap-3 px-6">
             {(challenge.challengeSteps ?? []).map((step) => (
               <Link
                 key={step.stepId}
                 href={`/challenges/${challengeId}/steps/${step.stepId}`}
                 className={`flex items-center gap-4 border rounded-[10px] px-4 py-2.5 ${
-                  step.isCompleted ? "border-gotf-green bg-[#f0faf0]" : "border-[#eee]"
+                  step.isCompleted
+                    ? "border-gotf-green bg-[#f0faf0]"
+                    : "border-[#eee]"
                 }`}
               >
-                {step.isCompleted
-                  ? <CheckCircle size={18} className="text-gotf-green shrink-0" />
-                  : <p className="text-base font-medium text-black w-3 shrink-0 text-center">{step.stepNumber}</p>
-                }
-                <div className="size-[60px] rounded-[8px] bg-[#eee] shrink-0" />
+                {step.isCompleted ? (
+                  <CheckCircle
+                    size={18}
+                    className="text-gotf-green shrink-0 z-10"
+                  />
+                ) : (
+                  <p className="text-base font-medium text-black w-3 shrink-0 text-center">
+                    {step.stepNumber}
+                  </p>
+                )}
+                <Avatar className="size-8 rounded-[8px] -ml-1 shrink-0" />
                 <div className="flex-1 min-w-0 px-1">
-                  <p className="text-base font-semibold text-[#1a1a1a] truncate">{step.title}</p>
-                  <p className="text-[12px] text-[#1a1a1a] truncate">{step.description}</p>
+                  <p className="text-base font-semibold text-[#1a1a1a] truncate">
+                    {step.title}
+                  </p>
+                  <p className="text-[12px] text-[#1a1a1a] truncate">
+                    {step.description}
+                  </p>
                   {step.stepType && (
                     <p className="text-[12px] text-[#999]">{step.stepType}</p>
                   )}
@@ -253,6 +313,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<"home" | "activities">("home");
   const joinChallenge = useJoinChallenge();
+  const joinCircle = useJoinCircle();
   const { data: users = [] } = useUsers();
   const { data: challenge, isLoading, error } = useChallenge(challengeId);
   const { data: circle } = useQuery({
@@ -277,9 +338,13 @@ export default function ChallengeScreen({ challengeId }: Props) {
     );
   }
 
-  const isMember = !!user && (challenge.members ?? []).some((m) => m.userId === user.id);
+  const isMember =
+    !!user && (challenge.members ?? []).some((m) => m.userId === user.id);
 
-  const facilitator = challenge.facilitator as { id?: string; userId?: string } | null;
+  const facilitator = challenge.facilitator as {
+    id?: string;
+    userId?: string;
+  } | null;
   const isFacilitator =
     !!user &&
     !!(
@@ -289,7 +354,11 @@ export default function ChallengeScreen({ challengeId }: Props) {
   const canEdit =
     isWhitelisted(user?.email) ||
     isFacilitator ||
-    canManageCircle(user?.email, user?.id, circle ?? { createdBy: challenge.createdBy });
+    canManageCircle(
+      user?.email,
+      user?.id,
+      circle ?? { createdBy: challenge.createdBy },
+    );
 
   const since = new Date(challenge.createdAt).toLocaleDateString(locale, {
     day: "numeric",
@@ -298,95 +367,123 @@ export default function ChallengeScreen({ challengeId }: Props) {
 
   return (
     <>
-    <div className="flex flex-col bg-white min-h-full">
-      <ChallengeHero bannerUrl={challenge.bannerUrl} />
+      <div className="flex flex-col bg-white min-h-full">
+        <ChallengeHero bannerUrl={challenge.bannerUrl} />
 
-      <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
-        {/* Identity */}
-        <div className="px-10 pt-7.5 pb-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-block bg-[#d9d9d9] rounded-[20px] px-3 py-1 text-[14px] text-text-subheading">
-              {circle?.name ?? challenge.circleId}
-            </span>
-            {challenge.template?.targetSDG?.code && (
-              <span className="inline-block bg-[rgba(86,192,43,0.2)] rounded-[20px] px-3 py-1 text-[14px] font-medium text-text-subheading">
-                {challenge.template.targetSDG.code.replace("SDG", "SDG ")}
+        <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
+          {/* Identity */}
+          <div className="px-10 pt-7.5 pb-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-block bg-[#d9d9d9] rounded-[20px] px-3 py-1 text-[14px] text-text-subheading">
+                {circle?.name ?? challenge.circleId}
               </span>
-            )}
-          </div>
-          <div className="flex items-start justify-between mt-3 gap-2">
-            <h1 className="text-[28px] font-bold text-text-subheading leading-tight flex-1">
-              {challenge.name}
-            </h1>
-            {canEdit && (
-              <Link href={`/challenges/${challengeId}/edit`} className="p-1 mt-1 shrink-0">
-                <Pencil size={18} className="text-text-muted" />
-              </Link>
-            )}
-          </div>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <p className="text-base text-[#666]">{t("since", { date: since })}</p>
-            <RoleBadge roles={computeChallengeRoles(user?.id, user?.email, challenge)} />
-          </div>
-          <div className="mt-3 flex items-center gap-3">
-            {(() => {
-              const isPending = joinChallenge.isPending;
-              const isDisabled = isMember || isPending;
-              return (
-                <button
-                  disabled={isDisabled}
-                  onClick={() => {
-                    if (!user) {
-                      sessionStorage.setItem("guardians_return_to", `/challenges/${challengeId}`);
-                      router.push("/");
-                      return;
-                    }
-                    joinChallenge.mutate({ challengeId, userId: user.id });
-                  }}
-                  className={`px-5 h-10 text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
-                    isMember
-                      ? "bg-[#333] w-40"
-                      : "bg-linear-to-r from-[#008000] to-[#129612]"
-                  }`}
+              {challenge.template?.targetSDG?.code && (
+                <span className="inline-block bg-[rgba(86,192,43,0.2)] rounded-[20px] px-3 py-1 text-[14px] font-medium text-text-subheading">
+                  {challenge.template.targetSDG.code.replace("SDG", "SDG ")}
+                </span>
+              )}
+            </div>
+            <div className="flex items-start justify-between mt-3 gap-2">
+              <h1 className="text-[28px] font-bold text-text-subheading leading-tight flex-1">
+                {challenge.name}
+              </h1>
+              {canEdit && (
+                <Link
+                  href={`/challenges/${challengeId}/edit`}
+                  className="p-1 mt-1 shrink-0"
                 >
-                  {isMember
-                    ? t("joined")
-                    : isPending
-                      ? t("joining")
-                      : t("joinChallenge")}
-                </button>
-              );
-            })()}
+                  <Pencil size={18} className="text-text-muted" />
+                </Link>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <p className="text-base text-[#666]">
+                {t("since", { date: since })}
+              </p>
+              <RoleBadge
+                roles={computeChallengeRoles(user?.id, user?.email, challenge)}
+              />
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              {(() => {
+                const isPending = joinChallenge.isPending;
+                const isDisabled = isMember || isPending;
+                return (
+                  <button
+                    disabled={isDisabled}
+                    onClick={() => {
+                      if (!user) {
+                        sessionStorage.setItem(
+                          "guardians_return_to",
+                          `/challenges/${challengeId}`,
+                        );
+                        router.push("/");
+                        return;
+                      }
+                      joinChallenge.mutate(
+                        { challengeId, userId: user.id },
+                        {
+                          onSuccess: () => {
+                            const alreadyInCircle = (circle?.members ?? []).some(
+                              (m) => m.userId === user.id,
+                            );
+                            if (!alreadyInCircle && challenge.circleId) {
+                              joinCircle.mutate({
+                                circleId: challenge.circleId,
+                                userId: user.id,
+                              });
+                            }
+                          },
+                        },
+                      );
+                    }}
+                    className={`px-5 h-10 text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                      isMember
+                        ? "bg-[#333] w-40"
+                        : "bg-linear-to-r from-[#008000] to-[#129612]"
+                    }`}
+                  >
+                    {isMember
+                      ? t("joined")
+                      : isPending
+                        ? t("joining")
+                        : t("joinChallenge")}
+                  </button>
+                );
+              })()}
+            </div>
           </div>
+
+          {/* Tab bar */}
+          <div className="flex px-10 mt-5">
+            {(["home", "activities"] as const).map((tabKey) => (
+              <button
+                key={tabKey}
+                onClick={() => setTab(tabKey)}
+                className={`px-5 h-10 flex items-center text-base capitalize transition-colors ${
+                  tab === tabKey
+                    ? "border-b-2 border-[#303030] text-[#303030] font-medium"
+                    : "text-text-muted"
+                }`}
+              >
+                {tabKey === "home" ? t("tabHome") : t("tabActivities")}
+              </button>
+            ))}
+          </div>
+          <div className="border-t border-progress-track" />
+
+          {tab === "home" ? (
+            <HomeTab
+              challenge={challenge}
+              challengeId={challengeId}
+              circleName={circle?.name}
+              userId={user?.id}
+            />
+          ) : (
+            <ActivitiesTab challengeId={challenge.challengeId} />
+          )}
         </div>
-
-        {/* Tab bar */}
-        <div className="flex px-10 mt-5">
-          {(["home", "activities"] as const).map((tabKey) => (
-            <button
-              key={tabKey}
-              onClick={() => setTab(tabKey)}
-              className={`px-5 h-10 flex items-center text-base capitalize transition-colors ${
-                tab === tabKey
-                  ? "border-b-2 border-[#303030] text-[#303030] font-medium"
-                  : "text-text-muted"
-              }`}
-            >
-              {tabKey === "home" ? t("tabHome") : t("tabActivities")}
-            </button>
-          ))}
-        </div>
-        <div className="border-t border-progress-track" />
-
-        {tab === "home" ? (
-          <HomeTab challenge={challenge} challengeId={challengeId} circleName={circle?.name} userId={user?.id} />
-        ) : (
-          <ActivitiesTab challengeId={challenge.challengeId} />
-        )}
-
       </div>
-    </div>
-
-</>
+    </>
   );
 }

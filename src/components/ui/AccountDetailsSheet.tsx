@@ -1,6 +1,7 @@
 "use client";
 
-import { X, User } from "lucide-react";
+import { X } from "lucide-react";
+import Avatar from "@/components/ui/Avatar";
 import { useTranslations } from "next-intl";
 import type { AuthUser } from "@/lib/types/auth";
 
@@ -38,13 +39,7 @@ export default function AccountDetailsSheet({ user, avatarUrl, onClose }: Props)
 
         {/* Avatar */}
         <div className="flex justify-center pb-5">
-          <div className="w-20 h-20 rounded-full bg-surface border-2 border-border overflow-hidden flex items-center justify-center">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
-            ) : (
-              <User size={32} className="text-text-muted" />
-            )}
-          </div>
+          <Avatar src={avatarUrl} alt={fullName} className="w-20 h-20 rounded-full border-2 border-border" />
         </div>
 
         {/* Fields */}

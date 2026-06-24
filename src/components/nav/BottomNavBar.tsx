@@ -1,6 +1,7 @@
 "use client";
 
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import Avatar from "@/components/ui/Avatar";
 import { useTranslations } from "next-intl";
 import { Home, Compass, User } from "lucide-react";
 
@@ -50,21 +51,11 @@ export default function BottomNavBar({ avatarUrl, isAuthenticated = true }: Prop
               className="flex flex-col items-center gap-1 py-3 px-6 min-w-15"
             >
               {isProfile ? (
-                avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt={t("profileAlt")}
-                    className={`w-[22px] h-[22px] rounded-full object-cover ${
-                      active ? "ring-2 ring-gotf-yellow" : "ring-1 ring-border"
-                    }`}
-                  />
-                ) : (
-                  <User
-                    size={22}
-                    strokeWidth={active ? 2.5 : 1.8}
-                    className={active ? "text-text-primary" : "text-text-muted"}
-                  />
-                )
+                <Avatar
+                  src={avatarUrl}
+                  alt={t("profileAlt")}
+                  className={`w-[22px] h-[22px] rounded-full ${active ? "ring-2 ring-gotf-yellow" : "ring-1 ring-border"}`}
+                />
               ) : Icon ? (
                 <Icon
                   size={22}

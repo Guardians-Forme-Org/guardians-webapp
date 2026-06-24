@@ -1,6 +1,7 @@
 "use client";
 
 import RoleBadge from "@/components/ui/RoleBadge";
+import Avatar from "@/components/ui/Avatar";
 import { computeGlobalRoles } from "@/lib/roles";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import LocationSheet from "@/components/ui/LocationSheet";
@@ -151,17 +152,7 @@ export default function ProfilePage() {
 
       {/* Identity */}
       <div className="flex flex-col items-center gap-1 pb-6 pt-2">
-        <div className="w-30 h-30 rounded-full bg-surface border-2 border-border flex items-center justify-center mb-3 overflow-hidden">
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={fullName}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <User size={48} className="text-text-muted" />
-          )}
-        </div>
+        <Avatar src={avatarUrl} alt={fullName} className="w-30 h-30 rounded-full border-2 border-border mb-3" />
         <div className="flex items-center gap-2">
           <h1 className="text-[32px] font-bold text-black leading-tight">
             {fullName}

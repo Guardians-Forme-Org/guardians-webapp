@@ -1,6 +1,7 @@
 "use client";
 
 import { useRecentActivities, useUserRecentActivities, EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
+import Avatar from "@/components/ui/Avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUsers } from "@/lib/hooks/users";
 import { useTranslations } from "next-intl";
@@ -89,15 +90,12 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
             {avatars.length > 0 && (
               <div className="flex shrink-0" style={{ width: avatars.length === 1 ? 32 : 48 }}>
                 {avatars.map((avatarUrl, i) => (
-                  <div
+                  <Avatar
                     key={i}
-                    className="size-8 rounded-full bg-[#d9d9d9] border-2 border-white overflow-hidden shrink-0"
+                    src={avatarUrl}
+                    className="size-8 rounded-full border-2 border-white shrink-0"
                     style={{ marginLeft: i > 0 ? -16 : 0 }}
-                  >
-                    {avatarUrl && (
-                      <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-                    )}
-                  </div>
+                  />
                 ))}
               </div>
             )}
