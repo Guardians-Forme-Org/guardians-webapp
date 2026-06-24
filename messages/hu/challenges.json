@@ -139,7 +139,7 @@
   "interventionsLabel": "Beavatkozások",
   "measurementType": "Mérési típus",
   "guardians": "Őrzők",
-  "sdgSupportText": "A(z) {name} egy olyan kihívás, amely támogatja a(z) „{sdgTitle}" Fenntartható Fejlődési Célt.",
+  "sdgSupportText": "A(z) {name} egy olyan kihívás, amely támogatja a(z) „{sdgTitle}” Fenntartható Fejlődési Célt.",
   "siteDescriptionHeading": "Helyszín leírása",
   "siteConditionHint": "Írja le a helyszínt bármilyen munka megkezdése előtt — felszíntípus, növényzet, szemét stb.",
   "siteConditionPlaceholder": "Írja le a munkakezdés előtti állapotot",
