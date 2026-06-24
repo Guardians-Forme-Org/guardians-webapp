@@ -1,4 +1,7 @@
+"use client";
+
 import { Pencil } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { WizardStepType } from "../../stepFormConfig";
 import { FileThumb, ReadOnlyField } from "../shared";
 import type { LogFormData } from "../types";
@@ -35,6 +38,7 @@ function ReviewSection({
   showEdit?: boolean;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("challenges");
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
@@ -48,7 +52,7 @@ function ReviewSection({
             aria-label={`Edit ${label}`}
           >
             <Pencil size={13} />
-            Edit
+            {t("edit")}
           </button>
         )}
       </div>
@@ -70,6 +74,7 @@ export default function ReviewStep({
   canEdit,
   uploadLabel = "Upload",
 }: Props) {
+  const t = useTranslations("challenges");
   const idx = (type: WizardStepType) => stepTypes.indexOf(type) + 1;
   const showEdit = !readOnly || !!canEdit;
 
@@ -84,16 +89,16 @@ export default function ReviewStep({
   return (
     <>
       <div className="px-5 mt-7 mb-6">
-        <h1 className="text-[32px] font-bold text-black">Review</h1>
+        <h1 className="text-[32px] font-bold text-black">{t("reviewHeading")}</h1>
         <p className="text-base text-text-muted mt-1">
-          Check your details before uploading.
+          {t("checkDetails")}
         </p>
       </div>
 
       <div className="flex flex-col gap-6 px-5">
         {hasFileUpload && form.evidenceFiles.length > 0 && (
           <ReviewSection
-            label="Evidence files"
+            label={t("evidenceFilesSection")}
             stepIndex={idx("file-upload")}
             onEdit={onGoToStep}
             showEdit={showEdit}
@@ -124,25 +129,25 @@ export default function ReviewStep({
 
         {hasVolunteerHours && form.volunteerHours && (
           <ReviewSection
-            label="Volunteer hours"
+            label={t("volunteerHoursSection")}
             stepIndex={idx("volunteer-hours")}
             onEdit={onGoToStep}
             showEdit={showEdit}
           >
-            <ReadOnlyField label="Hours" value={`${form.volunteerHours} hours`} />
+            <ReadOnlyField label={t("hoursLabel")} value={t("hoursValue", { hours: form.volunteerHours })} />
           </ReviewSection>
         )}
 
         {hasMeasurement && (
           <ReviewSection
-            label="Measurement"
+            label={t("measurementSection")}
             stepIndex={idx("measurement")}
             onEdit={onGoToStep}
             showEdit={showEdit}
           >
             {form.measurementValue && (
               <ReadOnlyField
-                label="Amount"
+                label={t("amountLabel")}
                 value={
                   form.measurementType === "AREA"
                     ? `${form.measurementValue} ${form.areaUnit}`
@@ -152,7 +157,7 @@ export default function ReviewStep({
             )}
             {form.measurementType !== "AREA" && form.impactDescription && (
               <ReadOnlyField
-                label="Description"
+                label={t("descriptionLabel")}
                 value={form.impactDescription}
                 multiline
               />
@@ -162,13 +167,13 @@ export default function ReviewStep({
 
         {hasImpact && form.impactDescription && (
           <ReviewSection
-            label="Impact"
+            label={t("impactSection")}
             stepIndex={idx("impact")}
             onEdit={onGoToStep}
             showEdit={showEdit}
           >
             <ReadOnlyField
-              label="Description"
+              label={t("descriptionLabel")}
               value={form.impactDescription}
               multiline
             />
@@ -177,13 +182,13 @@ export default function ReviewStep({
 
         {hasRegion && form.locationResult && (
           <ReviewSection
-            label="Region"
+            label={t("regionSection")}
             stepIndex={idx("region")}
             onEdit={onGoToStep}
             showEdit={showEdit}
           >
             <ReadOnlyField
-              label="Location"
+              label={t("locationLabel")}
               value={form.locationResult.formattedAddress}
             />
           </ReviewSection>
@@ -191,13 +196,13 @@ export default function ReviewStep({
 
         {hasContributors && form.contributors.length > 0 && (
           <ReviewSection
-            label="Contributors"
+            label={t("contributorsSection")}
             stepIndex={idx("contributors")}
             onEdit={onGoToStep}
             showEdit={showEdit}
           >
             <ReadOnlyField
-              label="Members"
+              label={t("membersLabel")}
               value={form.contributors
                 .map((id) => {
                   const u = users?.find((u) => u.id === id);
@@ -213,17 +218,17 @@ export default function ReviewStep({
 
         {hasSiteDetails && (
           <ReviewSection
-            label="Site details"
+            label={t("siteDetailsSection")}
             stepIndex={idx("site-details")}
             onEdit={onGoToStep}
             showEdit={showEdit}
           >
             {form.siteName && (
-              <ReadOnlyField label="Site Name" value={form.siteName} />
+              <ReadOnlyField label={t("siteNameReview")} value={form.siteName} />
             )}
             {form.permissionHolder && (
               <ReadOnlyField
-                label="Permission Holder"
+                label={t("permissionHolderReview")}
                 value={form.permissionHolder}
               />
             )}
@@ -231,10 +236,10 @@ export default function ReviewStep({
             <div className="border border-[rgba(26,26,24,0.14)] rounded-[12px] p-[14.5px] flex gap-3 items-start">
               <div className="flex-1">
                 <p className="text-[14px] font-semibold text-text-primary">
-                  Written permission confirmed
+                  {t("permissionConfirmedReview")}
                 </p>
                 <p className="text-xs text-[#5c5c59] mt-1">
-                  Confirm you have signed permission from the landowner.
+                  {t("permissionConfirmedReviewDesc")}
                 </p>
               </div>
               <div
@@ -257,7 +262,7 @@ export default function ReviewStep({
             {form.locationResult && (
               <div className="flex flex-col gap-2">
                 <label className="text-base font-medium text-text-primary">
-                  Location
+                  {t("locationLabel")}
                 </label>
                 <div className="h-[44px] border border-[rgba(26,26,24,0.14)] rounded-[8px] px-3 flex items-center bg-[#f9f9f9]">
                   <p className="text-base text-text-primary truncate">
@@ -275,7 +280,7 @@ export default function ReviewStep({
             {form.plantingPhoto && (
               <div className="flex flex-col gap-2">
                 <label className="text-base font-medium text-text-primary">
-                  Planting Photo
+                  {t("plantingPhotoLabel")}
                 </label>
                 <img
                   src={form.plantingPhoto}
@@ -287,14 +292,14 @@ export default function ReviewStep({
 
             {form.estimatedArea && (
               <ReadOnlyField
-                label="Estimated Site Area"
+                label={t("estimatedAreaLabel")}
                 value={`${form.estimatedArea} ${form.areaUnit}`}
               />
             )}
 
             {form.siteCondition && (
               <ReadOnlyField
-                label="Current Site Condition"
+                label={t("siteConditionLabel")}
                 value={form.siteCondition}
                 multiline
               />
@@ -312,14 +317,14 @@ export default function ReviewStep({
             disabled={isPending}
             className="w-full h-14 border border-[rgba(26,26,24,0.28)] rounded-full text-base font-medium text-text-primary disabled:opacity-50"
           >
-            Delete Impact
+            {t("deleteImpact")}
           </button>
           <button
             onClick={onUpload}
             disabled={isPending}
             className="w-full h-14 bg-black text-white rounded-full text-xl font-medium disabled:opacity-50"
           >
-            {isPending ? `${uploadLabel === "Update" ? "Updating" : "Uploading"}…` : uploadLabel}
+            {isPending ? (uploadLabel === "Update" ? t("updating") : t("uploading")) : uploadLabel}
           </button>
         </div>
       )}

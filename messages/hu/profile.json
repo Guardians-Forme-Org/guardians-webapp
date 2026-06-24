@@ -1,0 +1,14 @@
+{
+  "editProfile": "Profil szerkesztése",
+  "tapToChangePhoto": "Koppints a fénykép módosításához",
+  "firstNameLabel": "Keresztnév",
+  "firstNamePlaceholder": "Add meg a keresztneved",
+  "lastNameLabel": "Vezetéknév",
+  "lastNamePlaceholder": "Add meg a vezetékneved",
+  "mobileLabel": "Mobilszám",
+  "mobilePlaceholder": "Add meg a mobilszámod",
+  "emailLabel": "E-mail",
+  "emailCannotChange": "(nem módosítható)",
+  "saving": "Mentés…",
+  "saveChanges": "Módosítások mentése"
+}

@@ -2,6 +2,7 @@
 
 import { useState, type KeyboardEvent } from "react";
 import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Props = {
   placeholder?: string;
@@ -11,11 +12,13 @@ type Props = {
 };
 
 export default function SearchBar({
-  placeholder = "Find challenges and circles near you",
+  placeholder,
   defaultValue = "",
   onSubmit,
   onChange,
 }: Props) {
+  const t = useTranslations("common");
+  const resolvedPlaceholder = placeholder ?? t("searchPlaceholder");
   const [value, setValue] = useState(defaultValue);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -36,7 +39,7 @@ export default function SearchBar({
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
         />
       </div>

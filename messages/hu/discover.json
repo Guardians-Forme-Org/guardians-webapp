@@ -1,0 +1,14 @@
+{
+  "title": "Felfedezés",
+  "tabChallenges": "Kihívások",
+  "tabCircles": "Körök",
+  "searchChallenges": "Kihívások keresése a közelben",
+  "searchCircles": "Körök keresése a közelben",
+  "createCircle": "Kör létrehozása",
+  "createChallenge": "Kihívás létrehozása",
+  "loadingChallenges": "Kihívások betöltése…",
+  "loadingCircles": "Körök betöltése…",
+  "since": "{date} óta",
+  "members": "{count} tag",
+  "circlePickerTitle": "Melyik körhöz szól ez a kihívás?"
+}

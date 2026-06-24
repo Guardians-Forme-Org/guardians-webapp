@@ -10,10 +10,16 @@
   "loggingIn": "Logging in…",
   "switchToEmail": "Continue with email",
   "switchToMobile": "Continue with mobile",
-  "noAccount": "Don’t have an account?",
+  "noAccount": "Don't have an account?",
   "signUp": "Sign Up",
-  "tos": "By clicking login, you agree to “Guardians of the Future” and acknowledge the",
+  "tos": "By clicking login, you agree to \"Guardians of the Future\" and acknowledge the",
   "termsOfService": "Terms of Service",
   "privacyPolicy": "Privacy Policy",
-  "validationError": "Please enter your credentials and password."
+  "validationError": "Please enter your credentials and password.",
+  "and": "and",
+  "verifyHeading1": "What is your",
+  "verifyHeading2": "One Time Pin?",
+  "verifyDescription": "Enter the 6-digit code we sent to xxx-xxx-<strong>{suffix}</strong>",
+  "resendCode": "Resend the code",
+  "confirm": "Confirm"
 }

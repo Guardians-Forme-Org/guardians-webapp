@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Link2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Props = {
   title: string;
@@ -12,6 +13,7 @@ type Props = {
 
 export default function WizardSuccessScreen({ title, subtitle, inviteLink, onDone }: Props) {
   const [copied, setCopied] = useState(false);
+  const t = useTranslations("common");
 
   const handleCopy = async () => {
     if (!inviteLink) return;
@@ -54,7 +56,7 @@ export default function WizardSuccessScreen({ title, subtitle, inviteLink, onDon
             <Link2 size={20} className="text-text-primary shrink-0" />
             <div className="flex flex-col gap-1 min-w-0">
               <span className="text-base font-bold text-black">
-                {copied ? "Copied!" : "Copy invitation link"}
+                {copied ? t("copiedLink") : t("copyInviteLink")}
               </span>
               <span className="text-base text-[#bfbfbf] truncate">{inviteLink}</span>
             </div>
@@ -67,7 +69,7 @@ export default function WizardSuccessScreen({ title, subtitle, inviteLink, onDon
           onClick={onDone}
           className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
         >
-          Done
+          {t("done")}
         </button>
       </div>
     </div>

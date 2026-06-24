@@ -18,6 +18,7 @@ import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
 import RoleBadge from "@/components/ui/RoleBadge";
 import { computeChallengeRoles } from "@/lib/roles";
+import { useTranslations, useLocale } from "next-intl";
 
 function HomeTab({
   challenge,
@@ -30,6 +31,7 @@ function HomeTab({
   circleName?: string;
   userId?: string | null;
 }) {
+  const t = useTranslations("challenges");
   const [expanded, setExpanded] = useState(false);
   const [showAllMembers, setShowAllMembers] = useState(false);
   const { data: users = [] } = useUsers();
@@ -69,7 +71,7 @@ function HomeTab({
           onClick={() => setExpanded((v) => !v)}
           className="text-base text-gotf-blue mt-2"
         >
-          {expanded ? "Show less" : "Show more"}
+          {expanded ? t("showLess") : t("showMore")}
         </button>
       </div>
 
@@ -78,7 +80,7 @@ function HomeTab({
       {/* Progress */}
       <div className="px-10 py-7.5 flex flex-col gap-4">
         <Text variant="subheading" className="font-semibold text-[20px]">
-          Progress
+          {t("progress")}
         </Text>
         <div className="flex items-center gap-5">
           <div className="flex-1 h-2.5 bg-[#e0e0e0] rounded-full overflow-hidden">
@@ -111,7 +113,7 @@ function HomeTab({
               </div>
               <div>
                 <p className="text-xl font-semibold text-text-primary">{fName}</p>
-                <p className="text-base font-medium text-text-secondary">Facilitator</p>
+                <p className="text-base font-medium text-text-secondary">{t("facilitator")}</p>
               </div>
             </div>
             <div className="border-t border-progress-track" />
@@ -125,7 +127,7 @@ function HomeTab({
           <div className="py-7.5">
             <div className="flex items-center justify-between px-7.5 mb-5">
               <p className="text-xl font-bold text-text-subheading">
-                <span className="font-normal">by </span>
+                <span className="font-normal">{t("by")} </span>
                 <Link
                   href={`/circles/${challenge.circleId}`}
                   className="text-gotf-blue"
@@ -138,7 +140,7 @@ function HomeTab({
                   onClick={() => setShowAllMembers((v) => !v)}
                   className="text-base text-gotf-blue"
                 >
-                  {showAllMembers ? "Show less" : `See all (${members.length})`}
+                  {showAllMembers ? t("showLess") : t("seeAll", { count: members.length })}
                 </button>
               )}
             </div>
@@ -189,7 +191,7 @@ function HomeTab({
                   {formatImpactDisplayValue(record.impactSummary.impact.displayName)}
                 </p>
                 <p className="text-[11px] text-text-muted">
-                  {formatImpactDisplayValue(record.impactSummary.contribution.displayName)} contributed
+                  {formatImpactDisplayValue(record.impactSummary.contribution.displayName)} {t("contributed")}
                 </p>
               </div>
             ))}
@@ -200,7 +202,7 @@ function HomeTab({
       {/* Steps */}
       {(challenge.challengeSteps ?? []).length > 0 && (
         <div className="border-t border-progress-track py-7.5">
-          <p className="px-10 text-xl font-semibold text-text-subheading mb-5">Steps</p>
+          <p className="px-10 text-xl font-semibold text-text-subheading mb-5">{t("steps")}</p>
           <div className="flex flex-col gap-3 px-6">
             {(challenge.challengeSteps ?? []).map((step) => (
               <Link
@@ -245,6 +247,8 @@ function ActivitiesTab({ challengeId }: { challengeId: string }) {
 type Props = { challengeId: string };
 
 export default function ChallengeScreen({ challengeId }: Props) {
+  const t = useTranslations("challenges");
+  const locale = useLocale();
   const { user } = useAuth();
   const router = useRouter();
   const [tab, setTab] = useState<"home" | "activities">("home");
@@ -260,7 +264,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-full p-10">
-        <Text variant="body">Loading…</Text>
+        <Text variant="body">{t("loading")}</Text>
       </div>
     );
   }
@@ -268,7 +272,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
   if (error || !challenge) {
     return (
       <div className="flex items-center justify-center min-h-full p-10">
-        <Text variant="body">Challenge not found.</Text>
+        <Text variant="body">{t("notFound")}</Text>
       </div>
     );
   }
@@ -287,7 +291,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
     isFacilitator ||
     canManageCircle(user?.email, user?.id, circle ?? { createdBy: challenge.createdBy });
 
-  const since = new Date(challenge.createdAt).toLocaleDateString("en-GB", {
+  const since = new Date(challenge.createdAt).toLocaleDateString(locale, {
     day: "numeric",
     month: "long",
   });
@@ -321,7 +325,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
             )}
           </div>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <p className="text-base text-[#666]">Since {since}</p>
+            <p className="text-base text-[#666]">{t("since", { date: since })}</p>
             <RoleBadge roles={computeChallengeRoles(user?.id, user?.email, challenge)} />
           </div>
           <div className="mt-3 flex items-center gap-3">
@@ -346,10 +350,10 @@ export default function ChallengeScreen({ challengeId }: Props) {
                   }`}
                 >
                   {isMember
-                    ? "Joined"
+                    ? t("joined")
                     : isPending
-                      ? "Joining…"
-                      : "Join Challenge"}
+                      ? t("joining")
+                      : t("joinChallenge")}
                 </button>
               );
             })()}
@@ -358,17 +362,17 @@ export default function ChallengeScreen({ challengeId }: Props) {
 
         {/* Tab bar */}
         <div className="flex px-10 mt-5">
-          {(["home", "activities"] as const).map((t) => (
+          {(["home", "activities"] as const).map((tabKey) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tabKey}
+              onClick={() => setTab(tabKey)}
               className={`px-5 h-10 flex items-center text-base capitalize transition-colors ${
-                tab === t
+                tab === tabKey
                   ? "border-b-2 border-[#303030] text-[#303030] font-medium"
                   : "text-text-muted"
               }`}
             >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
+              {tabKey === "home" ? t("tabHome") : t("tabActivities")}
             </button>
           ))}
         </div>

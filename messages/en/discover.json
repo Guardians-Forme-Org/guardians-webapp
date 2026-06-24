@@ -1,1 +1,14 @@
-{}
+{
+  "title": "Discover",
+  "tabChallenges": "Challenges",
+  "tabCircles": "Circles",
+  "searchChallenges": "Find challenges near you",
+  "searchCircles": "Find circles near you",
+  "createCircle": "Create Circle",
+  "createChallenge": "Create Challenge",
+  "loadingChallenges": "Loading challenges…",
+  "loadingCircles": "Loading circles…",
+  "since": "Since {date}",
+  "members": "{count} Members",
+  "circlePickerTitle": "Which circle is this challenge for?"
+}

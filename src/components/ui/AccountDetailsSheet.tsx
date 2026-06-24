@@ -1,6 +1,7 @@
 "use client";
 
 import { X, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { AuthUser } from "@/lib/types/auth";
 
 type Props = {
@@ -9,17 +10,16 @@ type Props = {
   onClose: () => void;
 };
 
-type FieldRow = { label: string; value: string };
-
 export default function AccountDetailsSheet({ user, avatarUrl, onClose }: Props) {
+  const t = useTranslations("common");
   const m = user.user_metadata;
   const fullName = [m.firstName, m.lastName].filter(Boolean).join(" ") || "—";
 
-  const fields: FieldRow[] = [
-    { label: "Full name",   value: fullName },
-    { label: "Email",       value: user.email || "—" },
-    { label: "Mobile",      value: m.mobile || "—" },
-    { label: "Username",    value: m.username || "—" },
+  const fields = [
+    { label: t("fullNameLabel"), value: fullName },
+    { label: t("emailLabel"),    value: user.email || "—" },
+    { label: t("mobileLabel"),   value: m.mobile || "—" },
+    { label: t("usernameLabel"), value: m.username || "—" },
   ];
 
   return (
@@ -30,8 +30,8 @@ export default function AccountDetailsSheet({ user, avatarUrl, onClose }: Props)
         <div className="absolute left-1/2 -translate-x-1/2 top-3 w-10 h-1 rounded-full bg-[#e0e0e0]" />
 
         <div className="flex items-center justify-between px-7.5 pt-5 pb-4">
-          <p className="text-base font-semibold text-black mt-3">Account Details</p>
-          <button onClick={onClose} aria-label="Close" className="text-text-muted mt-3">
+          <p className="text-base font-semibold text-black mt-3">{t("accountDetails")}</p>
+          <button onClick={onClose} aria-label={t("close")} className="text-text-muted mt-3">
             <X size={20} />
           </button>
         </div>

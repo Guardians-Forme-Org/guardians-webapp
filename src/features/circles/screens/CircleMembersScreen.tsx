@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, MapPin, ChevronDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { getCircleById, type CircleMember } from "../data";
 import SearchBar from "@/components/ui/SearchBar";
 import Text from "@/components/ui/Text";
@@ -7,6 +10,7 @@ import Text from "@/components/ui/Text";
 // ── Member row ─────────────────────────────────────────────────────────────────
 
 function MemberRow({ member }: { member: CircleMember }) {
+  const t = useTranslations("circles");
   return (
     <div className="flex items-center gap-3.75">
       <span className="w-2.5 text-center font-medium text-base text-black shrink-0">
@@ -19,7 +23,7 @@ function MemberRow({ member }: { member: CircleMember }) {
       />
       <div className="flex-1 min-w-0">
         <p className="text-base font-semibold text-text-primary">{member.name}</p>
-        <Text variant="caption" className="text-text-secondary">Joined {member.joinDate}</Text>
+        <Text variant="caption" className="text-text-secondary">{t("joinedDate", { date: member.joinDate })}</Text>
       </div>
       <ChevronRight size={24} className="text-text-muted shrink-0" />
     </div>
@@ -31,12 +35,13 @@ function MemberRow({ member }: { member: CircleMember }) {
 type Props = { circleId: string };
 
 export default function CircleMembersScreen({ circleId }: Props) {
+  const t = useTranslations("circles");
   const circle = getCircleById(circleId);
 
   if (!circle) {
     return (
       <div className="flex items-center justify-center min-h-full p-10">
-        <Text variant="body">Circle not found.</Text>
+        <Text variant="body">{t("notFound")}</Text>
       </div>
     );
   }
@@ -51,11 +56,11 @@ export default function CircleMembersScreen({ circleId }: Props) {
             <ChevronLeft size={20} className="text-text-primary" />
           </Link>
         </div>
-        <h1 className="text-[32px] font-bold text-black">Members</h1>
+        <h1 className="text-[32px] font-bold text-black">{t("membersTitle")}</h1>
       </div>
 
       {/* Search */}
-      <SearchBar placeholder="Search members..." />
+      <SearchBar placeholder={t("searchMembers")} />
 
       {/* Location pill */}
       <div className="flex items-center justify-center gap-1.5 mb-5">
@@ -71,7 +76,7 @@ export default function CircleMembersScreen({ circleId }: Props) {
 
       {/* Top Impactors */}
       <div className="px-7.5 py-6">
-        <p className="text-xl font-bold text-text-subheading mb-6">Top Impactors</p>
+        <p className="text-xl font-bold text-text-subheading mb-6">{t("topImpactors")}</p>
         <div className="flex flex-col gap-7.5">
           {circle.members.map((member) => (
             <MemberRow key={member.id} member={member} />
@@ -83,8 +88,8 @@ export default function CircleMembersScreen({ circleId }: Props) {
 
       {/* Guardians count header */}
       <div className="flex items-center gap-4 px-10 py-5">
-        <p className="text-xl font-bold text-text-subheading">Guardians</p>
-        <p className="text-base text-text-secondary">{circle.totalGuardians} Total Guardians</p>
+        <p className="text-xl font-bold text-text-subheading">{t("guardians")}</p>
+        <p className="text-base text-text-secondary">{t("totalGuardians", { count: circle.totalGuardians })}</p>
       </div>
 
     </div>

@@ -177,7 +177,7 @@ export default function LoginPage() {
           >
             {t("termsOfService")}
           </a>{" "}
-          and{" "}
+          {t("and")}{" "}
           <a
             href="https://theguardians.world/"
             target="_blank"

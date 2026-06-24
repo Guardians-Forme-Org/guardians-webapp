@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { UserLocation } from "@/lib/types/auth";
 
 type Props = {
@@ -9,6 +10,8 @@ type Props = {
 };
 
 export default function LocationSheet({ location, onClose }: Props) {
+  const t = useTranslations("common");
+
   const displayAddress =
     location.formattedAddress ||
     location.address ||
@@ -21,12 +24,12 @@ export default function LocationSheet({ location, onClose }: Props) {
       : null;
 
   const rows: { label: string; value: string }[] = [
-    { label: "Address",     value: displayAddress },
-    ...(location.city     ? [{ label: "City",     value: location.city }]     : []),
-    ...(location.province ? [{ label: "Province", value: location.province }] : []),
-    ...(location.country  ? [{ label: "Country",  value: location.country }]  : []),
-    ...(coords            ? [{ label: "Coordinates", value: coords }]          : []),
-    ...(location.what3words ? [{ label: "What3Words", value: location.what3words }] : []),
+    { label: t("address"),     value: displayAddress },
+    ...(location.city     ? [{ label: t("city"),     value: location.city }]     : []),
+    ...(location.province ? [{ label: t("province"), value: location.province }] : []),
+    ...(location.country  ? [{ label: t("country"),  value: location.country }]  : []),
+    ...(coords            ? [{ label: t("coordinates"), value: coords }]          : []),
+    ...(location.what3words ? [{ label: t("what3words"), value: location.what3words }] : []),
   ];
 
   return (
@@ -37,8 +40,8 @@ export default function LocationSheet({ location, onClose }: Props) {
         <div className="absolute left-1/2 -translate-x-1/2 top-3 w-10 h-1 rounded-full bg-[#e0e0e0]" />
 
         <div className="flex items-center justify-between px-7.5 pt-5 pb-4">
-          <p className="text-base font-semibold text-black mt-3">Location</p>
-          <button onClick={onClose} aria-label="Close" className="text-text-muted mt-3">
+          <p className="text-base font-semibold text-black mt-3">{t("locationTitle")}</p>
+          <button onClick={onClose} aria-label={t("close")} className="text-text-muted mt-3">
             <X size={20} />
           </button>
         </div>

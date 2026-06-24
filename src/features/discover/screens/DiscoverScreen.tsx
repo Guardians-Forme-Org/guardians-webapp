@@ -12,6 +12,7 @@ import { isWhitelisted, isCircleLead } from "@/lib/permissions";
 import type { ApiCircle, CirclesListResponse } from "@/lib/types/circles";
 import { useChallenges } from "@/lib/hooks/challenges";
 import ChallengeCard from "@/features/challenges/components/ChallengeCard";
+import { useTranslations, useLocale } from "next-intl";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ type CircleItem = {
 // ── Circle Card ────────────────────────────────────────────────────────────────
 
 function CircleCard({ item }: { item: CircleItem }) {
+  const t = useTranslations("discover");
   return (
     <Link href={`/circles/${item.id}`} className="flex h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white">
       {/* Left image strip */}
@@ -61,7 +63,7 @@ function CircleCard({ item }: { item: CircleItem }) {
         <ArrowRight size={20} className="absolute right-3 top-4 text-text-muted" />
 
         <p className="text-[18px] font-bold text-text-subheading leading-tight">{item.name}</p>
-        <p className="text-[14px] text-text-subheading mt-1">Since {item.since}</p>
+        <p className="text-[14px] text-text-subheading mt-1">{t("since", { date: item.since })}</p>
         <div className="flex items-center gap-1 mt-0.5">
           <MapPin size={11} className="text-text-muted shrink-0" />
           <p className="text-[14px] text-text-muted truncate">{item.location}</p>
@@ -70,7 +72,7 @@ function CircleCard({ item }: { item: CircleItem }) {
         {/* Footer */}
         <div className="flex items-center justify-between mt-auto pb-1">
           <p className="text-[14px] text-text-muted">
-            <span className="font-bold">{item.members}</span> Members
+            {t("members", { count: item.members })}
           </p>
           <AvatarStack avatars={item.memberAvatars} />
         </div>
@@ -88,6 +90,7 @@ function CirclePickerSheet({
   circles: ApiCircle[];
   onClose: () => void;
 }) {
+  const t = useTranslations("discover");
   const router = useRouter();
   return (
     <>
@@ -95,7 +98,7 @@ function CirclePickerSheet({
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[20px] z-[70] px-5 pt-5 pb-10">
         <div className="w-10 h-1 bg-[#d9d9d9] rounded-full mx-auto mb-6" />
         <p className="text-xl font-bold text-text-subheading mb-5">
-          Which circle is this challenge for?
+          {t("circlePickerTitle")}
         </p>
         <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto">
           {circles.map((c) => (
@@ -135,6 +138,8 @@ function CirclePickerSheet({
 // ── Main Screen ────────────────────────────────────────────────────────────────
 
 export default function DiscoverScreen() {
+  const t = useTranslations("discover");
+  const locale = useLocale();
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -173,7 +178,7 @@ export default function DiscoverScreen() {
 
       {/* Header */}
       <div className="px-10 pt-8 pb-6">
-        <h1 className="text-[32px] font-bold text-black">Discover</h1>
+        <h1 className="text-[32px] font-bold text-black">{t("title")}</h1>
       </div>
 
       <div className="border-t border-progress-track" />
@@ -181,15 +186,15 @@ export default function DiscoverScreen() {
       {/* Tab switcher */}
       <div className="flex justify-center py-4">
         <div className="flex">
-          {(["challenges", "circles"] as Tab[]).map((t) => (
+          {(["challenges", "circles"] as Tab[]).map((tabKey) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tabKey}
+              onClick={() => setTab(tabKey)}
               className={`h-[34px] w-[131px] rounded-full text-base text-text-subheading capitalize transition-colors ${
-                tab === t ? "bg-[#f0f0f0]" : ""
+                tab === tabKey ? "bg-[#f0f0f0]" : ""
               }`}
             >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
+              {tabKey === "challenges" ? t("tabChallenges") : t("tabCircles")}
             </button>
           ))}
         </div>
@@ -198,7 +203,7 @@ export default function DiscoverScreen() {
       {/* Search */}
       <SearchBar
         defaultValue={query}
-        placeholder={tab === "challenges" ? "Find challenges near you" : "Find circles near you"}
+        placeholder={tab === "challenges" ? t("searchChallenges") : t("searchCircles")}
         onSubmit={setQuery}
       />
 
@@ -209,7 +214,7 @@ export default function DiscoverScreen() {
             href="/circles/create"
             className="flex items-center justify-center w-full h-14 bg-black text-white rounded-full text-lg font-medium"
           >
-            Create Circle
+            {t("createCircle")}
           </Link>
         </div>
       )}
@@ -219,7 +224,7 @@ export default function DiscoverScreen() {
             onClick={handleCreateChallenge}
             className="flex items-center justify-center w-full h-14 bg-black text-white rounded-full text-lg font-medium"
           >
-            Create Challenge
+            {t("createChallenge")}
           </button>
         </div>
       )}
@@ -228,10 +233,10 @@ export default function DiscoverScreen() {
       <div className="px-5 flex flex-col gap-4 pb-8">
         {tab === "challenges"
           ? challengesLoading
-            ? <p className="text-sm text-text-muted text-center pt-6">Loading challenges…</p>
+            ? <p className="text-sm text-text-muted text-center pt-6">{t("loadingChallenges")}</p>
             : filteredChallenges.map((c) => <ChallengeCard key={c.challengeId} item={c} />)
           : circlesLoading
-            ? <p className="text-sm text-text-muted text-center pt-6">Loading circles…</p>
+            ? <p className="text-sm text-text-muted text-center pt-6">{t("loadingCircles")}</p>
             : (apiCircles ?? [])
                 .filter((c) => !lq || c.name.toLowerCase().includes(lq))
                 .map((c) => (
@@ -240,7 +245,7 @@ export default function DiscoverScreen() {
                     item={{
                       id: c.circleId,
                       name: c.name,
-                      since: new Date(c.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" }),
+                      since: new Date(c.createdAt).toLocaleDateString(locale, { day: "numeric", month: "long" }),
                       location: c.region.formattedAddress || [c.region.city, c.region.province].filter(Boolean).join(", ") || "—",
                       members: c.membersCount?.total ?? c.members.length,
                       memberAvatars: c.members.map((m) => m.avatarUrl),

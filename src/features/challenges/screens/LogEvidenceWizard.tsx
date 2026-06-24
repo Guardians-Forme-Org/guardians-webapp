@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChallenge, useSubmitEvidence, useSubmitRegistration, useUpdateEvidence } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
@@ -44,6 +45,7 @@ function activityToForm(activity: ApiRecentActivity): LogFormData {
 type Props = { challengeId: string; stepId: string; viewId?: string };
 
 export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props) {
+  const t = useTranslations("challenges");
   const router = useRouter();
   const { user, loginData } = useAuth();
   const { data: challenge } = useChallenge(challengeId);
@@ -66,7 +68,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
 
   const currentStepType = config.wizardSteps[step - 1]?.type;
   const nextStepType = config.wizardSteps[step]?.type;
-  const nextLabel = nextStepType === "review" ? "Review" : "Save";
+  const nextLabel = nextStepType === "review" ? t("review") : t("save");
   const members = challenge?.members ?? [];
 
   // Load draft from localStorage (only when not in view mode)
@@ -261,22 +263,22 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     submitRegistration.isError
       ? submitRegistration.error instanceof Error
         ? submitRegistration.error.message
-        : "Submission failed. Please try again."
+        : t("submissionFailed")
       : submitEvidence.isError
         ? submitEvidence.error instanceof Error
           ? submitEvidence.error.message
-          : "Submission failed. Please try again."
+          : t("submissionFailed")
         : updateEvidence.isError
           ? updateEvidence.error instanceof Error
             ? updateEvidence.error.message
-            : "Update failed. Please try again."
+            : t("updateFailed")
           : null;
 
   if (submitted) {
     return (
       <WizardSuccessScreen
-        title={viewId && !isViewMode ? "Activity Updated" : "Activity Uploaded"}
-        subtitle="Copy and share this link to invite people to join this challenge"
+        title={viewId && !isViewMode ? t("activityUpdated") : t("activityUploaded")}
+        subtitle={t("inviteSubtitle")}
         inviteLink={`${window.location.origin}/challenges/${challengeId}`}
         onDone={() => router.push(`/challenges/${challengeId}`)}
       />
@@ -343,7 +345,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
             users={users}
             readOnly={isViewMode}
             canEdit={canEdit}
-            uploadLabel={viewId && !isViewMode ? "Update" : "Upload"}
+            uploadLabel={viewId && !isViewMode ? t("update") : t("upload")}
           />
         )}
       </div>

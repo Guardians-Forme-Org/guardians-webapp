@@ -10,6 +10,7 @@ const LOCALE_LABELS: Record<string, string> = {
   af: "Afrikaans",
   zu: "isiZulu",
   fr: "Français",
+  hu: "Magyar",
 };
 
 export default function LanguageSwitcher({ onClose }: { onClose: () => void }) {

@@ -1,4 +1,7 @@
+"use client";
+
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { InterventionRow, SaveButton, ToggleCard, type Intervention } from "../shared";
 import type { LogFormData } from "../types";
 
@@ -10,6 +13,8 @@ type Props = {
 };
 
 export default function InterventionsStep({ form, update, onNext, nextLabel }: Props) {
+  const t = useTranslations("challenges");
+
   const addIntervention = () => {
     update("interventions", [
       ...form.interventions,
@@ -31,13 +36,13 @@ export default function InterventionsStep({ form, update, onNext, nextLabel }: P
   return (
     <>
       <div className="px-5 mt-7 mb-2">
-        <h1 className="text-[32px] font-bold text-black">Progress</h1>
-        <p className="text-[18px] text-black mt-2">Specify any interventions on the site.</p>
+        <h1 className="text-[32px] font-bold text-black">{t("progress")}</h1>
+        <p className="text-[18px] text-black mt-2">{t("interventionsSubtitle")}</p>
       </div>
 
       <div className="flex flex-col gap-4 px-5 mt-4">
         <div className="border border-[rgba(26,26,24,0.28)] rounded-[8px] p-5 flex flex-col gap-4">
-          <p className="text-base font-medium text-text-primary">Interventions</p>
+          <p className="text-base font-medium text-text-primary">{t("interventionsLabel")}</p>
           {form.interventions.map((item) => (
             <InterventionRow
               key={item.id}
@@ -54,18 +59,18 @@ export default function InterventionsStep({ form, update, onNext, nextLabel }: P
         >
           <div className="flex items-center gap-1.5 text-[#787575]">
             <Plus size={16} />
-            <span className="text-base font-medium">Add Intervention</span>
+            <span className="text-base font-medium">{t("addIntervention")}</span>
           </div>
-          <p className="text-base text-[#b6b6b7]">Planted, Cleaned etc</p>
+          <p className="text-base text-[#b6b6b7]">{t("interventionsHint")}</p>
         </button>
 
         <ToggleCard
-          label="Mark Challenge Complete"
-          description="Unlocks after all three steps are validated."
+          label={t("markChallengeComplete")}
+          description={t("markChallengeCompleteDesc")}
           checked={form.markComplete}
           onChange={() => update("markComplete", !form.markComplete)}
           disabled
-          badge="Unlock after step 3"
+          badge={t("unlockAfterStep3")}
         />
       </div>
 

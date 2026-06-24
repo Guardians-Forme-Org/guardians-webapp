@@ -16,6 +16,7 @@ import { calcChallengeProgress, deriveImpactLabel, formatImpactDisplayValue } fr
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, MapPin, Pencil, UserPlus } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import CircleHero from "../components/CircleHero";
@@ -32,8 +33,10 @@ function CircleChallengeRow({
   item: ApiCircleChallenge;
   rank: number;
 }) {
+  const t = useTranslations("circles");
+  const locale = useLocale();
   const { percent: progress } = calcChallengeProgress(item);
-  const since = new Date(item.createdAt).toLocaleDateString("en-GB", {
+  const since = new Date(item.createdAt).toLocaleDateString(locale, {
     day: "numeric",
     month: "long",
   });
@@ -57,7 +60,7 @@ function CircleChallengeRow({
           <p className="text-base font-semibold text-text-primary leading-tight">
             {item.name}
           </p>
-          <p className="text-xs text-text-secondary mt-0.5">Since {since}</p>
+          <p className="text-xs text-text-secondary mt-0.5">{t("since", { date: since })}</p>
           <div className="mt-1.5 h-[3px] bg-[#787878] rounded-full overflow-hidden">
             <div
               className="h-full bg-gotf-yellow rounded-full"
@@ -72,6 +75,7 @@ function CircleChallengeRow({
 }
 
 function GuardianRow({ members }: { members: CircleMember[] }) {
+  const t = useTranslations("circles");
   const [showAll, setShowAll] = useState(false);
   const { data: users = [] } = useUsers();
   const visible = showAll ? members : members.slice(0, 5);
@@ -88,13 +92,13 @@ function GuardianRow({ members }: { members: CircleMember[] }) {
   return (
     <div className="py-7.5 border-b border-progress-track">
       <div className="flex items-center justify-between px-7.5 mb-6">
-        <p className="text-xl font-bold text-text-subheading">Guardians</p>
+        <p className="text-xl font-bold text-text-subheading">{t("guardians")}</p>
         {members.length > 5 && (
           <button
             onClick={() => setShowAll((v) => !v)}
             className="text-base text-gotf-blue"
           >
-            {showAll ? "Show less" : `See all (${members.length})`}
+            {showAll ? t("showLess") : t("seeAll", { count: members.length })}
           </button>
         )}
       </div>
@@ -122,6 +126,8 @@ function GuardianRow({ members }: { members: CircleMember[] }) {
 type Props = { circleId: string };
 
 export default function CircleScreen({ circleId }: Props) {
+  const t = useTranslations("circles");
+  const locale = useLocale();
   const { user } = useAuth();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
@@ -144,7 +150,7 @@ export default function CircleScreen({ circleId }: Props) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-full p-10">
-        <Text variant="body">Loading…</Text>
+        <Text variant="body">{t("loading")}</Text>
       </div>
     );
   }
@@ -152,7 +158,7 @@ export default function CircleScreen({ circleId }: Props) {
   if (error || !circle) {
     return (
       <div className="flex items-center justify-center min-h-full p-10">
-        <Text variant="body">Circle not found.</Text>
+        <Text variant="body">{t("notFound")}</Text>
       </div>
     );
   }
@@ -160,7 +166,7 @@ export default function CircleScreen({ circleId }: Props) {
   const isMember = !!user && circle.members.some((m) => m.userId === user.id);
   const canEdit = isWhitelisted(user?.email) || canManageCircle(user?.email, user?.id, circle);
 
-  const joinedDate = new Date(circle.createdAt).toLocaleDateString("en-GB", {
+  const joinedDate = new Date(circle.createdAt).toLocaleDateString(locale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -184,7 +190,7 @@ export default function CircleScreen({ circleId }: Props) {
               </Link>
             )}
           </div>
-          <p className="text-base text-[#666] mt-1">Since {joinedDate}</p>
+          <p className="text-base text-[#666] mt-1">{t("since", { date: joinedDate })}</p>
 
           {(circle.region.formattedAddress || circle.region.city) && (
             <div className="flex items-center gap-1.5 mt-2">
@@ -220,10 +226,10 @@ export default function CircleScreen({ circleId }: Props) {
                   }`}
                 >
                   {isMember
-                    ? "Circle joined"
+                    ? t("circleJoined")
                     : isPending
-                      ? "Joining…"
-                      : "Join Circle"}
+                      ? t("joining")
+                      : t("joinCircle")}
                 </button>
                 {isMember && (
                   <RoleBadge roles={computeCircleRoles(user?.id, user?.email, circle)} />
@@ -249,7 +255,7 @@ export default function CircleScreen({ circleId }: Props) {
         <div className="flex border-b border-progress-track">
           <div className="flex-1 flex flex-col gap-2 px-10 pt-6 pb-5">
             <Text variant="caption" className="text-text-muted">
-              Guardians
+              {t("guardians")}
             </Text>
             <p className="text-2xl font-semibold text-text-subheading">
               {circle.members.length}
@@ -257,7 +263,7 @@ export default function CircleScreen({ circleId }: Props) {
           </div>
           <div className="flex-1 flex flex-col gap-2 px-5 pt-6 pb-5">
             <Text variant="caption" className="text-text-muted">
-              Active Challenges
+              {t("activeChallengeStat")}
             </Text>
             <p className="text-2xl font-semibold text-text-subheading">
               {circle.challenges.length}
@@ -269,7 +275,7 @@ export default function CircleScreen({ circleId }: Props) {
         {(circle.impactRecords ?? []).length > 0 && (
           <div className="border-b border-progress-track">
             <p className="px-10 pt-7.5 pb-4 text-xl font-bold text-text-subheading">
-              Impact
+              {t("impact")}
             </p>
             <div className="grid grid-cols-2 border-t border-[#e6e6e6]">
               {(circle.impactRecords ?? []).map((record, i) => (
@@ -284,7 +290,7 @@ export default function CircleScreen({ circleId }: Props) {
                     {formatImpactDisplayValue(record.impactSummary.impact.displayName)}
                   </p>
                   <p className="text-[11px] text-text-muted">
-                    {formatImpactDisplayValue(record.impactSummary.contribution.displayName)} contributed
+                    {formatImpactDisplayValue(record.impactSummary.contribution.displayName)} {t("contributed")}
                   </p>
                 </div>
               ))}
@@ -295,7 +301,7 @@ export default function CircleScreen({ circleId }: Props) {
         {/* Recent Activities */}
         <div className="border-b border-progress-track">
           <p className="px-10 pt-7.5 pb-5 text-xl font-bold text-text-subheading">
-            Recent Activities
+            {t("recentActivities")}
           </p>
           <RecentActivitiesList thingId={circle.circleId} />
         </div>
@@ -311,7 +317,7 @@ export default function CircleScreen({ circleId }: Props) {
             onClick={() => setExpanded((v) => !v)}
             className="text-base text-gotf-blue mt-2"
           >
-            {expanded ? "Show less" : "Show more"}
+            {expanded ? t("showLess") : t("showMore")}
           </button>
         </div>
 
@@ -336,8 +342,8 @@ export default function CircleScreen({ circleId }: Props) {
                     {leadAvatar && <img src={leadAvatar} alt={leadName} className="w-full h-full object-cover" />}
                   </div>
                   <div>
-                    <p className="text-xl font-semibold text-text-primary">{leadName || "Circle Lead"}</p>
-                    <p className="text-base font-medium text-text-secondary">Circle Lead</p>
+                    <p className="text-xl font-semibold text-text-primary">{leadName || t("circleLead")}</p>
+                    <p className="text-base font-medium text-text-secondary">{t("circleLead")}</p>
                   </div>
                 </div>
               ) : isWhitelisted(user?.email) ? (
@@ -348,7 +354,7 @@ export default function CircleScreen({ circleId }: Props) {
                       className="flex items-center gap-2 px-4 h-10 bg-surface border border-border rounded-full text-sm font-medium text-text-primary"
                     >
                       <UserPlus size={14} />
-                      Assign Circle Lead
+                      {t("assignCircleLead")}
                     </button>
                   ) : (
                     <div>
@@ -356,7 +362,7 @@ export default function CircleScreen({ circleId }: Props) {
                         type="text"
                         value={leadSearch}
                         onChange={(e) => setLeadSearch(e.target.value)}
-                        placeholder="Search users…"
+                        placeholder={t("searchUsers")}
                         autoFocus
                         className="w-full h-[44px] border border-[#d9d9d9] rounded-[8px] px-4 text-base placeholder:text-[#bfbfbf] outline-none"
                       />
@@ -392,7 +398,7 @@ export default function CircleScreen({ circleId }: Props) {
                         onClick={() => { setShowLeadPicker(false); setLeadSearch(""); }}
                         className="mt-2 text-sm text-text-muted"
                       >
-                        Cancel
+                        {t("cancel")}
                       </button>
                     </div>
                   )}
@@ -405,7 +411,7 @@ export default function CircleScreen({ circleId }: Props) {
         {/* Challenges */}
         <div className="px-7.5 py-7.5 pb-10">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-xl font-bold text-text-subheading">Challenges</p>
+            <p className="text-xl font-bold text-text-subheading">{t("challenges")}</p>
           </div>
 
           {canManageCircle(user?.email, user?.id, circle) && (
@@ -413,12 +419,12 @@ export default function CircleScreen({ circleId }: Props) {
               href={`/challenges/create?circleId=${circle.circleId}`}
               className="flex items-center justify-center w-full h-14 bg-linear-to-r from-[#008000] to-[#129612] text-white text-lg font-medium rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] mb-6"
             >
-              Start Challenge
+              {t("startChallenge")}
             </Link>
           )}
 
           {circle.challenges.length === 0 ? (
-            <p className="text-sm text-text-muted">No challenges yet.</p>
+            <p className="text-sm text-text-muted">{t("noChallenges")}</p>
           ) : (
             <div className="flex flex-col gap-7.5">
               {circle.challenges.map((challenge, i) => (

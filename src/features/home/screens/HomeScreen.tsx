@@ -21,6 +21,7 @@ function ModeSwitcher({
   mode: "global" | "mine";
   onSwitch: (m: "global" | "mine") => void;
 }) {
+  const t = useTranslations("home");
   return (
     <div className="flex justify-center px-5 mb-2">
       <div className="flex bg-[#f0f0f0] rounded-full p-0.5">
@@ -32,7 +33,7 @@ function ModeSwitcher({
               : "text-text-muted"
           }`}
         >
-          Global
+          {t("global")}
         </button>
         <button
           onClick={() => onSwitch("mine")}
@@ -42,7 +43,7 @@ function ModeSwitcher({
               : "text-text-muted"
           }`}
         >
-          Mine
+          {t("mine")}
         </button>
       </div>
     </div>
@@ -108,13 +109,13 @@ export default function HomeScreen() {
 
           {/* Located */}
           <div className="flex flex-col gap-3">
-            <p className="px-5 text-xl font-bold text-text-subheading">Located</p>
+            <p className="px-5 text-xl font-bold text-text-subheading">{t("located")}</p>
             <CirclesMap />
           </div>
 
           {/* Recent Activities */}
           <div className="flex flex-col gap-3">
-            <p className="px-5 text-xl font-bold text-text-subheading">Recent Activities</p>
+            <p className="px-5 text-xl font-bold text-text-subheading">{t("recentActivities")}</p>
             {user?.id && <RecentActivitiesList userId={user.id} />}
           </div>
         </div>
@@ -149,13 +150,13 @@ export default function HomeScreen() {
                   className="w-14 h-14 object-contain opacity-20"
                 />
                 <p className="text-sm text-text-muted text-center">
-                  You haven&apos;t joined any challenges yet.
+                  {t("noActiveChallenges")}
                 </p>
                 <button
                   onClick={() => router.push("/discover")}
                   className="px-5 h-9 rounded-full bg-gotf-green text-white text-sm font-semibold"
                 >
-                  Find a Challenge
+                  {t("findChallenge")}
                 </button>
               </div>
             )}
@@ -178,13 +179,13 @@ export default function HomeScreen() {
                   className="w-10 h-10 object-contain opacity-20"
                 />
                 <p className="text-sm text-text-muted text-center">
-                  You&apos;re not part of any circles yet.
+                  {t("noActiveCircles")}
                 </p>
                 <button
                   onClick={() => router.push("/discover")}
                   className="px-5 h-9 rounded-full bg-gotf-green text-white text-sm font-semibold"
                 >
-                  Join a Circle
+                  {t("joinCircle")}
                 </button>
               </div>
             )}
@@ -192,7 +193,7 @@ export default function HomeScreen() {
 
           {/* Recent Activities */}
           <div className="flex flex-col gap-3 px-0">
-            <p className="px-5 text-xl font-bold text-text-subheading">Recent Activities</p>
+            <p className="px-5 text-xl font-bold text-text-subheading">{t("recentActivities")}</p>
             {user?.id && <RecentActivitiesList userId={user.id} />}
           </div>
         </div>

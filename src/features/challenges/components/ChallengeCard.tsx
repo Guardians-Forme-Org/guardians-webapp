@@ -1,11 +1,14 @@
 "use client";
 
+"use client";
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
 import { calcChallengeProgress } from "@/lib/utils";
+import { useTranslations, useLocale } from "next-intl";
 
 function AvatarStack({ avatars }: { avatars: string[] }) {
   return (
@@ -25,8 +28,10 @@ function AvatarStack({ avatars }: { avatars: string[] }) {
 type Props = { item: ApiCircleChallenge };
 
 export default function ChallengeCard({ item }: Props) {
+  const t = useTranslations("challenges");
+  const locale = useLocale();
   const { percent: progress } = calcChallengeProgress(item);
-  const since = new Date(item.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+  const since = new Date(item.createdAt).toLocaleDateString(locale, { day: "numeric", month: "long" });
   const avatars = (item.members ?? []).map((m) => m.avatarUrl).filter(Boolean);
 
   const { data: circle } = useQuery({
@@ -54,9 +59,9 @@ export default function ChallengeCard({ item }: Props) {
         <ArrowRight size={20} className="absolute right-3 top-4 text-text-muted" />
 
         <p className="text-[18px] font-bold text-text-subheading leading-tight">{item.name}</p>
-        <p className="text-[14px] text-text-subheading mt-1">Since {since}</p>
+        <p className="text-[14px] text-text-subheading mt-1">{t("since", { date: since })}</p>
         {circle?.name && (
-          <p className="text-[14px] text-text-muted">by {circle.name}</p>
+          <p className="text-[14px] text-text-muted">{t("by")} {circle.name}</p>
         )}
 
         {/* Progress bar */}
@@ -67,7 +72,7 @@ export default function ChallengeCard({ item }: Props) {
         {/* Footer */}
         <div className="flex items-center justify-between mt-2">
           <p className="text-[14px] text-text-muted">
-            <span className="font-bold">{item.membersCount?.total ?? item.members?.length ?? 0}</span> {item.membersCount?.label ?? "Guardians"}
+            <span className="font-bold">{item.membersCount?.total ?? item.members?.length ?? 0}</span> {item.membersCount?.label ?? t("guardians")}
           </p>
           <AvatarStack avatars={avatars} />
         </div>

@@ -4,6 +4,7 @@ import Text from "@/components/ui/Text";
 import type { ImpactMatrixItem, ThingsMatrixItem } from "@/lib/hooks/metrics";
 import { deriveImpactLabel, formatImpactDisplayValue } from "@/lib/utils";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 type PersonalStat = {
   label: string;
@@ -40,15 +41,16 @@ function ImpactGrid({ items }: { items: ImpactMatrixItem[] }) {
 }
 
 function MadeByRow({ items }: { items: ThingsMatrixItem[] }) {
+  const t = useTranslations("home");
   const displayItems = items.map((item) => ({
     ...item,
-    displayName: item.name === "Users" ? "Guardians" : item.name,
+    displayName: item.name === "Users" ? t("guardians") : item.name,
   }));
 
   return (
     <div>
       <Text variant="caption" className="text-text-muted px-5 pb-1">
-        made by
+        {t("madeBy")}
       </Text>
       <div className="flex items-center px-5 pb-5">
         {displayItems.map((item) => (
@@ -90,6 +92,7 @@ export default function ImpactSection({
   thingsMatrix,
   mode: modeProp,
 }: Props) {
+  const t = useTranslations("home");
   const hasGlobal = !!(impactMatrix?.length || thingsMatrix?.length);
   const [internalMode, setInternalMode] = useState<"my" | "global">(hasGlobal ? "global" : "my");
   const mode = modeProp ?? internalMode;
@@ -99,7 +102,7 @@ export default function ImpactSection({
     <section className="border-y border-progress-track">
       <div className="flex items-center px-5 pt-5 pb-1">
         <Text variant="heading">
-          {mode === "my" ? "My Impact" : "Impact"}
+          {mode === "my" ? t("myImpactHeading") : t("globalImpactHeading")}
         </Text>
         {showToggle && (
           <div className="ml-auto flex bg-[#f0f0f0] rounded-full p-0.5">
@@ -109,7 +112,7 @@ export default function ImpactSection({
                 internalMode === "my" ? "bg-white text-text-primary shadow-sm" : "text-text-muted"
               }`}
             >
-              Mine
+              {t("mine")}
             </button>
             <button
               onClick={() => setInternalMode("global")}
@@ -117,7 +120,7 @@ export default function ImpactSection({
                 internalMode === "global" ? "bg-white text-text-primary shadow-sm" : "text-text-muted"
               }`}
             >
-              Global
+              {t("global")}
             </button>
           </div>
         )}
@@ -129,7 +132,7 @@ export default function ImpactSection({
             <ImpactGrid items={impactMatrix} />
           ) : (
             <div className="px-5 py-5">
-              <p className="text-sm text-text-muted">No global impact data yet.</p>
+              <p className="text-sm text-text-muted">{t("noGlobalImpact")}</p>
             </div>
           )}
           {thingsMatrix && thingsMatrix.length > 0 && (
@@ -151,7 +154,7 @@ export default function ImpactSection({
                 className="w-8 h-8 object-contain opacity-20 shrink-0"
               />
               <p className="text-sm text-text-muted">
-                No impact recorded yet. Start a challenge to make your mark.
+                {t("noPersonalImpact")}
               </p>
             </div>
           )}

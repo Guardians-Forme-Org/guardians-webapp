@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { MetricCard, SaveButton } from "../shared";
 
 type Props = {
@@ -6,29 +9,31 @@ type Props = {
 };
 
 export default function MetricsStep({ onNext, nextLabel }: Props) {
+  const t = useTranslations("challenges");
+
   return (
     <>
       <div className="px-5 mt-7 mb-2">
-        <h1 className="text-[32px] font-bold text-black">Progress</h1>
-        <p className="text-[18px] text-black mt-2">Read Only</p>
+        <h1 className="text-[32px] font-bold text-black">{t("progress")}</h1>
+        <p className="text-[18px] text-black mt-2">{t("readOnly")}</p>
       </div>
 
       <div className="flex flex-col gap-3 px-5 mt-5">
         <MetricCard
-          label="Heat mitigation proxy"
+          label={t("heatMitigationLabel")}
           value="3.2"
-          unit="°C estimated surface cooling"
-          status="Pending review"
+          unit={t("heatMitigationUnit")}
+          status={t("heatMitigationStatus")}
           statusColor="amber"
-          link="How is this calculated?"
+          link={t("howCalculated")}
         />
         <MetricCard
-          label="Annual stormwater absorption"
+          label={t("stormwaterLabel")}
           value="12,400"
-          unit="litres / year"
-          status="Calculated"
+          unit={t("stormwaterUnit")}
+          status={t("stormwaterStatus")}
           statusColor="green"
-          link="View methodology"
+          link={t("viewMethodology")}
         />
       </div>
 

@@ -1,5 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import { ChevronRight, Search, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { SaveButton } from "../shared";
 import type { ApiCircleChallengeMember } from "@/lib/types/circles";
 import type { LogFormData } from "../types";
@@ -20,6 +23,7 @@ type Props = {
 };
 
 export default function ContributorsStep({ form, update, onNext, nextLabel, members, users }: Props) {
+  const t = useTranslations("challenges");
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -47,12 +51,12 @@ export default function ContributorsStep({ form, update, onNext, nextLabel, memb
   return (
     <>
       <div className="px-5 mt-7 mb-6">
-        <h1 className="text-[32px] font-bold text-black">Contributors</h1>
+        <h1 className="text-[32px] font-bold text-black">{t("contributorsHeading")}</h1>
       </div>
 
       <div className="flex flex-col gap-5 px-5">
         <div className="flex flex-col gap-2">
-          <label className="text-base font-semibold text-text-primary">Who performed the action?</label>
+          <label className="text-base font-semibold text-text-primary">{t("contributorsQuestion")}</label>
 
           {form.contributors.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -89,7 +93,7 @@ export default function ContributorsStep({ form, update, onNext, nextLabel, memb
               onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
               onFocus={() => setOpen(true)}
               onBlur={() => setTimeout(() => setOpen(false), 150)}
-              placeholder="Search contributors"
+              placeholder={t("searchContributors")}
               className="w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 pr-10 text-base placeholder:text-[rgba(26,26,24,0.5)] outline-none"
             />
             <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8f8f8c] pointer-events-none" />

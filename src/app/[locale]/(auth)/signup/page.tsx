@@ -85,7 +85,7 @@ function TermsFooter() {
   const t = useTranslations("signup");
   return (
     <p className="text-[11px] text-black text-center pb-4 px-10">
-      Guardians of the Future{" "}
+      {t("gotfName")}{" "}
       <a href="https://theguardians.world/" target="_blank" rel="noopener noreferrer" className="underline">
         {t("termsAndConditions")}
       </a>
@@ -121,7 +121,7 @@ function Step1({
           {t("step1.title1")}<br />{t("step1.title2")}
         </h1>
         <p className="text-[18px] text-black mt-4 leading-relaxed">
-          Provide your <strong>mobile number</strong> or <strong>email</strong> and choose a password.
+          {t("step1.bodyPart1")}<strong>{t("step1.bodyMobile")}</strong>{t("step1.bodyOr")}<strong>{t("step1.bodyEmail")}</strong>{t("step1.bodyPart2")}
         </p>
       </div>
 
@@ -355,7 +355,7 @@ function Step3({
           disabled={loading}
           className="w-full py-2 text-sm text-[#666] text-center disabled:opacity-50"
         >
-          Skip for now
+          {t("step3.skipForNow")}
         </button>
       </div>
     </div>

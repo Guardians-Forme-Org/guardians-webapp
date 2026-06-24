@@ -3,6 +3,7 @@
 import { useRecentActivities, useUserRecentActivities, EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUsers } from "@/lib/hooks/users";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { useRouter } from "@/i18n/navigation";
 
@@ -17,6 +18,7 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
   const { data: users = [] } = useUsers();
   const { loginData, user: authUser } = useAuth();
   const router = useRouter();
+  const t = useTranslations("common");
 
   const avatarMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -33,7 +35,7 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
   }, [users, loginData]);
 
   if (isLoading) {
-    return <p className="px-10 pb-7.5 text-sm text-text-muted">Loading…</p>;
+    return <p className="px-10 pb-7.5 text-sm text-text-muted">{t("loading")}</p>;
   }
 
   if (error) {
@@ -41,7 +43,7 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
   }
 
   if (activities.length === 0) {
-    return <p className="px-10 pb-7.5 text-sm text-text-muted">No activities yet.</p>;
+    return <p className="px-10 pb-7.5 text-sm text-text-muted">{t("noActivities")}</p>;
   }
 
   return (
@@ -51,7 +53,7 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
         const title = measurement.value > 0
           ? `${measurement.value} ${measurement.unitOfMeasure}`
           : record.stepId;
-        const date = new Date(record.createdAt).toLocaleDateString("en-GB", {
+        const date = new Date(record.createdAt).toLocaleDateString(undefined, {
           day: "numeric",
           month: "long",
           year: "numeric",

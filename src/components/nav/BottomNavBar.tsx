@@ -1,6 +1,7 @@
 "use client";
 
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { Home, Compass, User } from "lucide-react";
 
 type Props = {
@@ -8,15 +9,16 @@ type Props = {
   isAuthenticated?: boolean;
 };
 
-const NAV_TABS = [
-  { href: "/home", label: "Home", icon: Home },
-  { href: "/discover", label: "Discover", icon: Compass },
-  { href: "/profile", label: "Profile", icon: null },
-] as const;
-
 export default function BottomNavBar({ avatarUrl, isAuthenticated = true }: Props) {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations("common");
+
+  const NAV_TABS = [
+    { href: "/home", label: t("navHome"), icon: Home },
+    { href: "/discover", label: t("navDiscover"), icon: Compass },
+    { href: "/profile", label: t("navProfile"), icon: null },
+  ] as const;
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-border z-50">
@@ -51,7 +53,7 @@ export default function BottomNavBar({ avatarUrl, isAuthenticated = true }: Prop
                 avatarUrl ? (
                   <img
                     src={avatarUrl}
-                    alt="Profile"
+                    alt={t("profileAlt")}
                     className={`w-[22px] h-[22px] rounded-full object-cover ${
                       active ? "ring-2 ring-gotf-yellow" : "ring-1 ring-border"
                     }`}

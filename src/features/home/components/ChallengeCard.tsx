@@ -1,13 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import Text from "@/components/ui/Text";
 import type { ApiCircleChallenge } from "@/lib/types/circles";
 import { calcChallengeProgress } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type Props = {
   challenge: ApiCircleChallenge;
 };
 
 export default function ChallengeCard({ challenge }: Props) {
+  const t = useTranslations("home");
   const { percent: progress, completedCount } = calcChallengeProgress(challenge);
 
   const location = challenge.location?.city
@@ -52,7 +56,7 @@ export default function ChallengeCard({ challenge }: Props) {
           />
         </div>
         <Text variant="caption" className="text-text-muted">
-          {completedCount} of {challenge.steps} Steps
+          {t("stepCount", { current: completedCount, total: challenge.steps })}
         </Text>
       </div>
     </Link>

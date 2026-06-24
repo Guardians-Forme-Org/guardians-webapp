@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 
 export type LocationResult = {
@@ -56,9 +57,10 @@ function extractLocation(place: google.maps.places.PlaceResult): LocationResult 
 export default function LocationPicker({
   defaultValue = "",
   onSelect,
-  placeholder = "Search for a location",
+  placeholder,
   className,
 }: Props) {
+  const t = useTranslations("common");
   const inputRef = useRef<HTMLInputElement>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
@@ -104,7 +106,7 @@ export default function LocationPicker({
         type="text"
         value={display}
         onChange={(e) => setDisplay(e.target.value)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t("locationSearchDefault")}
         className={
           className ??
           "w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"

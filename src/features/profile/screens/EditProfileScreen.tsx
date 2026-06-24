@@ -4,6 +4,7 @@ import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateUser } from "@/lib/hooks/users";
 import { ChevronLeft, Image as ImageIcon, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useRef, useState } from "react";
 
@@ -35,6 +36,7 @@ function Field({
 }
 
 export default function EditProfileScreen() {
+  const t = useTranslations("profile");
   const router = useRouter();
   const { user, loginData } = useAuth();
   const updateUser = useUpdateUser();
@@ -89,10 +91,10 @@ export default function EditProfileScreen() {
     <div className="flex flex-col min-h-full bg-white">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-12 pb-4">
-        <button onClick={() => router.back()} className="size-10 flex items-center" aria-label="Back">
+        <button onClick={() => router.back()} className="size-10 flex items-center" aria-label={t("editProfile")}>
           <ChevronLeft size={22} className="text-text-muted" />
         </button>
-        <Text variant="label" className="font-semibold text-base text-black">Edit Profile</Text>
+        <Text variant="label" className="font-semibold text-base text-black">{t("editProfile")}</Text>
         <div className="w-10" />
       </div>
 
@@ -102,7 +104,7 @@ export default function EditProfileScreen() {
           <button
             onClick={() => fileInputRef.current?.click()}
             className="relative"
-            aria-label="Change photo"
+            aria-label={t("tapToChangePhoto")}
           >
             <div className="w-24 h-24 rounded-full bg-surface border-2 border-border overflow-hidden flex items-center justify-center">
               {avatarPreview ? (
@@ -115,7 +117,7 @@ export default function EditProfileScreen() {
               <ImageIcon size={14} className="text-white" />
             </div>
           </button>
-          <p className="text-sm text-text-muted">Tap to change photo</p>
+          <p className="text-sm text-text-muted">{t("tapToChangePhoto")}</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -127,15 +129,15 @@ export default function EditProfileScreen() {
 
         {/* Fields */}
         <div className="flex flex-col gap-5">
-          <Field label="First name" value={firstName} onChange={setFirstName} placeholder="Enter first name" />
-          <Field label="Last name" value={lastName} onChange={setLastName} placeholder="Enter last name" />
-          <Field label="Mobile" value={mobile} onChange={setMobile} type="tel" placeholder="Enter mobile number" />
+          <Field label={t("firstNameLabel")} value={firstName} onChange={setFirstName} placeholder={t("firstNamePlaceholder")} />
+          <Field label={t("lastNameLabel")} value={lastName} onChange={setLastName} placeholder={t("lastNamePlaceholder")} />
+          <Field label={t("mobileLabel")} value={mobile} onChange={setMobile} type="tel" placeholder={t("mobilePlaceholder")} />
 
           {/* Email — read-only */}
           <div className="flex flex-col gap-2">
             <label className="text-base font-medium text-text-primary">
-              Email{" "}
-              <span className="text-[rgba(60,60,67,0.4)] font-normal text-sm">(cannot be changed)</span>
+              {t("emailLabel")}{" "}
+              <span className="text-[rgba(60,60,67,0.4)] font-normal text-sm">{t("emailCannotChange")}</span>
             </label>
             <div className="h-[56px] border border-[#e8e8e8] rounded-[10px] px-4 flex items-center bg-[#f9f9f9]">
               <p className="text-base text-text-muted">{user?.email ?? "—"}</p>
@@ -152,7 +154,7 @@ export default function EditProfileScreen() {
           disabled={updateUser.isPending}
           className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium disabled:opacity-50"
         >
-          {updateUser.isPending ? "Saving…" : "Save Changes"}
+          {updateUser.isPending ? t("saving") : t("saveChanges")}
         </button>
       </div>
     </div>

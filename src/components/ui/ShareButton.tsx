@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Share2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Props = {
   className?: string;
@@ -9,6 +10,7 @@ type Props = {
 
 export default function ShareButton({ className }: Props) {
   const [copied, setCopied] = useState(false);
+  const t = useTranslations("common");
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -26,7 +28,7 @@ export default function ShareButton({ className }: Props) {
   return (
     <button
       onClick={handleShare}
-      aria-label={copied ? "Link copied" : "Share"}
+      aria-label={copied ? t("linkCopied") : t("shareLink")}
       className={
         className ??
         "size-10 rounded-full bg-white border border-border flex items-center justify-center z-20"

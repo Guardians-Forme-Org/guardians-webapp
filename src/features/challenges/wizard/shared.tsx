@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
@@ -10,6 +12,7 @@ import {
   Minus,
   CheckCircle,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // ── Progress header ───────────────────────────────────────────────────────────
 
@@ -24,13 +27,14 @@ export function WizardHeader({
   onBack: () => void;
   onClose: () => void;
 }) {
+  const tCommon = useTranslations("common");
   return (
     <div className="px-5 pt-8">
       <div className="flex items-center justify-between mb-5">
-        <button onClick={onBack} className="size-10 flex items-center" aria-label="Back">
+        <button onClick={onBack} className="size-10 flex items-center" aria-label={tCommon("back")}>
           <ChevronLeft size={20} className="text-text-muted" />
         </button>
-        <button onClick={onClose} className="size-10 flex items-center justify-end" aria-label="Close">
+        <button onClick={onClose} className="size-10 flex items-center justify-end" aria-label={tCommon("close")}>
           <X size={20} className="text-text-muted" />
         </button>
       </div>
@@ -59,6 +63,7 @@ export function FieldGroup({
   required?: boolean;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("challenges");
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1.5">
@@ -68,7 +73,7 @@ export function FieldGroup({
         {required && <div className="size-1.5 rounded-full bg-[#d85a30] shrink-0" />}
         {!required && (
           <span className="text-[11px] text-[#8f8f8c] bg-[#f0efeb] border border-[rgba(26,26,24,0.14)] px-1.5 py-0.5 rounded">
-            optional
+            {t("optionalBadge")}
           </span>
         )}
       </div>
@@ -173,8 +178,9 @@ export function UploadZone({
   hint: string;
   required?: boolean;
 }) {
+  const t = useTranslations("challenges");
   const ref = useRef<HTMLInputElement>(null);
-  const fileName = value ? value.split("/").pop() || "Uploaded" : null;
+  const fileName = value ? value.split("/").pop() || t("uploaded") : null;
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -190,7 +196,7 @@ export function UploadZone({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-text-primary truncate">{fileName}</p>
-            <p className="text-[11px] text-[#8f8f8c]">Uploaded</p>
+            <p className="text-[11px] text-[#8f8f8c]">{t("uploaded")}</p>
           </div>
           <button onClick={() => onChange("")} className="size-9 flex items-center justify-center text-text-muted">
             <X size={18} />
@@ -212,11 +218,11 @@ export function UploadZone({
         <div className="size-11 rounded-[8px] bg-[#f0efeb] flex items-center justify-center">
           <Camera size={22} className="text-[#5c5c59]" />
         </div>
-        <p className="text-[14px] font-semibold text-text-primary">Tap to upload</p>
-        <p className="text-xs text-[#8f8f8c]">JPG, PNG, HEIF · max 10 MB</p>
+        <p className="text-[14px] font-semibold text-text-primary">{t("tapToUploadFiles")}</p>
+        <p className="text-xs text-[#8f8f8c]">{t("fileFormats")}</p>
         {required && (
           <span className="text-[11px] font-semibold text-[#791f1f] bg-[#fcebeb] border border-[#f7c1c1] rounded px-2 py-0.5">
-            Required
+            {t("required")}
           </span>
         )}
       </button>
@@ -235,13 +241,14 @@ export function InterventionRow({
   onChange: (updated: Intervention) => void;
   onRemove: () => void;
 }) {
+  const t = useTranslations("challenges");
   return (
     <div className="flex items-center gap-2">
       <input
         type="text"
         value={item.name}
         onChange={(e) => onChange({ ...item, name: e.target.value })}
-        placeholder="Species or intervention name"
+        placeholder={t("interventionPlaceholder")}
         className="flex-1 h-[50px] bg-white border border-[#d9d9d9] rounded-[8px] px-3 text-base text-text-primary placeholder:text-[#bfbfbf] outline-none"
       />
       <div className="flex items-center border border-[rgba(26,26,24,0.28)] rounded-full h-10 overflow-hidden">

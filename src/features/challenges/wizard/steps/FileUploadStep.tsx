@@ -1,5 +1,8 @@
+"use client";
+
 import { useRef } from "react";
 import { Plus, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { FileThumb, SaveButton } from "../shared";
 import type { LogFormData } from "../types";
 
@@ -11,6 +14,7 @@ type Props = {
 };
 
 export default function FileUploadStep({ form, update, onNext, nextLabel }: Props) {
+  const t = useTranslations("challenges");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFilesAdded = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,7 +30,7 @@ export default function FileUploadStep({ form, update, onNext, nextLabel }: Prop
   return (
     <>
       <div className="px-5 mt-7 mb-6">
-        <h1 className="text-[32px] font-bold text-black">Upload Evidence</h1>
+        <h1 className="text-[32px] font-bold text-black">{t("uploadEvidence")}</h1>
       </div>
 
       <div className="flex flex-col gap-5 px-5">
@@ -45,9 +49,9 @@ export default function FileUploadStep({ form, update, onNext, nextLabel }: Prop
           <div className="size-10 rounded-full border-2 border-[rgba(26,26,24,0.28)] flex items-center justify-center">
             <Plus size={20} className="text-text-primary" />
           </div>
-          <p className="text-base font-semibold text-text-primary">Add file</p>
+          <p className="text-base font-semibold text-text-primary">{t("addFile")}</p>
           <p className="text-sm text-[#8f8f8c] text-center px-4">
-            Select images, PDFs and CSVs from your phone
+            {t("fileUploadHint")}
           </p>
         </button>
 

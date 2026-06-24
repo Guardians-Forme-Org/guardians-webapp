@@ -1,9 +1,9 @@
 import { getToken } from "./auth";
+import { getCurrentLocale } from "./locale-store";
 import type { Language } from "./types/auth";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const API_KEY = process.env.NEXT_PUBLIC_X_API_KEY ?? "";
-const DEFAULT_LANG = process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE ?? "en";
 
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -27,7 +27,7 @@ export async function apiFetch<T>(
 
   const headers: Record<string, string> = {
     ...(isFormData ? {} : { "Content-Type": "application/json" }),
-    "Accept-Language": options.lang ?? DEFAULT_LANG,
+    "Accept-Language": options.lang ?? getCurrentLocale(),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(API_KEY ? { "X-Api-Key": API_KEY } : {}),
     ...options.headers,

@@ -22,6 +22,7 @@ import {
   Search,
   X,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -83,6 +84,7 @@ function WizardHeader({
   onBack: () => void;
   onClose: () => void;
 }) {
+  const tCommon = useTranslations("common");
   const filled = PROGRESS_FILLED[step] ?? 0;
 
   return (
@@ -98,7 +100,7 @@ function WizardHeader({
           <button
             onClick={onBack}
             className="size-10 flex items-center"
-            aria-label="Back"
+            aria-label={tCommon("back")}
           >
             <ChevronLeft size={20} className="text-text-muted" />
           </button>
@@ -106,7 +108,7 @@ function WizardHeader({
         <button
           onClick={onClose}
           className="size-10 flex items-center justify-end"
-          aria-label="Close"
+          aria-label={tCommon("close")}
         >
           <X size={20} className="text-text-muted" />
         </button>
@@ -192,6 +194,7 @@ function Step1({
   onSelectLead: (user: AuthUser) => void;
   onRemoveLead: () => void;
 }) {
+  const t = useTranslations("circles");
   const { data: users = [] } = useUsers();
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -207,9 +210,8 @@ function Step1({
   return (
     <>
       <WizardTitle
-        title="About the Circle"
-        description="Please fill out the below to be able to create a circle."
-        boldWord="create"
+        title={t("aboutCircle")}
+        description={t("aboutCircleDesc")}
       />
 
       <div className="flex flex-col gap-7 px-10">
@@ -217,7 +219,7 @@ function Step1({
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-1.5">
             <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-              Circle Name
+              {t("circleNameLabel")}
             </label>
             <div className="size-4 rounded-full border border-text-muted flex items-center justify-center shrink-0">
               <span className="text-[10px] text-text-muted font-semibold leading-none">
@@ -229,7 +231,7 @@ function Step1({
             type="text"
             value={form.name}
             onChange={(e) => onChange("name", e.target.value)}
-            placeholder="What's your circle name?"
+            placeholder={t("circleNamePlaceholder")}
             className="h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 text-base placeholder:text-[#bfbfbf] outline-none"
           />
         </div>
@@ -237,9 +239,9 @@ function Step1({
         {/* Circle Lead(s) */}
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            Circle Lead(s){" "}
+            {t("circleLeadLabel")}{" "}
             <span className="text-[rgba(60,60,67,0.29)] font-normal">
-              (Optional)
+              {t("optional")}
             </span>
           </label>
 
@@ -273,7 +275,7 @@ function Step1({
                 }}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                placeholder="Search circle lead(s)"
+                placeholder={t("searchLeadPlaceholder")}
                 className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
               />
               <Search
@@ -320,12 +322,12 @@ function Step1({
         {/* Circle Description */}
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            Circle description
+            {t("circleDescLabel")}
           </label>
           <textarea
             value={form.description}
             onChange={(e) => onChange("description", e.target.value)}
-            placeholder="Tell us more about the circle"
+            placeholder={t("circleDescPlaceholder")}
             rows={4}
             className="border border-[#d9d9d9] rounded-[8px] px-4 py-5 text-base placeholder:text-[#bfbfbf] outline-none resize-none"
           />
@@ -334,9 +336,9 @@ function Step1({
         {/* Communication Channel */}
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            Communication Channel{" "}
+            {t("communicationChannelLabel")}{" "}
             <span className="text-[rgba(60,60,67,0.29)] font-normal">
-              (Optional)
+              {t("optional")}
             </span>
           </label>
           <div className="flex flex-col gap-2.5">
@@ -372,7 +374,7 @@ function Step1({
                 type="url"
                 value={form.channelUrl}
                 onChange={(e) => onChange("channelUrl", e.target.value)}
-                placeholder="Paste your group or channel link"
+                placeholder={t("channelLinkPlaceholder")}
                 className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
               />
               <Link2
@@ -396,19 +398,20 @@ function Step2({
   location: LocationResult | null;
   onSelect: (place: LocationResult) => void;
 }) {
+  const t = useTranslations("circles");
   return (
     <>
-      <WizardTitle title="Where is the Circle located?" />
+      <WizardTitle title={t("whereLocated")} />
 
       <div className="flex flex-col gap-5 px-10">
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            Region
+            {t("regionLabel")}
           </label>
           <LocationPicker
             defaultValue={location?.formattedAddress}
             onSelect={onSelect}
-            placeholder="Search for your location"
+            placeholder={t("locationSearchPlaceholder")}
           />
         </div>
 
@@ -438,7 +441,7 @@ function Step2({
                 </div>
                 <div className="bg-white/90 rounded-full px-3 py-1">
                   <Text variant="caption" className="text-text-subheading">
-                    Select a location
+                    {t("selectLocation")}
                   </Text>
                 </div>
               </div>
@@ -463,6 +466,7 @@ function Step3({
   onFileSelect: (file: File) => void;
   onNext: () => void;
 }) {
+  const t = useTranslations("circles");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -481,8 +485,8 @@ function Step3({
   return (
     <>
       <WizardTitle
-        title="Upload Circle profile"
-        description="The profile image will be seen on your dashboard and the Guardian platform."
+        title={t("uploadProfile")}
+        description={t("uploadProfileDesc")}
       />
 
       <div className="px-10 flex flex-col gap-4">
@@ -497,7 +501,7 @@ function Step3({
           ) : (
             <div className="flex flex-col items-center gap-3 text-text-muted">
               <ImageIcon size={40} strokeWidth={1.2} />
-              <Text variant="caption">No image selected</Text>
+              <Text variant="caption">{t("noImageSelected")}</Text>
             </div>
           )}
         </div>
@@ -516,7 +520,7 @@ function Step3({
           onClick={() => fileInputRef.current?.click()}
           className="w-full h-14 border border-[#ccc] rounded-full text-[18px] font-medium text-[#1e1e1e]"
         >
-          Upload Image
+          {t("uploadImage")}
         </button>
 
         {/* Remove */}
@@ -524,14 +528,14 @@ function Step3({
           onClick={handleRemove}
           className="w-full h-14 border border-[#ccc] rounded-full text-[18px] font-medium text-[#1e1e1e]"
         >
-          Remove
+          {t("remove")}
         </button>
 
         <button
           onClick={onNext}
           className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
         >
-          Review
+          {t("review")}
         </button>
       </div>
     </>
@@ -551,6 +555,7 @@ function ReviewSection({
   onEdit: (step: number) => void;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("circles");
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
@@ -560,7 +565,7 @@ function ReviewSection({
           className="flex items-center gap-1 text-xs font-medium text-text-muted active:opacity-60"
         >
           <Pencil size={13} />
-          Edit
+          {t("edit")}
         </button>
       </div>
       {children}
@@ -598,35 +603,36 @@ function Step4Review({
   error: string | null;
   isEdit?: boolean;
 }) {
+  const t = useTranslations("circles");
   const channelLabel = CHANNELS.find((c) => c.id === form.channelType)?.label;
 
   return (
     <>
       <div className="px-10 mt-7 mb-6">
-        <h1 className="text-[32px] font-bold text-gotf-green leading-tight">Review</h1>
-        <p className="text-base text-text-muted mt-1">Check your details before creating.</p>
+        <h1 className="text-[32px] font-bold text-gotf-green leading-tight">{t("reviewTitle")}</h1>
+        <p className="text-base text-text-muted mt-1">{t("checkDetails")}</p>
       </div>
 
       <div className="flex flex-col gap-6 px-10">
-        <ReviewSection label="Circle details" stepIndex={1} onEdit={onGoToStep}>
-          {form.name && <ReadOnlyRow label="Name" value={form.name} />}
-          {form.description && <ReadOnlyRow label="Description" value={form.description} />}
+        <ReviewSection label={t("circleDetailsSection")} stepIndex={1} onEdit={onGoToStep}>
+          {form.name && <ReadOnlyRow label={t("nameLabel")} value={form.name} />}
+          {form.description && <ReadOnlyRow label={t("descriptionLabel")} value={form.description} />}
           {selectedLead && (
             <ReadOnlyRow
-              label="Circle Lead"
+              label={t("circleLeadReview")}
               value={`${selectedLead.user_metadata.firstName ?? ""} ${selectedLead.user_metadata.lastName ?? ""}`.trim()}
             />
           )}
           {channelLabel && (
             <ReadOnlyRow
-              label="Channel"
+              label={t("channelLabel")}
               value={form.channelUrl ? `${channelLabel} — ${form.channelUrl}` : channelLabel}
             />
           )}
         </ReviewSection>
 
         {location && (
-          <ReviewSection label="Location" stepIndex={2} onEdit={onGoToStep}>
+          <ReviewSection label={t("locationSection")} stepIndex={2} onEdit={onGoToStep}>
             <div className="flex items-center gap-2 min-h-[44px] border border-[rgba(26,26,24,0.14)] rounded-[8px] px-3 py-2.5 bg-[#f9f9f9]">
               <MapPin size={14} className="text-gotf-green shrink-0" />
               <p className="text-base text-text-primary">{location.formattedAddress}</p>
@@ -635,7 +641,7 @@ function Step4Review({
         )}
 
         {form.imagePreview && (
-          <ReviewSection label="Profile photo" stepIndex={3} onEdit={onGoToStep}>
+          <ReviewSection label={t("profilePhotoSection")} stepIndex={3} onEdit={onGoToStep}>
             <img
               src={form.imagePreview}
               alt="Circle profile"
@@ -653,7 +659,7 @@ function Step4Review({
           disabled={isPending}
           className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium disabled:opacity-50"
         >
-          {isPending ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Save Changes" : "Create Circle")}
+          {isPending ? (isEdit ? t("saving") : t("creating")) : (isEdit ? t("saveChanges") : t("createCircle"))}
         </button>
       </div>
     </>
@@ -784,11 +790,13 @@ export default function CreateCircleWizard({
   const apiError = isEdit ? updateCircle.error : createCircle.error;
   const submitError = apiError instanceof Error ? apiError.message : null;
 
+  const t = useTranslations("circles");
+
   if (!isEdit && step === 5 && createdCircle) {
     return (
       <WizardSuccessScreen
         title={createdCircle.name}
-        subtitle="Copy and share this link to invite people to join this circle"
+        subtitle={t("inviteSubtitle")}
         inviteLink={`${window.location.origin}/circles/${createdCircle.circleId}`}
         onDone={close}
       />
@@ -832,7 +840,7 @@ export default function CreateCircleWizard({
         )}
       </div>
 
-      {step < 3 && <WizardNextButton label="Next" onClick={next} />}
+      {step < 3 && <WizardNextButton label={t("next")} onClick={next} />}
     </div>
   );
 }

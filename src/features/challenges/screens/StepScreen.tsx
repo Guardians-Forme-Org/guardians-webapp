@@ -15,10 +15,12 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
+import { useTranslations } from "next-intl";
 
 type Props = { challengeId: string; stepId: string };
 
 export default function StepScreen({ challengeId, stepId }: Props) {
+  const t = useTranslations("challenges");
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -60,7 +62,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-full p-10">
-        <Text variant="body">Loading…</Text>
+        <Text variant="body">{t("loading")}</Text>
       </div>
     );
   }
@@ -68,7 +70,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
   if (!challenge || !step) {
     return (
       <div className="flex items-center justify-center min-h-full p-10">
-        <Text variant="body">Step not found.</Text>
+        <Text variant="body">{t("stepNotFound")}</Text>
       </div>
     );
   }
@@ -88,7 +90,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
               {step.title}
             </h1>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <p className="text-base text-[#666]">Step {step.stepNumber}</p>
+              <p className="text-base text-[#666]">{t("stepNumber", { number: step.stepNumber })}</p>
               <RoleBadge roles={computeChallengeRoles(user?.id, user?.email, challenge)} />
             </div>
           </div>
@@ -97,7 +99,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
           <div className="px-10 py-7.5 border-t border-progress-track mt-5 flex flex-col gap-10">
             <div className="flex flex-col gap-3">
               <p className="text-xl font-semibold text-text-subheading">
-                Progress
+                {t("progress")}
               </p>
               <div className="flex items-center gap-5">
                 <div className="flex-1 h-2.5 bg-[#e0e0e0] rounded-full overflow-hidden">
@@ -118,12 +120,12 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                   href={`/challenges/${challengeId}/steps/${stepId}/log`}
                   className="w-full h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full flex items-center justify-center"
                 >
-                  Upload Evidence
+                  {t("uploadEvidence")}
                 </Link>
 
                 {step.isCompleted ? (
                   <div className="w-full h-12 border border-gotf-green text-gotf-green text-base font-semibold rounded-full flex items-center justify-center gap-2">
-                    <span>✓</span> Completed
+                    <span>✓</span> {t("completed")}
                   </div>
                 ) : confirming ? (
                   <div className="flex flex-col gap-2.5">
@@ -131,7 +133,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                       <p className="text-red-500 text-sm text-center">
                         {markComplete.error instanceof Error
                           ? markComplete.error.message
-                          : "Failed. Please try again."}
+                          : t("failedRetry")}
                       </p>
                     )}
                     <button
@@ -154,13 +156,13 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                       disabled={markComplete.isPending}
                       className="w-full h-12 bg-gotf-green text-white text-base font-semibold rounded-full flex items-center justify-center"
                     >
-                      {markComplete.isPending ? "Saving…" : "Confirm Complete"}
+                      {markComplete.isPending ? t("saving") : t("confirmComplete")}
                     </button>
                     <button
                       onClick={() => { setConfirming(false); markComplete.reset(); }}
                       className="w-full h-12 border border-[#1a1a1a] text-[#1a1a1a] text-base font-semibold rounded-full flex items-center justify-center"
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                   </div>
                 ) : (
@@ -168,7 +170,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                     onClick={() => setConfirming(true)}
                     className="w-full h-12 border border-[#1a1a1a] text-[#1a1a1a] text-base font-semibold rounded-full flex items-center justify-center"
                   >
-                    Mark Complete
+                    {t("markComplete")}
                   </button>
                 )}
               </div>
@@ -188,7 +190,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
               onClick={() => setExpanded((v) => !v)}
               className="text-base text-gotf-blue mt-4"
             >
-              {expanded ? "Show less" : "Show more"}
+              {expanded ? t("showLess") : t("showMore")}
             </button>
           </div>
 
@@ -211,7 +213,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                     {fName}
                   </p>
                   <p className="text-base font-medium text-text-secondary">
-                    Facilitator
+                    {t("facilitator")}
                   </p>
                 </div>
               </div>

@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { CircleCommunicationChannel } from "@/lib/types/circles";
 
 type Props = {
@@ -8,6 +11,7 @@ type Props = {
 };
 
 export default function JoinConversationButton({ channels, members, userId, className }: Props) {
+  const t = useTranslations("common");
   const channel = channels?.[0];
   if (!channel) return null;
 
@@ -26,7 +30,7 @@ export default function JoinConversationButton({ channels, members, userId, clas
         "px-5 h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] flex items-center justify-center"
       }
     >
-      Join Conversation
+      {t("joinConversation")}
     </a>
   );
 }

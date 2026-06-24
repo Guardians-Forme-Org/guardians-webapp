@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 
 const CHANNELS = [
   { id: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle },
@@ -88,6 +89,7 @@ function WizardHeader({
   onBack: () => void;
   onClose: () => void;
 }) {
+  const tCommon = useTranslations("common");
   const filled = PROGRESS_FILLED[step] ?? 0;
 
   return (
@@ -96,14 +98,14 @@ function WizardHeader({
         <button
           onClick={onBack}
           className="size-10 flex items-center"
-          aria-label="Back"
+          aria-label={tCommon("back")}
         >
           <ChevronLeft size={20} className="text-text-muted" />
         </button>
         <button
           onClick={onClose}
           className="size-10 flex items-center justify-end"
-          aria-label="Close"
+          aria-label={tCommon("close")}
         >
           <X size={20} className="text-text-muted" />
         </button>
@@ -195,12 +197,12 @@ function Step1({
   templates: ApiTemplate[];
   isLoading: boolean;
 }) {
+  const t = useTranslations("challenges");
   return (
     <>
       <WizardTitle
-        title="Start a Challenge"
-        description="Choose a template below to create a challenge."
-        boldWord="create"
+        title={t("startChallenge")}
+        description={t("searchTemplates")}
       />
 
       {/* Search */}
@@ -208,7 +210,7 @@ function Step1({
         <div className="flex items-center gap-2 bg-white shadow-sm rounded-full px-5 h-12.5">
           <Search size={16} className="text-text-muted shrink-0" />
           <span className="text-base text-[#737373]">
-            Find challenge templates
+            {t("searchTemplates")}
           </span>
         </div>
       </div>
@@ -224,15 +226,15 @@ function Step1({
           ))
         ) : templates.length === 0 ? (
           <p className="text-base text-text-muted text-center py-8">
-            No templates available
+            {t("noTemplates")}
           </p>
         ) : (
-          templates.map((t) => {
-            const selected = form.templateId === t.templateId;
+          templates.map((tmpl) => {
+            const selected = form.templateId === tmpl.templateId;
             return (
               <button
-                key={t.templateId}
-                onClick={() => onChange(t.templateId)}
+                key={tmpl.templateId}
+                onClick={() => onChange(tmpl.templateId)}
                 className={`flex items-center justify-between pl-7.5 pr-5 py-4.5 rounded-2xl text-left transition-colors ${
                   selected
                     ? "border-2 border-gotf-green"
@@ -241,13 +243,13 @@ function Step1({
               >
                 <div className="flex flex-col gap-0.5">
                   <p className="text-[18px] font-bold text-text-subheading">
-                    {t.name}
+                    {tmpl.name}
                   </p>
                   <p className="text-[14px] text-text-subheading line-clamp-1">
-                    {t.description}
+                    {tmpl.description}
                   </p>
                   <p className="text-[14px] text-text-muted">
-                    {t.targetSDG.title}
+                    {tmpl.targetSDG.title}
                   </p>
                 </div>
                 <RadioCircle selected={selected} />
@@ -276,8 +278,9 @@ function Step2({
   form: FormData;
   templates: ApiTemplate[];
 }) {
+  const t = useTranslations("challenges");
   const template =
-    templates.find((t) => t.templateId === form.templateId) ?? templates[0];
+    templates.find((tmpl) => tmpl.templateId === form.templateId) ?? templates[0];
   const templateSteps = template?.steps ?? [];
   const [expandedStepId, setExpandedStepId] = useState<string | null>(null);
   const [equipmentOpen, setEquipmentOpen] = useState(false);
@@ -292,9 +295,7 @@ function Step2({
           {template?.name}
         </h1>
         <p className="text-[18px] text-black mt-3 leading-relaxed">
-          The {template?.name} is a challenge that supports the{" "}
-          <span className="font-bold">'{template?.targetSDG?.title}'</span>{" "}
-          Sustainable Development Goals.
+          {t("sdgSupportText", { name: template?.name ?? "", sdgTitle: template?.targetSDG?.title ?? "" })}
         </p>
       </div>
 
@@ -320,7 +321,7 @@ function Step2({
 
       {/* Steps */}
       <div className="px-10 mb-5">
-        <p className="text-xl font-semibold text-text-subheading">Steps</p>
+        <p className="text-xl font-semibold text-text-subheading">{t("steps")}</p>
       </div>
 
       <div className="flex flex-col gap-2.5 px-6">
@@ -376,7 +377,7 @@ function Step2({
             className="flex items-center justify-between w-full px-10 mb-4"
           >
             <p className="text-xl font-semibold text-text-subheading">
-              Equipment
+              {t("equipment")}
             </p>
             <ChevronRight
               size={20}
@@ -426,6 +427,7 @@ function Step3({
   onLocationSelect: (place: LocationResult) => void;
   isEdit?: boolean;
 }) {
+  const t = useTranslations("challenges");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -439,22 +441,21 @@ function Step3({
   return (
     <>
       <WizardTitle
-        title="Start a Challenge"
-        description="Please fill out the fields below to create a challenge."
-        boldWord="create"
+        title={t("startChallenge")}
+        description={t("challengeDescPlaceholder")}
       />
 
       <div className="flex flex-col gap-7 px-10">
         {/* Challenge Name */}
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            Challenge Name
+            {t("challengeName")}
           </label>
           <input
             type="text"
             value={form.name}
             onChange={(e) => onChange("name", e.target.value)}
-            placeholder="This will be shown to be public"
+            placeholder={t("challengeNamePlaceholder")}
             className="h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 text-base placeholder:text-[#737373] outline-none"
           />
         </div>
@@ -463,19 +464,19 @@ function Step3({
         {!isEdit && (
           <div className="flex flex-col gap-2">
             <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-              Region
+              {t("region")}
             </label>
             <LocationPicker
               defaultValue={location?.formattedAddress}
               onSelect={onLocationSelect}
-              placeholder="Where is this challenge located?"
+              placeholder={t("challengeLocationPlaceholder")}
             />
           </div>
         )}
         {isEdit && form.region && (
           <div className="flex flex-col gap-2">
             <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-              Region
+              {t("region")}
             </label>
             <div className="h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 flex items-center bg-[#f9f9f9]">
               <p className="text-base text-text-muted">{form.region}</p>
@@ -486,12 +487,12 @@ function Step3({
         {/* Description */}
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            Description
+            {t("description")}
           </label>
           <textarea
             value={form.description}
             onChange={(e) => onChange("description", e.target.value)}
-            placeholder="Tell us more about the challenge"
+            placeholder={t("challengeDescPlaceholder")}
             rows={4}
             className="border border-[#d9d9d9] rounded-[8px] px-4 py-5 text-base placeholder:text-[#737373] outline-none resize-none"
           />
@@ -500,7 +501,7 @@ function Step3({
         {/* Banner image */}
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            Challenge Image
+            {t("challengeImage")}
           </label>
           <button
             type="button"
@@ -516,7 +517,7 @@ function Step3({
             ) : (
               <div className="flex flex-col items-center gap-2 text-text-muted">
                 <ImageIcon size={36} strokeWidth={1.2} />
-                <p className="text-sm">Tap to upload an image</p>
+                <p className="text-sm">{t("tapToUpload")}</p>
               </div>
             )}
           </button>
@@ -555,6 +556,8 @@ function Step4({
   users: AuthUser[];
   isLoading: boolean;
 }) {
+  const t = useTranslations("challenges");
+  const locale = useLocale();
   const [search, setSearch] = useState("");
 
   const filtered = search
@@ -566,23 +569,22 @@ function Step4({
   return (
     <>
       <WizardTitle
-        title="Choose a facilitator"
-        description="Choose from the facilitators below to continue."
-        boldWord="facilitators"
+        title={t("chooseFacilitator")}
+        description={t("findFacilitator")}
       />
 
       <div className="sticky top-0 bg-white z-10">
-        <SearchBar placeholder="Find a facilitator" onChange={setSearch} />
+        <SearchBar placeholder={t("findFacilitator")} onChange={setSearch} />
       </div>
 
       <div className="flex flex-col gap-7.5 px-7.5 pb-6">
         {isLoading ? (
-          <p className="text-text-secondary text-sm">Loading facilitators…</p>
+          <p className="text-text-secondary text-sm">{t("loadingFacilitators")}</p>
         ) : (
           filtered.map((u, i) => {
             const name = displayName(u);
             const joinDate = new Date(u.created_at).toLocaleDateString(
-              "en-GB",
+              locale,
               { day: "numeric", month: "long", year: "numeric" },
             );
             const selected = form.facilitatorId === u.id;
@@ -611,7 +613,7 @@ function Step4({
                     {name}
                   </p>
                   <Text variant="caption" className="text-text-secondary">
-                    Joined {joinDate}
+                    {t("facilitatorJoined", { date: joinDate })}
                   </Text>
                 </div>
                 {selected ? (
@@ -642,14 +644,12 @@ function Step5({
   onChannelChange: (ch: Channel) => void;
   onLinkChange: (v: string) => void;
 }) {
+  const t = useTranslations("challenges");
   return (
     <>
       <WizardTitle
-        title={"Choose a channel for communication"}
-        description={
-          "Choose one of the channels below for the circle's communication."
-        }
-        boldWord="channels"
+        title={t("chooseChannel")}
+        description={t("channelLinkPlaceholder")}
       />
 
       <div className="flex flex-col gap-2.5 px-10">
@@ -678,16 +678,16 @@ function Step5({
 
       <div className="flex flex-col gap-2 px-10 mt-7">
         <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-          Communication Channel Link{" "}
+          {t("channelLinkLabel")}{" "}
           <span className="text-[rgba(60,60,67,0.29)] font-normal">
-            (Optional)
+            {t("optional")}
           </span>
         </label>
         <input
           type="url"
           value={form.channelLink}
           onChange={(e) => onLinkChange(e.target.value)}
-          placeholder="Paste your group or channel link"
+          placeholder={t("channelLinkPlaceholder")}
           className="h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 text-base placeholder:text-[#bfbfbf] outline-none"
         />
       </div>
@@ -754,21 +754,23 @@ function Step6({
   circle: ApiCircle | undefined;
   isEdit?: boolean;
 }) {
+  const t = useTranslations("challenges");
+  const locale = useLocale();
   const { user } = useAuth();
 
   const template =
-    templates.find((t) => t.templateId === form.templateId) ?? templates[0];
+    templates.find((tmpl) => tmpl.templateId === form.templateId) ?? templates[0];
   const templateSteps = template?.steps ?? [];
 
   const facilitatorUser = users.find((u) => u.id === form.facilitatorId);
   const facilitatorName = facilitatorUser
     ? displayName(facilitatorUser)
-    : "Facilitator";
+    : t("facilitator");
   const facilitatorAvatar = facilitatorUser?.user_metadata.avatarUrl ?? "";
 
   const circleMembers = circle?.members ?? [];
 
-  const today = new Date().toLocaleDateString("en-GB", {
+  const today = new Date().toLocaleDateString(locale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -817,9 +819,9 @@ function Step6({
             <h1 className="text-[28px] font-bold text-text-subheading leading-tight">
               {form.name || template?.name}
             </h1>
-            <EditButton label="Edit" onClick={() => onGoToStep(3)} />
+            <EditButton label={t("edit")} onClick={() => onGoToStep(3)} />
           </div>
-          <p className="text-base text-[#666] mt-1">Since {today}</p>
+          <p className="text-base text-[#666] mt-1">{t("since", { date: today })}</p>
 
           <div className="mt-3 mb-6 flex flex-col gap-2">
             {error && (
@@ -830,7 +832,7 @@ function Step6({
               disabled={isPending}
               className="px-5 h-10 bg-linear-to-r from-[#008000] to-[#129612] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] disabled:opacity-60 self-start"
             >
-              {isPending ? (isEdit ? "Saving…" : "Publishing…") : (isEdit ? "Save Changes" : "Publish")}
+              {isPending ? (isEdit ? t("savingChanges") : t("publishing")) : (isEdit ? t("saveChanges") : t("publishButton"))}
             </button>
           </div>
         </div>
@@ -838,7 +840,7 @@ function Step6({
         {/* Home tab indicator */}
         <div className="flex px-10">
           <div className="px-5 h-10 flex items-center text-base border-b-2 border-[#303030] text-[#303030] font-medium">
-            Home
+            {t("tabHome")}
           </div>
         </div>
         <div className="border-t border-progress-track" />
@@ -847,8 +849,8 @@ function Step6({
         {location && (
           <div className="px-10 py-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">Location</span>
-              <EditButton label="Edit" onClick={() => onGoToStep(3)} />
+              <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">{t("locationSection")}</span>
+              <EditButton label={t("edit")} onClick={() => onGoToStep(3)} />
             </div>
             <div className="flex items-center gap-1.5">
               <MapPin size={16} className="text-gotf-green shrink-0" />
@@ -886,7 +888,7 @@ function Step6({
         <div className="px-10 py-7.5 flex flex-col gap-7.5">
           <div className="flex flex-col gap-3">
             <p className="text-xl font-semibold text-text-subheading">
-              Progress
+              {t("progress")}
             </p>
             <div className="flex items-center gap-5">
               <div className="flex-1 h-2.5 bg-[#e0e0e0] rounded-full" />
@@ -915,11 +917,11 @@ function Step6({
               {facilitatorName}
             </p>
             <p className="text-base font-medium text-text-secondary">
-              Facilitator
+              {t("facilitator")}
             </p>
           </div>
           </div>
-          <EditButton label="Edit" onClick={() => onGoToStep(4)} />
+          <EditButton label={t("edit")} onClick={() => onGoToStep(4)} />
           </div>
         </div>
 
@@ -928,7 +930,7 @@ function Step6({
           <div className="flex items-center justify-between px-7.5 pt-7 pb-5">
             {circle?.name && (
               <p className="text-xl font-bold text-text-subheading">
-                <span className="font-normal">by</span>{" "}
+                <span className="font-normal">{t("by")}</span>{" "}
                 {circle.name}
               </p>
             )}
@@ -964,8 +966,7 @@ function Step6({
           )}
 
           <p className="text-xs text-text-muted px-7.5 pb-4">
-            Showing circle members. Challenge members will appear once
-            published.
+            {t("circleMembers")}
           </p>
 
           <div className="flex justify-center pb-7">
@@ -978,9 +979,9 @@ function Step6({
                   className="flex items-center gap-2.5 px-5 h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)]"
                 >
                   <MessageCircle size={20} className="fill-white text-white" />
-                  Join Conversation
+                  {t("joinConversation")}
                 </a>
-                <EditButton label="Edit" onClick={() => onGoToStep(5)} />
+                <EditButton label={t("edit")} onClick={() => onGoToStep(5)} />
               </div>
             ) : (
               <button
@@ -988,7 +989,7 @@ function Step6({
                 className="flex items-center gap-1.5 text-sm text-text-muted underline underline-offset-2"
               >
                 <MessageCircle size={14} />
-                Add a communication link
+                {t("addCommunicationLink")}
               </button>
             )}
           </div>
@@ -997,7 +998,7 @@ function Step6({
         {/* Steps */}
         <div className="py-6 pb-10">
           <p className="text-xl font-semibold text-text-subheading px-10 mb-4">
-            Steps
+            {t("steps")}
           </p>
           <div className="flex flex-col gap-2.5">
             {templateSteps.map((s) => (
@@ -1032,14 +1033,6 @@ function Step6({
 
 // ── Wizard shell ───────────────────────────────────────────────────────────────
 
-const NEXT_LABELS: Record<number, string> = {
-  1: "Next",
-  2: "Continue Challenge",
-  3: "Next",
-  4: "Next",
-  5: "Review and Publish",
-};
-
 function channelIdFromName(name: string): Channel {
   const lower = name.toLowerCase();
   if (lower.includes("whatsapp")) return "whatsapp";
@@ -1054,6 +1047,7 @@ export default function CreateChallengeWizard({
   circleId: string;
   editChallenge?: ApiCircleChallenge;
 }) {
+  const t = useTranslations("challenges");
   const router = useRouter();
   const { user } = useAuth();
   const isEdit = !!editChallenge;
@@ -1163,8 +1157,8 @@ export default function CreateChallengeWizard({
       : undefined;
     return (
       <WizardSuccessScreen
-        title="Challenge created"
-        subtitle="Copy and share this link to invite people to join this challenge"
+        title={t("challengeCreated")}
+        subtitle={t("challengeCreatedSubtitle")}
         inviteLink={inviteLink}
         onDone={close}
       />
@@ -1231,7 +1225,14 @@ export default function CreateChallengeWizard({
       </div>
 
       {step <= 5 && (
-        <WizardNextButton label={NEXT_LABELS[step] ?? "Next"} onClick={next} />
+        <WizardNextButton
+          label={
+            step === 2 ? t("continueChallenge") :
+            step === 5 ? t("reviewAndPublish") :
+            t("next")
+          }
+          onClick={next}
+        />
       )}
     </div>
   );

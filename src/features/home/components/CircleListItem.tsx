@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import Text from "@/components/ui/Text";
 import { ChevronRight } from "lucide-react";
 import type { ApiCircle } from "@/lib/types/circles";
+import { useTranslations, useLocale } from "next-intl";
 
 type Props = {
   circle: ApiCircle;
@@ -9,9 +12,11 @@ type Props = {
 };
 
 export default function CircleListItem({ circle, rank }: Props) {
+  const t = useTranslations("home");
+  const locale = useLocale();
   const myMember = circle.members?.[0];
   const joinDate = myMember?.joinedAt
-    ? new Date(myMember.joinedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" })
+    ? new Date(myMember.joinedAt).toLocaleDateString(locale, { day: "numeric", month: "long" })
     : null;
 
   return (
@@ -44,7 +49,7 @@ export default function CircleListItem({ circle, rank }: Props) {
         </Text>
         {joinDate && (
           <Text variant="caption" className="block text-text-muted">
-            Joined {joinDate}
+            {t("joined", { date: joinDate })}
           </Text>
         )}
       </div>
