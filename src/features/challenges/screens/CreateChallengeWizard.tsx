@@ -1086,10 +1086,7 @@ export default function CreateChallengeWizard({
     else if (!isEdit && step <= 1) router.back();
     else setStep((s) => s - 1);
   };
-  const close = () =>
-    isEdit
-      ? router.push(`/challenges/${editChallenge!.challengeId}`)
-      : router.push("/discover");
+  const close = () => router.back();
 
   const updateForm = (field: keyof FormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));

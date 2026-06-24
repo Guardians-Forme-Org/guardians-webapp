@@ -725,8 +725,7 @@ export default function CreateCircleWizard({
     setStep((s) => s - 1);
   };
 
-  const close = () =>
-    isEdit ? router.push(`/circles/${editCircle!.circleId}`) : router.push("/discover");
+  const close = () => router.back();
 
   const updateForm = (field: keyof CircleFormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));

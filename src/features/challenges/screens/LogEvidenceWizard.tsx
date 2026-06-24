@@ -125,7 +125,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     else setStep((s) => s - 1);
   };
 
-  const close = () => router.push(`/challenges/${challengeId}/steps/${stepId}`);
+  const close = () => router.back();
 
   // When an edit icon is pressed from view mode — exit read-only and jump to that step
   const handleGoToStep = useCallback((targetStep: number) => {

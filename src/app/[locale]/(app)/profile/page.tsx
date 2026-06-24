@@ -30,28 +30,10 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
-const ALL_MARKERS = [
-  { label: "First Impact", icon: Zap },
-  { label: "First Circle", icon: CheckCircle },
-  { label: "Deep Roots", icon: Leaf },
-  { label: "Range", icon: Compass },
-  { label: "Sustained", icon: Calendar },
-  { label: "Witness", icon: Eye },
-  { label: "Originator", icon: Lightbulb },
-  { label: "Multiplier", icon: Shuffle },
-];
-
-function formatJoinDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
-
-function aggregateUserCircleImpact(circles: ApiCircle[]): ApiImpactRecord[] {
+function aggregateUserCircleImpact(circles: ApiCircle[], locale: string): ApiImpactRecord[] {
   const allRecords = circles.flatMap((c) => c.impactRecords ?? []);
 
   const grouped = new Map<string, ApiImpactRecord[]>();
@@ -80,12 +62,12 @@ function aggregateUserCircleImpact(circles: ApiCircle[]): ApiImpactRecord[] {
         contribution: {
           ...first.impactSummary.contribution,
           value: totalContrib,
-          displayName: `${totalContrib.toLocaleString("en-GB", { maximumFractionDigits: 2 })} ${contribUnit}`,
+          displayName: `${totalContrib.toLocaleString(locale, { maximumFractionDigits: 2 })} ${contribUnit}`,
         },
         impact: {
           ...first.impactSummary.impact,
           value: totalImpact,
-          displayName: `${totalImpact.toLocaleString("en-GB", { maximumFractionDigits: 2 })} ${impactUnit}`,
+          displayName: `${totalImpact.toLocaleString(locale, { maximumFractionDigits: 2 })} ${impactUnit}`,
         },
       },
     };
@@ -97,15 +79,35 @@ function aggregateUserCircleImpact(circles: ApiCircle[]): ApiImpactRecord[] {
 export default function ProfilePage() {
   const router = useRouter();
   const { user, logout, loginData } = useAuth();
+  const t = useTranslations("profile");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const [showLanguage, setShowLanguage] = useState(false);
   const [showLocation, setShowLocation] = useState(false);
+
+  const ALL_MARKERS = [
+    { label: t("markerFirstImpact"), icon: Zap },
+    { label: t("markerFirstCircle"), icon: CheckCircle },
+    { label: t("markerDeepRoots"), icon: Leaf },
+    { label: t("markerRange"), icon: Compass },
+    { label: t("markerSustained"), icon: Calendar },
+    { label: t("markerWitness"), icon: Eye },
+    { label: t("markerOriginator"), icon: Lightbulb },
+    { label: t("markerMultiplier"), icon: Shuffle },
+  ];
 
   const meta = user?.user_metadata;
   const fullName =
     [meta?.firstName, meta?.lastName].filter(Boolean).join(" ") ||
     user?.email ||
     "Guardian";
-  const joinDate = user?.created_at ? formatJoinDate(user.created_at) : "";
+  const joinDate = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString(locale, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
 
   const avatarUrl =
     meta?.avatarUrl ||
@@ -118,7 +120,7 @@ export default function ProfilePage() {
 
   const userRecords = loginData?.impactRecords ?? [];
   const circleRecords = PROFILE_CONFIG.aggregateUserCircleImpact
-    ? aggregateUserCircleImpact(loginData?.circles ?? [])
+    ? aggregateUserCircleImpact(loginData?.circles ?? [], locale)
     : (loginData?.circles ?? []).flatMap((c) => c.impactRecords ?? []);
 
   const [activeTab, setActiveTab] = useState<"challenges" | "circles" | null>(
@@ -142,10 +144,10 @@ export default function ProfilePage() {
       <div className="flex items-center justify-between px-7.5 pt-12 pb-4">
         <img
           src="/images/Guardians Logo-logo.png"
-          alt="Guardians logo"
+          alt={t("guardian")}
           className="w-8 h-8 object-contain"
         />
-        <button onClick={() => router.back()} aria-label="Close">
+        <button onClick={() => router.back()} aria-label={tCommon("close")}>
           <X size={20} className="opacity-30 text-black" />
         </button>
       </div>
@@ -157,14 +159,14 @@ export default function ProfilePage() {
           <h1 className="text-[32px] font-bold text-black leading-tight">
             {fullName}
           </h1>
-          <button onClick={() => router.push("/profile/edit")} aria-label="Edit profile" className="p-1 mt-1 shrink-0">
+          <button onClick={() => router.push("/profile/edit")} aria-label={t("editProfile")} className="p-1 mt-1 shrink-0">
             <Pencil size={16} className="text-text-muted" />
           </button>
         </div>
-        <p className="text-base font-medium text-text-muted mt-0.5">Guardian</p>
+        <p className="text-base font-medium text-text-muted mt-0.5">{t("guardian")}</p>
         <RoleBadge roles={computeGlobalRoles(user?.id, user?.email, loginData)} />
         {joinDate && (
-          <p className="text-base text-text-secondary">Joined {joinDate}</p>
+          <p className="text-base text-text-secondary">{t("joined", { date: joinDate })}</p>
         )}
         {locationLabel && (
           <div className="flex items-center gap-1 mt-1">
@@ -190,7 +192,7 @@ export default function ProfilePage() {
               <span
                 className={`flex items-center gap-1 ${activeTab === "challenges" ? "text-gotf-green" : "text-text-muted"}`}
               >
-                <Text variant="caption">Challenges</Text>
+                <Text variant="caption">{t("challenges")}</Text>
                 {activeTab === "challenges" ? (
                   <ChevronUp size={12} />
                 ) : (
@@ -211,7 +213,7 @@ export default function ProfilePage() {
               <span
                 className={`flex items-center gap-1 ${activeTab === "circles" ? "text-gotf-green" : "text-text-muted"}`}
               >
-                <Text variant="caption">Circles</Text>
+                <Text variant="caption">{t("circles")}</Text>
                 {activeTab === "circles" ? (
                   <ChevronUp size={12} />
                 ) : (
@@ -226,7 +228,7 @@ export default function ProfilePage() {
             <div className="flex flex-col gap-2 px-7.5 py-3 border-b border-progress-track">
               {(loginData?.challenges ?? []).length === 0 ? (
                 <p className="text-sm text-text-muted text-center py-2">
-                  No challenges yet.
+                  {t("noChallenges")}
                 </p>
               ) : (
                 (loginData?.challenges ?? []).map((ch) => (
@@ -269,7 +271,7 @@ export default function ProfilePage() {
                         0 && (
                         <span className="text-xs text-text-muted">
                           {ch.membersCount?.total ?? ch.members?.length}{" "}
-                          guardians
+                          {t("guardians")}
                         </span>
                       )}
                     </div>
@@ -284,7 +286,7 @@ export default function ProfilePage() {
             <div className="flex flex-col gap-2 px-7.5 py-3 border-b border-progress-track">
               {(loginData?.circles ?? []).length === 0 ? (
                 <p className="text-sm text-text-muted text-center py-2">
-                  No circles yet.
+                  {t("noCircles")}
                 </p>
               ) : (
                 (loginData?.circles ?? []).map((ci) => (
@@ -320,7 +322,7 @@ export default function ProfilePage() {
                     </div>
                     <span className="text-xs font-medium text-text-muted shrink-0">
                       {ci.membersCount?.total ?? ci.members?.length ?? 0}{" "}
-                      guardians
+                      {t("guardians")}
                     </span>
                   </div>
                 ))
@@ -345,7 +347,7 @@ export default function ProfilePage() {
                 >
                   <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
                     <Text variant="caption" className="text-text-muted">
-                      My {unit}
+                      {t("myUnit", { unit })}
                     </Text>
                     <p className="text-2xl font-semibold text-text-subheading">
                       {ur.impactSummary.contribution.displayName}
@@ -353,7 +355,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
                     <Text variant="caption" className="text-text-muted">
-                      Circle {unit}
+                      {t("circleUnit", { unit })}
                     </Text>
                     <p className="text-2xl font-semibold text-text-subheading">
                       {cr?.impactSummary.contribution.displayName ?? "—"}
@@ -382,7 +384,7 @@ export default function ProfilePage() {
                       {ur.verified && (
                         <span className="text-xs bg-green-50 border border-gotf-green text-gotf-green rounded-full px-2.5 py-0.5 flex items-center gap-1">
                           <CheckCircle size={10} />
-                          Verified
+                          {t("verified")}
                         </span>
                       )}
                     </div>
@@ -397,7 +399,7 @@ export default function ProfilePage() {
       {/* The Trace */}
       <div className="pb-6 border-t border-progress-track">
         <Text variant="label" className="block px-7.5 mt-5 mb-3">
-          The Trace
+          {t("theTrace")}
         </Text>
         {user?.id && <RecentActivitiesList userId={user.id} />}
       </div>
@@ -405,7 +407,7 @@ export default function ProfilePage() {
       {/* Contribution markers */}
       <div className="px-7.5 pt-6 pb-5 border-t border-progress-track">
         <Text variant="label" className="block mb-3">
-          Contribution markers
+          {t("contributionMarkers")}
         </Text>
         <div className="flex flex-wrap gap-2">
           {ALL_MARKERS.map(({ label, icon: Icon }) => {
@@ -427,7 +429,7 @@ export default function ProfilePage() {
         </div>
         {earnedLabels.size === 0 && (
           <p className="text-xs text-text-muted mt-3">
-            None earned yet — keep contributing to unlock markers.
+            {t("noMarkersEarned")}
           </p>
         )}
       </div>
@@ -441,7 +443,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <User size={18} className="text-text-muted" />
             <span className="text-base font-medium text-black">
-              Account Details
+              {tCommon("accountDetails")}
             </span>
           </div>
           <ChevronRight size={20} className="text-text-muted" />
@@ -459,7 +461,7 @@ export default function ProfilePage() {
         >
           <div className="flex items-center gap-3">
             <MapPin size={18} className="text-text-muted" />
-            <span className="text-base font-medium text-black">Location</span>
+            <span className="text-base font-medium text-black">{tCommon("locationTitle")}</span>
           </div>
           <ChevronRight size={20} className="text-text-muted" />
         </button>
@@ -477,7 +479,7 @@ export default function ProfilePage() {
         >
           <div className="flex items-center gap-3">
             <Globe size={18} className="text-text-muted" />
-            <span className="text-base font-medium text-black">Language</span>
+            <span className="text-base font-medium text-black">{tCommon("language")}</span>
           </div>
           <ChevronRight size={20} className="text-text-muted" />
         </button>
@@ -488,7 +490,7 @@ export default function ProfilePage() {
           className="flex items-center gap-3 w-full px-7.5 py-6 border-b border-progress-track"
         >
           <LogOut size={18} className="text-red-500" />
-          <span className="text-base font-medium text-red-500">Log Out</span>
+          <span className="text-base font-medium text-red-500">{t("logOut")}</span>
         </button>
       </div>
 
