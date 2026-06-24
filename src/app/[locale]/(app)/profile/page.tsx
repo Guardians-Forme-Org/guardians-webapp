@@ -331,7 +331,7 @@ export default function ProfilePage() {
       )}
 
       {/* Impact stats */}
-      {userRecords.length > 0 ? (
+      {userRecords.length > 0 && (
         <div className="px-7.5">
           {userRecords.map((ur, i) => {
             const cr = circleRecords.find((r) => r.siUnit === ur.siUnit);
@@ -391,17 +391,6 @@ export default function ProfilePage() {
               </div>
             );
           })}
-        </div>
-      ) : (
-        <div className="mx-7.5 mb-6 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-8">
-          <img
-            src="/images/Guardians Logo-full.png"
-            alt=""
-            className="w-10 h-10 object-contain opacity-20"
-          />
-          <p className="text-sm text-text-muted text-center">
-            No impact recorded yet. Complete a challenge to see your stats here.
-          </p>
         </div>
       )}
 
