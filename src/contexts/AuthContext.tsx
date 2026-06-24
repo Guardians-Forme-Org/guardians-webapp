@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // loginData lives in React Query — any mutation can invalidate ["loginData"] to trigger a refresh
   const { data: loginData = null } = useQuery({
-    queryKey: ["loginData", user?.id],
+    queryKey: ["loginData"],
     queryFn: () => fetchLoginData(user!.id),
     enabled: !!user?.id && !!token,
     staleTime: 2 * 60 * 1000,
@@ -133,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = getStoredSession();
     if (stored.token && stored.user) {
       if (stored.loginData) {
-        queryClient.setQueryData(["loginData", stored.user.id], stored.loginData);
+        queryClient.setQueryData(["loginData"], stored.loginData);
       }
       if (isTokenExpired()) {
         const rt = getRefreshToken();
@@ -185,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         contributionMarkers: response.contributionMarkers,
       };
       saveLoginData(data);
-      queryClient.setQueryData(["loginData", metaData.user.id], data);
+      queryClient.setQueryData(["loginData"], data);
 
       setToken(metaData.access_token);
       setUser(metaData.user);
