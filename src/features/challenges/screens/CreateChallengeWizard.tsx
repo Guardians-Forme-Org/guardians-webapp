@@ -824,7 +824,7 @@ function Step6({
             </span>
           )}
           <div className="flex items-start justify-between mt-3 gap-2">
-            <h1 className="text-[28px] font-bold text-text-subheading leading-tight">
+            <h1 className="text-[28px] font-bold text-text-subheading leading-tight min-w-0 break-words">
               {form.name || template?.name}
             </h1>
             <EditButton label={t("edit")} onClick={() => onGoToStep(3)} />
@@ -884,7 +884,7 @@ function Step6({
         {/* Description */}
         <div className="px-10 py-5">
           {form.description && (
-            <p className="text-base text-[#666] leading-relaxed">
+            <p className="text-base text-[#666] leading-relaxed break-words">
               {form.description}
             </p>
           )}
@@ -920,8 +920,8 @@ function Step6({
               />
             )}
           </div>
-          <div>
-            <p className="text-xl font-semibold text-text-primary">
+          <div className="min-w-0">
+            <p className="text-xl font-semibold text-text-primary break-words">
               {facilitatorName}
             </p>
             <p className="text-base font-medium text-text-secondary">
@@ -969,14 +969,14 @@ function Step6({
             {t("circleMembers")}
           </p>
 
-          <div className="flex justify-center pb-7">
+          <div className="flex justify-center pb-7 px-7.5">
             {form.channelLink ? (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center justify-center gap-3">
                 <a
                   href={form.channelLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 px-5 h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)]"
+                  className="flex items-center gap-2.5 px-5 h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] shrink-0"
                 >
                   <MessageCircle size={20} className="fill-white text-white" />
                   {t("joinConversation")}

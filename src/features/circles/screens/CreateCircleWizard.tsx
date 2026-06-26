@@ -28,7 +28,7 @@ import { useEffect, useRef, useState } from "react";
 
 // ── Form state ─────────────────────────────────────────────────────────────────
 
-type ChannelId = "whatsapp" | "facebook" | "email";
+type ChannelId = "whatsapp" | "facebook" | "email" | "channel";
 
 const CHANNELS: {
   id: ChannelId;
@@ -39,6 +39,7 @@ const CHANNELS: {
   { id: "whatsapp", label: "WhatsApp", name: "WhatsApp", icon: MessageCircle },
   { id: "facebook", label: "Facebook", name: "Facebook", icon: Globe },
   { id: "email", label: "Email", name: "Email", icon: Mail },
+  { id: "channel", label: "Other", name: "Channel", icon: Link2 },
 ];
 
 function RadioCircle({ selected }: { selected: boolean }) {
@@ -65,7 +66,7 @@ const initialForm: CircleFormData = {
   name: "",
   leads: "",
   description: "",
-  channelType: "",
+  channelType: "", // empty = user hasn't selected a channel yet
   channelUrl: "",
   region: "",
   imagePreview: "",
@@ -577,8 +578,8 @@ function ReadOnlyRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-base font-medium text-text-primary">{label}</label>
-      <div className="min-h-[44px] border border-[rgba(26,26,24,0.14)] rounded-[8px] px-3 py-2.5 flex items-center bg-[#f9f9f9]">
-        <p className="text-base text-text-primary">{value}</p>
+      <div className="min-h-[44px] border border-[rgba(26,26,24,0.14)] rounded-[8px] px-3 py-2.5 bg-[#f9f9f9]">
+        <p className="text-base text-text-primary break-all">{value}</p>
       </div>
     </div>
   );
@@ -633,9 +634,9 @@ function Step4Review({
 
         {location && (
           <ReviewSection label={t("locationSection")} stepIndex={2} onEdit={onGoToStep}>
-            <div className="flex items-center gap-2 min-h-[44px] border border-[rgba(26,26,24,0.14)] rounded-[8px] px-3 py-2.5 bg-[#f9f9f9]">
-              <MapPin size={14} className="text-gotf-green shrink-0" />
-              <p className="text-base text-text-primary">{location.formattedAddress}</p>
+            <div className="flex items-start gap-2 min-h-[44px] border border-[rgba(26,26,24,0.14)] rounded-[8px] px-3 py-2.5 bg-[#f9f9f9]">
+              <MapPin size={14} className="text-gotf-green shrink-0 mt-0.5" />
+              <p className="text-base text-text-primary break-words">{location.formattedAddress}</p>
             </div>
           </ReviewSection>
         )}
@@ -672,12 +673,12 @@ function Step4Review({
 
 const CIRCLE_DRAFT_KEY = "create-circle-draft";
 
-function channelIdFromName(name: string): ChannelId | "" {
+function channelIdFromName(name: string): ChannelId {
   const lower = name.toLowerCase();
   if (lower.includes("whatsapp")) return "whatsapp";
   if (lower.includes("facebook")) return "facebook";
   if (lower.includes("email")) return "email";
-  return "";
+  return "channel";
 }
 
 export default function CreateCircleWizard({
