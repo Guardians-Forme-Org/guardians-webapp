@@ -1,11 +1,12 @@
 "use client";
 
+import Skeleton from "@/components/ui/Skeleton";
 import { useCircles } from "@/lib/hooks/circles";
 import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
 import { useEffect, useMemo, useRef } from "react";
 
 export default function CirclesMap() {
-  const { data: circles = [] } = useCircles();
+  const { data: circles = [], isLoading } = useCircles();
   const mapRef = useRef<HTMLDivElement>(null);
 
   const coords = useMemo(
@@ -64,10 +65,14 @@ export default function CirclesMap() {
     });
   }, [coords]);
 
+  if (isLoading) {
+    return <Skeleton className="mx-5 h-[220px] rounded-[12px]" />;
+  }
+
   if (coords.length === 0) return null;
 
   return (
-    <div className="mx-5 rounded-[12px] overflow-hidden border border-[#e8e8e8] h-[220px]">
+    <div className="mx-5 rounded-[12px] overflow-hidden border border-[#e8e8e8] h-[220px] fade-up">
       <div ref={mapRef} className="w-full h-full" />
     </div>
   );

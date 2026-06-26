@@ -3,6 +3,7 @@
 import Avatar from "@/components/ui/Avatar";
 import JoinConversationButton from "@/components/ui/JoinConversationButton";
 import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
+import Skeleton from "@/components/ui/Skeleton";
 import RoleBadge from "@/components/ui/RoleBadge";
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,7 +21,7 @@ import {
   formatImpactDisplayValue,
 } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle, ChevronRight, MapPin, Pencil } from "lucide-react";
+import { CheckCircle, ChevronLeft, ChevronRight, MapPin, Pencil } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
@@ -324,8 +325,60 @@ export default function ChallengeScreen({ challengeId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-full p-10">
-        <Text variant="body">{t("loading")}</Text>
+      <div className="flex flex-col bg-white min-h-full">
+        {/* Hero */}
+        <div className="relative h-60 bg-[#e8e8e8] animate-pulse shrink-0">
+          <button onClick={() => router.back()} className="absolute left-7.5 top-7.5 size-10 rounded-full bg-white flex items-center justify-center shadow-sm z-10">
+            <ChevronLeft size={20} className="text-text-primary" />
+          </button>
+        </div>
+        {/* Card */}
+        <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
+          {/* Identity */}
+          <div className="px-10 pt-7.5 pb-0">
+            <div className="flex gap-2 mb-3">
+              <Skeleton className="h-7 w-28 rounded-[20px]" />
+              <Skeleton className="h-7 w-20 rounded-[20px]" />
+            </div>
+            <Skeleton className="h-7 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-36 mb-4" />
+            <Skeleton className="h-10 w-40 rounded-full mb-1" />
+          </div>
+          {/* Tab bar */}
+          <div className="flex px-10 mt-5 gap-6">
+            <Skeleton className="h-4 w-14" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="border-t border-progress-track mt-2.5" />
+          {/* Description */}
+          <div className="px-10 py-5 flex flex-col gap-2.5">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+          <div className="border-t border-progress-track" />
+          {/* Progress */}
+          <div className="px-10 py-7.5 flex flex-col gap-4">
+            <Skeleton className="h-5 w-24" />
+            <div className="flex items-center gap-5">
+              <Skeleton className="flex-1 h-2.5 rounded-full" />
+              <Skeleton className="h-6 w-12" />
+            </div>
+          </div>
+          <div className="border-t border-progress-track" />
+          {/* Members */}
+          <div className="py-7.5 px-7.5">
+            <Skeleton className="h-5 w-32 mb-5" />
+            <div className="flex gap-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-2">
+                  <Skeleton className="size-16 rounded-full" />
+                  <Skeleton className="h-3 w-10" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -367,7 +420,7 @@ export default function ChallengeScreen({ challengeId }: Props) {
 
   return (
     <>
-      <div className="flex flex-col bg-white min-h-full">
+      <div className="flex flex-col bg-white min-h-full fade-up">
         <ChallengeHero bannerUrl={challenge.bannerUrl} />
 
         <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">

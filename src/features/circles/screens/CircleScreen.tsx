@@ -14,10 +14,11 @@ import type {
 } from "@/lib/types/circles";
 import { calcChallengeProgress, deriveImpactLabel, formatImpactDisplayValue } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, MapPin, Pencil, UserPlus } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Pencil, UserPlus } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import Avatar from "@/components/ui/Avatar";
+import Skeleton from "@/components/ui/Skeleton";
 import Link from "next/link";
 import { useState } from "react";
 import CircleHero from "../components/CircleHero";
@@ -146,8 +147,64 @@ export default function CircleScreen({ circleId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-full p-10">
-        <Text variant="body">{t("loading")}</Text>
+      <div className="flex flex-col bg-white min-h-full">
+        {/* Hero */}
+        <div className="relative h-65 bg-[#e8e8e8] animate-pulse shrink-0">
+          <button onClick={() => router.back()} className="absolute left-7.5 top-7.5 size-10 rounded-full bg-white flex items-center justify-center shadow-sm z-10">
+            <ChevronLeft size={20} className="text-text-primary" />
+          </button>
+        </div>
+        {/* Card */}
+        <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
+          {/* Identity */}
+          <div className="px-10 pt-7.5 pb-6">
+            <Skeleton className="h-7 w-52 mb-2" />
+            <Skeleton className="h-4 w-32 mb-1.5" />
+            <Skeleton className="h-4 w-44 mb-5" />
+            <Skeleton className="h-10 w-36 rounded-full" />
+          </div>
+          {/* Guardians */}
+          <div className="py-7.5 border-b border-progress-track px-7.5">
+            <Skeleton className="h-5 w-24 mb-6" />
+            <div className="flex gap-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-2">
+                  <Skeleton className="size-16 rounded-full" />
+                  <Skeleton className="h-3 w-10" />
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Stats */}
+          <div className="flex border-b border-progress-track">
+            <div className="flex-1 px-10 pt-6 pb-5 flex flex-col gap-2">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-7 w-10" />
+            </div>
+            <div className="flex-1 px-5 pt-6 pb-5 flex flex-col gap-2">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-7 w-10" />
+            </div>
+          </div>
+          {/* Challenges */}
+          <div className="px-7.5 py-7.5">
+            <Skeleton className="h-5 w-28 mb-6" />
+            <div className="flex flex-col gap-7.5">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3.75">
+                  <Skeleton className="w-2.5 h-4 rounded-sm" />
+                  <Skeleton className="size-15 rounded-lg" />
+                  <div className="flex-1 flex flex-col gap-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-[3px] w-full rounded-full" />
+                  </div>
+                  <Skeleton className="size-6 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -170,7 +227,7 @@ export default function CircleScreen({ circleId }: Props) {
   });
 
   return (
-    <div className="flex flex-col bg-white min-h-full">
+    <div className="flex flex-col bg-white min-h-full fade-up">
       <CircleHero bannerUrl={circle.bannerUrl} />
 
       {/* White card */}

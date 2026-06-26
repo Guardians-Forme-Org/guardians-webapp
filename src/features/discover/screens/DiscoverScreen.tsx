@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, ChevronRight, MapPin } from "lucide-react";
 import SearchBar from "@/components/ui/SearchBar";
+import Skeleton from "@/components/ui/Skeleton";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { isWhitelisted, isCircleLead } from "@/lib/permissions";
@@ -230,13 +231,53 @@ export default function DiscoverScreen() {
       )}
 
       {/* Cards */}
-      <div className="px-5 flex flex-col gap-4 pb-8">
+      <div className="px-5 flex flex-col gap-4 pb-8 fade-up">
         {tab === "challenges"
           ? challengesLoading
-            ? <p className="text-sm text-text-muted text-center pt-6">{t("loadingChallenges")}</p>
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white">
+                  <Skeleton className="w-[120px] rounded-none rounded-l-[16px]" />
+                  <div className="flex-1 px-4 pt-5 pb-4 flex flex-col gap-2.5">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-3.5 w-24" />
+                    <Skeleton className="h-3.5 w-32" />
+                    <div className="mt-auto flex flex-col gap-2">
+                      <Skeleton className="h-1 w-full rounded-full" />
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-3.5 w-20" />
+                        <div className="flex">
+                          {[0, 1, 2].map((j) => (
+                            <Skeleton key={j} className="size-8 rounded-full border-2 border-white" style={{ marginLeft: j > 0 ? -8 : 0 }} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
             : filteredChallenges.map((c) => <ChallengeCard key={c.challengeId} item={c} />)
           : circlesLoading
-            ? <p className="text-sm text-text-muted text-center pt-6">{t("loadingCircles")}</p>
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white">
+                  <Skeleton className="w-[120px] rounded-none rounded-l-[16px]" />
+                  <div className="flex-1 px-4 pt-5 pb-4 flex flex-col gap-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-3.5 w-24" />
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Skeleton className="h-3 w-3 rounded-full" />
+                      <Skeleton className="h-3.5 w-32" />
+                    </div>
+                    <div className="mt-auto flex items-center justify-between">
+                      <Skeleton className="h-3.5 w-20" />
+                      <div className="flex">
+                        {[0, 1, 2].map((j) => (
+                          <Skeleton key={j} className="size-8 rounded-full border-2 border-white" style={{ marginLeft: j > 0 ? -8 : 0 }} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
             : (apiCircles ?? [])
                 .filter((c) => !lq || c.name.toLowerCase().includes(lq))
                 .map((c) => (

@@ -2,6 +2,7 @@
 
 import { useRecentActivities, useUserRecentActivities, EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
 import Avatar from "@/components/ui/Avatar";
+import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUsers } from "@/lib/hooks/users";
 import { useTranslations } from "next-intl";
@@ -36,7 +37,22 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
   }, [users, loginData]);
 
   if (isLoading) {
-    return <p className="px-10 pb-7.5 text-sm text-text-muted">{t("loading")}</p>;
+    return (
+      <div className="px-10 pb-7.5 flex flex-col gap-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-center justify-between">
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <div className="flex" style={{ width: 48 }}>
+              <Skeleton className="size-8 rounded-full border-2 border-white" />
+              <Skeleton className="size-8 rounded-full border-2 border-white -ml-4" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (error) {
@@ -48,7 +64,7 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
   }
 
   return (
-    <div className="px-10 pb-7.5 flex flex-col gap-6">
+    <div className="px-10 pb-7.5 flex flex-col gap-6 fade-up">
       {activities.map((record) => {
         const { measurement } = record.data;
         const title = measurement.value > 0

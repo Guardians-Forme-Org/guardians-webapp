@@ -1,5 +1,6 @@
 "use client";
 
+import Skeleton from "@/components/ui/Skeleton";
 import Text from "@/components/ui/Text";
 import type { ImpactMatrixItem, ThingsMatrixItem } from "@/lib/hooks/metrics";
 import { deriveImpactLabel, formatImpactDisplayValue } from "@/lib/utils";
@@ -17,6 +18,7 @@ type Props = {
   impactMatrix?: ImpactMatrixItem[];
   thingsMatrix?: ThingsMatrixItem[];
   mode?: "my" | "global";
+  isLoading?: boolean;
 };
 
 function ImpactGrid({ items }: { items: ImpactMatrixItem[] }) {
@@ -91,6 +93,7 @@ export default function ImpactSection({
   impactMatrix,
   thingsMatrix,
   mode: modeProp,
+  isLoading,
 }: Props) {
   const t = useTranslations("home");
   const hasGlobal = !!(impactMatrix?.length || thingsMatrix?.length);
@@ -128,18 +131,27 @@ export default function ImpactSection({
 
       {mode === "global" ? (
         <>
-          {impactMatrix && impactMatrix.length > 0 ? (
-            <ImpactGrid items={impactMatrix} />
+          {isLoading ? (
+            <div className="grid grid-cols-3 gap-x-2 gap-y-5 px-5 py-5">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-1.5">
+                  <Skeleton className="h-3 w-14" />
+                  <Skeleton className="h-6 w-10" />
+                </div>
+              ))}
+            </div>
+          ) : impactMatrix && impactMatrix.length > 0 ? (
+            <div className="fade-up"><ImpactGrid items={impactMatrix} /></div>
           ) : (
             <div className="px-5 py-5">
               <p className="text-sm text-text-muted">{t("noGlobalImpact")}</p>
             </div>
           )}
           {thingsMatrix && thingsMatrix.length > 0 && (
-            <>
+            <div className="fade-up">
               <div className="mx-5 border-t border-progress-track" />
               <MadeByRow items={thingsMatrix} />
-            </>
+            </div>
           )}
         </>
       ) : (

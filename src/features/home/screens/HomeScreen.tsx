@@ -3,6 +3,7 @@
 import SearchBar from "@/components/ui/SearchBar";
 import SectionHeader from "@/components/ui/SectionHeader";
 import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
+import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -51,7 +52,7 @@ function ModeSwitcher({
 }
 
 export default function HomeScreen() {
-  const { user, loginData } = useAuth();
+  const { user, loginData, loading } = useAuth();
   const router = useRouter();
   const t = useTranslations("home");
   const isGuest = !user;
@@ -70,7 +71,7 @@ export default function HomeScreen() {
       .flatMap((c) => c.members ?? [])
       .find((m) => m.userId === user?.id)?.avatarUrl;
 
-  const { data: publicMetrics } = usePublicMetrics();
+  const { data: publicMetrics, isLoading: metricsLoading } = usePublicMetrics();
 
   const impactRecords = loginData?.impactRecords ?? [];
   const badgeStats = impactRecords.slice(0, 3).map((r) => ({
@@ -96,27 +97,33 @@ export default function HomeScreen() {
         }
       />
 
-      {!isGuest && <ModeSwitcher mode={mode} onSwitch={setMode} />}
+      {loading
+        ? <div className="flex justify-center px-5 mb-2"><Skeleton className="h-9 w-44 rounded-full" /></div>
+        : !isGuest && <ModeSwitcher mode={mode} onSwitch={setMode} />
+      }
 
       {effectiveMode === "global" ? (
         /* ── Global view ─────────────────────────────────── */
         <div className="flex flex-col gap-6 pb-10">
-          <ImpactSection
-            badgeStats={badgeStats}
-            activityStats={activityStats}
-            impactMatrix={publicMetrics?.impactMatrix}
-            thingsMatrix={publicMetrics?.thingsMatrix}
-            mode="global"
-          />
+          <div className="fade-up" style={{ animationDelay: "0ms" }}>
+            <ImpactSection
+              badgeStats={badgeStats}
+              activityStats={activityStats}
+              impactMatrix={publicMetrics?.impactMatrix}
+              thingsMatrix={publicMetrics?.thingsMatrix}
+              mode="global"
+              isLoading={metricsLoading}
+            />
+          </div>
 
           {/* Located */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 fade-up" style={{ animationDelay: "80ms" }}>
             <p className="px-5 text-xl font-bold text-text-subheading">{t("located")}</p>
             <CirclesMap />
           </div>
 
           {/* Recent Activities */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 fade-up" style={{ animationDelay: "160ms" }}>
             <p className="px-5 text-xl font-bold text-text-subheading">{t("recentActivities")}</p>
             {user?.id && <RecentActivitiesList userId={user.id} />}
           </div>
@@ -124,16 +131,19 @@ export default function HomeScreen() {
       ) : effectiveMode === "mine" ? (
         /* ── Mine view ───────────────────────────────────── */
         <div className="flex flex-col gap-4 pb-10">
-          <ImpactSection
-            badgeStats={badgeStats}
-            activityStats={activityStats}
-            impactMatrix={publicMetrics?.impactMatrix}
-            thingsMatrix={publicMetrics?.thingsMatrix}
-            mode="my"
-          />
+          <div className="fade-up" style={{ animationDelay: "0ms" }}>
+            <ImpactSection
+              badgeStats={badgeStats}
+              activityStats={activityStats}
+              impactMatrix={publicMetrics?.impactMatrix}
+              thingsMatrix={publicMetrics?.thingsMatrix}
+              mode="my"
+              isLoading={metricsLoading}
+            />
+          </div>
 
           {/* Active Challenges */}
-          <section>
+          <section className="fade-up" style={{ animationDelay: "80ms" }}>
             <div className="px-5">
               <SectionHeader title={t("activeChallenges")} href="/discover" />
             </div>
@@ -165,7 +175,7 @@ export default function HomeScreen() {
           </section>
 
           {/* Active Circles */}
-          <section className="bg-white rounded-t-[20px] shadow-[0_-5px_20px_0_rgba(0,0,0,0.05)] px-5 pt-6 pb-4 -mt-2">
+          <section className="bg-white rounded-t-[20px] shadow-[0_-5px_20px_0_rgba(0,0,0,0.05)] px-5 pt-6 pb-4 -mt-2 fade-up" style={{ animationDelay: "160ms" }}>
             <SectionHeader title={t("activeCircles")} href="/discover" />
             {circles.length > 0 ? (
               <div className="flex flex-col gap-7.5">
@@ -194,7 +204,7 @@ export default function HomeScreen() {
           </section>
 
           {/* Recent Activities */}
-          <div className="flex flex-col gap-3 px-0">
+          <div className="flex flex-col gap-3 px-0 fade-up" style={{ animationDelay: "240ms" }}>
             <p className="px-5 text-xl font-bold text-text-subheading">{t("recentActivities")}</p>
             {user?.id && <RecentActivitiesList userId={user.id} />}
           </div>

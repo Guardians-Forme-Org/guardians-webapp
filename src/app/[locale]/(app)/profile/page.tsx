@@ -2,6 +2,7 @@
 
 import RoleBadge from "@/components/ui/RoleBadge";
 import Avatar from "@/components/ui/Avatar";
+import Skeleton from "@/components/ui/Skeleton";
 import { computeGlobalRoles } from "@/lib/roles";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import LocationSheet from "@/components/ui/LocationSheet";
@@ -79,7 +80,7 @@ function aggregateUserCircleImpact(circles: ApiCircle[], locale: string): ApiImp
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, logout, loginData } = useAuth();
+  const { user, logout, loginData, loading } = useAuth();
   const t = useTranslations("profile");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -139,8 +140,49 @@ export default function ProfilePage() {
 
   const earnedLabels: Set<string> = new Set();
 
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-full bg-white">
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-7.5 pt-12 pb-4">
+          <img src="/images/Guardians Logo-logo.png" alt="" className="w-8 h-8 object-contain" />
+          <button onClick={() => router.back()}><X size={20} className="opacity-30 text-black" /></button>
+        </div>
+        {/* Identity */}
+        <div className="flex flex-col items-center gap-2 pb-6 pt-2">
+          <Skeleton className="w-30 h-30 rounded-full border-2 border-border mb-3" />
+          <Skeleton className="h-8 w-44" />
+          <Skeleton className="h-4 w-20 mt-1" />
+          <Skeleton className="h-5 w-28 mt-1" />
+          <Skeleton className="h-4 w-36 mt-1" />
+        </div>
+        {/* Stats bar */}
+        <div className="flex border-y border-progress-track mx-7.5">
+          <div className="flex-1 flex flex-col items-center py-4 gap-1.5">
+            <Skeleton className="h-7 w-10" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+          <div className="w-px bg-progress-track" />
+          <div className="flex-1 flex flex-col items-center py-4 gap-1.5">
+            <Skeleton className="h-7 w-10" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        </div>
+        {/* Settings list */}
+        <div className="border-t border-progress-track mt-6">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 px-7.5 py-6 border-b border-progress-track">
+              <Skeleton className="size-5 rounded-sm" />
+              <Skeleton className="h-4 w-36" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col min-h-full bg-white">
+    <div className="flex flex-col min-h-full bg-white fade-up">
       {/* Top bar */}
       <div className="flex items-center justify-between px-7.5 pt-12 pb-4">
         <img
