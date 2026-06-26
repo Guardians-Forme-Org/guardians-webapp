@@ -21,6 +21,7 @@ function isWizardPath(pathname: string) {
 // Public paths — readable without a session; auth prompt only on join actions
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/discover") return true;
+  if (pathname === "/home") return true;
   if (pathname.startsWith("/circles/") && !pathname.startsWith("/circles/create")) return true;
   if (
     pathname.startsWith("/challenges/") &&

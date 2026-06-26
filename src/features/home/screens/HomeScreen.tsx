@@ -54,7 +54,9 @@ export default function HomeScreen() {
   const { user, loginData } = useAuth();
   const router = useRouter();
   const t = useTranslations("home");
+  const isGuest = !user;
   const [mode, setMode] = useState<"global" | "mine">("global");
+  const effectiveMode = isGuest ? "global" : mode;
 
   const displayName =
     user?.user_metadata.firstName || user?.email?.split("@")[0] || "Guardian";
@@ -94,9 +96,9 @@ export default function HomeScreen() {
         }
       />
 
-      <ModeSwitcher mode={mode} onSwitch={setMode} />
+      {!isGuest && <ModeSwitcher mode={mode} onSwitch={setMode} />}
 
-      {mode === "global" ? (
+      {effectiveMode === "global" ? (
         /* ── Global view ─────────────────────────────────── */
         <div className="flex flex-col gap-6 pb-10">
           <ImpactSection
@@ -119,7 +121,7 @@ export default function HomeScreen() {
             {user?.id && <RecentActivitiesList userId={user.id} />}
           </div>
         </div>
-      ) : (
+      ) : effectiveMode === "mine" ? (
         /* ── Mine view ───────────────────────────────────── */
         <div className="flex flex-col gap-4 pb-10">
           <ImpactSection
@@ -197,7 +199,7 @@ export default function HomeScreen() {
             {user?.id && <RecentActivitiesList userId={user.id} />}
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
