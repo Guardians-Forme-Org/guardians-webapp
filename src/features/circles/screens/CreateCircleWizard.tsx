@@ -206,7 +206,7 @@ function Step1({
           `${u.user_metadata.firstName} ${u.user_metadata.lastName}`.toLowerCase();
         return name.includes(query) || u.email.toLowerCase().includes(query);
       })
-    : [];
+    : users;
 
   return (
     <>
