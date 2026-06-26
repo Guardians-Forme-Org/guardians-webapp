@@ -24,6 +24,7 @@ import {
   Lightbulb,
   LogOut,
   MapPin,
+  Play,
   Pencil,
   Shuffle,
   User,
@@ -480,6 +481,18 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <Globe size={18} className="text-text-muted" />
             <span className="text-base font-medium text-black">{tCommon("language")}</span>
+          </div>
+          <ChevronRight size={20} className="text-text-muted" />
+        </button>
+
+        {/* Replay intro */}
+        <button
+          onClick={() => { localStorage.removeItem("gotf_splash_seen"); router.push("/splash"); }}
+          className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track"
+        >
+          <div className="flex items-center gap-3">
+            <Play size={18} className="text-text-muted" />
+            <span className="text-base font-medium text-black">{t("replayIntro")}</span>
           </div>
           <ChevronRight size={20} className="text-text-muted" />
         </button>

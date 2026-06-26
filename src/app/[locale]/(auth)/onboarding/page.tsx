@@ -2,6 +2,7 @@
 
 import { type LucideIcon, ArrowRight, Leaf, Waves } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
+import { getToken } from "@/lib/auth";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -100,13 +101,15 @@ export default function OnboardingPage() {
 
   const slide = slides[idx];
 
+  const destination = getToken() ? "/home" : "/get-started";
+
   const next = () => {
     setBgLoaded(false);
     if (idx < slides.length - 1) setIdx((i) => i + 1);
-    else router.push("/get-started");
+    else router.push(destination);
   };
 
-  const skip = () => router.push("/get-started");
+  const skip = () => router.push(destination);
 
   const contentClass =
     slide.textPosition === "top"
