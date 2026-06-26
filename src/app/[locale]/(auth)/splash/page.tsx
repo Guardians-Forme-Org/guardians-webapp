@@ -8,6 +8,7 @@ export default function SplashPage() {
   const [phase, setPhase] = useState<1 | 2>(1);
 
   useEffect(() => {
+    localStorage.setItem("gotf_splash_seen", "1");
     const t1 = setTimeout(() => setPhase(2), 1800);
     const t2 = setTimeout(() => router.push("/onboarding"), 3600);
     return () => { clearTimeout(t1); clearTimeout(t2); };

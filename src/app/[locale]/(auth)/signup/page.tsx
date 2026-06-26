@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { X, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
@@ -396,6 +396,8 @@ function Step4({ onDone }: { onDone: () => void }) {
 
 // ── Wizard shell ───────────────────────────────────────────────────────────────
 
+const SIGNUP_DRAFT_KEY = "signup-draft";
+
 export default function SignUpPage() {
   const router = useRouter();
   const { mutate: register, isPending, error: apiError } = useRegister();
@@ -406,8 +408,26 @@ export default function SignUpPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  // Load draft (passwords and avatar blob are never persisted)
+  useEffect(() => {
+    const saved = localStorage.getItem(SIGNUP_DRAFT_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.form) setForm((f) => ({ ...f, ...parsed.form, password: "", confirmPassword: "", imagePreview: "" }));
+        if (parsed.step) setStep(parsed.step);
+      } catch { /* ignore corrupt draft */ }
+    }
+  }, []);
+
+  // Persist draft (strip passwords and blob URL)
+  useEffect(() => {
+    const { password: _pw, confirmPassword: _cpw, imagePreview: _img, ...serializable } = form;
+    localStorage.setItem(SIGNUP_DRAFT_KEY, JSON.stringify({ form: serializable, step }));
+  }, [form, step]);
+
   const next = () => setStep((s) => s + 1);
-  const close = () => router.push("/get-started");
+  const close = () => { localStorage.removeItem(SIGNUP_DRAFT_KEY); router.push("/get-started"); };
   const updateForm = (field: keyof FormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
   const updateLocation = (place: LocationResult) =>
@@ -451,7 +471,7 @@ export default function SignUpPage() {
         formattedAddress: "",
       },
     };
-    register({ data: payload, avatarFile: avatarFile ?? undefined }, { onSuccess: next });
+    register({ data: payload, avatarFile: avatarFile ?? undefined }, { onSuccess: () => { localStorage.removeItem(SIGNUP_DRAFT_KEY); next(); } });
   };
 
   const submitError =

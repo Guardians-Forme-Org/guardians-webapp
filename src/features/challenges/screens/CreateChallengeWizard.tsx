@@ -27,9 +27,11 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Avatar from "@/components/ui/Avatar";
+
+const CHALLENGE_DRAFT_KEY = (circleId: string) => `create-challenge-draft-${circleId}`;
 
 const CHANNELS = [
   { id: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle },
@@ -1085,13 +1087,37 @@ export default function CreateChallengeWizard({
   const createChallenge = useCreateChallenge();
   const updateChallenge = useUpdateChallenge();
 
+  // Load draft from localStorage (create mode only)
+  useEffect(() => {
+    if (isEdit) return;
+    const saved = localStorage.getItem(CHALLENGE_DRAFT_KEY(circleId));
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.form) setForm((f) => ({ ...f, ...parsed.form, bannerUrl: "" }));
+        if (parsed.location) setLocation(parsed.location);
+        if (parsed.step) setStep(parsed.step);
+      } catch { /* ignore corrupt draft */ }
+    }
+  }, [circleId, isEdit]);
+
+  // Persist draft to localStorage (create mode only)
+  useEffect(() => {
+    if (isEdit) return;
+    const { bannerUrl: _url, ...serializableForm } = form;
+    localStorage.setItem(CHALLENGE_DRAFT_KEY(circleId), JSON.stringify({ form: serializableForm, location, step }));
+  }, [form, location, step, circleId, isEdit]);
+
   const next = () => setStep((s) => Math.min(s + 1, 7));
   const back = () => {
     if (isEdit && step <= 3) router.back();
     else if (!isEdit && step <= 1) router.back();
     else setStep((s) => s - 1);
   };
-  const close = () => router.back();
+  const close = () => {
+    if (!isEdit) localStorage.removeItem(CHALLENGE_DRAFT_KEY(circleId));
+    router.back();
+  };
 
   const updateForm = (field: keyof FormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
@@ -1141,7 +1167,7 @@ export default function CreateChallengeWizard({
           },
           bannerFile: bannerFile ?? undefined,
         },
-        { onSuccess: (data) => { setCreatedChallenge(data); next(); } },
+        { onSuccess: (data) => { localStorage.removeItem(CHALLENGE_DRAFT_KEY(circleId)); setCreatedChallenge(data); next(); } },
       );
     }
   };

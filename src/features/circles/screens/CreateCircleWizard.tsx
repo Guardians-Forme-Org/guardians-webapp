@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // ── Form state ─────────────────────────────────────────────────────────────────
 
@@ -670,6 +670,8 @@ function Step4Review({
 
 // ── Wizard shell ───────────────────────────────────────────────────────────────
 
+const CIRCLE_DRAFT_KEY = "create-circle-draft";
+
 function channelIdFromName(name: string): ChannelId | "" {
   const lower = name.toLowerCase();
   if (lower.includes("whatsapp")) return "whatsapp";
@@ -711,6 +713,28 @@ export default function CreateCircleWizard({
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [createdCircle, setCreatedCircle] = useState<CreateCircleResponse | null>(null);
 
+  // Load draft from localStorage (create mode only)
+  useEffect(() => {
+    if (isEdit) return;
+    const saved = localStorage.getItem(CIRCLE_DRAFT_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.form) setForm((f) => ({ ...f, ...parsed.form, imagePreview: "", leads: "" }));
+        if (parsed.location) setLocation(parsed.location);
+        if (parsed.step) setStep(parsed.step);
+        if (parsed.selectedLead) setSelectedLead(parsed.selectedLead);
+      } catch { /* ignore corrupt draft */ }
+    }
+  }, [isEdit]);
+
+  // Persist draft to localStorage (create mode only)
+  useEffect(() => {
+    if (isEdit) return;
+    const { imagePreview: _img, ...serializableForm } = form;
+    localStorage.setItem(CIRCLE_DRAFT_KEY, JSON.stringify({ form: { ...serializableForm, leads: "" }, location, step, selectedLead }));
+  }, [form, location, step, selectedLead, isEdit]);
+
   const next = () => {
     // In edit mode skip step 2 (location)
     if (isEdit && step === 1) { setStep(3); return; }
@@ -725,7 +749,10 @@ export default function CreateCircleWizard({
     setStep((s) => s - 1);
   };
 
-  const close = () => router.back();
+  const close = () => {
+    if (!isEdit) localStorage.removeItem(CIRCLE_DRAFT_KEY);
+    router.back();
+  };
 
   const updateForm = (field: keyof CircleFormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
@@ -780,7 +807,7 @@ export default function CreateCircleWizard({
           },
           bannerFile: bannerFile ?? undefined,
         },
-        { onSuccess: (response) => { setCreatedCircle(response); next(); } },
+        { onSuccess: (response) => { localStorage.removeItem(CIRCLE_DRAFT_KEY); setCreatedCircle(response); next(); } },
       );
     }
   };
