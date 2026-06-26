@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useEffect, useState } from "react";
 
 export default function SplashPage() {
   const router = useRouter();
@@ -11,7 +11,10 @@ export default function SplashPage() {
     localStorage.setItem("gotf_splash_seen", "1");
     const t1 = setTimeout(() => setPhase(2), 1800);
     const t2 = setTimeout(() => router.push("/onboarding"), 3600);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [router]);
 
   return (
@@ -25,8 +28,8 @@ export default function SplashPage() {
         <img
           src="/images/Guardians Logo-logo.png"
           alt="Guardians"
-          className="w-[193px] object-contain"
-          style={{ filter: "brightness(0) invert(1)" }}
+          className="w-[193px] object-contain animate-spin"
+          style={{ filter: "brightness(0) invert(1)", animationDuration: "4s" }}
         />
       ) : (
         /* Splash 2 — white + wordmark */
