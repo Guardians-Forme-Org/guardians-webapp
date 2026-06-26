@@ -414,7 +414,7 @@ export default function CircleScreen({ circleId }: Props) {
               href={`/challenges/create?circleId=${circle.circleId}`}
               className="flex items-center justify-center w-full h-14 bg-linear-to-r from-[#008000] to-[#129612] text-white text-lg font-medium rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.15)] mb-6"
             >
-              {t("startChallenge")}
+              {t("createChallenge")}
             </Link>
           )}
 

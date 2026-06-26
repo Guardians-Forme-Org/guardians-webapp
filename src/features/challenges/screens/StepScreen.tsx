@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
 import Avatar from "@/components/ui/Avatar";
+import JoinConversationButton from "@/components/ui/JoinConversationButton";
 import { useTranslations } from "next-intl";
 
 type Props = { challengeId: string; stepId: string };
@@ -114,6 +115,12 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                 </p>
               </div>
             </div>
+
+            <JoinConversationButton
+              channels={challenge.communicationChannels}
+              members={challenge.members}
+              userId={user?.id}
+            />
 
             {canSubmit && isActionable && (
               <div className="flex flex-col gap-2.5">

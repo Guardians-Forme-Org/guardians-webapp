@@ -295,7 +295,12 @@ function Step2({
         <h1 className="text-[32px] font-bold text-gotf-green">
           {template?.name}
         </h1>
-        <p className="text-[18px] text-black mt-3 leading-relaxed">
+        {template?.description && (
+          <p className="text-[18px] text-black mt-3 leading-relaxed">
+            {template.description}
+          </p>
+        )}
+        <p className="text-[16px] text-black mt-3 leading-relaxed">
           {t("sdgSupportText", { name: template?.name ?? "", sdgTitle: template?.targetSDG?.title ?? "" })}
         </p>
       </div>
@@ -1167,7 +1172,11 @@ export default function CreateChallengeWizard({
         {step === 1 && !isEdit && (
           <Step1
             form={form}
-            onChange={(id) => updateForm("templateId", id)}
+            onChange={(id) => {
+              updateForm("templateId", id);
+              const tmpl = templates.find((t) => t.templateId === id);
+              if (tmpl?.description) updateForm("description", tmpl.description);
+            }}
             templates={templates}
             isLoading={templatesLoading}
           />

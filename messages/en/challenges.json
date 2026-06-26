@@ -139,7 +139,7 @@
   "interventionsLabel": "Interventions",
   "measurementType": "Measurement Type",
   "guardians": "Guardians",
-  "sdgSupportText": "The {name} is a challenge that supports the '{sdgTitle}' Sustainable Development Goals.",
+  "sdgSupportText": "The {name} is a challenge that supports the {sdgTitle} Sustainable Development Goals.",
   "siteDescriptionHeading": "Site Description",
   "siteConditionHint": "Describe the site before any work begins — surface type, vegetation, litter, etc.",
   "siteConditionPlaceholder": "Describe conditions before work begins",
