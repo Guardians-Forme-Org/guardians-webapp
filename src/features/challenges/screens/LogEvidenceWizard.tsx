@@ -337,7 +337,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
           <ReviewStep
             form={form}
             stepTypes={config.wizardSteps.map((s) => s.type)}
-            onDelete={() => { setForm(initForm()); setStep(1); }}
+            onDelete={() => { setForm(isRegistrationStep ? { ...initForm(), measurementType: "AREA" } : initForm()); setStep(1); }}
             onUpload={submit}
             onGoToStep={isViewMode ? handleGoToStep : setStep}
             isPending={submitRegistration.isPending || submitEvidence.isPending || updateEvidence.isPending}
