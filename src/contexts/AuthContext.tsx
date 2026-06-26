@@ -27,7 +27,6 @@ import type {
   LoginResponse,
   RegisterRequest,
 } from "@/lib/types/auth";
-import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
 
 // ── Context shape ─────────────────────────────────────────────────────────────
 
@@ -52,34 +51,16 @@ async function fetchDefaultAvatar(): Promise<File> {
   return new File([blob], "avatar.png", { type: blob.type || "image/png" });
 }
 
-// Rebuilds loginData from live endpoints — called whenever ["loginData"] is invalidated.
-// impactRecords are aggregated from the user's circles (no dedicated endpoint yet).
+// Rebuilds loginData from the user profile endpoint — called whenever ["loginData"] is invalidated.
 export async function fetchLoginData(userId: string): Promise<LoginData> {
-  const [challenges, circles] = await Promise.all([
-    api.get<ApiCircleChallenge[]>("/challenges"),
-    api.get<ApiCircle[]>("/circles"),
-  ]);
-  const userChallenges = challenges.filter((c) =>
-    (c.members ?? []).some((m) => m.userId === userId),
-  );
-  const userCircles = circles.filter((c) =>
-    c.members.some((m) => m.userId === userId),
-  );
+  const profile = await api.get<LoginData>(`/users/${userId}`);
   return {
-    challenges: userChallenges,
-    circles: userCircles,
-    impactRecords: userCircles.flatMap((c) => c.impactRecords ?? []),
-    challengesCount: {
-      total: userChallenges.length,
-      label: "Challenges",
-      displayValue: String(userChallenges.length).padStart(2, "0"),
-    },
-    circlesCount: {
-      total: userCircles.length,
-      label: "Circles",
-      displayValue: String(userCircles.length).padStart(2, "0"),
-    },
-    contributionMarkers: null,
+    challenges: profile.challenges ?? [],
+    circles: profile.circles ?? [],
+    impactRecords: profile.impactRecords ?? [],
+    challengesCount: profile.challengesCount,
+    circlesCount: profile.circlesCount,
+    contributionMarkers: profile.contributionMarkers,
   };
 }
 
