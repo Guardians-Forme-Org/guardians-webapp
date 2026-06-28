@@ -170,7 +170,9 @@ export type ApiCircleChallenge = {
     isCompleted: boolean;
   }> | null;
   template?: {
-    targetSDG?: { code: string; title: string; infoUrl?: string } | null;
+    SDGAlignments?: { code: string; name: string; infoUrl?: string }[] | null;
+    impactDomains?: { code: string; name: string; infoUrl?: string }[] | null;
+    targetSDG?: { code: string; name?: string; title?: string; infoUrl?: string } | null;
   } | null;
 };
 

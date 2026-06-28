@@ -11,14 +11,24 @@ export type ApiTemplateEquipment = {
   description: string;
 };
 
+export type ApiSdgAlignment = {
+  code: string;
+  name: string;
+  infoUrl: string;
+};
+
+export type ApiImpactDomain = {
+  code: string;
+  name: string;
+  infoUrl: string;
+};
+
 export type ApiTemplate = {
   templateId: string;
   name: string;
   description: string;
-  targetSDG: {
-    code: string;
-    title: string;
-  };
+  SDGAlignments: ApiSdgAlignment[];
+  impactDomains: ApiImpactDomain[];
   steps: ApiTemplateStep[];
   equipments: ApiTemplateEquipment[];
   minCompletedCycles: number;

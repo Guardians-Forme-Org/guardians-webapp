@@ -251,9 +251,13 @@ function Step1({
                   <p className="text-[14px] text-text-subheading line-clamp-1">
                     {tmpl.description}
                   </p>
-                  <p className="text-[14px] text-text-muted">
-                    {tmpl.targetSDG.title}
-                  </p>
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {(tmpl.SDGAlignments ?? []).map((sdg) => (
+                      <span key={sdg.code} className="text-[12px] text-text-muted bg-[rgba(86,192,43,0.12)] rounded-full px-2 py-0.5">
+                        {sdg.code}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <RadioCircle selected={selected} />
               </button>
@@ -288,8 +292,6 @@ function Step2({
   const [expandedStepId, setExpandedStepId] = useState<string | null>(null);
   const [equipmentOpen, setEquipmentOpen] = useState(false);
 
-  const sdgNumber = template?.targetSDG?.code?.replace(/\D/g, "") ?? "";
-
   return (
     <>
       {/* Title + description */}
@@ -302,28 +304,33 @@ function Step2({
             {template.description}
           </p>
         )}
-        <p className="text-[16px] text-black mt-3 leading-relaxed">
-          {t("sdgSupportText", { name: template?.name ?? "", sdgTitle: template?.targetSDG?.title ?? "" })}
-        </p>
       </div>
 
-      {/* SDG badge */}
-      {template?.targetSDG && (
-        <div className="px-10 mb-7">
-          <a
-            href={buildSdgUrl(template.targetSDG.code)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-3 h-8 border-2 border-[#56c02b] rounded-[20px]"
-          >
-            <p className="text-[14px] text-[#1a1a1a] whitespace-nowrap">
-              SDG{" "}
-              <span className="font-bold">
-                {sdgNumber} {template.targetSDG.title.toUpperCase()}
+      {/* SDG + Impact Domain pills */}
+      {((template?.SDGAlignments?.length ?? 0) > 0 || (template?.impactDomains?.length ?? 0) > 0) && (
+        <div className="px-10 mb-7 flex flex-wrap gap-2">
+          {(template?.SDGAlignments ?? []).map((sdg) => (
+            <a
+              key={sdg.code}
+              href={buildSdgUrl(sdg.code)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 h-8 border-2 border-[#56c02b] rounded-[20px]"
+            >
+              <span className="text-[13px] text-[#1a1a1a] font-medium whitespace-nowrap">
+                {sdg.code.replace("SDG", "SDG ")} · {sdg.name}
               </span>
-            </p>
-            <ExternalLink size={14} className="shrink-0 text-[#1a1a1a]" />
-          </a>
+              <ExternalLink size={12} className="shrink-0 text-[#1a1a1a]" />
+            </a>
+          ))}
+          {(template?.impactDomains ?? []).map((domain) => (
+            <span
+              key={domain.code}
+              className="inline-flex items-center px-3 h-8 bg-[rgba(0,0,0,0.06)] rounded-[20px] text-[13px] text-[#1a1a1a] font-medium whitespace-nowrap"
+            >
+              {domain.name}
+            </span>
+          ))}
         </div>
       )}
 
@@ -818,11 +825,24 @@ function Step6({
       {/* White card overlapping hero */}
       <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
         <div className="px-10 pt-7.5">
-          {circle?.name && (
-            <span className="inline-block bg-[#d9d9d9] rounded-[20px] px-3 py-1 text-[14px] text-text-subheading">
-              {circle.name}
-            </span>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            {circle?.name && (
+              <span className="inline-block bg-[#d9d9d9] rounded-[20px] px-3 py-1 text-[14px] text-text-subheading">
+                {circle.name}
+              </span>
+            )}
+            {(template?.SDGAlignments ?? []).map((sdg) => (
+              <span key={sdg.code} className="inline-block bg-[rgba(86,192,43,0.2)] rounded-[20px] px-3 py-1 text-[14px] font-medium text-text-subheading">
+                {sdg.code.replace("SDG", "SDG ")}
+              </span>
+            ))}
+            {(template?.impactDomains ?? []).map((domain) => (
+              <span key={domain.code} className="inline-block bg-[rgba(0,0,0,0.06)] rounded-[20px] px-3 py-1 text-[14px] font-medium text-text-subheading">
+                {domain.name}
+              </span>
+            ))}
+
+          </div>
           <div className="flex items-start justify-between mt-3 gap-2">
             <h1 className="text-[28px] font-bold text-text-subheading leading-tight min-w-0 break-words">
               {form.name || template?.name}
