@@ -765,7 +765,18 @@ export default function CreateCircleWizard({
       : [];
   };
 
-  const handleSubmit = () => {
+  const resolveBanner = async (): Promise<File | undefined> => {
+    if (bannerFile) return bannerFile;
+    try {
+      const res = await fetch("/images/Guardians Logo-logo.png");
+      const blob = await res.blob();
+      return new File([blob], "banner.png", { type: blob.type });
+    } catch {
+      return undefined;
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!user) return;
 
     if (isEdit) {
@@ -784,6 +795,7 @@ export default function CreateCircleWizard({
         { onSuccess: () => router.push(`/circles/${editCircle!.circleId}`) },
       );
     } else {
+      const resolvedBanner = await resolveBanner();
       createCircle.mutate(
         {
           metadata: {
@@ -806,7 +818,7 @@ export default function CreateCircleWizard({
               formattedAddress: location?.formattedAddress ?? "",
             },
           },
-          bannerFile: bannerFile ?? undefined,
+          bannerFile: resolvedBanner,
         },
         { onSuccess: (response) => { localStorage.removeItem(CIRCLE_DRAFT_KEY); setCreatedCircle(response); next(); } },
       );

@@ -565,21 +565,36 @@ function Step4({
   onChange,
   users,
   isLoading,
+  circleMembers,
+  currentUserId,
 }: {
   form: FormData;
   onChange: (id: string) => void;
   users: AuthUser[];
   isLoading: boolean;
+  circleMembers: import("@/lib/types/circles").CircleMember[];
+  currentUserId: string;
 }) {
   const t = useTranslations("challenges");
   const locale = useLocale();
   const [search, setSearch] = useState("");
 
+  const memberIds = new Set(circleMembers.map((m) => m.userId));
+  const memberUsers = users.filter((u) => memberIds.has(u.id));
+
+  // Pin current user first, then alphabetical
+  const sorted = [
+    ...memberUsers.filter((u) => u.id === currentUserId),
+    ...memberUsers.filter((u) => u.id !== currentUserId).sort((a, b) =>
+      displayName(a).localeCompare(displayName(b)),
+    ),
+  ];
+
   const filtered = search
-    ? users.filter((u) =>
+    ? sorted.filter((u) =>
         displayName(u).toLowerCase().includes(search.toLowerCase()),
       )
-    : users;
+    : sorted;
 
   return (
     <>
@@ -594,10 +609,24 @@ function Step4({
 
       <div className="flex flex-col gap-7.5 px-7.5 pb-6">
         {isLoading ? (
-          <p className="text-text-secondary text-sm">{t("loadingFacilitators")}</p>
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3.75 animate-pulse">
+              <div className="w-2.5 h-4 bg-surface rounded shrink-0" />
+              <div className="size-15 rounded-full bg-surface shrink-0" />
+              <div className="flex-1 flex flex-col gap-1.5">
+                <div className="h-4 w-32 bg-surface rounded" />
+                <div className="h-3 w-24 bg-surface rounded" />
+              </div>
+            </div>
+          ))
+        ) : filtered.length === 0 ? (
+          <p className="text-text-muted text-sm text-center py-8">
+            {search ? t("noResults") : t("noCircleMembers")}
+          </p>
         ) : (
           filtered.map((u, i) => {
             const name = displayName(u);
+            const isCurrentUser = u.id === currentUserId;
             const joinDate = new Date(u.created_at).toLocaleDateString(
               locale,
               { day: "numeric", month: "long", year: "numeric" },
@@ -612,21 +641,24 @@ function Step4({
                 <span className="w-2.5 text-center font-medium text-base text-black shrink-0">
                   {i + 1}
                 </span>
-                <div className="size-15 rounded-full overflow-hidden shrink-0 border-2 border-white bg-[#d9d9d9]">
-                  {u.user_metadata.avatarUrl && (
-                    <img
-                      src={u.user_metadata.avatarUrl}
-                      alt={name}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
+                <Avatar
+                  src={u.user_metadata.avatarUrl}
+                  alt={name}
+                  className="size-15 rounded-full shrink-0 border-2 border-white"
+                />
                 <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-base font-semibold ${selected ? "text-gotf-green" : "text-text-primary"}`}
-                  >
-                    {name}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p
+                      className={`text-base font-semibold ${selected ? "text-gotf-green" : "text-text-primary"}`}
+                    >
+                      {name}
+                    </p>
+                    {isCurrentUser && (
+                      <span className="text-xs font-medium text-gotf-green bg-[rgba(86,192,43,0.12)] px-2 py-0.5 rounded-full">
+                        {t("you")}
+                      </span>
+                    )}
+                  </div>
                   <Text variant="caption" className="text-text-secondary">
                     {t("facilitatorJoined", { date: joinDate })}
                   </Text>
@@ -1149,7 +1181,18 @@ export default function CreateChallengeWizard({
       : [];
   };
 
-  const handlePublish = () => {
+  const resolveBanner = async (): Promise<File | undefined> => {
+    if (bannerFile) return bannerFile;
+    try {
+      const res = await fetch("/images/Guardians Logo-logo.png");
+      const blob = await res.blob();
+      return new File([blob], "banner.png", { type: blob.type });
+    } catch {
+      return undefined;
+    }
+  };
+
+  const handlePublish = async () => {
     const locationPayload = location
       ? { ...location, address: location.formattedAddress }
       : null;
@@ -1170,6 +1213,7 @@ export default function CreateChallengeWizard({
         { onSuccess: () => router.push(`/challenges/${editChallenge!.challengeId}`) },
       );
     } else {
+      const resolvedBanner = await resolveBanner();
       createChallenge.mutate(
         {
           metadata: {
@@ -1185,7 +1229,7 @@ export default function CreateChallengeWizard({
             location: locationPayload,
             region: locationPayload,
           },
-          bannerFile: bannerFile ?? undefined,
+          bannerFile: resolvedBanner,
         },
         { onSuccess: (data) => { localStorage.removeItem(CHALLENGE_DRAFT_KEY(circleId)); setCreatedChallenge(data); next(); } },
       );
@@ -1244,6 +1288,8 @@ export default function CreateChallengeWizard({
             onChange={(id) => updateForm("facilitatorId", id)}
             users={users}
             isLoading={usersLoading}
+            circleMembers={selectedCircle?.members ?? []}
+            currentUserId={user?.id ?? ""}
           />
         )}
         {step === 5 && (
