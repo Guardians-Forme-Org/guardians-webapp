@@ -5,6 +5,11 @@ import type { Language } from "./types/auth";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const API_KEY = process.env.NEXT_PUBLIC_X_API_KEY ?? "";
 
+let unauthorizedHandler: (() => void) | null = null;
+export function setUnauthorizedHandler(fn: (() => void) | null) {
+  unauthorizedHandler = fn;
+}
+
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /**
@@ -63,6 +68,9 @@ export async function apiFetch<T>(
   );
 
   if (!response.ok) {
+    if (response.status === 401) {
+      unauthorizedHandler?.();
+    }
     const message =
       (json as { error?: string } | null)?.error ??
       `API error ${response.status}`;

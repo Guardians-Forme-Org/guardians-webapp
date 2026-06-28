@@ -10,15 +10,12 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, apiFetch } from "@/lib/api";
+import { api, apiFetch, setUnauthorizedHandler } from "@/lib/api";
 import {
   clearSession,
   getStoredSession,
   saveSession,
   saveLoginData,
-  getRefreshToken,
-  isTokenExpired,
-  refreshAccessToken,
   type LoginData,
 } from "@/lib/auth";
 import type {
@@ -96,17 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/login");
   }, [router, queryClient]);
 
-  const refresh = useCallback(async () => {
-    const rt = getRefreshToken();
-    if (!rt) { logout(); return; }
-    try {
-      const meta = await refreshAccessToken(rt);
-      saveSession(meta);
-      setToken(meta.access_token);
-      setUser(meta.user);
-    } catch {
-      logout();
-    }
+  // Wire logout into apiFetch so a 401 after token expiry redirects to login
+  useEffect(() => {
+    setUnauthorizedHandler(logout);
+    return () => setUnauthorizedHandler(null);
   }, [logout]);
 
   // Bootstrap from localStorage on mount
@@ -116,36 +106,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (stored.loginData) {
         queryClient.setQueryData(["loginData"], stored.loginData);
       }
-      if (isTokenExpired()) {
-        const rt = getRefreshToken();
-        if (rt) {
-          refreshAccessToken(rt)
-            .then((meta) => {
-              saveSession(meta);
-              setToken(meta.access_token);
-              setUser(meta.user);
-              setPreferredLanguage(stored.preferredLanguage);
-            })
-            .catch(() => clearSession())
-            .finally(() => setLoading(false));
-          return;
-        }
-        clearSession();
-      } else {
-        setToken(stored.token);
-        setUser(stored.user);
-        setPreferredLanguage(stored.preferredLanguage);
-      }
+      setToken(stored.token);
+      setUser(stored.user);
+      setPreferredLanguage(stored.preferredLanguage);
     }
     setLoading(false);
   }, [queryClient]);
-
-  // Proactive refresh every 15 min — keeps sessions alive without user interaction
-  useEffect(() => {
-    if (!user) return;
-    const id = setInterval(refresh, 15 * 60 * 1000);
-    return () => clearInterval(id);
-  }, [user, refresh]);
 
   const login = useCallback(
     async (emailOrMobile: string, password: string) => {
