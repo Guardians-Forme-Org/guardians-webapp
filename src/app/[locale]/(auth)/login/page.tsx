@@ -129,6 +129,13 @@ export default function LoginPage() {
 
         {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
+        {/* Forgot password */}
+        <div className="flex justify-end mb-5 -mt-3">
+          <Link href="/forgot-password" className="text-sm text-[#3875e9]">
+            {t("forgotPassword")}
+          </Link>
+        </div>
+
         {/* Login button */}
         <button
           onClick={handleLogin}

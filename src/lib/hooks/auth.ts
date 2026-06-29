@@ -23,3 +23,24 @@ export function useRegister() {
     },
   });
 }
+
+export function useForgotPassword() {
+  const { forgotPassword } = useAuth();
+  return useMutation({
+    mutationFn: ({ email }: { email: string }) => forgotPassword(email),
+    onError: (error) => {
+      console.error("[forgotPassword] error:", error);
+    },
+  });
+}
+
+export function useResetPassword() {
+  const { resetPassword } = useAuth();
+  return useMutation({
+    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) =>
+      resetPassword(token, newPassword),
+    onError: (error) => {
+      console.error("[resetPassword] error:", error);
+    },
+  });
+}

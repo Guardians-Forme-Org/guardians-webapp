@@ -35,6 +35,8 @@ type AuthContextValue = {
   loading: boolean;
   login: (emailOrMobile: string, password: string) => Promise<void>;
   register: (data: RegisterRequest, avatarFile?: File) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -148,9 +150,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await apiFetch("/signup", { method: "POST", body: formData });
   }, []);
 
+  const forgotPassword = useCallback(async (email: string) => {
+    await api.post("/recover", { email });
+  }, []);
+
+  const resetPassword = useCallback(async (token: string, newPassword: string) => {
+    await api.post("/reset-password", { token, newPassword });
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, token, preferredLanguage, loginData, loading, login, register, logout }}
+      value={{ user, token, preferredLanguage, loginData, loading, login, register, forgotPassword, resetPassword, logout }}
     >
       {children}
     </AuthContext.Provider>
