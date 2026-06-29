@@ -73,7 +73,7 @@ export default function LoginPage() {
           <img
             src="/images/Guardians Logo-word-white.png"
             alt="Guardians of the Future"
-            className="w-[99%] object-contain translate-y-1/2"
+            className="w-[99%] object-contain"
           />
         </div>
       </div>
