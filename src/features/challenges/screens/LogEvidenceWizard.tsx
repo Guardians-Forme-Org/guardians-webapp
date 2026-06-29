@@ -8,6 +8,7 @@ import { useChallenge, useTemplates, useSubmitEvidence, useSubmitRegistration, u
 import { useUsers } from "@/lib/hooks/users";
 import { EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
 import { computeChallengeRoles } from "@/lib/roles";
+import { canManageCircle } from "@/lib/permissions";
 import { STEP_FORM_CONFIGS, DEFAULT_FORM_CONFIG } from "../stepFormConfig";
 import { deriveWizardConfig } from "../lib/deriveWizardConfig";
 import type { DerivedWizardConfig } from "../lib/deriveWizardConfig";
@@ -179,9 +180,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
 
   // ── Edit permissions ───────────────────────────────────────────────────────
   const isCircleLead = !!challenge && (loginData?.circles ?? []).some(
-    (c) =>
-      c.circleId === challenge.circleId &&
-      (c.circleLead as { userId?: string } | null)?.userId === user?.id,
+    (c) => c.circleId === challenge.circleId && canManageCircle(user?.email, user?.id, c),
   );
   const canEdit = !!challenge && (
     computeChallengeRoles(user?.id, user?.email, challenge).length > 0 || isCircleLead
