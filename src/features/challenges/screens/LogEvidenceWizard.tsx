@@ -41,7 +41,7 @@ function activityToForm(activity: ApiRecentActivity): LogFormData {
     measurementValue: m.value > 0 ? String(m.value) : "",
     measurementType: siUnit === "VOLUME" ? "VOLUME" : "MASS",
     impactDescription: activity.data.description ?? "",
-    volunteerHours: activity.volunteerHours.value > 0 ? String(activity.volunteerHours.value) : "",
+    volunteerHours: (activity.volunteerHours?.value ?? 0) > 0 ? String(activity.volunteerHours.value) : "",
     contributors: activity.contributors,
   };
 }

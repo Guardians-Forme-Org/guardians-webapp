@@ -105,7 +105,7 @@ export default function RecentActivitiesList({ thingId, filterStepId, userId }: 
             <div className="flex flex-col gap-1 min-w-0 flex-1 pr-3">
               <div className="flex items-baseline gap-2 min-w-0">
                 <p className="text-[18px] font-semibold text-[#1a1a1a] truncate">{title}</p>
-                {record.volunteerHours.value > 0 && (
+                {(record.volunteerHours?.value ?? 0) > 0 && (
                   <p className="text-[12px] text-text-secondary shrink-0">
                     · {record.volunteerHours.value} {record.volunteerHours.unitOfMeasure}
                   </p>

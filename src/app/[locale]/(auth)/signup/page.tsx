@@ -471,7 +471,16 @@ export default function SignUpPage() {
         formattedAddress: "",
       },
     };
-    register({ data: payload, avatarFile: avatarFile ?? undefined }, { onSuccess: () => { localStorage.removeItem(SIGNUP_DRAFT_KEY); next(); } });
+    register(
+      { data: payload, avatarFile: avatarFile ?? undefined },
+      {
+        onSuccess: () => { localStorage.removeItem(SIGNUP_DRAFT_KEY); next(); },
+        onError: (err) => {
+          setValidationError(err instanceof Error ? err.message : t("errors.registrationFailed"));
+          setStep(1);
+        },
+      },
+    );
   };
 
   const submitError =

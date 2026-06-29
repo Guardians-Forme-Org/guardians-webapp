@@ -48,26 +48,26 @@ function aggregateUserCircleImpact(circles: ApiCircle[], locale: string): ApiImp
   return Array.from(grouped.values()).map((bucket) => {
     const first = bucket[0];
     const totalContrib = bucket.reduce(
-      (s, r) => s + r.impactSummary.contribution.value,
+      (s, r) => s + (r.impactSummary?.contribution?.value ?? 0),
       0,
     );
     const totalImpact = bucket.reduce(
-      (s, r) => s + r.impactSummary.impact.value,
+      (s, r) => s + (r.impactSummary?.impact?.value ?? 0),
       0,
     );
-    const contribUnit = first.impactSummary.contribution.unitOfMeasure;
-    const impactUnit = first.impactSummary.impact.unitOfMeasure;
+    const contribUnit = first.impactSummary?.contribution?.unitOfMeasure ?? "";
+    const impactUnit = first.impactSummary?.impact?.unitOfMeasure ?? "";
 
     return {
       ...first,
       impactSummary: {
         contribution: {
-          ...first.impactSummary.contribution,
+          ...(first.impactSummary?.contribution ?? {}),
           value: totalContrib,
           displayName: `${totalContrib.toLocaleString(locale, { maximumFractionDigits: 2 })} ${contribUnit}`,
         },
         impact: {
-          ...first.impactSummary.impact,
+          ...(first.impactSummary?.impact ?? {}),
           value: totalImpact,
           displayName: `${totalImpact.toLocaleString(locale, { maximumFractionDigits: 2 })} ${impactUnit}`,
         },

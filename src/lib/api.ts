@@ -72,7 +72,8 @@ export async function apiFetch<T>(
       unauthorizedHandler?.();
     }
     const message =
-      (json as { error?: string } | null)?.error ??
+      (json as { error?: string; message?: string } | null)?.error ??
+      (json as { error?: string; message?: string } | null)?.message ??
       `API error ${response.status}`;
     throw new Error(message);
   }
