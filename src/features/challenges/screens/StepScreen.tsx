@@ -3,7 +3,7 @@
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import { useChallenge, useMarkStepComplete } from "@/lib/hooks/challenges";
+import { useChallenge, useMarkStepComplete, useTemplates } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle, isWhitelisted } from "@/lib/permissions";
 import { computeChallengeRoles } from "@/lib/roles";
@@ -13,10 +13,11 @@ import { STEP_FORM_CONFIGS } from "../stepFormConfig";
 import { calcChallengeProgress } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import ChallengeHero from "../components/ChallengeHero";
 import Avatar from "@/components/ui/Avatar";
 import JoinConversationButton from "@/components/ui/JoinConversationButton";
+import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
 import { useTranslations } from "next-intl";
 
 type Props = { challengeId: string; stepId: string };
@@ -30,12 +31,19 @@ export default function StepScreen({ challengeId, stepId }: Props) {
 
   const { data: challenge, isLoading } = useChallenge(challengeId);
   const { data: users = [] } = useUsers();
+  const { data: templates } = useTemplates();
   const { data: circle } = useQuery({
     queryKey: ["circle", challenge?.circleId],
     queryFn: () => api.get<ApiCircle>(`/circles/${challenge!.circleId}`),
     enabled: !!challenge?.circleId,
   });
   const step = challenge?.challengeSteps?.find((s) => s.stepId === stepId);
+
+  const templateStepForm = useMemo(() => {
+    if (!challenge?.templateId || !templates) return null;
+    const tmpl = templates.find((t) => t.templateId === challenge.templateId);
+    return tmpl?.steps?.find((s) => s.stepId === stepId)?.form ?? null;
+  }, [challenge?.templateId, templates, stepId]);
 
   const f = challenge?.facilitator as {
     id?: string;
@@ -50,7 +58,11 @@ export default function StepScreen({ challengeId, stepId }: Props) {
     (!!circle && canManageCircle(user?.email, user?.id, circle)) ||
     (!!user?.id && !!facilitatorId && user.id === facilitatorId);
 
-  const isActionable = !!step && (step.stepId in STEP_FORM_CONFIGS || (step.form?.length ?? 0) > 0);
+  const isActionable = !!step && (
+    step.stepId in STEP_FORM_CONFIGS ||
+    (step.form?.length ?? 0) > 0 ||
+    (templateStepForm?.length ?? 0) > 0
+  );
 
   const { percent: progress } = challenge ? calcChallengeProgress(challenge) : { percent: 0 };
   const fUser = users.find((u) => u.id === (f?.id ?? f?.userId));
@@ -185,23 +197,6 @@ export default function StepScreen({ challengeId, stepId }: Props) {
             )}
           </div>
 
-          <div className="border-t border-progress-track" />
-
-          {/* Description */}
-          <div className="px-10 py-7.5">
-            <p
-              className={`text-base text-[#1a1a1a] leading-relaxed ${!expanded ? "line-clamp-3" : ""}`}
-            >
-              {step.description}
-            </p>
-            <button
-              onClick={() => setExpanded((v) => !v)}
-              className="text-base text-gotf-blue mt-4"
-            >
-              {expanded ? t("showLess") : t("showMore")}
-            </button>
-          </div>
-
           {/* Facilitator */}
           {!!f && (
             <>
@@ -219,6 +214,32 @@ export default function StepScreen({ challengeId, stepId }: Props) {
               </div>
             </>
           )}
+
+          {!!step.description && (
+            <>
+              <div className="border-t border-progress-track" />
+              <div className="px-10 py-7.5">
+                <p
+                  className={`text-base text-[#1a1a1a] leading-relaxed ${!expanded ? "line-clamp-3" : ""}`}
+                >
+                  {step.description}
+                </p>
+                <button
+                  onClick={() => setExpanded((v) => !v)}
+                  className="text-base text-gotf-blue mt-4"
+                >
+                  {expanded ? t("showLess") : t("showMore")}
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Activities log */}
+          <div className="border-t border-progress-track" />
+          <div className="px-10 pt-7.5 pb-3">
+            <p className="text-xl font-semibold text-text-subheading">{t("tabActivities")}</p>
+          </div>
+          <RecentActivitiesList thingId={challenge.challengeId} filterStepId={stepId} />
 
         </div>
       </div>

@@ -10,13 +10,23 @@ import { useMemo } from "react";
 import { useRouter } from "@/i18n/navigation";
 
 type Props =
-  | { thingId: string; userId?: never }
-  | { userId: string; thingId?: never };
+  | { thingId: string; filterStepId?: string; userId?: never }
+  | { userId: string; filterStepId?: never; thingId?: never };
 
-export default function RecentActivitiesList({ thingId, userId }: Props) {
+function formatStepId(stepId: string): string {
+  return stepId
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export default function RecentActivitiesList({ thingId, filterStepId, userId }: Props) {
   const thing = useRecentActivities(thingId ?? "");
   const user = useUserRecentActivities(userId ?? "");
-  const { data: activities = [], isLoading, error } = thingId ? thing : user;
+  const { data: rawActivities = [], isLoading, error } = thingId ? thing : user;
+  const activities = filterStepId
+    ? rawActivities.filter((a) => a.stepId === filterStepId)
+    : rawActivities;
   const { data: users = [] } = useUsers();
   const { loginData, user: authUser } = useAuth();
   const router = useRouter();
@@ -67,9 +77,9 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
     <div className="px-10 pb-7.5 flex flex-col gap-6 fade-up">
       {activities.map((record) => {
         const { measurement } = record.data;
-        const title = measurement.value > 0
+        const title = measurement?.value > 0
           ? `${measurement.value} ${measurement.unitOfMeasure}`
-          : record.stepId;
+          : formatStepId(record.stepId);
         const date = new Date(record.createdAt).toLocaleDateString(undefined, {
           day: "numeric",
           month: "long",
@@ -92,11 +102,11 @@ export default function RecentActivitiesList({ thingId, userId }: Props) {
             onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") handleClick(); } : undefined}
             className={`flex items-center justify-between ${isClickable ? "cursor-pointer active:opacity-70" : ""}`}
           >
-            <div className="flex flex-col gap-1">
-              <div className="flex items-baseline gap-2">
-                <p className="text-[18px] font-semibold text-[#1a1a1a]">{title}</p>
+            <div className="flex flex-col gap-1 min-w-0 flex-1 pr-3">
+              <div className="flex items-baseline gap-2 min-w-0">
+                <p className="text-[18px] font-semibold text-[#1a1a1a] truncate">{title}</p>
                 {record.volunteerHours.value > 0 && (
-                  <p className="text-[12px] text-text-secondary">
+                  <p className="text-[12px] text-text-secondary shrink-0">
                     · {record.volunteerHours.value} {record.volunteerHours.unitOfMeasure}
                   </p>
                 )}

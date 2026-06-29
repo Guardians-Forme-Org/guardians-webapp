@@ -1131,9 +1131,10 @@ export default function CreateChallengeWizard({
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [createdChallenge, setCreatedChallenge] = useState<ApiChallenge | null>(null);
   const { data: rawTemplates = [], isLoading: templatesLoading } = useTemplates();
-  const templates = rawTemplates.filter((t) =>
-    t.name.toLowerCase().includes("compost"),
-  );
+  const templates = rawTemplates.filter((t) => {
+    const name = t.name.toLowerCase();
+    return name.includes("compost") || name.includes("greening");
+  });
   const { data: users = [], isLoading: usersLoading } = useUsers();
   const { data: selectedCircle } = useCircle(circleId);
   const createChallenge = useCreateChallenge();
