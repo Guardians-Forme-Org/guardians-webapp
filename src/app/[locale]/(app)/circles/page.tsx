@@ -11,10 +11,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { isWhitelisted } from "@/lib/permissions";
 import type { ApiCircle, CirclesListResponse } from "@/lib/types/circles";
+import { useTranslations } from "next-intl";
 
 // ── Circle card ───────────────────────────────────────────────────────────────
 
 function CircleCard({ circle, role }: { circle: ApiCircle; role?: string }) {
+  const t = useTranslations("circles");
   const location = circle.region.formattedAddress || [circle.region.city, circle.region.province].filter(Boolean).join(", ") || "—";
 
   return (
@@ -48,7 +50,7 @@ function CircleCard({ circle, role }: { circle: ApiCircle; role?: string }) {
           </Text>
         </div>
         <Text variant="label" className="normal-case tracking-normal mt-0.5">
-          {circle.membersCount?.total ?? circle.members.length} {circle.membersCount?.label?.toLowerCase() ?? "guardians"} · {circle.challenges.length} challenges
+          {(() => { const n = circle.membersCount?.total ?? circle.members.length; return `${n} ${n === 1 ? t("guardian") : t("guardians")}`; })()} · {(() => { const c = circle.challenges.length; return `${c} ${c === 1 ? t("challenge") : t("challenges")}`; })()}
         </Text>
       </div>
 

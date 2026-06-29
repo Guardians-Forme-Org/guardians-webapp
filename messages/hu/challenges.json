@@ -141,6 +141,7 @@
   "addIntervention": "Beavatkozás hozzáadása",
   "interventionsLabel": "Beavatkozások",
   "measurementType": "Mérési típus",
+  "guardian": "Őrző",
   "guardians": "Őrzők",
   "sdgSupportText": "A(z) {name} egy olyan kihívás, amely támogatja a(z) „{sdgTitle}” Fenntartható Fejlődési Célt.",
   "siteDescriptionHeading": "Helyszín leírása",

@@ -304,22 +304,14 @@ export default function ProfilePage() {
                         {ch.region?.formattedAddress ||
                           [ch.region?.city, ch.region?.province]
                             .filter(Boolean)
-                            .join(", ") ||
-                          ch.status?.name}
+                            .join(", ")}
                       </p>
                     </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className="text-xs font-medium text-text-muted bg-surface rounded-full px-2 py-0.5">
-                        {ch.status?.name}
+                    {(ch.membersCount?.total ?? ch.members?.length ?? 0) > 0 && (
+                      <span className="text-xs text-text-muted shrink-0">
+                        {(() => { const n = ch.membersCount?.total ?? ch.members?.length ?? 0; return `${n} ${n === 1 ? t("guardian") : t("guardians")}`; })()}
                       </span>
-                      {(ch.membersCount?.total ?? ch.members?.length ?? 0) >
-                        0 && (
-                        <span className="text-xs text-text-muted">
-                          {ch.membersCount?.total ?? ch.members?.length}{" "}
-                          {t("guardians")}
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </div>
                 ))
               )}
@@ -366,8 +358,7 @@ export default function ProfilePage() {
                       </p>
                     </div>
                     <span className="text-xs font-medium text-text-muted shrink-0">
-                      {ci.membersCount?.total ?? ci.members?.length ?? 0}{" "}
-                      {t("guardians")}
+                      {(() => { const n = ci.membersCount?.total ?? ci.members?.length ?? 0; return `${n} ${n === 1 ? t("guardian") : t("guardians")}`; })()}
                     </span>
                   </div>
                 ))

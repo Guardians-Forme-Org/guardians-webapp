@@ -141,6 +141,7 @@
   "addIntervention": "Add Intervention",
   "interventionsLabel": "Interventions",
   "measurementType": "Measurement Type",
+  "guardian": "Guardian",
   "guardians": "Guardians",
   "sdgSupportText": "The {name} is a challenge that supports the {sdgTitle} Sustainable Development Goals.",
   "siteDescriptionHeading": "Site Description",
