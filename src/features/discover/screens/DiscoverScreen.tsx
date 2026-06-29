@@ -144,7 +144,16 @@ export default function DiscoverScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [tab, setTab] = useState<Tab>("challenges");
+  const [tab, setTab] = useState<Tab>(() => {
+    if (typeof window === "undefined") return "challenges";
+    const stored = localStorage.getItem("gotf_discover_tab");
+    return stored === "circles" ? "circles" : "challenges";
+  });
+
+  const handleTabSwitch = (next: Tab) => {
+    setTab(next);
+    localStorage.setItem("gotf_discover_tab", next);
+  };
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [showCirclePicker, setShowCirclePicker] = useState(false);
 
@@ -190,7 +199,7 @@ export default function DiscoverScreen() {
           {(["challenges", "circles"] as Tab[]).map((tabKey) => (
             <button
               key={tabKey}
-              onClick={() => setTab(tabKey)}
+              onClick={() => handleTabSwitch(tabKey)}
               className={`h-[34px] w-[131px] rounded-full text-base text-text-subheading capitalize transition-colors ${
                 tab === tabKey ? "bg-[#f0f0f0]" : ""
               }`}

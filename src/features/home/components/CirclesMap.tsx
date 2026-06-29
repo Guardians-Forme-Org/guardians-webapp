@@ -30,8 +30,10 @@ function buildInfoContent(circle: ApiCircle, labels: Labels) {
 export default function CirclesMap() {
   const { data: circles = [], isLoading } = useCircles();
   const t = useTranslations("circles");
-  const labels: Labels = { guardians: t("guardians"), challenges: t("challenges") };
+  const labelsRef = useRef<Labels>({ guardians: t("guardians"), challenges: t("challenges") });
+  labelsRef.current = { guardians: t("guardians"), challenges: t("challenges") };
   const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
 
   const pinned = useMemo(
     () =>
@@ -47,13 +49,15 @@ export default function CirclesMap() {
   useEffect(() => {
     if (!mapRef.current || pinned.length === 0) return;
 
+    let cancelled = false;
+
     setOptions({
       key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
       v: "weekly",
     });
 
     importLibrary("maps").then(({ Map, InfoWindow }) => {
-      if (!mapRef.current) return;
+      if (cancelled || !mapRef.current) return;
 
       const map = new Map(mapRef.current, {
         center: { lat: pinned[0].region.latitude, lng: pinned[0].region.longitude },
@@ -63,6 +67,7 @@ export default function CirclesMap() {
         gestureHandling: "cooperative",
         keyboardShortcuts: false,
       });
+      mapInstanceRef.current = map;
 
       const iconUrl =
         window.location.origin + "/images/Guardians%20Logo-logo.png";
@@ -83,14 +88,14 @@ export default function CirclesMap() {
         });
 
         marker.addListener("click", async () => {
-          infoWindow.setContent(buildInfoContent(circle, labels));
+          sessionStorage.setItem("gotf_refetch_home", "1");
+          infoWindow.setContent(buildInfoContent(circle, labelsRef.current));
           infoWindow.open({ anchor: marker, map });
 
           try {
             const full = await api.get<ApiCircle>(`/circles/${circle.circleId}`);
-            // list has membersCount, individual endpoint has challenges — merge both
             const merged = { ...full, membersCount: circle.membersCount ?? full.membersCount };
-            infoWindow.setContent(buildInfoContent(merged, labels));
+            infoWindow.setContent(buildInfoContent(merged, labelsRef.current));
           } catch {
             // keep the basic info already showing
           }
@@ -105,6 +110,11 @@ export default function CirclesMap() {
         map.fitBounds(bounds, 40);
       }
     });
+
+    return () => {
+      cancelled = true;
+      mapInstanceRef.current = null;
+    };
   }, [pinned]);
 
   if (isLoading) {

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import BottomNavBar from "@/components/nav/BottomNavBar";
 import { getToken, getStoredSession } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Wizard flows — no bottom nav, no pb-safe-nav padding
 const WIZARD_PATHS = [
@@ -41,6 +42,7 @@ export default function AppLayoutClient({
   const wizard = isWizardPath(pathname);
   const isPublic = isPublicPath(pathname);
   const mainRef = useRef<HTMLElement>(null);
+  const { user: authUser } = useAuth();
   const { user, loginData } = getStoredSession();
   const avatarUrl =
     user?.user_metadata?.avatarUrl ||
@@ -78,7 +80,7 @@ export default function AppLayoutClient({
       <main ref={mainRef} className={`flex-1 overflow-y-auto ${wizard ? "" : "pb-safe-nav"}`}>
         {children}
       </main>
-      {!wizard && <BottomNavBar avatarUrl={avatarUrl} isAuthenticated={!!getToken()} />}
+      {!wizard && <BottomNavBar avatarUrl={avatarUrl} isAuthenticated={!!authUser} />}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { usePublicMetrics } from "@/lib/hooks/metrics";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChallengeCard from "../components/ChallengeCard";
 import CircleListItem from "../components/CircleListItem";
 import CirclesMap from "../components/CirclesMap";
@@ -51,13 +51,35 @@ function ModeSwitcher({
   );
 }
 
+const HOME_MODE_KEY = "gotf_home_mode";
+const MAP_REFETCH_FLAG = "gotf_refetch_home";
+
 export default function HomeScreen() {
   const { user, loginData, loading } = useAuth();
   const router = useRouter();
   const t = useTranslations("home");
   const isGuest = !user;
-  const [mode, setMode] = useState<"global" | "mine">("global");
+
+  const [mode, setMode] = useState<"global" | "mine">(() => {
+    if (typeof window === "undefined") return "global";
+    const stored = localStorage.getItem(HOME_MODE_KEY);
+    return stored === "mine" ? "mine" : "global";
+  });
+
   const effectiveMode = isGuest ? "global" : mode;
+
+  const handleModeSwitch = (m: "global" | "mine") => {
+    setMode(m);
+    localStorage.setItem(HOME_MODE_KEY, m);
+  };
+
+  // Reload when returning from a circle opened via the map
+  useEffect(() => {
+    if (sessionStorage.getItem(MAP_REFETCH_FLAG) !== "1") return;
+    sessionStorage.removeItem(MAP_REFETCH_FLAG);
+    window.location.reload();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const displayName =
     user?.user_metadata.firstName || user?.email?.split("@")[0] || "Guardian";
@@ -99,7 +121,7 @@ export default function HomeScreen() {
 
       {loading
         ? <div className="flex justify-center px-5 mb-2"><Skeleton className="h-9 w-44 rounded-full" /></div>
-        : !isGuest && <ModeSwitcher mode={mode} onSwitch={setMode} />
+        : !isGuest && <ModeSwitcher mode={mode} onSwitch={handleModeSwitch} />
       }
 
       {effectiveMode === "global" ? (

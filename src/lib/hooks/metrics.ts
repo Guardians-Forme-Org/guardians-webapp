@@ -37,5 +37,6 @@ export function usePublicMetrics() {
   return useQuery({
     queryKey: ["publicMatrix"],
     queryFn: () => api.get<PublicMetricsResponse>("/publicMatrix"),
+    staleTime: 2 * 60 * 1000,
   });
 }
