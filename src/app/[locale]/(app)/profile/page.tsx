@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "@/i18n/navigation";
 import { PROFILE_CONFIG } from "@/lib/config";
 import type { ApiCircle, ApiImpactRecord } from "@/lib/types/circles";
+import { isCrimeIncidentImpact } from "@/lib/utils";
 import {
   Calendar,
   CheckCircle,
@@ -120,10 +121,11 @@ export default function ProfilePage() {
       .flatMap((c) => c.members ?? [])
       .find((m) => m.userId === user?.id)?.avatarUrl;
 
-  const userRecords = loginData?.impactRecords ?? [];
-  const circleRecords = PROFILE_CONFIG.aggregateUserCircleImpact
+  const userRecords = (loginData?.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r));
+  const circleRecords = (PROFILE_CONFIG.aggregateUserCircleImpact
     ? aggregateUserCircleImpact(loginData?.circles ?? [], locale)
-    : (loginData?.circles ?? []).flatMap((c) => c.impactRecords ?? []);
+    : (loginData?.circles ?? []).flatMap((c) => c.impactRecords ?? [])
+  ).filter(r => !isCrimeIncidentImpact(r));
 
   const [activeTab, setActiveTab] = useState<"challenges" | "circles" | null>(
     null,

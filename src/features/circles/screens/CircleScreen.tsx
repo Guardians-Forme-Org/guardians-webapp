@@ -12,7 +12,7 @@ import type {
   ApiCircleChallenge,
   CircleMember,
 } from "@/lib/types/circles";
-import { calcChallengeProgress, deriveImpactLabel, formatImpactDisplayValue } from "@/lib/utils";
+import { calcChallengeProgress, deriveImpactLabel, formatImpactDisplayValue, isCrimeIncidentImpact } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, MapPin, Pencil, UserPlus } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
@@ -326,13 +326,13 @@ export default function CircleScreen({ circleId }: Props) {
         </div>
 
         {/* Impact */}
-        {(circle.impactRecords ?? []).length > 0 && (
+        {(circle.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r)).length > 0 && (
           <div className="border-b border-progress-track">
             <p className="px-10 pt-7.5 pb-4 text-xl font-bold text-text-subheading">
               {t("impact")}
             </p>
             <div className="grid grid-cols-2 border-t border-[#e6e6e6]">
-              {(circle.impactRecords ?? []).map((record, i) => (
+              {(circle.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r)).map((record, i) => (
                 <div
                   key={record.impactRecordId}
                   className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-1.5 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}

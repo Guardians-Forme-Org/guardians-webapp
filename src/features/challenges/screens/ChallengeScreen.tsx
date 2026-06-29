@@ -19,6 +19,7 @@ import {
   calcChallengeProgress,
   deriveImpactLabel,
   formatImpactDisplayValue,
+  isCrimeIncidentImpact,
 } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, ChevronLeft, ChevronRight, MapPin, Pencil } from "lucide-react";
@@ -215,10 +216,10 @@ function HomeTab({
       )}
 
       {/* Impact */}
-      {(challenge.impactRecords ?? []).length > 0 && (
+      {(challenge.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r)).length > 0 && (
         <div className="border-t border-[#e6e6e6]">
           <div className="grid grid-cols-2">
-            {(challenge.impactRecords ?? []).map((record, i) => (
+            {(challenge.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r)).map((record, i) => (
               <div
                 key={record.impactRecordId}
                 className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-1.5 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}

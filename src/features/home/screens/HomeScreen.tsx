@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { usePublicMetrics } from "@/lib/hooks/metrics";
+import { isCrimeIncidentImpact } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import ChallengeCard from "../components/ChallengeCard";
 import CircleListItem from "../components/CircleListItem";
@@ -95,7 +96,7 @@ export default function HomeScreen() {
 
   const { data: publicMetrics, isLoading: metricsLoading } = usePublicMetrics();
 
-  const impactRecords = loginData?.impactRecords ?? [];
+  const impactRecords = (loginData?.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r));
   const badgeStats = impactRecords.slice(0, 3).map((r) => ({
     label: r.impactSummary?.contribution?.unitOfMeasure ?? "",
     value: r.impactSummary?.contribution?.value ?? 0,
@@ -131,7 +132,7 @@ export default function HomeScreen() {
             <ImpactSection
               badgeStats={badgeStats}
               activityStats={activityStats}
-              impactMatrix={publicMetrics?.impactMatrix}
+              impactMatrix={publicMetrics?.impactMatrix?.filter(r => !isCrimeIncidentImpact(r))}
               thingsMatrix={publicMetrics?.thingsMatrix}
               mode="global"
               isLoading={metricsLoading}
@@ -157,7 +158,7 @@ export default function HomeScreen() {
             <ImpactSection
               badgeStats={badgeStats}
               activityStats={activityStats}
-              impactMatrix={publicMetrics?.impactMatrix}
+              impactMatrix={publicMetrics?.impactMatrix?.filter(r => !isCrimeIncidentImpact(r))}
               thingsMatrix={publicMetrics?.thingsMatrix}
               mode="my"
               isLoading={metricsLoading}

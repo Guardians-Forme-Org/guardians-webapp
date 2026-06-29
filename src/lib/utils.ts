@@ -1,3 +1,18 @@
+export function isCrimeIncidentImpact(item: {
+  siUnit?: string;
+  impactType?: string;
+  impactSummary?: { impact?: { unitOfMeasure?: string; shortSummary?: string } };
+}): boolean {
+  const lower = (s?: string) => (s ?? "").toLowerCase();
+  return (
+    lower(item.siUnit).includes("incident") ||
+    lower(item.siUnit).includes("crime") ||
+    lower(item.impactType).includes("crime") ||
+    lower(item.impactSummary?.impact?.unitOfMeasure).includes("incident") ||
+    lower(item.impactSummary?.impact?.shortSummary).includes("crime")
+  );
+}
+
 export function deriveImpactLabel(shortSummary: string): string {
   const withUnitOf = shortSummary.replace(/^[\d,.]+ \S+ of /i, "");
   if (withUnitOf !== shortSummary) {
