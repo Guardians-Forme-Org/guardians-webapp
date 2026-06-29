@@ -1,10 +1,10 @@
 "use client";
 
-import { type LucideIcon, ArrowRight, Leaf, Waves } from "lucide-react";
+import { type LucideIcon, ArrowRight, ArrowLeft, Leaf, Waves } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { getToken } from "@/lib/auth";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -62,6 +62,7 @@ export default function OnboardingPage() {
 
   const [idx, setIdx] = useState(0);
   const [bgLoaded, setBgLoaded] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
   const slides: Slide[] = [
     {
@@ -109,7 +110,33 @@ export default function OnboardingPage() {
     else router.push(destination);
   };
 
+  const prev = () => {
+    if (idx > 0) {
+      setBgLoaded(false);
+      setIdx((i) => i - 1);
+    }
+  };
+
+  const goTo = (i: number) => {
+    if (i !== idx) {
+      setBgLoaded(false);
+      setIdx(i);
+    }
+  };
+
   const skip = () => router.push(destination);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (delta < -50) next();
+    else if (delta > 50) prev();
+  };
 
   const contentClass =
     slide.textPosition === "top"
@@ -120,6 +147,8 @@ export default function OnboardingPage() {
     <div
       className="min-h-dvh relative flex flex-col select-none overflow-hidden"
       style={{ backgroundColor: slide.bg }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       {slide.bgImage && (
         <>
@@ -171,14 +200,23 @@ export default function OnboardingPage() {
       {/* Bottom actions */}
       <div className="relative z-20 flex flex-col items-center gap-8 pb-16 pt-8 px-5">
         {slide.cta ? (
-          <button
-            onClick={next}
-            className="w-84.5 h-14 rounded-full text-white text-xl font-medium"
-            style={{ backgroundColor: "#fd9742" }}
-          >
-            {tCommon("getStarted")}
-          </button>
-        ) : (
+          <>
+            <button
+              onClick={next}
+              className="w-84.5 h-14 rounded-full text-white text-xl font-medium"
+              style={{ backgroundColor: "#fd9742" }}
+            >
+              {tCommon("getStarted")}
+            </button>
+            <button
+              onClick={prev}
+              className="text-white/60 text-base font-medium -mt-4"
+              aria-label="Back"
+            >
+              {tCommon("back")}
+            </button>
+          </>
+        ) : idx === 0 ? (
           <button
             onClick={next}
             className="size-12 rounded-full border-2 border-white flex items-center justify-center"
@@ -186,13 +224,32 @@ export default function OnboardingPage() {
           >
             <ArrowRight size={22} className="text-white" />
           </button>
+        ) : (
+          <div className="flex items-center justify-between w-full px-8">
+            <button
+              onClick={prev}
+              aria-label="Back"
+              className="size-12 rounded-full border-2 border-white flex items-center justify-center"
+            >
+              <ArrowLeft size={22} className="text-white" />
+            </button>
+            <button
+              onClick={next}
+              className="size-12 rounded-full border-2 border-white flex items-center justify-center"
+              aria-label="Next"
+            >
+              <ArrowRight size={22} className="text-white" />
+            </button>
+          </div>
         )}
 
-        {/* Dot indicators */}
+        {/* Dot indicators — tappable */}
         <div className="flex items-center gap-2">
           {slides.map((_, i) => (
-            <div
+            <button
               key={i}
+              aria-label={`Go to slide ${i + 1}`}
+              onClick={() => goTo(i)}
               className={`rounded-full transition-all duration-300 ${
                 i === idx ? "w-7 h-2.5" : "size-2.5 bg-white/40"
               }`}
