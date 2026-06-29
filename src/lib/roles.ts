@@ -67,9 +67,8 @@ export function computeChallengeRoles(
 
   if (isWhitelisted(userEmail)) roles.push("admin");
 
-  const isFacilitator = (challenge.members ?? []).some(
-    (m) => m.userId === userId && m.role === "CHALLENGE_FACILITATOR",
-  );
+  const f = challenge.facilitator as { id?: string; userId?: string } | null;
+  const isFacilitator = !!(f && (f.id === userId || f.userId === userId));
   if (isFacilitator) roles.push("facilitator");
 
   return roles;
