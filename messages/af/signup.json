@@ -38,6 +38,8 @@
   "errors": {
     "credentialsRequired": "Voer asseblief 'n e-posadres of telefoonnommer in.",
     "passwordRequired": "Skep asseblief 'n wagwoord.",
-    "passwordMismatch": "Wagwoorde stem nie ooreen nie."
+    "passwordMismatch": "Wagwoorde stem nie ooreen nie.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "emailAlreadyExists": "An account with this email already exists."
   }
 }

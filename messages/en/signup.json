@@ -45,6 +45,8 @@
   "errors": {
     "credentialsRequired": "Please enter an email or phone number.",
     "passwordRequired": "Please create a password.",
-    "passwordMismatch": "Passwords do not match."
+    "passwordMismatch": "Passwords do not match.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "emailAlreadyExists": "An account with this email already exists."
   }
 }

@@ -185,7 +185,7 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
           if (field.type === "NUMBER" || field.type === "NUMERIC") {
             return (
               <FieldGroup key={field.name} label={field.label} required={field.required}>
-                <div className="flex items-center border border-[rgba(26,26,24,0.28)] rounded-[8px] overflow-hidden">
+                <div className="w-full flex items-center border border-[rgba(26,26,24,0.28)] rounded-[8px] overflow-hidden">
                   <input
                     type="number"
                     inputMode="decimal"
@@ -193,7 +193,7 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
                     value={(value as string) ?? ""}
                     onChange={(e) => update(field.name, e.target.value)}
                     placeholder="0"
-                    className="flex-1 h-[44px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none bg-white"
+                    className="flex-1 min-w-0 h-[44px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none bg-white"
                   />
                   {field.unitOfMeasureOptions && field.unitOfMeasureOptions.length > 1 ? (
                     <div className="relative h-[44px] shrink-0">
@@ -226,12 +226,14 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
           if (field.type === "DATE") {
             return (
               <FieldGroup key={field.name} label={field.label} required={field.required}>
-                <input
-                  type="date"
-                  value={(value as string) ?? ""}
-                  onChange={(e) => update(field.name, e.target.value)}
-                  className="w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
-                />
+                <div className="w-full overflow-hidden">
+                  <input
+                    type="date"
+                    value={(value as string) ?? ""}
+                    onChange={(e) => update(field.name, e.target.value)}
+                    className="w-full max-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
+                  />
+                </div>
               </FieldGroup>
             );
           }
@@ -245,7 +247,7 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
                   onChange={(e) => update(field.name, e.target.value)}
                   rows={4}
                   placeholder={field.label}
-                  className="w-full border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 py-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none resize-none"
+                  className="w-full min-w-0 border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 py-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none resize-none"
                 />
               </FieldGroup>
             );
@@ -293,7 +295,7 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
                 value={(value as string) ?? ""}
                 onChange={(e) => update(field.name, e.target.value)}
                 placeholder={field.label}
-                className="w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none"
+                className="w-full min-w-0 h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none"
               />
             </FieldGroup>
           );

@@ -38,6 +38,8 @@
   "errors": {
     "credentialsRequired": "Sicela ufake i-imeyili noma inombolo yocingo.",
     "passwordRequired": "Sicela udale iphasiwedi.",
-    "passwordMismatch": "Amaphasiwedi awafani."
+    "passwordMismatch": "Amaphasiwedi awafani.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "emailAlreadyExists": "An account with this email already exists."
   }
 }

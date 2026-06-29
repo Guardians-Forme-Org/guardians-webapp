@@ -5,8 +5,12 @@ import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { X, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
 import { useRegister } from "@/lib/hooks/auth";
+import { useUsers } from "@/lib/hooks/users";
 import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
 import Text from "@/components/ui/Text";
+
+// Toggle: switch to false once the API-based duplicate check is ready
+const USE_CLIENT_SIDE_EMAIL_CHECK = true;
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -401,6 +405,7 @@ const SIGNUP_DRAFT_KEY = "signup-draft";
 export default function SignUpPage() {
   const router = useRouter();
   const { mutate: register, isPending, error: apiError } = useRegister();
+  const { data: existingUsers = [] } = useUsers();
   const t = useTranslations("signup");
 
   const [step, setStep] = useState(1);
@@ -445,6 +450,15 @@ export default function SignUpPage() {
     if (form.password !== form.confirmPassword) {
       setValidationError(t("errors.passwordMismatch"));
       return;
+    }
+    if (USE_CLIENT_SIDE_EMAIL_CHECK && form.email) {
+      const emailTaken = existingUsers.some(
+        (u) => u.email?.toLowerCase() === form.email.toLowerCase(),
+      );
+      if (emailTaken) {
+        setValidationError(t("errors.emailAlreadyExists"));
+        return;
+      }
     }
     setValidationError(null);
     next();

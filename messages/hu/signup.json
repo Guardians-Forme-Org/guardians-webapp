@@ -45,6 +45,8 @@
   "errors": {
     "credentialsRequired": "Kérjük, adj meg egy e-mail címet vagy telefonszámot.",
     "passwordRequired": "Kérjük, hozz létre egy jelszót.",
-    "passwordMismatch": "A jelszavak nem egyeznek."
+    "passwordMismatch": "A jelszavak nem egyeznek.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "emailAlreadyExists": "An account with this email already exists."
   }
 }

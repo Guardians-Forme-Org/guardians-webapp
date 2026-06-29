@@ -1,5 +1,4 @@
 import { api, apiFetch } from "@/lib/api";
-import { getToken } from "@/lib/auth";
 import type {
   ApiChallenge,
   CreateChallengeRequest,
@@ -124,13 +123,11 @@ export function useSubmitEvidence() {
       userId: string;
       payload: SubmitEvidencePayload;
     }) => {
-      const token = getToken();
       const endpoint = `/submit${challengeCode.replace("-", "")}`;
       return apiFetch<void>(endpoint, {
         method: "POST",
         body: payload,
         headers: {
-          ...(token ? { Auth: `Bearer ${token}` } : {}),
           "X-Step-ID": stepId,
           "X-User-Id": userId,
         },
@@ -159,12 +156,10 @@ export function useUpdateEvidence() {
       userId: string;
       payload: SubmitEvidencePayload;
     }) => {
-      const token = getToken();
       return apiFetch<void>(`/evidences/${evidenceId}`, {
         method: "PUT",
         body: payload,
         headers: {
-          ...(token ? { Auth: `Bearer ${token}` } : {}),
           "X-Step-ID": stepId,
           "X-User-Id": userId,
         },
@@ -243,7 +238,6 @@ export function useSubmitRegistration() {
       payload: RegistrationPayload;
       mediaFile?: File;
     }) => {
-      const token = getToken();
       const formData = new FormData();
       formData.append("metadata", JSON.stringify(payload));
       if (mediaFile) formData.append("mediaFile", mediaFile);
@@ -251,7 +245,6 @@ export function useSubmitRegistration() {
         method: "POST",
         body: formData,
         headers: {
-          ...(token ? { Auth: `Bearer ${token}` } : {}),
           "X-Step-ID": stepId,
           "X-User-Id": userId,
         },
