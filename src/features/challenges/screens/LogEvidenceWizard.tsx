@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/contexts/AuthContext";
-import { useChallenge, useTemplates, useSubmitEvidence, useSubmitRegistration, useUpdateEvidence } from "@/lib/hooks/challenges";
+import { useChallenge, useTemplates, useSubmitEvidence, useSubmitRegistration, useUpdateEvidence, useMarkStepComplete } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import { EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
 import { computeChallengeRoles } from "@/lib/roles";
@@ -57,9 +57,10 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
   const submitEvidence = useSubmitEvidence();
   const updateEvidence = useUpdateEvidence();
   const submitRegistration = useSubmitRegistration();
+  const markStepComplete = useMarkStepComplete();
 
-  // ── Resolve step metadata ──────────────────────────────────────────────────
-  // form fields live on the template step, not on challengeSteps (which has no form).
+  // ── Resolve step form fields ───────────────────────────────────────────────
+  // Priority: challengeSteps.form (if non-null) → template.steps.form (fallback)
   const stepMeta = challenge?.challengeSteps?.find((s) => s.stepId === stepId);
   const { data: templates } = useTemplates();
   const templateStep = useMemo(() => {
@@ -68,19 +69,25 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     return tmpl?.steps?.find((s) => s.stepId === stepId) ?? null;
   }, [challenge?.templateId, templates, stepId]);
 
-  // BE form takes precedence over FE config whenever the template sends form fields.
-  const isDerived = !!(templateStep?.form?.length);
+  const stepForm = (stepMeta?.form?.length ? stepMeta.form : null) ?? templateStep?.form ?? null;
+
+  // BE form takes precedence over FE config whenever form fields are present.
+  const isDerived = !!(stepForm?.length);
 
   const derivedConfig: DerivedWizardConfig | null = useMemo(() => {
-    if (!isDerived || !templateStep?.form) return null;
-    return deriveWizardConfig(templateStep.form);
-  }, [isDerived, templateStep?.form]);
+    if (!isDerived || !stepForm) return null;
+    return deriveWizardConfig(stepForm);
+  }, [isDerived, stepForm]);
 
   // ── Static config — FE fallback (also used for synchronous step init) ──────
   const feConfig = STEP_FORM_CONFIGS[stepId] ?? DEFAULT_FORM_CONFIG;
   const staticConfig = isDerived ? null : feConfig;
 
   const totalSteps = derivedConfig?.steps.length ?? staticConfig?.wizardSteps.length ?? 1;
+
+  const shouldMarkComplete = isDerived
+    ? !!(derivedConfig?.steps.some((s) => s.kind === "mark-complete"))
+    : !!(staticConfig?.wizardSteps.some((s) => s.type === "mark-complete"));
 
   const isRegistrationStep = stepId === "SETUP_AND_REGISTRATION";
 
@@ -313,7 +320,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
 
     // Build data.fields — convert NUMBER+unit pairs into { value, unit } objects
     const dataFields: Record<string, unknown> = {};
-    for (const field of templateStep?.form ?? []) {
+    for (const field of stepForm ?? []) {
       if (knownNames.has(field.name)) continue;
       if (field.type === "IMAGE") continue; // handled separately
       const val = dynamicValues[field.name];
@@ -328,7 +335,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     }
 
     // First IMAGE field becomes the media file
-    const imageField = templateStep?.form?.find((f) => f.type === "IMAGE");
+    const imageField = stepForm?.find((f) => f.type === "IMAGE");
     const mediaFile = imageField ? (dynamicValues[imageField.name] as File | undefined) : undefined;
 
     const unitLabel = vhUnit === "H" ? "hours" : vhUnit.toLowerCase();
@@ -361,6 +368,19 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
   // ── Submission ─────────────────────────────────────────────────────────────
   const onSuccess = () => {
     localStorage.removeItem(STORAGE_KEY(stepId));
+    if (shouldMarkComplete && stepMeta && challenge) {
+      markStepComplete.mutate({
+        challengeId: challenge.challengeId,
+        step: {
+          stepNumber: stepMeta.stepNumber,
+          stepType: stepMeta.stepType,
+          stepId: stepMeta.stepId,
+          title: stepMeta.title,
+          description: stepMeta.description,
+          isCompleted: true,
+        },
+      });
+    }
     setSubmitted(true);
   };
 
@@ -503,7 +523,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
                 canEdit={canEdit}
                 uploadLabel={viewId && !isViewMode ? t("update") : t("upload")}
                 dynamicConfig={{
-                  fields: templateStep?.form ?? [],
+                  fields: stepForm ?? [],
                   values: dynamicValues,
                   fieldToStepIndex: derivedConfig.fieldToStepIndex,
                 }}
