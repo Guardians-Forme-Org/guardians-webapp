@@ -180,7 +180,7 @@ export default function DiscoverScreen() {
 
   const lq = query.toLowerCase();
   const filteredChallenges = (apiChallenges ?? []).filter(
-    (c) => !lq || c.name.toLowerCase().includes(lq),
+    (c) => !lq || JSON.stringify(c).toLowerCase().includes(lq),
   );
 
   return (
@@ -214,6 +214,7 @@ export default function DiscoverScreen() {
       <SearchBar
         defaultValue={query}
         placeholder={tab === "challenges" ? t("searchChallenges") : t("searchCircles")}
+        onChange={setQuery}
         onSubmit={setQuery}
       />
 
@@ -264,7 +265,13 @@ export default function DiscoverScreen() {
                   </div>
                 </div>
               ))
-            : filteredChallenges.map((c) => <ChallengeCard key={c.challengeId} item={c} />)
+            : filteredChallenges.length > 0
+              ? filteredChallenges.map((c) => <ChallengeCard key={c.challengeId} item={c} />)
+              : lq && (
+                  <p className="text-sm text-text-muted text-center py-10">
+                    {t("noResultsChallenges", { query })}
+                  </p>
+                )
           : circlesLoading
             ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="flex h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white">
@@ -287,22 +294,31 @@ export default function DiscoverScreen() {
                   </div>
                 </div>
               ))
-            : (apiCircles ?? [])
-                .filter((c) => !lq || c.name.toLowerCase().includes(lq))
-                .map((c) => (
-                  <CircleCard
-                    key={c.id}
-                    item={{
-                      id: c.circleId,
-                      name: c.name,
-                      since: new Date(c.createdAt).toLocaleDateString(locale, { day: "numeric", month: "long" }),
-                      location: c.region.formattedAddress || [c.region.city, c.region.province].filter(Boolean).join(", ") || "—",
-                      members: c.membersCount?.total ?? c.members.length,
-                      memberAvatars: c.members.map((m) => m.avatarUrl),
-                      image: c.bannerUrl || undefined,
-                    }}
-                  />
-                ))
+            : (() => {
+                const filtered = (apiCircles ?? []).filter(
+                  (c) => !lq || JSON.stringify(c).toLowerCase().includes(lq),
+                );
+                return filtered.length > 0
+                  ? filtered.map((c) => (
+                      <CircleCard
+                        key={c.id}
+                        item={{
+                          id: c.circleId,
+                          name: c.name,
+                          since: new Date(c.createdAt).toLocaleDateString(locale, { day: "numeric", month: "long" }),
+                          location: c.region.formattedAddress || [c.region.city, c.region.province].filter(Boolean).join(", ") || "—",
+                          members: c.membersCount?.total ?? c.members.length,
+                          memberAvatars: c.members.map((m) => m.avatarUrl),
+                          image: c.bannerUrl || undefined,
+                        }}
+                      />
+                    ))
+                  : lq && (
+                      <p className="text-sm text-text-muted text-center py-10">
+                        {t("noResultsCircles", { query })}
+                      </p>
+                    );
+              })()
         }
       </div>
 
