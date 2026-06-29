@@ -187,6 +187,14 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     computeChallengeRoles(user?.id, user?.email, challenge).length > 0 || isCircleLead
   );
 
+  // Redirect unauthorised users away from the wizard once the challenge loads.
+  // viewId (view-only mode) is exempt — anyone with the link can view a submission.
+  useEffect(() => {
+    if (challenge && !canEdit && !viewId) {
+      router.replace(`/challenges/${challengeId}`);
+    }
+  }, [challenge, canEdit, viewId, challengeId, router]);
+
   // ── Navigation ─────────────────────────────────────────────────────────────
   const update = (key: keyof LogFormData, value: unknown) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -441,6 +449,9 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
         : updateEvidence.isError
           ? updateEvidence.error instanceof Error ? updateEvidence.error.message : t("updateFailed")
           : null;
+
+  // Block render while redirect is pending for unauthorised non-view access
+  if (challenge && !canEdit && !viewId) return null;
 
   // ── Success screen ─────────────────────────────────────────────────────────
   if (submitted) {

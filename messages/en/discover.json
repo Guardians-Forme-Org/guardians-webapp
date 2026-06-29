@@ -10,5 +10,7 @@
   "loadingCircles": "Loading circles…",
   "since": "Since {date}",
   "members": "{count} Members",
-  "circlePickerTitle": "Which circle is this challenge for?"
+  "circlePickerTitle": "Which circle is this challenge for?",
+  "noResultsChallenges": "No challenges match \"{query}\".",
+  "noResultsCircles": "No circles match \"{query}\"."
 }

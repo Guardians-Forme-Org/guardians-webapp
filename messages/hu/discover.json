@@ -10,5 +10,7 @@
   "loadingCircles": "Körök betöltése…",
   "since": "{date} óta",
   "members": "{count} tag",
-  "circlePickerTitle": "Melyik körhöz szól ez a kihívás?"
+  "circlePickerTitle": "Melyik körhöz szól ez a kihívás?",
+  "noResultsChallenges": "Nem találhatók kihívások erre: \"{query}\".",
+  "noResultsCircles": "Nem találhatók körök erre: \"{query}\"."
 }
