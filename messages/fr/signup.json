@@ -31,8 +31,10 @@
     "creating": "Création du compte…"
   },
   "step4": {
-    "title": "Succès",
-    "subtitle": "Bienvenue chez\nles Gardiens du Futur"
+    "title": "Vérifiez vos e-mails",
+    "subtitle": "Bienvenue chez\nles Gardiens du Futur",
+    "emailSent": "Nous avons envoyé un lien de confirmation à",
+    "emailInstruction": "Cliquez sur le lien pour vérifier votre compte, puis revenez pour vous connecter."
   },
   "termsAndConditions": "Conditions générales",
   "errors": {

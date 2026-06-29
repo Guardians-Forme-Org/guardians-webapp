@@ -37,8 +37,10 @@
     "skipForNow": "Skip for now"
   },
   "step4": {
-    "title": "Success",
-    "subtitle": "Welcome to\nGuardians of the Future"
+    "title": "Check your email",
+    "subtitle": "Welcome to\nGuardians of the Future",
+    "emailSent": "We sent a confirmation link to",
+    "emailInstruction": "Click the link to verify your account, then come back to log in."
   },
   "termsAndConditions": "Terms and Condition",
   "gotfName": "Guardians of the Future",

@@ -386,7 +386,7 @@ function Step3({
 
 // ── Step 4 — Success ───────────────────────────────────────────────────────────
 
-function Step4({ onDone }: { onDone: () => void }) {
+function Step4({ onDone, email }: { onDone: () => void; email: string }) {
   const t = useTranslations("signup");
   const tCommon = useTranslations("common");
 
@@ -405,6 +405,16 @@ function Step4({ onDone }: { onDone: () => void }) {
         <p className="text-xl font-medium text-[#808080] leading-snug whitespace-pre-line">
           {t("step4.subtitle")}
         </p>
+
+        <div className="mt-2 flex flex-col items-center gap-2">
+          <p className="text-base text-[#808080]">{t("step4.emailSent")}</p>
+          {email && (
+            <p className="text-base font-semibold text-black">{email}</p>
+          )}
+          <p className="text-base text-[#808080] leading-snug">
+            {t("step4.emailInstruction")}
+          </p>
+        </div>
       </div>
 
       <div className="absolute bottom-10 left-0 right-0 px-5">
@@ -544,5 +554,5 @@ export default function SignUpPage() {
         error={submitError}
       />
     );
-  return <Step4 onDone={() => router.push("/login")} />;
+  return <Step4 onDone={() => router.push("/login")} email={form.email} />;
 }

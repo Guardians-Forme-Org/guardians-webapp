@@ -31,8 +31,10 @@
     "creating": "Yakha i-akhawunti…"
   },
   "step4": {
-    "title": "Impumelelo",
-    "subtitle": "Siyakwamukela ku\nAbalondolozi Besikhathi Esizayo"
+    "title": "Hlola i-imeyili yakho",
+    "subtitle": "Siyakwamukela ku\nAbalondolozi Besikhathi Esizayo",
+    "emailSent": "Sithumele isixhumanisi sokuqinisekisa ku",
+    "emailInstruction": "Chofoza isixhumanisi ukuze uqinisekise i-akhawunti yakho, bese ubuyela ukuze ungene."
   },
   "termsAndConditions": "Imigomo Nezimiso",
   "errors": {

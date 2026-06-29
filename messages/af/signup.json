@@ -31,8 +31,10 @@
     "creating": "Skep rekening…"
   },
   "step4": {
-    "title": "Sukses",
-    "subtitle": "Welkom by\nBewaarders van die Toekoms"
+    "title": "Kyk jou e-pos na",
+    "subtitle": "Welkom by\nBewaarders van die Toekoms",
+    "emailSent": "Ons het 'n bevestigingskakel na gestuur",
+    "emailInstruction": "Klik die kakel om jou rekening te bevestig, dan kom terug om in te teken."
   },
   "termsAndConditions": "Bepalings en Voorwaardes",
   "errors": {

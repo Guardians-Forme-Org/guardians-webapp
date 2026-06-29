@@ -37,8 +37,10 @@
     "skipForNow": "Kihagyás most"
   },
   "step4": {
-    "title": "Siker",
-    "subtitle": "Üdvözlünk a\nJövő Őrzőinél"
+    "title": "Ellenőrizd az e-maileidet",
+    "subtitle": "Üdvözlünk a\nJövő Őrzőinél",
+    "emailSent": "Megerősítő linket küldtünk a következő címre:",
+    "emailInstruction": "Kattints a linkre a fiókod hitelesítéséhez, majd térj vissza a bejelentkezéshez."
   },
   "termsAndConditions": "Általános Szerződési Feltételek",
   "gotfName": "Jövő Őrzői",
