@@ -5,10 +5,48 @@ import { useTranslations } from "next-intl";
 import type { WizardStepType } from "../../stepFormConfig";
 import { FileThumb, ReadOnlyField } from "../shared";
 import type { LogFormData } from "../types";
+import type { ApiTemplateFormField } from "@/lib/types/challenges";
+import type { DynamicValues } from "./DynamicFieldsStep";
+import { useUser } from "@/lib/hooks/users";
+import Avatar from "@/components/ui/Avatar";
 
 type UserLike = {
   id: string;
-  user_metadata: { firstName?: string; lastName?: string };
+  user_metadata: { firstName?: string; lastName?: string; avatarUrl?: string };
+};
+
+function ContributorChip({ userId, localUsers }: { userId: string; localUsers?: UserLike[] }) {
+  const local = localUsers?.find((u) => u.id === userId);
+  const { data: fetched } = useUser(local ? null : userId);
+  const resolved = local ?? fetched;
+  const name = resolved
+    ? `${resolved.user_metadata.firstName ?? ""} ${resolved.user_metadata.lastName ?? ""}`.trim() || userId
+    : userId;
+  const avatar = (resolved as UserLike & { user_metadata: { avatarUrl?: string } } | undefined)
+    ?.user_metadata?.avatarUrl;
+
+  return (
+    <div className="flex items-center gap-1.5 h-8 bg-[#f5f5f5] border border-[rgba(26,26,24,0.14)] rounded-full pl-1 pr-3">
+      <Avatar src={avatar} className="size-6 rounded-full shrink-0" />
+      <span className="text-sm text-text-primary">{name}</span>
+    </div>
+  );
+}
+
+function ContributorsList({ ids, users }: { ids: string[]; users?: UserLike[] }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {ids.map((id) => (
+        <ContributorChip key={id} userId={id} localUsers={users} />
+      ))}
+    </div>
+  );
+}
+
+export type DynamicReviewConfig = {
+  fields: ApiTemplateFormField[];
+  values: DynamicValues;
+  fieldToStepIndex: Record<string, number>;
 };
 
 type Props = {
@@ -23,6 +61,7 @@ type Props = {
   readOnly?: boolean;
   canEdit?: boolean;
   uploadLabel?: string;
+  dynamicConfig?: DynamicReviewConfig;
 };
 
 function ReviewSection({
@@ -61,6 +100,77 @@ function ReviewSection({
   );
 }
 
+function formatDynamicValue(
+  field: ApiTemplateFormField,
+  value: unknown,
+  unit: string | undefined,
+  users?: UserLike[],
+): string | null {
+  if (value === undefined || value === null || value === "") return null;
+
+  switch (field.type) {
+    case "TEXT":
+    case "TEXTAREA":
+      return value as string;
+    case "NUMBER":
+    case "NUMERIC": {
+      const num = value as string;
+      if (!num) return null;
+      return unit ? `${num} ${unit}` : num;
+    }
+    case "DATE":
+      try {
+        return new Date(value as string).toLocaleDateString();
+      } catch {
+        return value as string;
+      }
+    case "TOGGLE":
+    case "BOOLEAN":
+      return (value as boolean) ? "Yes" : "No";
+    case "SELECT": {
+      const opt = field.options?.find((o) => o.value === value);
+      return opt?.label ?? (value as string);
+    }
+    case "MULTISELECT": {
+      const selected = value as string[];
+      if (!selected?.length) return null;
+      return selected
+        .map((v) => {
+          const opt = field.options?.find((o) => o.value === v);
+          if (opt) return opt.label;
+          const u = users?.find((u) => u.id === v);
+          if (u) return `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""}`.trim() || v;
+          return v;
+        })
+        .join(", ");
+    }
+    case "LOCATION": {
+      const loc = value as { formattedAddress?: string } | null;
+      return loc?.formattedAddress ?? null;
+    }
+    case "IMAGE":
+      return value instanceof File ? value.name : null;
+    default:
+      return String(value);
+  }
+}
+
+function ReadOnlyToggle({ checked }: { checked: boolean }) {
+  return (
+    <div
+      className={`relative w-11 h-[26px] rounded-full ${
+        checked ? "bg-gotf-green" : "bg-[#f0efeb] border border-[rgba(26,26,24,0.28)]"
+      }`}
+    >
+      <div
+        className={`absolute top-1 size-[18px] rounded-full ${
+          checked ? "bg-white translate-x-[18px]" : "bg-[#8f8f8c] translate-x-1"
+        }`}
+      />
+    </div>
+  );
+}
+
 export default function ReviewStep({
   form,
   stepTypes,
@@ -73,6 +183,7 @@ export default function ReviewStep({
   readOnly,
   canEdit,
   uploadLabel = "Upload",
+  dynamicConfig,
 }: Props) {
   const t = useTranslations("challenges");
   const idx = (type: WizardStepType) => stepTypes.indexOf(type) + 1;
@@ -96,7 +207,88 @@ export default function ReviewStep({
       </div>
 
       <div className="flex flex-col gap-6 px-5">
-        {hasFileUpload && form.evidenceFiles.length > 0 && (
+        {/* ── Dynamic fields (BE-driven config) ──────────────────────────── */}
+        {dynamicConfig &&
+          [...dynamicConfig.fields]
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map((field) => {
+              const value = dynamicConfig.values[field.name];
+              const unit = dynamicConfig.values[`${field.name}__unit`] as string | undefined;
+              const stepIndex = dynamicConfig.fieldToStepIndex[field.name] ?? 1;
+              const isBooleanType = field.type === "TOGGLE" || field.type === "BOOLEAN";
+              const isImage = field.type === "IMAGE";
+              const isContributors =
+                field.name === "CONTRIBUTORS" || field.name === "CONTRIBUTORS_LIST";
+
+              if (isContributors) {
+                const ids = (value as string[] | undefined) ?? [];
+                if (!ids.length) return null;
+                return (
+                  <ReviewSection
+                    key={field.name}
+                    label={field.label}
+                    stepIndex={stepIndex}
+                    onEdit={onGoToStep}
+                    showEdit={showEdit}
+                  >
+                    <ContributorsList ids={ids} users={users} />
+                  </ReviewSection>
+                );
+              }
+
+              if (isBooleanType) {
+                return (
+                  <ReviewSection
+                    key={field.name}
+                    label={field.label}
+                    stepIndex={stepIndex}
+                    onEdit={onGoToStep}
+                    showEdit={showEdit}
+                  >
+                    <ReadOnlyToggle checked={(value as boolean) ?? false} />
+                  </ReviewSection>
+                );
+              }
+
+              if (isImage && value instanceof File) {
+                return (
+                  <ReviewSection
+                    key={field.name}
+                    label={field.label}
+                    stepIndex={stepIndex}
+                    onEdit={onGoToStep}
+                    showEdit={showEdit}
+                  >
+                    <div className="border border-[rgba(26,26,24,0.14)] rounded-[12px] p-4 flex items-center gap-3">
+                      <FileThumb file={value} />
+                      <p className="text-base font-semibold text-text-primary truncate">{value.name}</p>
+                    </div>
+                  </ReviewSection>
+                );
+              }
+
+              const displayValue = formatDynamicValue(field, value, unit, users);
+              if (displayValue === null) return null;
+
+              return (
+                <ReviewSection
+                  key={field.name}
+                  label={field.label}
+                  stepIndex={stepIndex}
+                  onEdit={onGoToStep}
+                  showEdit={showEdit}
+                >
+                  <ReadOnlyField
+                    label=""
+                    value={displayValue}
+                    multiline={field.type === "TEXTAREA" || displayValue.length > 60}
+                  />
+                </ReviewSection>
+              );
+            })}
+
+        {/* ── Static / known-step fields ──────────────────────────────────── */}
+        {!dynamicConfig && hasFileUpload && form.evidenceFiles.length > 0 && (
           <ReviewSection
             label={t("evidenceFilesSection")}
             stepIndex={idx("file-upload")}
@@ -127,7 +319,7 @@ export default function ReviewStep({
           </ReviewSection>
         )}
 
-        {hasVolunteerHours && form.volunteerHours && (
+        {!dynamicConfig && hasVolunteerHours && form.volunteerHours && (
           <ReviewSection
             label={t("volunteerHoursSection")}
             stepIndex={idx("volunteer-hours")}
@@ -138,7 +330,7 @@ export default function ReviewStep({
           </ReviewSection>
         )}
 
-        {hasMeasurement && (
+        {!dynamicConfig && hasMeasurement && (
           <ReviewSection
             label={t("measurementSection")}
             stepIndex={idx("measurement")}
@@ -165,7 +357,7 @@ export default function ReviewStep({
           </ReviewSection>
         )}
 
-        {hasImpact && form.impactDescription && (
+        {!dynamicConfig && hasImpact && form.impactDescription && (
           <ReviewSection
             label={t("impactSection")}
             stepIndex={idx("impact")}
@@ -180,7 +372,7 @@ export default function ReviewStep({
           </ReviewSection>
         )}
 
-        {hasRegion && form.locationResult && (
+        {!dynamicConfig && hasRegion && form.locationResult && (
           <ReviewSection
             label={t("regionSection")}
             stepIndex={idx("region")}
@@ -194,29 +386,18 @@ export default function ReviewStep({
           </ReviewSection>
         )}
 
-        {hasContributors && form.contributors.length > 0 && (
+        {!dynamicConfig && hasContributors && form.contributors.length > 0 && (
           <ReviewSection
             label={t("contributorsSection")}
             stepIndex={idx("contributors")}
             onEdit={onGoToStep}
             showEdit={showEdit}
           >
-            <ReadOnlyField
-              label={t("membersLabel")}
-              value={form.contributors
-                .map((id) => {
-                  const u = users?.find((u) => u.id === id);
-                  return u
-                    ? `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""}`.trim() ||
-                        id
-                    : id;
-                })
-                .join(", ")}
-            />
+            <ContributorsList ids={form.contributors} users={users} />
           </ReviewSection>
         )}
 
-        {hasSiteDetails && (
+        {!dynamicConfig && hasSiteDetails && (
           <ReviewSection
             label={t("siteDetailsSection")}
             stepIndex={idx("site-details")}

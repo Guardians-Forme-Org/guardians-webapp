@@ -60,3 +60,11 @@ export function useUsers() {
     select: toArray,
   });
 }
+
+export function useUser(userId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["user", userId],
+    queryFn: () => api.get<AuthUser>(`/users/${userId}`),
+    enabled: !!userId,
+  });
+}

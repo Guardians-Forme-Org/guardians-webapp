@@ -50,7 +50,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
     (!!circle && canManageCircle(user?.email, user?.id, circle)) ||
     (!!user?.id && !!facilitatorId && user.id === facilitatorId);
 
-  const isActionable = !!step && step.stepId in STEP_FORM_CONFIGS;
+  const isActionable = !!step && (step.stepId in STEP_FORM_CONFIGS || (step.form?.length ?? 0) > 0);
 
   const { percent: progress } = challenge ? calcChallengeProgress(challenge) : { percent: 0 };
   const fUser = users.find((u) => u.id === (f?.id ?? f?.userId));

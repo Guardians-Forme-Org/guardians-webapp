@@ -1,9 +1,35 @@
+export type ApiTemplateFormFieldType =
+  | "TEXT"
+  | "TEXTAREA"
+  | "NUMBER"
+  | "NUMERIC"
+  | "DATE"
+  | "IMAGE"
+  | "LOCATION"
+  | "LOCATION_LIST"
+  | "TOGGLE"
+  | "BOOLEAN"
+  | "SELECT"
+  | "MULTISELECT";
+
+export type ApiTemplateFormField = {
+  name: string;
+  label: string;
+  type: ApiTemplateFormFieldType;
+  required: boolean;
+  displayOrder: number;
+  options?: { value: string; label: string }[];
+  unitOfMeasureOptions?: { value: string; label: string }[];
+};
+
 export type ApiTemplateStep = {
   stepId: string;
   stepNumber: number;
   stepType: string;
   title: string;
   description: string;
+  isCompleted?: boolean;
+  form?: ApiTemplateFormField[];
 };
 
 export type ApiTemplateEquipment = {
