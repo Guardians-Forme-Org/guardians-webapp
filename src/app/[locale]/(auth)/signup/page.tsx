@@ -38,24 +38,36 @@ const initForm: FormData = {
 
 // ── Shared primitives ──────────────────────────────────────────────────────────
 
-function ProgressBar({ filled, total = 4 }: { filled: number; total?: number }) {
+function ProgressBar({ filled, total = 4, onGoToStep }: { filled: number; total?: number; onGoToStep?: (step: number) => void }) {
   return (
     <div className="flex gap-2.5">
-      {Array.from({ length: total }).map((_, i) => (
-        <div key={i} className={`flex-1 h-2 rounded-full ${i < filled ? "bg-gotf-green" : "bg-[#ccc]"}`} />
-      ))}
+      {Array.from({ length: total }).map((_, i) => {
+        const targetStep = i + 1;
+        const isFilled = i < filled;
+        const isClickable = onGoToStep && isFilled && targetStep < filled;
+        return isClickable ? (
+          <button
+            key={i}
+            onClick={() => onGoToStep(targetStep)}
+            className="flex-1 h-2 rounded-full bg-gotf-green"
+            aria-label={`Go to step ${targetStep}`}
+          />
+        ) : (
+          <div key={i} className={`flex-1 h-2 rounded-full ${isFilled ? "bg-gotf-green" : "bg-[#ccc]"}`} />
+        );
+      })}
     </div>
   );
 }
 
-function AuthHeader({ progress, onClose }: { progress: number; onClose: () => void }) {
+function AuthHeader({ progress, onClose, onGoToStep }: { progress: number; onClose: () => void; onGoToStep?: (step: number) => void }) {
   return (
     <div className="px-10 pt-8">
       <div className="flex items-center justify-between mb-6">
         <img src="/images/Guardians Logo-logo.png" alt="" className="w-8 h-8 object-contain" />
         <button onClick={onClose} aria-label="Close" className="text-text-muted"><X size={22} /></button>
       </div>
-      <ProgressBar filled={progress} />
+      <ProgressBar filled={progress} onGoToStep={onGoToStep} />
     </div>
   );
 }
@@ -104,12 +116,14 @@ function Step1({
   onChange,
   onNext,
   onClose,
+  onGoToStep,
   error,
 }: {
   form: FormData;
   onChange: (f: keyof FormData, v: string) => void;
   onNext: () => void;
   onClose: () => void;
+  onGoToStep?: (step: number) => void;
   error: string | null;
 }) {
   const t = useTranslations("signup");
@@ -119,7 +133,7 @@ function Step1({
 
   return (
     <div className="flex flex-col min-h-dvh bg-white">
-      <AuthHeader progress={1} onClose={onClose} />
+      <AuthHeader progress={1} onClose={onClose} onGoToStep={onGoToStep} />
       <div className="px-10 mt-7 mb-8">
         <h1 className="text-[32px] font-bold text-black leading-tight">
           {t("step1.title1")}<br />{t("step1.title2")}
@@ -205,19 +219,21 @@ function Step2({
   onLocationSelect,
   onNext,
   onClose,
+  onGoToStep,
 }: {
   form: FormData;
   onChange: (f: keyof FormData, v: string) => void;
   onLocationSelect: (place: LocationResult) => void;
   onNext: () => void;
   onClose: () => void;
+  onGoToStep?: (step: number) => void;
 }) {
   const t = useTranslations("signup");
   const tCommon = useTranslations("common");
 
   return (
     <div className="flex flex-col min-h-dvh bg-white">
-      <AuthHeader progress={2} onClose={onClose} />
+      <AuthHeader progress={2} onClose={onClose} onGoToStep={onGoToStep} />
       <div className="px-10 mt-7 mb-8">
         <h1 className="text-[32px] font-bold text-black leading-tight">
           {t("step2.title1")}<br />{t("step2.title2")}
@@ -298,6 +314,7 @@ function Step3({
   onFileSelect,
   onConfirm,
   onClose,
+  onGoToStep,
   loading,
   error,
 }: {
@@ -306,6 +323,7 @@ function Step3({
   onFileSelect: (file: File) => void;
   onConfirm: () => void;
   onClose: () => void;
+  onGoToStep?: (step: number) => void;
   loading: boolean;
   error: string | null;
 }) {
@@ -321,7 +339,7 @@ function Step3({
 
   return (
     <div className="flex flex-col min-h-dvh bg-white">
-      <AuthHeader progress={3} onClose={onClose} />
+      <AuthHeader progress={3} onClose={onClose} onGoToStep={onGoToStep} />
 
       <div className="flex justify-center mt-7 mb-5 px-10">
         <div className="w-[322px] h-[322px] rounded-[16px] overflow-hidden bg-surface border border-border flex items-center justify-center">
@@ -507,11 +525,12 @@ export default function SignUpPage() {
         onChange={updateForm}
         onNext={handleStep1Next}
         onClose={close}
+        onGoToStep={setStep}
         error={validationError}
       />
     );
   if (step === 2)
-    return <Step2 form={form} onChange={updateForm} onLocationSelect={updateLocation} onNext={next} onClose={close} />;
+    return <Step2 form={form} onChange={updateForm} onLocationSelect={updateLocation} onNext={next} onClose={close} onGoToStep={setStep} />;
   if (step === 3)
     return (
       <Step3
@@ -520,6 +539,7 @@ export default function SignUpPage() {
         onFileSelect={setAvatarFile}
         onConfirm={handleSubmit}
         onClose={close}
+        onGoToStep={setStep}
         loading={isPending}
         error={submitError}
       />

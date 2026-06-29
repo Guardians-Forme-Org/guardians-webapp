@@ -469,7 +469,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
 
   return (
     <div className="flex flex-col min-h-dvh bg-white">
-      <WizardHeader step={step} total={totalSteps} onBack={back} onClose={close} />
+      <WizardHeader step={step} total={totalSteps} onBack={back} onClose={close} onGoToStep={isViewMode ? undefined : setStep} />
 
       <div className="flex-1 overflow-y-auto flex flex-col">
 

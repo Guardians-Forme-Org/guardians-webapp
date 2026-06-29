@@ -80,10 +80,12 @@ function WizardHeader({
   step,
   onBack,
   onClose,
+  onGoToStep,
 }: {
   step: number;
   onBack: () => void;
   onClose: () => void;
+  onGoToStep?: (step: number) => void;
 }) {
   const tCommon = useTranslations("common");
   const filled = PROGRESS_FILLED[step] ?? 0;
@@ -117,12 +119,24 @@ function WizardHeader({
 
       {filled > 0 && (
         <div className="flex gap-2.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className={`flex-1 h-2 rounded-full ${i < filled ? "bg-gotf-green" : "bg-[#ccc]"}`}
-            />
-          ))}
+          {Array.from({ length: 5 }).map((_, i) => {
+            const targetStep = i + 1;
+            const isFilled = i < filled;
+            const isClickable = onGoToStep && isFilled && targetStep < step;
+            return isClickable ? (
+              <button
+                key={i}
+                onClick={() => onGoToStep(targetStep)}
+                className="flex-1 h-2 rounded-full bg-gotf-green"
+                aria-label={`Go to step ${targetStep}`}
+              />
+            ) : (
+              <div
+                key={i}
+                className={`flex-1 h-2 rounded-full ${isFilled ? "bg-gotf-green" : "bg-[#ccc]"}`}
+              />
+            );
+          })}
         </div>
       )}
     </div>
@@ -844,7 +858,7 @@ export default function CreateCircleWizard({
 
   return (
     <div className="flex flex-col min-h-full bg-white">
-      <WizardHeader step={step} onBack={back} onClose={close} />
+      <WizardHeader step={step} onBack={back} onClose={close} onGoToStep={isEdit ? undefined : setStep} />
 
       <div className="flex-1 overflow-y-auto">
         {step === 1 && (

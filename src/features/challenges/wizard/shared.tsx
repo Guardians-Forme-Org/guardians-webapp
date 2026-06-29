@@ -21,11 +21,13 @@ export function WizardHeader({
   total = 5,
   onBack,
   onClose,
+  onGoToStep,
 }: {
   step: number;
   total?: number;
   onBack: () => void;
   onClose: () => void;
+  onGoToStep?: (step: number) => void;
 }) {
   const tCommon = useTranslations("common");
   return (
@@ -39,12 +41,24 @@ export function WizardHeader({
         </button>
       </div>
       <div className="flex gap-2.5">
-        {Array.from({ length: total }).map((_, i) => (
-          <div
-            key={i}
-            className={`flex-1 h-2 rounded-full ${i < step ? "bg-gotf-green" : "bg-[#ccc]"}`}
-          />
-        ))}
+        {Array.from({ length: total }).map((_, i) => {
+          const targetStep = i + 1;
+          const isFilled = i < step;
+          const isClickable = onGoToStep && isFilled && targetStep < step;
+          return isClickable ? (
+            <button
+              key={i}
+              onClick={() => onGoToStep(targetStep)}
+              className="flex-1 h-2 rounded-full bg-gotf-green"
+              aria-label={`Go to step ${targetStep}`}
+            />
+          ) : (
+            <div
+              key={i}
+              className={`flex-1 h-2 rounded-full ${isFilled ? "bg-gotf-green" : "bg-[#ccc]"}`}
+            />
+          );
+        })}
       </div>
     </div>
   );
