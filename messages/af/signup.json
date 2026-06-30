@@ -49,8 +49,12 @@
   "termsAndConditions": "Bepalings en Voorwaardes",
   "errors": {
     "credentialsRequired": "Voer asseblief 'n e-posadres of telefoonnommer in.",
+    "emailRequired": "Voer asseblief jou e-posadres in.",
     "passwordRequired": "Skep asseblief 'n wagwoord.",
     "passwordMismatch": "Wagwoorde stem nie ooreen nie.",
+    "firstNameRequired": "Voer asseblief jou voornaam in.",
+    "lastNameRequired": "Voer asseblief jou van in.",
+    "locationRequired": "Kies asseblief jou ligging.",
     "registrationFailed": "Registration failed. Please try again.",
     "emailAlreadyExists": "An account with this email already exists."
   }

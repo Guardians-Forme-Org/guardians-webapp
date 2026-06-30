@@ -49,8 +49,12 @@
   "termsAndConditions": "Imigomo Nezimiso",
   "errors": {
     "credentialsRequired": "Sicela ufake i-imeyili noma inombolo yocingo.",
+    "emailRequired": "Sicela ufake ikheli lakho le-imeyili.",
     "passwordRequired": "Sicela udale iphasiwedi.",
     "passwordMismatch": "Amaphasiwedi awafani.",
+    "firstNameRequired": "Sicela ufake igama lakho lokuqala.",
+    "lastNameRequired": "Sicela ufake isibongo sakho.",
+    "locationRequired": "Sicela ukhethe indawo yakho.",
     "registrationFailed": "Registration failed. Please try again.",
     "emailAlreadyExists": "An account with this email already exists."
   }

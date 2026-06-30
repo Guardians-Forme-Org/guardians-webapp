@@ -15,7 +15,8 @@
     "bodyMobile": "mobile number",
     "bodyOr": " or ",
     "bodyEmail": "email",
-    "bodyPart2": " and choose a password."
+    "bodyPart2": " and choose a password.",
+    "bodyEmailRequired": "An email address is required to verify your account."
   },
   "step2": {
     "title1": "Tell us more",
@@ -56,8 +57,12 @@
   "gotfName": "Guardians of the Future",
   "errors": {
     "credentialsRequired": "Please enter an email or phone number.",
+    "emailRequired": "Please enter your email address.",
     "passwordRequired": "Please create a password.",
     "passwordMismatch": "Passwords do not match.",
+    "firstNameRequired": "Please enter your first name.",
+    "lastNameRequired": "Please enter your last name.",
+    "locationRequired": "Please select your location.",
     "registrationFailed": "Registration failed. Please try again.",
     "emailAlreadyExists": "An account with this email already exists."
   }

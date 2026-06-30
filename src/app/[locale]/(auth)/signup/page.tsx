@@ -229,7 +229,9 @@ function Step1({
         <div className="border-t border-progress-track" />
 
         <div className="flex flex-col gap-2">
-          <label className="text-base font-medium text-text-primary tracking-[0.16px]">{t("step1.emailLabel")}</label>
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            {t("step1.emailLabel")}<span className="text-red-500 ml-0.5">*</span>
+          </label>
           <input
             type="email"
             value={form.email}
@@ -242,7 +244,9 @@ function Step1({
         <div className="border-t border-progress-track" />
 
         <div className="flex flex-col gap-2">
-          <label className="text-base font-medium text-text-primary tracking-[0.16px]">{t("step1.passwordLabel")}</label>
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            {t("step1.passwordLabel")}<span className="text-red-500 ml-0.5">*</span>
+          </label>
           <div className="relative">
             <input
               type={showPw ? "text" : "password"}
@@ -258,7 +262,9 @@ function Step1({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-base font-medium text-text-primary tracking-[0.16px]">{t("step1.confirmLabel")}</label>
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            {t("step1.confirmLabel")}<span className="text-red-500 ml-0.5">*</span>
+          </label>
           <div className="relative">
             <input
               type={showConfirm ? "text" : "password"}
@@ -291,6 +297,7 @@ function Step2({
   onNext,
   onClose,
   onGoToStep,
+  error,
 }: {
   form: FormData;
   onChange: (f: keyof FormData, v: string) => void;
@@ -298,6 +305,7 @@ function Step2({
   onNext: () => void;
   onClose: () => void;
   onGoToStep?: (step: number) => void;
+  error: string | null;
 }) {
   const t = useTranslations("signup");
   const tCommon = useTranslations("common");
@@ -313,7 +321,9 @@ function Step2({
 
       <div className="flex flex-col gap-7 px-10">
         <div className="flex flex-col gap-2">
-          <label className="text-base font-medium text-text-primary tracking-[0.16px]">{t("step2.firstNameLabel")}</label>
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            {t("step2.firstNameLabel")}<span className="text-red-500 ml-0.5">*</span>
+          </label>
           <input
             type="text"
             value={form.firstName}
@@ -323,7 +333,9 @@ function Step2({
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-base font-medium text-text-primary tracking-[0.16px]">{t("step2.lastNameLabel")}</label>
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            {t("step2.lastNameLabel")}<span className="text-red-500 ml-0.5">*</span>
+          </label>
           <input
             type="text"
             value={form.lastName}
@@ -333,7 +345,9 @@ function Step2({
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-base font-medium text-text-primary tracking-[0.16px]">{t("step2.regionLabel")}</label>
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            {t("step2.regionLabel")}<span className="text-red-500 ml-0.5">*</span>
+          </label>
           <LocationPicker
             defaultValue={form.location?.formattedAddress ?? ""}
             onSelect={onLocationSelect}
@@ -370,6 +384,7 @@ function Step2({
         </div>
       </div>
 
+      {error && <p className="text-sm text-red-600 px-10 mt-4">{error}</p>}
       <div className="flex-1" />
       <BottomButton label={tCommon("continue")} onClick={onNext} />
       <TermsFooter />
@@ -531,7 +546,7 @@ export default function SignUpPage() {
     localStorage.setItem(SIGNUP_DRAFT_KEY, JSON.stringify({ form: serializable, step }));
   }, [form, step]);
 
-  const next = () => setStep((s) => s + 1);
+  const next = () => { setValidationError(null); setStep((s) => s + 1); };
   const close = () => { localStorage.removeItem(SIGNUP_DRAFT_KEY); router.push("/get-started"); };
   const updateForm = (field: keyof FormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
@@ -539,8 +554,8 @@ export default function SignUpPage() {
     setForm((f) => ({ ...f, location: place }));
 
   const handleStep1Next = () => {
-    if (!form.email && !form.phone) {
-      setValidationError(t("errors.credentialsRequired"));
+    if (!form.email) {
+      setValidationError(t("errors.emailRequired"));
       return;
     }
     if (!form.password) {
@@ -551,7 +566,7 @@ export default function SignUpPage() {
       setValidationError(t("errors.passwordMismatch"));
       return;
     }
-    if (USE_CLIENT_SIDE_EMAIL_CHECK && form.email) {
+    if (USE_CLIENT_SIDE_EMAIL_CHECK) {
       const emailTaken = existingUsers.some(
         (u) => u.email?.toLowerCase() === form.email.toLowerCase(),
       );
@@ -559,6 +574,23 @@ export default function SignUpPage() {
         setValidationError(t("errors.emailAlreadyExists"));
         return;
       }
+    }
+    setValidationError(null);
+    next();
+  };
+
+  const handleStep2Next = () => {
+    if (!form.firstName.trim()) {
+      setValidationError(t("errors.firstNameRequired"));
+      return;
+    }
+    if (!form.lastName.trim()) {
+      setValidationError(t("errors.lastNameRequired"));
+      return;
+    }
+    if (!form.location) {
+      setValidationError(t("errors.locationRequired"));
+      return;
     }
     setValidationError(null);
     next();
@@ -615,7 +647,7 @@ export default function SignUpPage() {
       />
     );
   if (step === 2)
-    return <Step2 form={form} onChange={updateForm} onLocationSelect={updateLocation} onNext={next} onClose={close} onGoToStep={setStep} />;
+    return <Step2 form={form} onChange={updateForm} onLocationSelect={updateLocation} onNext={handleStep2Next} onClose={close} onGoToStep={setStep} error={validationError} />;
   if (step === 3)
     return (
       <Step3

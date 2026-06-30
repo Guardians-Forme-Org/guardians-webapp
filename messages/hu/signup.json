@@ -56,8 +56,12 @@
   "gotfName": "Jövő Őrzői",
   "errors": {
     "credentialsRequired": "Kérjük, adj meg egy e-mail címet vagy telefonszámot.",
+    "emailRequired": "Kérjük, add meg az e-mail címed.",
     "passwordRequired": "Kérjük, hozz létre egy jelszót.",
     "passwordMismatch": "A jelszavak nem egyeznek.",
+    "firstNameRequired": "Kérjük, add meg a keresztneved.",
+    "lastNameRequired": "Kérjük, add meg a vezetékneved.",
+    "locationRequired": "Kérjük, válassz helyszínt.",
     "registrationFailed": "Registration failed. Please try again.",
     "emailAlreadyExists": "An account with this email already exists."
   }

@@ -49,8 +49,12 @@
   "termsAndConditions": "Conditions générales",
   "errors": {
     "credentialsRequired": "Veuillez entrer une adresse e-mail ou un numéro de téléphone.",
+    "emailRequired": "Veuillez entrer votre adresse e-mail.",
     "passwordRequired": "Veuillez créer un mot de passe.",
     "passwordMismatch": "Les mots de passe ne correspondent pas.",
+    "firstNameRequired": "Veuillez entrer votre prénom.",
+    "lastNameRequired": "Veuillez entrer votre nom de famille.",
+    "locationRequired": "Veuillez sélectionner votre localisation.",
     "registrationFailed": "Registration failed. Please try again.",
     "emailAlreadyExists": "An account with this email already exists."
   }
