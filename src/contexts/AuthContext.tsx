@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetPassword = useCallback(async (token: string, newPassword: string) => {
-    await api.post("/reset-password", { token, newPassword });
+    await api.put(`/resetPassword/${token}`, { password: newPassword });
   }, []);
 
   return (
