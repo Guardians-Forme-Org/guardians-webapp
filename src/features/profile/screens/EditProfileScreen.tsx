@@ -100,14 +100,16 @@ export default function EditProfileScreen() {
       fileToSend = new File([blob], "avatar.png", { type: "image/png" });
     }
 
+    const locationToSend = location ?? (meta?.location as LocationResult | undefined);
+
     updateUser.mutate(
       {
-        payload: { firstName, lastName, mobile, ...(location ? { location } : {}) },
+        payload: { firstName, lastName, mobile, ...(locationToSend ? { location: locationToSend } : {}) },
         avatarFile: fileToSend,
       },
       {
         onSuccess: () => {
-          patchUserMetadata({ firstName, lastName, mobile, avatarUrl: avatarPreview, ...(location ? { location } : {}) });
+          patchUserMetadata({ firstName, lastName, mobile, avatarUrl: avatarPreview, ...(locationToSend ? { location: locationToSend } : {}) });
           router.back();
         },
       },
