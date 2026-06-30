@@ -23,6 +23,7 @@ import type {
   Language,
   LoginResponse,
   RegisterRequest,
+  UserMetadata,
 } from "@/lib/types/auth";
 
 // ── Context shape ─────────────────────────────────────────────────────────────
@@ -38,6 +39,7 @@ type AuthContextValue = {
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string, accessToken?: string) => Promise<void>;
   logout: () => void;
+  patchUserMetadata: (patch: Partial<UserMetadata>) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -162,9 +164,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const patchUserMetadata = useCallback((patch: Partial<UserMetadata>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated: AuthUser = {
+        ...prev,
+        user_metadata: { ...prev.user_metadata, ...patch },
+      };
+      localStorage.setItem("gotf_user", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, token, preferredLanguage, loginData, loading, login, register, forgotPassword, resetPassword, logout }}
+      value={{ user, token, preferredLanguage, loginData, loading, login, register, forgotPassword, resetPassword, logout, patchUserMetadata }}
     >
       {children}
     </AuthContext.Provider>

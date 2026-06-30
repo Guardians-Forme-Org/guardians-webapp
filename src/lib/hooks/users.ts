@@ -15,25 +15,16 @@ export function useUpdateUser() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
-      userId,
       payload,
       avatarFile,
     }: {
-      userId: string;
       payload: Record<string, unknown>;
       avatarFile?: File;
     }) => {
-      if (avatarFile) {
-        const formData = new FormData();
-        formData.append("metadata", JSON.stringify(payload));
-        formData.append("avatarFile", avatarFile);
-        return apiFetch<AuthUser>(`/users/${userId}`, { method: "PUT", body: formData });
-      }
-      return apiFetch<AuthUser>(`/users/${userId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const formData = new FormData();
+      formData.append("metadata", JSON.stringify(payload));
+      if (avatarFile) formData.append("avatarFile", avatarFile);
+      return apiFetch<{ message: string }>("/editProfile", { method: "PUT", body: formData });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["loginData"] });

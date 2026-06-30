@@ -1,6 +1,7 @@
 "use client";
 
 import Text from "@/components/ui/Text";
+import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateUser } from "@/lib/hooks/users";
 import { ChevronLeft, Image as ImageIcon } from "lucide-react";
@@ -38,8 +39,9 @@ function Field({
 
 export default function EditProfileScreen() {
   const t = useTranslations("profile");
+  const tCommon = useTranslations("common");
   const router = useRouter();
-  const { user, loginData } = useAuth();
+  const { user, loginData, patchUserMetadata } = useAuth();
   const updateUser = useUpdateUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,8 +60,15 @@ export default function EditProfileScreen() {
   const [firstName, setFirstName] = useState(meta?.firstName ?? "");
   const [lastName, setLastName] = useState(meta?.lastName ?? "");
   const [mobile, setMobile] = useState(meta?.mobile ?? "");
+  const [location, setLocation] = useState<LocationResult | null>(null);
   const [avatarPreview, setAvatarPreview] = useState(resolvedAvatarUrl);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+  const currentLocationLabel =
+    (meta?.location as { formattedAddress?: string; address?: string } | undefined)
+      ?.formattedAddress ||
+    (meta?.location as { address?: string } | undefined)?.address ||
+    "";
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,20 +78,33 @@ export default function EditProfileScreen() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user) return;
+
+    let fileToSend = avatarFile;
+    if (!fileToSend) {
+      try {
+        const res = await fetch(resolvedAvatarUrl || "/images/Guardians Logo-logo.png");
+        const blob = await res.blob();
+        fileToSend = new File([blob], "avatar.png", { type: blob.type || "image/png" });
+      } catch {
+        const res = await fetch("/images/Guardians Logo-logo.png");
+        const blob = await res.blob();
+        fileToSend = new File([blob], "avatar.png", { type: "image/png" });
+      }
+    }
+
     updateUser.mutate(
       {
-        userId: user.id,
-        payload: {
-          firstName,
-          lastName,
-          mobile,
-          ...(!avatarFile ? { avatarUrl: avatarPreview } : {}),
-        },
-        avatarFile: avatarFile ?? undefined,
+        payload: { firstName, lastName, mobile, ...(location ? { location } : {}) },
+        avatarFile: fileToSend,
       },
-      { onSuccess: () => router.back() },
+      {
+        onSuccess: () => {
+          patchUserMetadata({ firstName, lastName, mobile, ...(location ? { location } : {}) });
+          router.back();
+        },
+      },
     );
   };
 
@@ -127,6 +149,16 @@ export default function EditProfileScreen() {
           <Field label={t("firstNameLabel")} value={firstName} onChange={setFirstName} placeholder={t("firstNamePlaceholder")} />
           <Field label={t("lastNameLabel")} value={lastName} onChange={setLastName} placeholder={t("lastNamePlaceholder")} />
           <Field label={t("mobileLabel")} value={mobile} onChange={setMobile} type="tel" placeholder={t("mobilePlaceholder")} />
+
+          {/* Location */}
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-medium text-text-primary">{tCommon("locationTitle")}</label>
+            <LocationPicker
+              defaultValue={currentLocationLabel}
+              onSelect={setLocation}
+              className="w-full h-[56px] border border-[#d9d9d9] rounded-[10px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none focus:border-gotf-green transition-colors"
+            />
+          </div>
 
           {/* Email — read-only */}
           <div className="flex flex-col gap-2">
