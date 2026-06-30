@@ -77,7 +77,7 @@ export default function RecentActivitiesList({ thingId, filterStepId, userId }: 
     <div className="px-10 pb-7.5 flex flex-col gap-6 fade-up">
       {activities.map((record) => {
         const { measurement } = record.data;
-        const title = measurement?.value > 0
+        const title = measurement?.value != null
           ? `${measurement.value} ${measurement.unitOfMeasure}`
           : formatStepId(record.stepId);
         const date = new Date(record.createdAt).toLocaleDateString(undefined, {

@@ -1,0 +1,2316 @@
+[api] GET https://api.dev.theguardians.world/api/v1/templates → 200
+[
+  {
+    "templateId": "CH-007",
+    "name": "Heat Spot Mapping - Community Vulnerability Focus",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG11",
+        "name": "Sustainable Cities and Communities",
+        "infoUrl": ""
+      },
+      {
+        "code": "SDG3",
+        "name": "Good Health and Well-being",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "RAA",
+        "name": "Resilience and Adaptation",
+        "infoUrl": ""
+      },
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "Climate change unfolds slowly — surfaces are removed, trees grow, compost matures, schoolyards transform. Day-to-day change is invisible to the people living through it. This Template asks a Circle to define a Fixed Observation Point and repeatedly document the same location from the same position over time. The collected images assemble into a visual sequence that makes transformation visible and shareable. The output is a narrative asset, not a measurement.",
+    "minCompletedCycles": 4,
+    "maxCompletedCycles": 12,
+    "equipments": [
+      {
+        "name": "Camera",
+        "description": "A camera to capture the observation point. This can be a smartphone camera, a digital camera, or any device capable of taking clear photos."
+      },
+      {
+        "name": "Tripod or Stable Surface",
+        "description": "To ensure consistent framing and stability for each photo, a tripod or a stable surface is recommended."
+      },
+      {
+        "name": "Marker or Reference Point",
+        "description": "A marker (like a stake, rock, or painted line) to indicate the exact location and angle from which to take the photos. This helps maintain consistency over time."
+      },
+      {
+        "name": "Spatial Reference Tools",
+        "description": "Tools such as a compass, GPS device, or smartphone app to help identify and maintain the exact location and orientation for each observation."
+      },
+      {
+        "name": "Weather and Temperature Recording Tools",
+        "description": "A thermometer or weather app to record the temperature and weather conditions at the time of each observation."
+      },
+      {
+        "name": "Notebook or Digital Device",
+        "description": "To record observations, notes, and any changes noticed during each cycle. This can be a physical notebook or a digital device like a tablet or smartphone."
+      },
+      {
+        "name": "Data Storage",
+        "description": "A method for storing and organizing the collected images and data, such as cloud storage, external hard drive, or a dedicated folder on a computer."
+      },
+      {
+        "name": "Image Editing Software (Optional)",
+        "description": "Software to compile the images into a visual sequence or video, if desired. This can be free or paid software depending on the user's preference."
+      }
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "SETUP_AND_REGISTRATION",
+        "title": "Define vulnerability-focused Anchor Points",
+        "description": "Choose a location that is meaningful to you and likely to show change over time. This could be a natural landscape, an urban area, or any place that holds significance in the context of climate change.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "ANCHOR_POINT",
+            "label": "Choose a location",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "REFERENCE_IMAGE",
+            "label": "Upload a reference image",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "DATE_CAPTURED",
+            "label": "Date captured",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "WEATHER_CONDITIONS",
+            "label": "Weather conditions",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "FLAG_VULNERABLE",
+            "label": "Is this location vulnerable?",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 5
+          },
+          {
+            "name": "FLAG_HIGHER_RISK",
+            "label": "Is this location at higher risk?",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 6
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 7
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 9
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "BASELINE_OBSERVATION",
+        "title": "Weekly Temperature Measurements",
+        "description": "Record the baseline conditions at your observation point, including temperature, weather, and any notable features.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Choose a location",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "TEMPERATURE",
+            "label": "Enter temperature",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2,
+            "unitOfMeasureOptions": [
+              {
+                "value": "C",
+                "label": "Celsius (°C)"
+              },
+              {
+                "value": "F",
+                "label": "Fahrenheit (°F)"
+              },
+              {
+                "value": "K",
+                "label": "Kelvin (K)"
+              }
+            ]
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "WEATHER_CONDITIONS",
+            "label": "Weather conditions",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "FLAG_VULNERABLE",
+            "label": "Is this location vulnerable?",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 5
+          },
+          {
+            "name": "FLAG_HIGHER_RISK",
+            "label": "Is this location at higher risk?",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 6
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "COMPLETION",
+        "stepId": "COMPLETION",
+        "title": "End-of-season Report and Action Linkage",
+        "description": "After completing the required number of observation cycles, reflect on the changes observed at your fixed observation point and share your findings with your Circle and community.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRM_COMPLETION",
+            "label": "Completion Status",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "TOTAL_CYCLES",
+            "label": "Total Cycles",
+            "type": "NUMBER",
+            "required": false,
+            "displayOrder": 2
+          },
+          {
+            "name": "AUTO_REFLECTION_NOTES",
+            "label": "Auto Reflection Notes",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 3
+          },
+          {
+            "name": "TEAM_REFLECTION_NOTES",
+            "label": "Team Reflection Notes",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 4
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:49:41.527811Z"
+  },
+  {
+    "templateId": "CH-008",
+    "name": "Local Water Monitoring and Rainwater Harvesting",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG11",
+        "name": "Sustainable Cities and Communities",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "RAA",
+        "name": "Resilience and Adaptation",
+        "infoUrl": ""
+      },
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "This Template focuses on monitoring local water sources and implementing rainwater harvesting systems. Circles are asked to document water levels, quality, and usage over time, and to track the effectiveness of rainwater harvesting initiatives. The output is a combination of data and narrative insights, aimed at improving community water resilience.",
+    "minCompletedCycles": 0,
+    "maxCompletedCycles": 0,
+    "equipments": [
+      {
+        "name": "Camera",
+        "description": "A camera to capture the observation point. This can be a smartphone camera, a digital camera, or any device capable of taking clear photos."
+      },
+      {
+        "name": "Tripod or Stable Surface",
+        "description": "To ensure consistent framing and stability for each photo, a tripod or a stable surface is recommended."
+      },
+      {
+        "name": "Marker or Reference Point",
+        "description": "A marker (like a stake, rock, or painted line) to indicate the exact location and angle from which to take the photos. This helps maintain consistency over time."
+      },
+      {
+        "name": "Ruler or measuring tape for well depth readings",
+        "description": "A ruler or measuring tape to measure the depth of wells or other water sources accurately."
+      },
+      {
+        "name": "Wooden or metal stake (fixed reference mark in well wall)",
+        "description": "A stake to mark a fixed reference point in the well wall for consistent depth measurements."
+      },
+      {
+        "name": "Smartphone with camera and GPS capabilities",
+        "description": "A smartphone with camera and GPS capabilities to document water sources, capture images, and record location data."
+      },
+      {
+        "name": "Rain barrels or other rainwater collection systems",
+        "description": "Rain barrels or other rainwater collection systems to capture and store rainwater for later use. These systems can be simple barrels or more complex setups depending on the community's needs."
+      },
+      {
+        "name": "Optional: FreshWater Watch field kit for water quality",
+        "description": "A FreshWater Watch field kit for testing water quality parameters such as pH, turbidity, and nutrient levels. This kit can help assess the health of local water sources."
+      }
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "SETUP_AND_REGISTRATION",
+        "title": "Register water sources as Anchor Points (Track A)",
+        "description": "Choose a location that is meaningful to you and likely to show change over time. This could be a natural water source, an urban water feature, or any place that holds significance in the context of water monitoring and rainwater harvesting. Register these water sources as Anchor Points for your Circle to monitor and document over time.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Choose a location to ins",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "SOURCE_TYPE",
+            "label": "Select the type of water source",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 2,
+            "options": [
+              {
+                "value": "",
+                "label": ""
+              },
+              {
+                "value": "",
+                "label": ""
+              },
+              {
+                "value": "",
+                "label": ""
+              }
+            ]
+          },
+          {
+            "name": "REFERENCE_MARKER",
+            "label": "Reference marker for water level readings",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "BASELINE_READING",
+            "label": "Baseline water level reading",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "unitOfMeasureOptions": [
+              {
+                "value": "cm",
+                "label": "Centimeters (cm)"
+              },
+              {
+                "value": "m",
+                "label": "Meters (m)"
+              }
+            ]
+          },
+          {
+            "name": "REFERENCE_IMAGE",
+            "label": "Upload a reference image of the observation point",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "DATE_REGISTERED",
+            "label": "Date registered",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 5
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 7,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 6
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "WATER_LEVEL_OBSERVATION",
+        "title": "Weekly water level readings (Track A)",
+        "description": "Record the baseline conditions at your registered water source, including water level readings, weather conditions, and any notable features. This step should be repeated weekly to track changes over time.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Registered Water Source",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 2,
+            "options": [
+              {
+                "value": "",
+                "label": ""
+              }
+            ]
+          },
+          {
+            "name": "MEASUREMENT",
+            "label": "Water Level Measurement",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "DATE_REGISTERED",
+            "label": "Date Registered",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 5,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 6
+          },
+          {
+            "name": "CYCLE_NUMBER",
+            "label": "Cycle Number",
+            "type": "NUMBER",
+            "required": false,
+            "displayOrder": 1
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "REGISTRATION",
+        "stepId": "SETUP_AND_REGISTRATION",
+        "title": "Rain Barrel Installation and Network Setup (Track B)",
+        "description": "",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRM_INSTALLATION",
+            "label": "Is Rain Barrel Installed?",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "INSTALLATION_DATE",
+            "label": "Installation Date",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "INSTALLATION_PHOTO",
+            "label": "Upload Installation Photo",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "BARREL_CAPACITY",
+            "label": "Rain Barrel Capacity",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 4,
+            "unitOfMeasureOptions": [
+              {
+                "value": "L",
+                "label": "Liters (L)"
+              }
+            ]
+          },
+          {
+            "name": "NETWORK_HOUSEHOLD_COUNT",
+            "label": "Number of Households in Network",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 5
+          },
+          {
+            "name": "PRIORITY_LIST_EXISTS",
+            "label": "Does a priority list exist?",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 6
+          }
+        ]
+      },
+      {
+        "stepNumber": 4,
+        "stepType": "EXECUTION",
+        "stepId": "RAINWATER_HARVESTING",
+        "title": "Rainwater Harvesting and Usage Tracking (Track B)",
+        "description": "Monitor the usage of the installed rainwater harvesting systems. Record the amount of water collected, the number of households using the system, and any maintenance activities. This step should be repeated weekly to track the effectiveness of the rainwater harvesting initiative.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LITRES_COLLECTED",
+            "label": "Litres Collected",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "LITRES_DISTRIBUTED",
+            "label": "Litres Distributed",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "HOUSEHOLDS_SERVED",
+            "label": "Number of Households Served",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "SUPPLY_SHORTFALL",
+            "label": "Supply Shortfall",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "DATE_REGISTERED",
+            "label": "Date Registered",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 5
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 6,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 7
+          }
+        ]
+      },
+      {
+        "stepNumber": 5,
+        "stepType": "COMPLETION",
+        "stepId": "COMPLETION",
+        "title": "End-of-season submission",
+        "description": "After completing the required number of observation cycles, reflect on the changes observed at your registered water source and the effectiveness of the rainwater harvesting initiative. Share your findings with your Circle and community.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRM_COMPLETION",
+            "label": "Is Circle's monitoring and rainwater harvesting initiative complete?",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "MEASUREMENT",
+            "label": "Final Water Level Measurement",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 1,
+            "unitOfMeasureOptions": [
+              {
+                "value": "cm",
+                "label": "Centimeters (cm)"
+              },
+              {
+                "value": "m",
+                "label": "Meters (m)"
+              }
+            ]
+          },
+          {
+            "name": "SOURCE_COUNT",
+            "label": "Number of Sources Monitored",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "LITRES_DISTRIBUTED",
+            "label": "Total Litres Distributed",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "unitOfMeasureOptions": [
+              {
+                "value": "L",
+                "label": "Litres (L)"
+              }
+            ]
+          },
+          {
+            "name": "LOWEST_WATER_LEVEL",
+            "label": "Lowest Water Level Reading",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 4,
+            "unitOfMeasureOptions": [
+              {
+                "value": "cm",
+                "label": "Centimeters (cm)"
+              },
+              {
+                "value": "m",
+                "label": "Meters (m)"
+              }
+            ]
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 5,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 6
+          },
+          {
+            "name": "FINAL_REPORT",
+            "label": "Final Report",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 7
+          },
+          {
+            "name": "LESSONS_LEARNED",
+            "label": "Lessons Learned",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 8
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:49:49.7766Z"
+  },
+  {
+    "templateId": "CH-009",
+    "name": "Neighbour-watch circle — heatwave social care",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG11",
+        "name": "Sustainable Cities and Communities",
+        "infoUrl": ""
+      },
+      {
+        "code": "SDG3",
+        "name": "Good Health and Well-being",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "RAA",
+        "name": "Resilience and Adaptation",
+        "infoUrl": ""
+      },
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "This Template focuses on building a Neighbour-watch Circle to support vulnerable community members during heatwaves. Circles are asked to identify vulnerable individuals, establish communication channels, and coordinate assistance during extreme heat events. The output is a combination of social support and community resilience, aimed at improving the well-being of vulnerable populations.",
+    "minCompletedCycles": 0,
+    "maxCompletedCycles": 0,
+    "equipments": [],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "CIRCLE_FORMATION",
+        "title": "Circle Formation and Vulnerable Member Identification",
+        "description": "Form a Neighbour-watch Circle and identify vulnerable community members who may need assistance during heatwaves. Establish communication channels and assign roles within the Circle.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CIRCLE_NAME",
+            "label": "Circle Name",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "VULNERABLE_MEMBERS_COUNT",
+            "label": "Number of vulnerable members identified",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "COMMUNICATION_CHANNELS_ESTABLISHED",
+            "label": "Select communication channels established",
+            "type": "MULTISELECT",
+            "required": true,
+            "displayOrder": 4,
+            "options": [
+              {
+                "value": "PHONE",
+                "label": "Phone"
+              },
+              {
+                "value": "EMAIL",
+                "label": "Email"
+              },
+              {
+                "value": "IN_PERSON",
+                "label": "In-person"
+              },
+              {
+                "value": "OTHER",
+                "label": "Other"
+              }
+            ]
+          },
+          {
+            "name": "ADDRESSES",
+            "label": "Addresses of vulnerable members",
+            "type": "LOCATION_LIST",
+            "required": true,
+            "displayOrder": 6
+          },
+          {
+            "name": "VOLUNTEERS_ASSIGNED",
+            "label": "Number of volunteers assigned",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 6
+          },
+          {
+            "name": "CONSENT_METHOD",
+            "label": "Consent Method",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 7,
+            "options": [
+              {
+                "value": "IN_PERSON",
+                "label": "In-person Verbal consent"
+              },
+              {
+                "value": "WRITTEN",
+                "label": "Written consent"
+              },
+              {
+                "value": "DIGITAL",
+                "label": "Digital Verbal consent"
+              }
+            ]
+          },
+          {
+            "name": "VULNERABLE_MEMBER_CATEGORIES",
+            "label": "Categories of vulnerable members",
+            "type": "MULTISELECT",
+            "required": true,
+            "displayOrder": 8,
+            "options": [
+              {
+                "value": "ELDERLY",
+                "label": "Elderly"
+              },
+              {
+                "value": "DISABLED",
+                "label": "Disabled"
+              },
+              {
+                "value": "CHRONIC_ILLNESS",
+                "label": "Chronic Illness"
+              },
+              {
+                "value": "LOW_INCOME",
+                "label": "Low Income"
+              },
+              {
+                "value": "OTHER",
+                "label": "Other"
+              }
+            ]
+          },
+          {
+            "name": "VOLUNTEERS_HOURS",
+            "label": "Total volunteer hours committed",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 9
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 10
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "HEATWAVE_MONITORING",
+        "title": "Active check-in visits during heatwave periods",
+        "description": "Monitor local weather forecasts for heatwave alerts. Coordinate assistance for vulnerable members, including checking in on them, providing water, and ensuring they have access to cooling resources.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "ADDRESS",
+            "label": "Address of the vulnerable member",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "VISIT_DATE",
+            "label": "Date of check-in visit",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "VISITS_COMPLETED",
+            "label": "Number of check-in visits completed",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "HEATWAVE_ALERT_RECEIVED",
+            "label": "Have you received a heatwave alert?",
+            "type": "BOOLEAN",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "WELFARE_FLAGGED",
+            "label": "Have any welfare concerns been flagged?",
+            "type": "BOOLEAN",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "VULNERABLE_MEMBERS_ASSISTED",
+            "label": "Number of vulnerable members assisted",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "ASSISTANCE_PROVIDED",
+            "label": "Types of assistance provided",
+            "type": "MULTISELECT",
+            "required": true,
+            "displayOrder": 4,
+            "options": [
+              {
+                "value": "WATER",
+                "label": "Water distribution"
+              },
+              {
+                "value": "COOLING",
+                "label": "Cooling resources (fans, AC access)"
+              },
+              {
+                "value": "MEDICAL",
+                "label": "Medical assistance"
+              },
+              {
+                "value": "OTHER",
+                "label": "Other"
+              }
+            ]
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 5
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "COMPLETION",
+        "stepId": "COMPLETION",
+        "title": "End-of-season report",
+        "description": "After the heatwave season, reflect on the effectiveness of the Circle's efforts, document any challenges faced, and share findings with the community to improve future heatwave response.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRM_COMPLETION",
+            "label": "Completion Status",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "REFLECTION",
+            "label": "Reflection",
+            "type": "BOOLEAN",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "REPORT_SHARED",
+            "label": "Report Shared with Community",
+            "type": "BOOLEAN",
+            "required": true,
+            "displayOrder": 2
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:50:04.158205Z"
+  },
+  {
+    "templateId": "CH-004",
+    "name": "Compost Sprint",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG12",
+        "name": "Responsible Consumption and Production",
+        "infoUrl": ""
+      },
+      {
+        "code": "SDG13",
+        "name": "Climate Action",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "MAC",
+        "name": "Mitigation and Circularity",
+        "infoUrl": ""
+      },
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+    "minCompletedCycles": 0,
+    "maxCompletedCycles": 0,
+    "equipments": [
+      {
+        "name": "Compost Bin or Pile",
+        "description": "A container or designated area for composting organic waste. This can be a commercial compost bin, a DIY bin made from pallets, or simply a pile in the backyard."
+      },
+      {
+        "name": "Kitchen Caddy",
+        "description": "A small container for collecting kitchen scraps before transferring them to the compost bin or pile. This helps keep the process convenient and reduces food waste."
+      },
+      {
+        "name": "Scale or Measuring Tools",
+        "description": "Tools for measuring the amount of waste added to the compost and tracking its progress. This can be a kitchen scale, measuring cups, or simply a notebook for recording observations."
+      }
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "SETUP_AND_REGISTRATION",
+        "title": "Register Activation Model",
+        "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Choose a location",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "ACTIVATION_MODEL",
+            "label": "Select an activation model",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 2,
+            "options": [
+              {
+                "value": "HUB",
+                "label": "Hub"
+              },
+              {
+                "value": "DISTRIBUTED",
+                "label": "Distributed"
+              },
+              {
+                "value": "PARTNER_FACILITY",
+                "label": "Partner Facility"
+              }
+            ]
+          },
+          {
+            "name": "START_DATE",
+            "label": "Start Date",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "END_DATE",
+            "label": "End Date",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "SITE_PHOTO",
+            "label": "Upload a site photo",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 5,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 6
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+        "title": "",
+        "description": "",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "MEASUREMENT",
+            "label": "Enter the amount of waste added to the compost",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 1,
+            "unitOfMeasureOptions": [
+              {
+                "value": "kg",
+                "label": "Kilograms (kg)"
+              },
+              {
+                "value": "lb",
+                "label": "Pounds (lb)"
+              },
+              {
+                "value": "L",
+                "label": "Liters (L)"
+              }
+            ]
+          },
+          {
+            "name": "ACTIVITY_DESCRIPTION",
+            "label": "Describe the composting activity",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 2
+          },
+          {
+            "name": "RECEIPT_UPLOAD",
+            "label": "Upload a receipt for any composting supplies purchased",
+            "type": "IMAGE",
+            "required": false,
+            "displayOrder": 3
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "COMPLETION",
+        "stepId": "COMPLETION",
+        "title": "Completion",
+        "description": "",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRMATION",
+            "label": "Confirm Completion",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 0
+          },
+          {
+            "name": "TEAM_REFLECTION_NOTES",
+            "label": "Team Reflection Notes",
+            "type": "TEXTAREA",
+            "required": false,
+            "displayOrder": 1
+          },
+          {
+            "name": "AUTO_REFLECTION_NOTES",
+            "label": "Auto-generated Reflection Notes",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 2
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 3
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:49:31.673105Z"
+  },
+  {
+    "templateId": "CH-001",
+    "name": "Heat Spot Mapping",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG11",
+        "name": "Sustainable Cities and Communities",
+        "infoUrl": ""
+      },
+      {
+        "code": "SDG3",
+        "name": "Good Health and Well-being",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "RAA",
+        "name": "Resilience and Adaptation",
+        "infoUrl": ""
+      },
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "Climate change unfolds slowly — surfaces are removed, trees grow, compost matures, schoolyards transform. Day-to-day change is invisible to the people living through it. This Template asks a Circle to define a Fixed Observation Point and repeatedly document the same location from the same position over time. The collected images assemble into a visual sequence that makes transformation visible and shareable. The output is a narrative asset, not a measurement.",
+    "minCompletedCycles": 4,
+    "maxCompletedCycles": 12,
+    "equipments": [
+      {
+        "name": "Camera",
+        "description": "A camera to capture the observation point. This can be a smartphone camera, a digital camera, or any device capable of taking clear photos."
+      },
+      {
+        "name": "Tripod or Stable Surface",
+        "description": "To ensure consistent framing and stability for each photo, a tripod or a stable surface is recommended."
+      },
+      {
+        "name": "Marker or Reference Point",
+        "description": "A marker (like a stake, rock, or painted line) to indicate the exact location and angle from which to take the photos. This helps maintain consistency over time."
+      },
+      {
+        "name": "Spatial Reference Tools",
+        "description": "Tools such as a compass, GPS device, or smartphone app to help identify and maintain the exact location and orientation for each observation."
+      },
+      {
+        "name": "Weather and Temperature Recording Tools",
+        "description": "A thermometer or weather app to record the temperature and weather conditions at the time of each observation."
+      },
+      {
+        "name": "Notebook or Digital Device",
+        "description": "To record observations, notes, and any changes noticed during each cycle. This can be a physical notebook or a digital device like a tablet or smartphone."
+      },
+      {
+        "name": "Data Storage",
+        "description": "A method for storing and organizing the collected images and data, such as cloud storage, external hard drive, or a dedicated folder on a computer."
+      },
+      {
+        "name": "Image Editing Software (Optional)",
+        "description": "Software to compile the images into a visual sequence or video, if desired. This can be free or paid software depending on the user's preference."
+      }
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "SETUP_AND_REGISTRATION",
+        "title": "Define and Register Anchor Points",
+        "description": "Choose a location that is meaningful to you and likely to show change over time. This could be a natural landscape, an urban area, or any place that holds significance in the context of climate change.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Choose a location",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "TEMPERATURE",
+            "label": "Enter baseline temperature",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "unitOfMeasureOptions": [
+              {
+                "value": "C",
+                "label": "Celsius (°C)"
+              },
+              {
+                "value": "F",
+                "label": "Fahrenheit (°F)"
+              },
+              {
+                "value": "K",
+                "label": "Kelvin (K)"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "IMAGE",
+            "label": "Upload a reference image",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 5
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "BASELINE_OBSERVATION",
+        "title": "Take Baseline Measurements",
+        "description": "Record the baseline conditions at your observation point, including temperature, weather, and any notable features.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "locations",
+            "label": "Observation Points",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 1,
+            "options": [
+              {
+                "value": "ChIJ4zGFAZpYwokRGUGph3Mf37w",
+                "label": "Central Park, Cape Town"
+              },
+              {
+                "value": "ChIJ4zGFAZpYwokRGUGph3Mf3zz",
+                "label": "Central Park, Cape Town (Alternate)"
+              }
+            ]
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "TEMPERATURE",
+            "label": "Enter observation temperature",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "unitOfMeasureOptions": [
+              {
+                "value": "C",
+                "label": "Celsius (°C)"
+              },
+              {
+                "value": "F",
+                "label": "Fahrenheit (°F)"
+              },
+              {
+                "value": "K",
+                "label": "Kelvin (K)"
+              }
+            ]
+          },
+          {
+            "name": "WEATHER_CONDITIONS",
+            "label": "Describe the weather conditions",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "FLAG",
+            "label": "Flag this observation point for higher risk or vulnerability",
+            "type": "TOGGLE",
+            "required": false,
+            "displayOrder": 5
+          },
+          {
+            "name": "IMAGE",
+            "label": "Upload an image of the observation point",
+            "type": "IMAGE",
+            "required": false,
+            "displayOrder": 7
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 8
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "COMPLETION",
+        "stepId": "COMPLETION",
+        "title": "Completion",
+        "description": "After completing the required number of observation cycles, reflect on the changes observed at your fixed observation point and share your findings with your Circle and community.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRMATION",
+            "label": "Confirm Completion",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 0
+          },
+          {
+            "name": "REFLECTION_NOTES",
+            "label": "Reflection Notes",
+            "type": "TEXTAREA",
+            "required": false,
+            "displayOrder": 1
+          },
+          {
+            "name": "SHARE_WITH_CIRCLE",
+            "label": "Share Findings with Circle",
+            "type": "TOGGLE",
+            "required": false,
+            "displayOrder": 2
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:49:12.110881Z"
+  },
+  {
+    "templateId": "CH-002",
+    "name": "Fixed Observation Time Elapse - Heat Mapping",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG11",
+        "name": "Sustainable Cities and Communities",
+        "infoUrl": ""
+      },
+      {
+        "code": "SDG11",
+        "name": "Life on Land",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "RAA",
+        "name": "Resilience and Adaptation",
+        "infoUrl": ""
+      },
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "Climate change unfolds slowly — surfaces are removed, trees grow, compost matures, schoolyards transform. Day-to-day change is invisible to the people living through it. This Template asks a Circle to define a Fixed Observation Point and repeatedly document the same location from the same position over time. The collected images assemble into a visual sequence that makes transformation visible and shareable. The output is a narrative asset, not a measurement.",
+    "minCompletedCycles": 4,
+    "maxCompletedCycles": 0,
+    "equipments": [
+      {
+        "name": "Camera",
+        "description": "A camera to capture the observation point. This can be a smartphone camera, a digital camera, or any device capable of taking clear photos."
+      },
+      {
+        "name": "Tripod or Stable Surface",
+        "description": "To ensure consistent framing and stability for each photo, a tripod or a stable surface is recommended."
+      },
+      {
+        "name": "Marker or Reference Point",
+        "description": "A marker (like a stake, rock, or painted line) to indicate the exact location and angle from which to take the photos. This helps maintain consistency over time."
+      }
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "REGISTER_OBSERVATION_POINT",
+        "title": "Register Observation Point and Take Baseline Image",
+        "description": "Choose a location that is meaningful to you and likely to show change over time. This could be a natural landscape, an urban area, or any place that holds significance in the context of climate change.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Choose a location",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "IMAGE",
+            "label": "Upload a baseline image",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "DATE_CAPTURED",
+            "label": "Date captured",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "WEATHER_CONDITIONS",
+            "label": "Weather conditions",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 6
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "BASELINE_OBSERVATION",
+        "title": "Submit Periodic Photo Updates",
+        "description": "Submit periodic photo updates of the observation point. Ensure that each photo is taken from the same position and angle as the baseline image. This will help create a consistent visual record of changes over time. Include the date of capture and a brief description of the weather conditions during each observation.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "IMAGE",
+            "label": "Upload a photo of the observation point",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "DATE_CAPTURED",
+            "label": "Date captured",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "WEATHER_CONDITIONS",
+            "label": "Weather conditions",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "COMPLETION",
+        "stepId": "COMPLETION",
+        "title": "Generate Time-Lapse and Mark Complete",
+        "description": "After completing the required number of observation cycles, generate a time-lapse video or sequence of images to visualize the changes observed at your fixed observation point. Reflect on the changes observed and share your findings with your Circle and community. Provide any additional notes or insights gained from the observation process.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRM_COMPLETION",
+            "label": "Completion Status",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "TOTAL_IMAGES",
+            "label": "Total Images",
+            "type": "NUMBER",
+            "required": false,
+            "displayOrder": 2
+          },
+          {
+            "name": "TOTAL_CYCLES",
+            "label": "Total Cycles",
+            "type": "NUMBER",
+            "required": false,
+            "displayOrder": 3
+          },
+          {
+            "name": "DURATION",
+            "label": "Duration",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 4
+          },
+          {
+            "name": "AUTO_REFLECTION_NOTES",
+            "label": "Auto Reflection Notes",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 5
+          },
+          {
+            "name": "TEAM_REFLECTION_NOTES",
+            "label": "Team Reflection Notes",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 6
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:49:22.310466Z"
+  },
+  {
+    "templateId": "CH-010",
+    "name": "Cooling corner setup",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG11",
+        "name": "Sustainable Cities and Communities",
+        "infoUrl": ""
+      },
+      {
+        "code": "SDG3",
+        "name": "Good Health and Well-being",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "This Template guides a Circle to set up a Cooling Corner in their community. A Cooling Corner is a designated space that provides relief from extreme heat, offering shade, water, and seating for community members. The Circle will plan, implement, and maintain the Cooling Corner, ensuring it is accessible and beneficial to those in need during heatwaves.",
+    "minCompletedCycles": 0,
+    "maxCompletedCycles": 0,
+    "equipments": [
+      {
+        "name": "Shade Structures",
+        "description": "Materials to create shade, such as tents, umbrellas, or canopies."
+      },
+      {
+        "name": "Seating",
+        "description": "Chairs, benches, or mats for people to sit and rest."
+      },
+      {
+        "name": "Water Supply",
+        "description": "Access to drinking water, such as water coolers, bottles, or a nearby water source."
+      },
+      {
+        "name": "Cooling Devices (Optional)",
+        "description": "Fans, misting systems, or other devices to help reduce temperature in the Cooling Corner."
+      },
+      {
+        "name": "Signage",
+        "description": "Signs to indicate the location of the Cooling Corner and provide information on its use."
+      }
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "PLANNING_AND_REGISTRATION",
+        "title": "Map existing cooling resources and identify potential locations",
+        "description": "Identify a suitable location for the Cooling Corner, plan the layout, and gather necessary materials. Consider accessibility, shade, and proximity to water sources.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION_NAME",
+            "label": "Select Location Name",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "TYPE",
+            "label": "Type",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 2,
+            "options": [
+              {
+                "value": "library",
+                "label": "Library"
+              },
+              {
+                "value": "community_centre",
+                "label": "Community Centre"
+              },
+              {
+                "value": "market",
+                "label": "Market"
+              },
+              {
+                "value": "park",
+                "label": "Park"
+              },
+              {
+                "value": "other",
+                "label": "Other"
+              }
+            ]
+          },
+          {
+            "name": "CONFIRMED_OPEN",
+            "label": "Confirmed Open",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "OPENING_HOURS_SUMMER",
+            "label": "Opening Hours (Summer)",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 5,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "PHOTO",
+            "label": "Photo",
+            "type": "IMAGE",
+            "required": false,
+            "displayOrder": 6
+          },
+          {
+            "name": "GAP_NOTE",
+            "label": "Gap Note",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 7
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 8,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 9
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "SETUP",
+        "title": "Physical cooling corner installation and setup",
+        "description": "Set up the Cooling Corner with shade structures, seating, and water supply. Ensure the area is safe, clean, and welcoming for community members.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Location Name",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "SETUP_DATE",
+            "label": "Setup Date",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "SHADE_TYPE",
+            "label": "Shade Type",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 3,
+            "options": [
+              {
+                "value": "parasol",
+                "label": "Parasol"
+              },
+              {
+                "value": "shade_sail",
+                "label": "Shade Sail"
+              },
+              {
+                "value": "planted_canopy",
+                "label": "Planted Canopy"
+              },
+              {
+                "value": "building_overhang",
+                "label": "Building Overhang"
+              }
+            ]
+          },
+          {
+            "name": "AREA_OF_SHADE_CREATED",
+            "label": "m² of Shade Created",
+            "type": "NUMERIC",
+            "required": true,
+            "displayOrder": 4,
+            "unitOfMeasureOptions": [
+              {
+                "value": "m²",
+                "label": "Square Meters (m²)"
+              }
+            ]
+          },
+          {
+            "name": "PERMISSION_OBTAINED",
+            "label": "Permission Obtained",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 5
+          },
+          {
+            "name": "INSTALLATION_PHOTO",
+            "label": "Installation Photo",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 6
+          },
+          {
+            "name": "WATER_ACCESS",
+            "label": "Water Access",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 7
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Volunteer Hours",
+            "type": "NUMERIC",
+            "required": true,
+            "displayOrder": 8,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 9
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "EXECUTION",
+        "stepId": "OUTREACH",
+        "title": "Community outreach",
+        "description": "Conduct outreach to inform the community about the Cooling Corner. This may include distributing flyers, posting on social media, and engaging with local organizations to ensure community members are aware of the resources available to them during heatwaves.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "OUTRWACH_METHOD",
+            "label": "Outreach Method",
+            "type": "MULTISELECT",
+            "required": true,
+            "displayOrder": 1,
+            "options": [
+              {
+                "value": "flyers",
+                "label": "Flyers"
+              },
+              {
+                "value": "social_media",
+                "label": "Social Media"
+              },
+              {
+                "value": "community_meetings",
+                "label": "Community Meetings"
+              },
+              {
+                "value": "local_organizations",
+                "label": "Local Organizations"
+              }
+            ]
+          },
+          {
+            "name": "HOUSEHOLDS_REACHED",
+            "label": "Number of Households Reached",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "VULNERABLE_HOUSEHOLDS_REACHED",
+            "label": "Number of Vulnerable Households Reached",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Volunteer Hours",
+            "type": "NUMERIC",
+            "required": true,
+            "displayOrder": 2,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 3
+          }
+        ]
+      },
+      {
+        "stepNumber": 4,
+        "stepType": "COMPLETION",
+        "stepId": "COMPLETION",
+        "title": "End-of-season report",
+        "description": "At the end of the season, compile a report summarizing the activities, outcomes, and impact of the Cooling Corner initiative. Include data on usage, community feedback, and any challenges faced. This report will help inform future initiatives and improvements.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRM_COMPLETION",
+            "label": "Completion Status",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "REFLECTION",
+            "label": "Reflection",
+            "type": "BOOLEAN",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "REPORT_SHARED",
+            "label": "Report Shared with Community",
+            "type": "BOOLEAN",
+            "required": true,
+            "displayOrder": 3
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:50:14.524126Z"
+  },
+  {
+    "templateId": "CH-015",
+    "name": "Urban Greening Initiative",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG11",
+        "name": "Sustainable Cities and Communities",
+        "infoUrl": ""
+      },
+      {
+        "code": "SDG15",
+        "name": "Life on Land",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "MAC",
+        "name": "Mitigation and Circularity",
+        "infoUrl": ""
+      },
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "Urban greening is a crucial strategy for mitigating the impacts of climate change in cities. This Template guides a Circle through a 4-week Urban Greening Initiative, where they will identify a location in their community that could benefit from increased greenery, plan and implement a greening project, and reflect on the process and outcomes. The goal is to enhance local biodiversity, improve air quality, and create a more resilient urban environment.",
+    "minCompletedCycles": 0,
+    "maxCompletedCycles": 0,
+    "equipments": [
+      {
+        "name": "Gardening Tools",
+        "description": "Basic gardening tools such as shovels, trowels, gloves, and watering cans for planting and maintaining greenery."
+      },
+      {
+        "name": "Plants or Seeds",
+        "description": "A selection of plants or seeds suitable for the local climate and soil conditions. This could include native plants, flowers, shrubs, or trees."
+      },
+      {
+        "name": "Soil and Compost",
+        "description": "Quality soil and compost to support healthy plant growth. This can be sourced from a local garden center or created through composting organic waste."
+      },
+      {
+        "name": "Surface Breaking Tools",
+        "description": "Tools such as pickaxes or mattocks for breaking through hard surfaces like concrete or asphalt, if necessary for planting in urban areas."
+      }
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "SETUP_AND_REGISTRATION",
+        "title": "Site Identification and Registration",
+        "description": "Identify a location in your community that could benefit from increased greenery. This could be a vacant lot, a sidewalk strip, a schoolyard, or any other underutilized space. Take a photo of the site and gather information about its current condition and potential for greening.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Choose a location",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "SITE_PHOTO",
+            "label": "Upload a photo of the site",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "SITE_DESCRIPTION",
+            "label": "Describe the current condition of the site",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 3
+          },
+          {
+            "name": "PERMISSION_STATUS",
+            "label": "Do you have permission to work on this site?",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "SURFACE_TYPE",
+            "label": "Type of surface",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 4,
+            "options": [
+              {
+                "value": "CONCRETE",
+                "label": "Concrete"
+              },
+              {
+                "value": "ASPHALT",
+                "label": "Asphalt"
+              },
+              {
+                "value": "SOIL",
+                "label": "Soil"
+              },
+              {
+                "value": "GRASS",
+                "label": "Grass"
+              }
+            ]
+          },
+          {
+            "name": "POTENTIAL_PLANTING_AREA",
+            "label": "Estimated area available for planting (in square meters)",
+            "type": "NUMBER",
+            "required": false,
+            "displayOrder": 5,
+            "unitOfMeasureOptions": [
+              {
+                "value": "SQM",
+                "label": "Square Meters (sqm)"
+              },
+              {
+                "value": "SQFT",
+                "label": "Square Feet (sqft)"
+              },
+              {
+                "value": "ACRES",
+                "label": "Acres"
+              },
+              {
+                "value": "HECTARES",
+                "label": "Hectares"
+              }
+            ]
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 6,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 6
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "EXECUTION",
+        "title": "Planting and Implement Greening Project",
+        "description": "Plan and implement your urban greening project. This could involve planting trees, shrubs, flowers, or creating a community garden. Document the process with photos and notes on the types of plants used, the layout of the greenery, and any challenges faced during implementation.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "PLANTING_DATE",
+            "label": "Date of planting",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "PLANTING_PHOTO",
+            "label": "Upload a photo of the planting process",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "AREA_SEALED_OR_REMOVED",
+            "label": "Area sealed or removed (in square meters)",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2,
+            "unitOfMeasureOptions": [
+              {
+                "value": "SQM",
+                "label": "Square Meters (m²)"
+              },
+              {
+                "value": "SQFT",
+                "label": "Square Feet (ft²)"
+              },
+              {
+                "value": "ACRES",
+                "label": "Acres"
+              },
+              {
+                "value": "HECTARES",
+                "label": "Hectares"
+              }
+            ]
+          },
+          {
+            "name": "AREA_GREENED",
+            "label": "Area greened (in square meters)",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "unitOfMeasureOptions": [
+              {
+                "value": "SQM",
+                "label": "Square Meters (m²)"
+              },
+              {
+                "value": "SQFT",
+                "label": "Square Feet (ft²)"
+              },
+              {
+                "value": "ACRES",
+                "label": "Acres"
+              },
+              {
+                "value": "HECTARES",
+                "label": "Hectares"
+              }
+            ]
+          },
+          {
+            "name": "SPECIES_USED",
+            "label": "List the species used and their quantities",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 4,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 5
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "Completion",
+        "stepId": "COMPLETION",
+        "title": "Completion",
+        "description": "Reflect on the process and outcomes of your urban greening project. Take a final photo of the site and document any changes in biodiversity, air quality, or community engagement that resulted from your efforts.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRM_COMPLETION",
+            "label": "Completion Status",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "FINAL_PHOTO",
+            "label": "Upload a final photo of the site",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "AUTO_REFLECTION",
+            "label": "Auto Reflection Notes",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 2
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:51:50.459585Z"
+  }
+]

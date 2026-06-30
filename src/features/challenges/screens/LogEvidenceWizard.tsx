@@ -36,15 +36,49 @@ const STORAGE_KEY = (stepId: string) => `log-evidence-draft-${stepId}`;
 
 function activityToForm(activity: ApiRecentActivity): LogFormData {
   const m = activity.data.measurement;
-  const siUnit = (m.siUnit ?? "").toUpperCase();
+  const siUnit = (m?.siUnit ?? "").toUpperCase();
   return {
     ...initForm(),
-    measurementValue: m.value > 0 ? String(m.value) : "",
+    measurementValue: m?.value != null ? String(m.value) : "",
     measurementType: siUnit === "VOLUME" ? "VOLUME" : "MASS",
     impactDescription: activity.data.description ?? "",
-    volunteerHours: (activity.volunteerHours?.value ?? 0) > 0 ? String(activity.volunteerHours.value) : "",
+    volunteerHours: activity.volunteerHours?.value != null ? String(activity.volunteerHours.value) : "",
     contributors: activity.contributors,
   };
+}
+
+function activityToDynamic(
+  activity: ApiRecentActivity,
+  vhFieldName: string,
+  contribFieldName: string,
+): DynamicValues {
+  const result: DynamicValues = {};
+
+  for (const [key, val] of Object.entries(activity.data.fields ?? {})) {
+    if (
+      val !== null &&
+      typeof val === "object" &&
+      !Array.isArray(val) &&
+      "value" in val &&
+      "unit" in val
+    ) {
+      result[key] = String((val as { value: number }).value);
+      result[`${key}__unit`] = (val as { unit: string }).unit;
+    } else {
+      result[key] = val;
+    }
+  }
+
+  if (activity.volunteerHours?.value != null) {
+    result[vhFieldName] = String(activity.volunteerHours.value);
+    result[`${vhFieldName}__unit`] = activity.volunteerHours.unitOfMeasure;
+  }
+
+  if (activity.contributors?.length) {
+    result[contribFieldName] = activity.contributors;
+  }
+
+  return result;
 }
 
 type Props = { challengeId: string; stepId: string; viewId?: string };
@@ -102,6 +136,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
   }, [viewId, derivedConfig]);
   const [isViewMode, setIsViewMode] = useState(!!viewId);
   const [submitted, setSubmitted] = useState(false);
+  const [viewActivity, setViewActivity] = useState<ApiRecentActivity | null>(null);
 
   // ── Static form state ──────────────────────────────────────────────────────
   const [form, setForm] = useState<LogFormData>(() =>
@@ -173,7 +208,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     if (!raw) return;
     try {
       const activity = JSON.parse(raw) as ApiRecentActivity;
-      setForm(activityToForm(activity));
+      setViewActivity(activity);
       sessionStorage.removeItem(EVIDENCE_SESSION_KEY(viewId));
     } catch { /* ignore */ }
   }, [viewId]);
@@ -224,6 +259,15 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     () => derivedConfig?.steps.find((s) => s.kind === "contributors")?.fields[0]?.name ?? "CONTRIBUTORS",
     [derivedConfig],
   );
+
+  // ── View mode: populate form/dynamicValues once config resolves ────────────
+  useEffect(() => {
+    if (!viewActivity) return;
+    setForm(activityToForm(viewActivity));
+    if (isDerived) {
+      setDynamicValues(activityToDynamic(viewActivity, vhFieldName, contribFieldName));
+    }
+  }, [viewActivity, isDerived, vhFieldName, contribFieldName]);
 
   const bridgeForm: LogFormData = useMemo(
     () => ({
@@ -530,7 +574,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
                 error={submitError}
                 users={users}
                 readOnly={isViewMode}
-                canEdit={canEdit}
+                canEdit={isViewMode ? false : canEdit}
                 uploadLabel={viewId && !isViewMode ? t("update") : t("upload")}
                 dynamicConfig={{
                   fields: stepForm ?? [],
@@ -604,7 +648,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
                 error={submitError}
                 users={users}
                 readOnly={isViewMode}
-                canEdit={canEdit}
+                canEdit={isViewMode ? false : canEdit}
                 uploadLabel={viewId && !isViewMode ? t("update") : t("upload")}
               />
             )}

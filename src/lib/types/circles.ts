@@ -7,12 +7,13 @@ export type ApiRecentActivity = {
   submittedBy: string;
   contributors: string[];
   data: {
-    measurement: {
+    measurement?: {
       value: number;
       unitOfMeasure: string;
       siUnit: string;
     };
     description?: string;
+    fields?: Record<string, unknown>;
   };
   stepId: string;
   stepNumber: number;
