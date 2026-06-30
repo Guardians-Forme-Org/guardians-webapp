@@ -36,6 +36,16 @@
     "emailSent": "Sithumele isixhumanisi sokuqinisekisa ku",
     "emailInstruction": "Chofoza isixhumanisi ukuze uqinisekise i-akhawunti yakho, bese ubuyela ukuze ungene."
   },
+  "ageGate": {
+    "title1": "Ngaphambi",
+    "title2": "kokuqala",
+    "body": "Kumele ube neminyaka eyi-18 noma ngaphezulu ukuze ujoyine Abalondolozi Besikhathi Esizayo.",
+    "confirm": "Yebo, ngineminyaka eyi-18 noma ngaphezulu",
+    "deny": "Cha, ngineminyaka engaphansi kweyi-18",
+    "blockedTitle": "Uxolo, awufanelekile",
+    "blockedBody": "Kumele ube neminyaka eyi-18 noma ngaphezulu ukuze udale i-akhawunti.",
+    "blockedBack": "Buyela emuva"
+  },
   "termsAndConditions": "Imigomo Nezimiso",
   "errors": {
     "credentialsRequired": "Sicela ufake i-imeyili noma inombolo yocingo.",

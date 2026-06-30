@@ -42,6 +42,16 @@
     "emailSent": "We sent a confirmation link to",
     "emailInstruction": "Click the link to verify your account, then come back to log in."
   },
+  "ageGate": {
+    "title1": "Before we",
+    "title2": "begin",
+    "body": "You must be 18 years or older to join Guardians of the Future.",
+    "confirm": "Yes, I'm 18 or older",
+    "deny": "No, I'm under 18",
+    "blockedTitle": "Sorry, you're not eligible",
+    "blockedBody": "You must be 18 years or older to create an account.",
+    "blockedBack": "Go back"
+  },
   "termsAndConditions": "Terms and Condition",
   "gotfName": "Guardians of the Future",
   "errors": {

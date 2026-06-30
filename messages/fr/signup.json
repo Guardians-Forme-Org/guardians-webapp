@@ -36,6 +36,16 @@
     "emailSent": "Nous avons envoyé un lien de confirmation à",
     "emailInstruction": "Cliquez sur le lien pour vérifier votre compte, puis revenez pour vous connecter."
   },
+  "ageGate": {
+    "title1": "Avant de",
+    "title2": "commencer",
+    "body": "Vous devez avoir 18 ans ou plus pour rejoindre les Gardiens du Futur.",
+    "confirm": "Oui, j'ai 18 ans ou plus",
+    "deny": "Non, j'ai moins de 18 ans",
+    "blockedTitle": "Désolé, vous n'êtes pas éligible",
+    "blockedBody": "Vous devez avoir 18 ans ou plus pour créer un compte.",
+    "blockedBack": "Retour"
+  },
   "termsAndConditions": "Conditions générales",
   "errors": {
     "credentialsRequired": "Veuillez entrer une adresse e-mail ou un numéro de téléphone.",

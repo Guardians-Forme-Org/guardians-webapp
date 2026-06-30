@@ -36,6 +36,16 @@
     "emailSent": "Ons het 'n bevestigingskakel na gestuur",
     "emailInstruction": "Klik die kakel om jou rekening te bevestig, dan kom terug om in te teken."
   },
+  "ageGate": {
+    "title1": "Voor ons",
+    "title2": "begin",
+    "body": "Jy moet 18 jaar of ouer wees om by Bewaarders van die Toekoms aan te sluit.",
+    "confirm": "Ja, ek is 18 of ouer",
+    "deny": "Nee, ek is onder 18",
+    "blockedTitle": "Jammer, jy kwalifiseer nie",
+    "blockedBody": "Jy moet 18 jaar of ouer wees om 'n rekening te skep.",
+    "blockedBack": "Gaan terug"
+  },
   "termsAndConditions": "Bepalings en Voorwaardes",
   "errors": {
     "credentialsRequired": "Voer asseblief 'n e-posadres of telefoonnommer in.",

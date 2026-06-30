@@ -109,6 +109,77 @@ function TermsFooter() {
   );
 }
 
+// ── Age Gate ──────────────────────────────────────────────────────────────────
+
+function AgeGate({ onConfirm, onClose }: { onConfirm: () => void; onClose: () => void }) {
+  const t = useTranslations("signup");
+  const [blocked, setBlocked] = useState(false);
+
+  if (blocked) {
+    return (
+      <div className="flex flex-col min-h-dvh bg-white px-10 pt-10">
+        <div className="flex items-center justify-between mb-16">
+          <img src="/images/Guardians Logo-logo.png" alt="" className="w-8 h-8 object-contain" />
+          <button onClick={onClose} aria-label="Close" className="text-text-muted"><X size={22} /></button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <h1 className="text-[32px] font-bold text-black leading-tight">
+            {t("ageGate.blockedTitle")}
+          </h1>
+          <p className="text-[18px] text-[#808080] leading-relaxed">
+            {t("ageGate.blockedBody")}
+          </p>
+        </div>
+
+        <div className="flex-1" />
+        <div className="pb-10">
+          <button
+            onClick={onClose}
+            className="w-full h-14 border-2 border-black text-black rounded-full text-xl font-medium"
+          >
+            {t("ageGate.blockedBack")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col min-h-dvh bg-white px-10 pt-10">
+      <div className="flex items-center justify-between mb-16">
+        <img src="/images/Guardians Logo-logo.png" alt="" className="w-8 h-8 object-contain" />
+        <button onClick={onClose} aria-label="Close" className="text-text-muted"><X size={22} /></button>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <h1 className="text-[32px] font-bold text-black leading-tight">
+          {t("ageGate.title1")}<br />{t("ageGate.title2")}
+        </h1>
+        <p className="text-[18px] text-[#808080] leading-relaxed">
+          {t("ageGate.body")}
+        </p>
+      </div>
+
+      <div className="flex-1" />
+      <div className="flex flex-col gap-3 pb-10">
+        <button
+          onClick={onConfirm}
+          className="w-full h-14 bg-black text-white rounded-full text-xl font-medium"
+        >
+          {t("ageGate.confirm")}
+        </button>
+        <button
+          onClick={() => setBlocked(true)}
+          className="w-full h-14 border-2 border-black text-black rounded-full text-xl font-medium"
+        >
+          {t("ageGate.deny")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Step 1 — Credentials + Password ───────────────────────────────────────────
 
 function Step1({
@@ -436,6 +507,7 @@ export default function SignUpPage() {
   const { data: existingUsers = [] } = useUsers();
   const t = useTranslations("signup");
 
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>(initForm);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -527,6 +599,9 @@ export default function SignUpPage() {
 
   const submitError =
     apiError instanceof Error ? apiError.message : null;
+
+  if (!ageConfirmed)
+    return <AgeGate onConfirm={() => setAgeConfirmed(true)} onClose={close} />;
 
   if (step === 1)
     return (
