@@ -176,23 +176,13 @@ export default function LoginPage() {
         {/* ToS */}
         <p className="text-xs text-[#767676] leading-relaxed text-center">
           {t("tos")}{" "}
-          <a
-            href="https://theguardians.world/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#3875e9] underline"
-          >
+          <Link href="/terms" className="text-[#3875e9] underline">
             {t("termsOfService")}
-          </a>{" "}
+          </Link>{" "}
           {t("and")}{" "}
-          <a
-            href="https://theguardians.world/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#3875e9] underline"
-          >
+          <Link href="/terms" className="text-[#3875e9] underline">
             {t("privacyPolicy")}
-          </a>
+          </Link>
         </p>
       </div>
     </div>

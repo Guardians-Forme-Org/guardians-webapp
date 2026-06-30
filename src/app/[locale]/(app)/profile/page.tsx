@@ -9,7 +9,7 @@ import LocationSheet from "@/components/ui/LocationSheet";
 import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { PROFILE_CONFIG } from "@/lib/config";
 import type { ApiCircle, ApiImpactRecord } from "@/lib/types/circles";
 import { isCrimeIncidentImpact } from "@/lib/utils";
@@ -26,6 +26,7 @@ import {
   Lightbulb,
   LogOut,
   MapPin,
+  ScrollText,
   Play,
   Pencil,
   Shuffle,
@@ -531,6 +532,18 @@ export default function ProfilePage() {
           </div>
           <ChevronRight size={20} className="text-text-muted" />
         </button>
+
+        {/* Terms & Conditions */}
+        <Link
+          href="/terms"
+          className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track"
+        >
+          <div className="flex items-center gap-3">
+            <ScrollText size={18} className="text-text-muted" />
+            <span className="text-base font-medium text-black">{t("termsAndConditions")}</span>
+          </div>
+          <ChevronRight size={20} className="text-text-muted" />
+        </Link>
 
         {/* Logout */}
         <button

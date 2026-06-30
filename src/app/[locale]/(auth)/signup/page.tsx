@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { X, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
 import { useRegister } from "@/lib/hooks/auth";
@@ -102,9 +102,9 @@ function TermsFooter() {
   return (
     <p className="text-[11px] text-black text-center pb-4 px-10">
       {t("gotfName")}{" "}
-      <a href="https://theguardians.world/" target="_blank" rel="noopener noreferrer" className="underline">
+      <Link href="/terms" className="underline">
         {t("termsAndConditions")}
-      </a>
+      </Link>
     </p>
   );
 }
