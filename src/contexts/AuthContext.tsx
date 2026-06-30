@@ -1,21 +1,11 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
-import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, apiFetch, setUnauthorizedHandler } from "@/lib/api";
 import {
   clearSession,
   getStoredSession,
-  saveSession,
   saveLoginData,
+  saveSession,
   type LoginData,
 } from "@/lib/auth";
 import type {
@@ -25,6 +15,16 @@ import type {
   RegisterRequest,
   UserMetadata,
 } from "@/lib/types/auth";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 // ── Context shape ─────────────────────────────────────────────────────────────
 
@@ -37,7 +37,11 @@ type AuthContextValue = {
   login: (emailOrMobile: string, password: string) => Promise<void>;
   register: (data: RegisterRequest, avatarFile?: File) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
-  resetPassword: (token: string, newPassword: string, accessToken?: string) => Promise<void>;
+  resetPassword: (
+    token: string,
+    newPassword: string,
+    accessToken?: string,
+  ) => Promise<void>;
   logout: () => void;
   patchUserMetadata: (patch: Partial<UserMetadata>) => void;
 };
@@ -72,7 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [preferredLanguage, setPreferredLanguage] = useState<Language | null>(null);
+  const [preferredLanguage, setPreferredLanguage] = useState<Language | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
 
   // loginData lives in React Query — any mutation can invalidate ["loginData"] to trigger a refresh
@@ -92,12 +98,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!loginData || !user?.id) return;
     const memberAvatar =
-      loginData.circles.flatMap((c) => c.members).find((m) => m.userId === user.id)?.avatarUrl ||
-      loginData.challenges.flatMap((c) => c.members ?? []).find((m) => m.userId === user.id)?.avatarUrl;
+      loginData.circles
+        .flatMap((c) => c.members)
+        .find((m) => m.userId === user.id)?.avatarUrl ||
+      loginData.challenges
+        .flatMap((c) => c.members ?? [])
+        .find((m) => m.userId === user.id)?.avatarUrl;
     if (memberAvatar && memberAvatar !== user.user_metadata.avatarUrl) {
       setUser((prev) => {
         if (!prev) return prev;
-        const updated = { ...prev, user_metadata: { ...prev.user_metadata, avatarUrl: memberAvatar } };
+        const updated = {
+          ...prev,
+          user_metadata: { ...prev.user_metadata, avatarUrl: memberAvatar },
+        };
         localStorage.setItem("gotf_user", JSON.stringify(updated));
         return updated;
       });
@@ -161,24 +174,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [queryClient],
   );
 
-  const register = useCallback(async (data: RegisterRequest, avatarFile?: File) => {
-    const formData = new FormData();
-    formData.append("metadata", JSON.stringify(data));
-    formData.append("avatarFile", avatarFile ?? await fetchDefaultAvatar());
-    await apiFetch("/signup", { method: "POST", body: formData });
-  }, []);
+  const register = useCallback(
+    async (data: RegisterRequest, avatarFile?: File) => {
+      const formData = new FormData();
+      formData.append("metadata", JSON.stringify(data));
+      formData.append("avatarFile", avatarFile ?? (await fetchDefaultAvatar()));
+      await apiFetch("/signup", { method: "POST", body: formData });
+    },
+    [],
+  );
 
   const forgotPassword = useCallback(async (email: string) => {
     await api.post("/recover", { email });
   }, []);
 
-  const resetPassword = useCallback(async (token: string, newPassword: string, accessToken?: string) => {
-    await apiFetch(`/resetPassword/${token}`, {
-      method: "PUT",
-      body: { password: newPassword },
-      ...(accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : {}),
-    });
-  }, []);
+  const resetPassword = useCallback(
+    async (token: string, newPassword: string, accessToken?: string) => {
+      await apiFetch(`/resetPassword/${token}`, {
+        method: "PUT",
+        body: { password: newPassword },
+        ...(accessToken
+          ? { headers: { Authorization: `Bearer ${accessToken}` } }
+          : {}),
+      });
+    },
+    [],
+  );
 
   const patchUserMetadata = useCallback((patch: Partial<UserMetadata>) => {
     setUser((prev) => {
@@ -189,7 +210,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
       // Blob URLs die on page unload — persist the old avatarUrl instead
       const toStore = patch.avatarUrl?.startsWith("blob:")
-        ? { ...updated, user_metadata: { ...updated.user_metadata, avatarUrl: prev.user_metadata.avatarUrl } }
+        ? {
+            ...updated,
+            user_metadata: {
+              ...updated.user_metadata,
+              avatarUrl: prev.user_metadata.avatarUrl,
+            },
+          }
         : updated;
       localStorage.setItem("gotf_user", JSON.stringify(toStore));
       return updated;
@@ -198,7 +225,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, preferredLanguage, loginData, loading, login, register, forgotPassword, resetPassword, logout, patchUserMetadata }}
+      value={{
+        user,
+        token,
+        preferredLanguage,
+        loginData,
+        loading,
+        login,
+        register,
+        forgotPassword,
+        resetPassword,
+        logout,
+        patchUserMetadata,
+      }}
     >
       {children}
     </AuthContext.Provider>
