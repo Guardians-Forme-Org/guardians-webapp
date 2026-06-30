@@ -37,8 +37,8 @@ export function useForgotPassword() {
 export function useResetPassword() {
   const { resetPassword } = useAuth();
   return useMutation({
-    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) =>
-      resetPassword(token, newPassword),
+    mutationFn: ({ token, newPassword, accessToken }: { token: string; newPassword: string; accessToken?: string }) =>
+      resetPassword(token, newPassword, accessToken),
     onError: (error) => {
       console.error("[resetPassword] error:", error);
     },

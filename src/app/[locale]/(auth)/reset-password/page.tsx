@@ -15,6 +15,7 @@ export default function ResetPasswordPage() {
   const { mutate: resetPassword, isPending } = useResetPassword();
 
   const [token, setToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNew, setShowNew] = useState(false);
@@ -22,18 +23,10 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
-  // Supabase puts the recovery token in the URL hash (#access_token=xxx&type=recovery)
-  // Custom backends may use a query param (?token=xxx). Support both.
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash) {
-      const params = new URLSearchParams(hash.slice(1));
-      if (params.get("type") === "recovery") {
-        setToken(params.get("access_token"));
-        return;
-      }
-    }
     setToken(searchParams.get("token"));
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    setAccessToken(hash.get("access_token"));
   }, [searchParams]);
 
   const handleSubmit = () => {
@@ -51,7 +44,7 @@ export default function ResetPasswordPage() {
     }
     setError(null);
     resetPassword(
-      { token, newPassword },
+      { token, newPassword, accessToken: accessToken ?? undefined },
       {
         onSuccess: () => setDone(true),
         onError: (err) =>
