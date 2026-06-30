@@ -87,6 +87,14 @@ export type AuthMetadata = {
   provider_refresh_token: string;
 };
 
+export type ContributionMarker = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  obtained: boolean;
+};
+
 export type LoginResponse = {
   id: string;
   email: string;
@@ -96,7 +104,7 @@ export type LoginResponse = {
   impactRecords: import("./circles").ApiImpactRecord[];
   challengesCount: { total: number; label: string; displayValue: string };
   circlesCount: { total: number; label: string; displayValue: string };
-  contributionMarkers: unknown | null;
+  contributionMarkers: ContributionMarker[] | null;
 };
 
 export type ApiError = {

@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Link, useRouter } from "@/i18n/navigation";
 import { PROFILE_CONFIG } from "@/lib/config";
 import type { ApiCircle, ApiImpactRecord } from "@/lib/types/circles";
+import type { ContributionMarker } from "@/lib/types/auth";
 import { isCrimeIncidentImpact } from "@/lib/utils";
 import {
   Calendar,
@@ -132,6 +133,11 @@ export default function ProfilePage() {
     null,
   );
   const [expandedImpact, setExpandedImpact] = useState<number | null>(null);
+  const [selectedMarker, setSelectedMarker] = useState<{
+    label: string;
+    Icon: React.ElementType;
+    api: ContributionMarker | undefined;
+  } | null>(null);
 
   const challengesCount = loginData?.challengesCount?.total ?? 0;
   const circlesCount = loginData?.circlesCount?.total ?? 0;
@@ -141,7 +147,11 @@ export default function ProfilePage() {
       ?.address ||
     (location as { formattedAddress?: string } | undefined)?.formattedAddress;
 
-  const earnedLabels: Set<string> = new Set();
+  const earnedNames = new Set(
+    (loginData?.contributionMarkers ?? [])
+      .filter((m) => m.obtained)
+      .map((m) => m.name.toUpperCase()),
+  );
 
   if (loading) {
     return (
@@ -448,10 +458,14 @@ export default function ProfilePage() {
         </Text>
         <div className="flex flex-wrap gap-2">
           {ALL_MARKERS.map(({ label, icon: Icon }) => {
-            const earned = earnedLabels.has(label);
+            const earned = earnedNames.has(label.toUpperCase());
+            const api = (loginData?.contributionMarkers ?? []).find(
+              (m) => m.name.toUpperCase() === label.toUpperCase(),
+            );
             return (
-              <div
+              <button
                 key={label}
+                onClick={() => setSelectedMarker({ label, Icon, api })}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 border text-xs font-medium transition-opacity ${
                   earned
                     ? "bg-green-50 border-gotf-green text-gotf-green"
@@ -460,15 +474,10 @@ export default function ProfilePage() {
               >
                 <Icon size={12} />
                 <span>{label}</span>
-              </div>
+              </button>
             );
           })}
         </div>
-        {earnedLabels.size === 0 && (
-          <p className="text-xs text-text-muted mt-3">
-            {t("noMarkersEarned")}
-          </p>
-        )}
       </div>
 
       {/* Settings list */}
@@ -564,6 +573,65 @@ export default function ProfilePage() {
           onClose={() => setShowLocation(false)}
         />
       )}
+
+      {selectedMarker && (() => {
+        const { label, Icon, api } = selectedMarker;
+        const earned = api?.obtained ?? false;
+        return (
+          <>
+            <div
+              className="fixed inset-0 z-40 bg-black/50"
+              onClick={() => setSelectedMarker(null)}
+              aria-hidden
+            />
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-6 pointer-events-none">
+              <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl pointer-events-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-progress-track">
+                  <p className="text-base font-semibold text-black">{label}</p>
+                  <button
+                    onClick={() => setSelectedMarker(null)}
+                    aria-label={tCommon("close")}
+                    className="text-text-muted"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 py-5 flex flex-col gap-5">
+                  {/* Icon + earned badge */}
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`size-16 rounded-2xl flex items-center justify-center shrink-0 ${
+                        earned ? "bg-green-50" : "bg-surface opacity-50"
+                      }`}
+                    >
+                      <Icon size={28} className={earned ? "text-gotf-green" : "text-text-muted"} />
+                    </div>
+                    <span
+                      className={`text-xs font-semibold rounded-full px-3 py-1 border ${
+                        earned
+                          ? "bg-green-50 border-gotf-green text-gotf-green"
+                          : "bg-white border-border text-text-muted"
+                      }`}
+                    >
+                      {earned ? t("verified") : t("noMarkersEarned")}
+                    </span>
+                  </div>
+
+                  {/* Description */}
+                  {api?.description && (
+                    <p className="text-sm text-text-secondary leading-relaxed">
+                      {api.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }
