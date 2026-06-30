@@ -4,6 +4,7 @@ import Text from "@/components/ui/Text";
 import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateUser } from "@/lib/hooks/users";
+import { compressImage } from "@/lib/compressImage";
 import { ChevronLeft, Image as ImageIcon } from "lucide-react";
 import Avatar from "@/components/ui/Avatar";
 import { useTranslations } from "next-intl";
@@ -65,12 +66,13 @@ export default function EditProfileScreen() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [cachedAvatarFile, setCachedAvatarFile] = useState<File | null>(null);
 
-  // Pre-fetch the current avatar on mount so save never needs a blocking cross-origin fetch
+  // Pre-fetch and compress the current avatar so the backend always receives a file on save
   useEffect(() => {
     if (!resolvedAvatarUrl || resolvedAvatarUrl.startsWith("blob:")) return;
     fetch(resolvedAvatarUrl)
       .then((r) => r.blob())
-      .then((blob) => setCachedAvatarFile(new File([blob], "avatar.png", { type: blob.type || "image/png" })))
+      .then((blob) => compressImage(new File([blob], "avatar", { type: blob.type || "image/jpeg" })))
+      .then(setCachedAvatarFile)
       .catch(() => {});
   }, []);
 
@@ -80,12 +82,12 @@ export default function EditProfileScreen() {
     (meta?.location as { address?: string } | undefined)?.address ||
     "";
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setAvatarPreview(URL.createObjectURL(file));
-      setAvatarFile(file);
-    }
+    if (!file) return;
+    setAvatarPreview(URL.createObjectURL(file));
+    const compressed = await compressImage(file);
+    setAvatarFile(compressed);
   };
 
   const handleSave = async () => {
