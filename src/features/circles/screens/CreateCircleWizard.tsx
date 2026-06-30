@@ -3,6 +3,7 @@
 import LocationPicker, {
   type LocationResult,
 } from "@/components/ui/LocationPicker";
+import Avatar from "@/components/ui/Avatar";
 import Text from "@/components/ui/Text";
 import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import { useAuth } from "@/contexts/AuthContext";
@@ -262,15 +263,11 @@ function Step1({
 
           {selectedLead ? (
             <div className="flex items-center gap-3 h-[60px] border border-[#d9d9d9] rounded-[8px] px-4">
-              <div className="size-8 rounded-full bg-[#d9d9d9] overflow-hidden shrink-0">
-                {selectedLead.user_metadata.avatarUrl && (
-                  <img
-                    src={selectedLead.user_metadata.avatarUrl}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
+              <Avatar
+                src={selectedLead.user_metadata.avatarUrl}
+                alt={`${selectedLead.user_metadata.firstName} ${selectedLead.user_metadata.lastName}`}
+                className="size-8 rounded-full shrink-0"
+              />
               <span className="flex-1 text-base text-text-primary">
                 {selectedLead.user_metadata.firstName}{" "}
                 {selectedLead.user_metadata.lastName}
@@ -311,15 +308,11 @@ function Step1({
                       }}
                       className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-[#f5f5f5]"
                     >
-                      <div className="size-8 rounded-full bg-[#d9d9d9] overflow-hidden shrink-0">
-                        {u.user_metadata.avatarUrl && (
-                          <img
-                            src={u.user_metadata.avatarUrl}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                      </div>
+                      <Avatar
+                        src={u.user_metadata.avatarUrl}
+                        alt={`${u.user_metadata.firstName} ${u.user_metadata.lastName}`}
+                        className="size-8 rounded-full shrink-0"
+                      />
                       <div>
                         <p className="text-sm font-medium text-text-primary">
                           {u.user_metadata.firstName} {u.user_metadata.lastName}
@@ -702,6 +695,7 @@ export default function CreateCircleWizard({
 }) {
   const router = useRouter();
   const { user } = useAuth();
+  const { data: allUsers = [] } = useUsers();
   const isEdit = !!editCircle;
 
   const ch0 = editCircle?.communicationChannels?.[0];
@@ -724,9 +718,56 @@ export default function CreateCircleWizard({
       : initialForm,
   );
   const [location, setLocation] = useState<LocationResult | null>(null);
-  const [selectedLead, setSelectedLead] = useState<AuthUser | null>(null);
+  const [selectedLead, setSelectedLead] = useState<AuthUser | null>(() => {
+    if (!editCircle?.circleLead) return null;
+    const lead = editCircle.circleLead as {
+      id?: string;
+      userId?: string;
+      firstName?: string;
+      lastName?: string;
+      name?: string;
+      avatarUrl?: string;
+    };
+    const nameParts = lead.name?.split(" ") ?? [];
+    return {
+      id: lead.userId ?? lead.id ?? "",
+      email: "",
+      aud: "",
+      role: "",
+      invited_at: "",
+      confirmed_at: "",
+      confirmation_sent_at: "",
+      app_metadata: {},
+      user_metadata: {
+        firstName: lead.firstName ?? nameParts[0] ?? "",
+        lastName: lead.lastName ?? nameParts.slice(1).join(" ") ?? "",
+        avatarUrl: lead.avatarUrl ?? "",
+        email: "",
+        email_verified: false,
+        id: lead.userId ?? lead.id ?? "",
+        location: {} as never,
+        mobile: "",
+        phone_verified: false,
+        preferredLanguage: { code: "", id: "", name: "" },
+        sub: "",
+        username: "",
+      },
+      created_at: "",
+      updated_at: "",
+    };
+  });
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [createdCircle, setCreatedCircle] = useState<CreateCircleResponse | null>(null);
+
+  // Resolve lead name from users list once loaded (edit mode)
+  useEffect(() => {
+    if (!isEdit || !editCircle?.circleLead || !allUsers.length) return;
+    const lead = editCircle.circleLead as { id?: string; userId?: string } | null;
+    const leadId = lead?.userId ?? lead?.id;
+    if (!leadId) return;
+    const found = allUsers.find((u) => u.id === leadId);
+    if (found) setSelectedLead(found);
+  }, [allUsers, isEdit, editCircle]);
 
   // Load draft from localStorage (create mode only)
   useEffect(() => {
