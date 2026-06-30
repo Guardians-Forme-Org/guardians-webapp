@@ -88,6 +88,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (loginData) saveLoginData(loginData);
   }, [loginData]);
 
+  // Sync avatar from member data into user metadata so it survives page refresh
+  useEffect(() => {
+    if (!loginData || !user?.id) return;
+    const memberAvatar =
+      loginData.circles.flatMap((c) => c.members).find((m) => m.userId === user.id)?.avatarUrl ||
+      loginData.challenges.flatMap((c) => c.members ?? []).find((m) => m.userId === user.id)?.avatarUrl;
+    if (memberAvatar && memberAvatar !== user.user_metadata.avatarUrl) {
+      setUser((prev) => {
+        if (!prev) return prev;
+        const updated = { ...prev, user_metadata: { ...prev.user_metadata, avatarUrl: memberAvatar } };
+        localStorage.setItem("gotf_user", JSON.stringify(updated));
+        return updated;
+      });
+    }
+  }, [loginData]);
+
   const logout = useCallback(() => {
     clearSession();
     queryClient.removeQueries({ queryKey: ["loginData"] });
@@ -171,7 +187,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...prev,
         user_metadata: { ...prev.user_metadata, ...patch },
       };
-      localStorage.setItem("gotf_user", JSON.stringify(updated));
+      // Blob URLs die on page unload — persist the old avatarUrl instead
+      const toStore = patch.avatarUrl?.startsWith("blob:")
+        ? { ...updated, user_metadata: { ...updated.user_metadata, avatarUrl: prev.user_metadata.avatarUrl } }
+        : updated;
+      localStorage.setItem("gotf_user", JSON.stringify(toStore));
       return updated;
     });
   }, []);

@@ -8,7 +8,7 @@ import { ChevronLeft, Image as ImageIcon } from "lucide-react";
 import Avatar from "@/components/ui/Avatar";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function Field({
   label,
@@ -63,6 +63,16 @@ export default function EditProfileScreen() {
   const [location, setLocation] = useState<LocationResult | null>(null);
   const [avatarPreview, setAvatarPreview] = useState(resolvedAvatarUrl);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [cachedAvatarFile, setCachedAvatarFile] = useState<File | null>(null);
+
+  // Pre-fetch the current avatar on mount so save never needs a blocking cross-origin fetch
+  useEffect(() => {
+    if (!resolvedAvatarUrl || resolvedAvatarUrl.startsWith("blob:")) return;
+    fetch(resolvedAvatarUrl)
+      .then((r) => r.blob())
+      .then((blob) => setCachedAvatarFile(new File([blob], "avatar.png", { type: blob.type || "image/png" })))
+      .catch(() => {});
+  }, []);
 
   const currentLocationLabel =
     (meta?.location as { formattedAddress?: string; address?: string } | undefined)
@@ -81,17 +91,11 @@ export default function EditProfileScreen() {
   const handleSave = async () => {
     if (!user) return;
 
-    let fileToSend = avatarFile;
+    let fileToSend = avatarFile ?? cachedAvatarFile;
     if (!fileToSend) {
-      try {
-        const res = await fetch(resolvedAvatarUrl || "/images/Guardians Logo-logo.png");
-        const blob = await res.blob();
-        fileToSend = new File([blob], "avatar.png", { type: blob.type || "image/png" });
-      } catch {
-        const res = await fetch("/images/Guardians Logo-logo.png");
-        const blob = await res.blob();
-        fileToSend = new File([blob], "avatar.png", { type: "image/png" });
-      }
+      const res = await fetch("/images/Guardians Logo-logo.png");
+      const blob = await res.blob();
+      fileToSend = new File([blob], "avatar.png", { type: "image/png" });
     }
 
     updateUser.mutate(
@@ -101,7 +105,7 @@ export default function EditProfileScreen() {
       },
       {
         onSuccess: () => {
-          patchUserMetadata({ firstName, lastName, mobile, ...(location ? { location } : {}) });
+          patchUserMetadata({ firstName, lastName, mobile, avatarUrl: avatarPreview, ...(location ? { location } : {}) });
           router.back();
         },
       },
