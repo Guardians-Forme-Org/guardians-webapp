@@ -9,6 +9,7 @@ import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateCircle, useUpdateCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
+import { compressImage } from "@/lib/compressImage";
 import type { AuthUser } from "@/lib/types/auth";
 import type { ApiCircle, CreateCircleResponse } from "@/lib/types/circles";
 import {
@@ -477,12 +478,12 @@ function Step3({
   const t = useTranslations("circles");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      onChange("imagePreview", URL.createObjectURL(file));
-      onFileSelect(file);
-    }
+    if (!file) return;
+    onChange("imagePreview", URL.createObjectURL(file));
+    const compressed = await compressImage(file);
+    onFileSelect(compressed);
   };
 
   const handleRemove = () => {

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { X, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
 import { useRegister } from "@/lib/hooks/auth";
 import { useUsers } from "@/lib/hooks/users";
+import { compressImage } from "@/lib/compressImage";
 import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
 import Text from "@/components/ui/Text";
 
@@ -415,12 +416,12 @@ function Step3({
 }) {
   const t = useTranslations("signup");
   const fileRef = useRef<HTMLInputElement>(null);
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      onChange("imagePreview", URL.createObjectURL(file));
-      onFileSelect(file);
-    }
+    if (!file) return;
+    onChange("imagePreview", URL.createObjectURL(file));
+    const compressed = await compressImage(file);
+    onFileSelect(compressed);
   };
 
   return (

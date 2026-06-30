@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import BottomNavBar from "@/components/nav/BottomNavBar";
-import { getToken, getStoredSession } from "@/lib/auth";
+import { getToken } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 
 // Wizard flows — no bottom nav, no pb-safe-nav padding
@@ -42,16 +42,15 @@ export default function AppLayoutClient({
   const wizard = isWizardPath(pathname);
   const isPublic = isPublicPath(pathname);
   const mainRef = useRef<HTMLElement>(null);
-  const { user: authUser } = useAuth();
-  const { user, loginData } = getStoredSession();
+  const { user: authUser, loginData } = useAuth();
   const avatarUrl =
-    user?.user_metadata?.avatarUrl ||
+    authUser?.user_metadata?.avatarUrl ||
     loginData?.circles
       ?.flatMap((c) => c.members)
-      .find((m) => m.userId === user?.id)?.avatarUrl ||
+      .find((m) => m.userId === authUser?.id)?.avatarUrl ||
     loginData?.challenges
       ?.flatMap((c) => c.members ?? [])
-      .find((m) => m.userId === user?.id)?.avatarUrl ||
+      .find((m) => m.userId === authUser?.id)?.avatarUrl ||
     undefined;
 
   // Auth gate — save intended path then redirect to onboarding (skip for public routes)

@@ -9,6 +9,7 @@ import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateChallenge, useUpdateChallenge, useTemplates } from "@/lib/hooks/challenges";
 import { useCircle } from "@/lib/hooks/circles";
+import { compressImage } from "@/lib/compressImage";
 import { useUsers } from "@/lib/hooks/users";
 import type { AuthUser } from "@/lib/types/auth";
 import type { ApiChallenge, ApiTemplate } from "@/lib/types/challenges";
@@ -462,12 +463,12 @@ function Step3({
   const t = useTranslations("challenges");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      onChange("bannerUrl", URL.createObjectURL(file));
-      onFileSelect(file);
-    }
+    if (!file) return;
+    onChange("bannerUrl", URL.createObjectURL(file));
+    const compressed = await compressImage(file);
+    onFileSelect(compressed);
   };
 
   return (
