@@ -329,7 +329,7 @@ export default function CircleScreen({ circleId }: Props) {
         {(circle.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r)).length > 0 && (
           <div className="border-b border-progress-track">
             <p className="px-10 pt-7.5 pb-4 text-xl font-bold text-text-subheading">
-              {t("impact")}
+              {t("circle")} {t("impact")}
             </p>
             <div className="grid grid-cols-2 border-t border-[#e6e6e6]">
               {(circle.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r)).map((record, i) => (

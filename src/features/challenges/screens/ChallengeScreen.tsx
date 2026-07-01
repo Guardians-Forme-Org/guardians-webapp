@@ -40,6 +40,7 @@ function HomeTab({
   userId?: string | null;
 }) {
   const t = useTranslations("challenges");
+  const tCircles = useTranslations("circles");
   const [expanded, setExpanded] = useState(false);
   const [showAllMembers, setShowAllMembers] = useState(false);
   const { data: users = [] } = useUsers();
@@ -218,7 +219,10 @@ function HomeTab({
       {/* Impact */}
       {(challenge.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r)).length > 0 && (
         <div className="border-t border-[#e6e6e6]">
-          <div className="grid grid-cols-2">
+          <p className="px-10 pt-7.5 pb-4 text-xl font-bold text-text-subheading">
+            {tCircles("challenge")} {t("impactSection")}
+          </p>
+          <div className="grid grid-cols-2 border-t border-[#e6e6e6]">
             {(challenge.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r)).map((record, i) => (
               <div
                 key={record.impactRecordId}

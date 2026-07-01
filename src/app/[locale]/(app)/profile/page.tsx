@@ -86,6 +86,7 @@ export default function ProfilePage() {
   const { user, logout, loginData, loading } = useAuth();
   const t = useTranslations("profile");
   const tCommon = useTranslations("common");
+  const tHome = useTranslations("home");
   const locale = useLocale();
   const [showLanguage, setShowLanguage] = useState(false);
   const [showLocation, setShowLocation] = useState(false);
@@ -382,6 +383,9 @@ export default function ProfilePage() {
       {/* Impact stats */}
       {userRecords.length > 0 && (
         <div className="px-7.5">
+          <p className="pt-7.5 pb-4 px-1 text-xl font-bold text-text-subheading">
+            {tHome("myImpact")}
+          </p>
           {userRecords.map((ur, i) => {
             const cr = circleRecords.find((r) => r.siUnit === ur.siUnit);
             const unit = ur.impactSummary.contribution.unitOfMeasure;
