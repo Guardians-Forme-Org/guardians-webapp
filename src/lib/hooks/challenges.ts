@@ -102,7 +102,7 @@ type SubmitEvidencePayload = {
   volunteerHours: { value: number; unitOfMeasure: string; SiUnit: string };
   contributors: string[];
   data: {
-    measurement: { value: number; unitofMeasure: string; SiUnit: string };
+    measurement?: { value: number; unitofMeasure: string; siUnit: string };
     description: string;
   };
 };
