@@ -124,11 +124,10 @@ export default function ProfilePage() {
       .flatMap((c) => c.members ?? [])
       .find((m) => m.userId === user?.id)?.avatarUrl;
 
-  const userRecords = (loginData?.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r));
-  const circleRecords = (PROFILE_CONFIG.aggregateUserCircleImpact
+  const userRecords = loginData?.impactRecords ?? [];
+  const circleRecords = PROFILE_CONFIG.aggregateUserCircleImpact
     ? aggregateUserCircleImpact(loginData?.circles ?? [], locale)
-    : (loginData?.circles ?? []).flatMap((c) => c.impactRecords ?? [])
-  ).filter(r => !isCrimeIncidentImpact(r));
+    : (loginData?.circles ?? []).flatMap((c) => c.impactRecords ?? []);
 
   const [activeTab, setActiveTab] = useState<"challenges" | "circles" | null>(
     null,
@@ -389,11 +388,12 @@ export default function ProfilePage() {
           {userRecords.map((ur, i) => {
             const cr = circleRecords.find((r) => r.siUnit === ur.siUnit);
             const unit = ur.impactSummary.contribution.unitOfMeasure;
-            const isOpen = expandedImpact === i;
+            const isCrime = isCrimeIncidentImpact(ur);
+            const isOpen = !isCrime && expandedImpact === i;
             return (
               <div key={ur.impactRecordId ?? i}>
                 <button
-                  onClick={() => setExpandedImpact(isOpen ? null : i)}
+                  onClick={() => !isCrime && setExpandedImpact(isOpen ? null : i)}
                   className="flex items-end w-full border-b border-progress-track"
                 >
                   <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
@@ -412,13 +412,15 @@ export default function ProfilePage() {
                       {cr?.impactSummary.contribution.displayName ?? "—"}
                     </p>
                   </div>
-                  <div className="pb-6 pl-2 shrink-0">
-                    {isOpen ? (
-                      <ChevronUp size={14} className="text-text-muted" />
-                    ) : (
-                      <ChevronDown size={14} className="text-text-muted" />
-                    )}
-                  </div>
+                  {!isCrime && (
+                    <div className="pb-6 pl-2 shrink-0">
+                      {isOpen ? (
+                        <ChevronUp size={14} className="text-text-muted" />
+                      ) : (
+                        <ChevronDown size={14} className="text-text-muted" />
+                      )}
+                    </div>
+                  )}
                 </button>
                 {isOpen && (
                   <div className="px-1 pt-3 pb-5 border-b border-progress-track flex flex-col gap-2.5">
