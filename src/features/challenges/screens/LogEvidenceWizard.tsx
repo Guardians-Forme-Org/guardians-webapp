@@ -98,6 +98,7 @@ type Props = { challengeId: string; stepId: string; viewId?: string };
 
 export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props) {
   const t = useTranslations("challenges");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { user, loginData } = useAuth();
   const { data: challenge } = useChallenge(challengeId);
@@ -171,7 +172,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     ? derivedConfig?.steps[step]?.kind
     : staticConfig?.wizardSteps[step]?.type;
 
-  const nextLabel = nextStepKind === "review" ? t("review") : t("save");
+  const nextLabel = nextStepKind === "review" ? t("review") : tCommon("continue");
   const members = challenge?.members ?? [];
 
   // ── Draft: static path ─────────────────────────────────────────────────────
