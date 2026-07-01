@@ -217,36 +217,43 @@ function HomeTab({
       )}
 
       {/* Impact */}
-      {(challenge.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r)).length > 0 && (
+      {(challenge.impactRecords ?? []).length > 0 && (
         <div className="border-t border-[#e6e6e6]">
           <p className="px-10 pt-7.5 pb-4 text-xl font-bold text-text-subheading">
             {tCircles("challenge")} {t("impactSection")}
           </p>
           <div className="grid grid-cols-2 border-t border-[#e6e6e6]">
-            {(challenge.impactRecords ?? []).filter(r => !isCrimeIncidentImpact(r)).map((record, i) => (
-              <div
-                key={record.impactRecordId}
-                className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-1.5 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}
-              >
-                <p className="text-[12px] text-[#767676] leading-snug">
-                  {deriveImpactLabel(
-                    record.impactSummary.impact.shortSummary ??
-                      record.impactSummary.impact.summary,
-                  )}
-                </p>
-                <p className="text-2xl font-semibold text-[#333]">
-                  {formatImpactDisplayValue(
-                    record.impactSummary.impact.displayName,
-                  )}
-                </p>
-                <p className="text-[11px] text-text-muted">
-                  {formatImpactDisplayValue(
-                    record.impactSummary.contribution.displayName,
-                  )}{" "}
-                  {t("contributed")}
-                </p>
-              </div>
-            ))}
+            {(challenge.impactRecords ?? []).map((record, i) => {
+              const isCrime = isCrimeIncidentImpact(record);
+              return (
+                <div
+                  key={record.impactRecordId}
+                  className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-1.5 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}
+                >
+                  <p className="text-[12px] text-[#767676] leading-snug">
+                    {isCrime
+                      ? record.impactSummary.contribution.unitOfMeasure
+                      : deriveImpactLabel(
+                          record.impactSummary.impact.shortSummary ??
+                            record.impactSummary.impact.summary,
+                        )}
+                  </p>
+                  <p className="text-2xl font-semibold text-[#333]">
+                    {formatImpactDisplayValue(
+                      isCrime
+                        ? record.impactSummary.contribution.displayName
+                        : record.impactSummary.impact.displayName,
+                    )}
+                  </p>
+                  <p className="text-[11px] text-text-muted">
+                    {formatImpactDisplayValue(
+                      record.impactSummary.contribution.displayName,
+                    )}{" "}
+                    {t("contributed")}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
