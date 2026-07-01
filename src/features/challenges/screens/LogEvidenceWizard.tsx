@@ -51,9 +51,22 @@ function activityToDynamic(
   activity: ApiRecentActivity,
   vhFieldName: string,
   contribFieldName: string,
+  stepForm?: import("@/lib/types/challenges").ApiTemplateFormField[] | null,
 ): DynamicValues {
   const result: DynamicValues = {};
 
+  // New shape: data.measurement + data.description
+  if (activity.data.measurement) {
+    result["MEASUREMENT"] = String(activity.data.measurement.value);
+    result["MEASUREMENT__unit"] = activity.data.measurement.unitOfMeasure;
+  }
+
+  if (activity.data.description !== undefined) {
+    const descField = stepForm?.find((f) => f.name.includes("DESCRIPTION"));
+    result[descField?.name ?? "ACTIVITY_DESCRIPTION"] = activity.data.description;
+  }
+
+  // Legacy shape: data.fields
   for (const [key, val] of Object.entries(activity.data.fields ?? {})) {
     if (
       val !== null &&
@@ -265,9 +278,9 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     if (!viewActivity) return;
     setForm(activityToForm(viewActivity));
     if (isDerived) {
-      setDynamicValues(activityToDynamic(viewActivity, vhFieldName, contribFieldName));
+      setDynamicValues(activityToDynamic(viewActivity, vhFieldName, contribFieldName, stepForm));
     }
-  }, [viewActivity, isDerived, vhFieldName, contribFieldName]);
+  }, [viewActivity, isDerived, vhFieldName, contribFieldName, stepForm]);
 
   const bridgeForm: LogFormData = useMemo(
     () => ({
