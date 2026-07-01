@@ -24,7 +24,7 @@ export type ApiRecentActivity = {
     color: string;
     createdAt: string;
   };
-  createdAt: string;
+  submittedAt: string;
   modifiedAt: string;
   locksOnCompletion: boolean;
   volunteerHours: {

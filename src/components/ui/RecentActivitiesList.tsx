@@ -80,7 +80,7 @@ export default function RecentActivitiesList({ thingId, filterStepId, userId }: 
         const title = measurement?.value != null
           ? `${measurement.value} ${measurement.unitOfMeasure}`
           : formatStepId(record.stepId);
-        const date = new Date(record.createdAt).toLocaleDateString(undefined, {
+        const date = new Date(record.submittedAt).toLocaleDateString(undefined, {
           day: "numeric",
           month: "long",
           year: "numeric",
