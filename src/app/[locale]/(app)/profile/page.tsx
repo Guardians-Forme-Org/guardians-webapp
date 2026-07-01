@@ -91,14 +91,14 @@ export default function ProfilePage() {
   const [showLocation, setShowLocation] = useState(false);
 
   const ALL_MARKERS = [
-    { label: t("markerFirstImpact"), icon: Zap },
-    { label: t("markerFirstCircle"), icon: CheckCircle },
-    { label: t("markerDeepRoots"), icon: Leaf },
-    { label: t("markerRange"), icon: Compass },
-    { label: t("markerSustained"), icon: Calendar },
-    { label: t("markerWitness"), icon: Eye },
-    { label: t("markerOriginator"), icon: Lightbulb },
-    { label: t("markerMultiplier"), icon: Shuffle },
+    { key: "First Impact", label: t("markerFirstImpact"), icon: Zap },
+    { key: "First Circle", label: t("markerFirstCircle"), icon: CheckCircle },
+    { key: "Deep Roots", label: t("markerDeepRoots"), icon: Leaf },
+    { key: "Range", label: t("markerRange"), icon: Compass },
+    { key: "Sustained", label: t("markerSustained"), icon: Calendar },
+    { key: "Witness", label: t("markerWitness"), icon: Eye },
+    { key: "Originator", label: t("markerOriginator"), icon: Lightbulb },
+    { key: "Multiplier", label: t("markerMultiplier"), icon: Shuffle },
   ];
 
   const meta = user?.user_metadata;
@@ -457,10 +457,10 @@ export default function ProfilePage() {
           {t("contributionMarkers")}
         </Text>
         <div className="flex flex-wrap gap-2">
-          {ALL_MARKERS.map(({ label, icon: Icon }) => {
-            const earned = earnedNames.has(label.toUpperCase());
+          {ALL_MARKERS.map(({ key, label, icon: Icon }) => {
+            const earned = earnedNames.has(key.toUpperCase());
             const api = (loginData?.contributionMarkers ?? []).find(
-              (m) => m.name.toUpperCase() === label.toUpperCase(),
+              (m) => m.name.toUpperCase() === key.toUpperCase(),
             );
             return (
               <button
