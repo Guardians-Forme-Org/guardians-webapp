@@ -306,7 +306,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
         measurement: {
           value: parseFloat(form.measurementValue) || 0,
           unitofMeasure: form.measurementType === "VOLUME" ? "L" : "kg",
-          SiUnit: form.measurementType,
+          siUnit: form.measurementType,
         },
         description,
       },
@@ -369,21 +369,50 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
 
     const knownNames = new Set([vhFieldName, contribFieldName, "CONFIRM_COMPLETION", "CONFIRMATION"]);
 
-    // Build data.fields — convert NUMBER+unit pairs into { value, unit } objects
-    const dataFields: Record<string, unknown> = {};
+    const unitToSiUnit: Record<string, string> = {
+      kg: "MASS", lb: "MASS", g: "MASS",
+      L: "VOLUME", ml: "VOLUME",
+      H: "TIME", hours: "TIME",
+      SQM: "AREA", SQFT: "AREA", ACRES: "AREA", HECTARES: "AREA",
+    };
+
+    const rawFields: Record<string, unknown> = {};
     for (const field of stepForm ?? []) {
       if (knownNames.has(field.name)) continue;
-      if (field.type === "IMAGE") continue; // handled separately
+      if (field.type === "IMAGE") continue;
       const val = dynamicValues[field.name];
       if (val === undefined || val === null || val === "") continue;
 
       if ((field.type === "NUMBER" || field.type === "NUMERIC") && field.unitOfMeasureOptions?.length) {
         const unit = (dynamicValues[`${field.name}__unit`] as string) ?? field.unitOfMeasureOptions[0].value;
-        dataFields[field.name] = { value: parseFloat(val as string) || 0, unit };
+        rawFields[field.name] = { value: parseFloat(val as string) || 0, unit };
       } else {
-        dataFields[field.name] = val;
+        rawFields[field.name] = val;
       }
     }
+
+    // Build data in the expected shape
+    const data: Record<string, unknown> = {};
+
+    const measurementRaw = rawFields["MEASUREMENT"] as { value: number; unit: string } | undefined;
+    if (measurementRaw) {
+      data.measurement = {
+        value: measurementRaw.value,
+        unitofMeasure: measurementRaw.unit,
+        siUnit: unitToSiUnit[measurementRaw.unit] ?? measurementRaw.unit,
+      };
+      delete rawFields["MEASUREMENT"];
+    }
+
+    // Map any field whose name contains "DESCRIPTION" to data.description
+    const descKey = Object.keys(rawFields).find((k) => k.includes("DESCRIPTION"));
+    if (descKey !== undefined) {
+      data.description = rawFields[descKey];
+      delete rawFields[descKey];
+    }
+
+    // Merge remaining fields directly into data
+    Object.assign(data, rawFields);
 
     // First IMAGE field becomes the media file
     const imageField = stepForm?.find((f) => f.type === "IMAGE");
@@ -410,7 +439,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
           siUnit: "TIME",
         },
         contributors,
-        data: { fields: dataFields },
+        data,
       },
       mediaFile,
     };
