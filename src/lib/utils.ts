@@ -13,6 +13,27 @@ export function isCrimeIncidentImpact(item: {
   );
 }
 
+export function isTreePlantingImpact(item: {
+  impactSummary?: { contribution?: { unitOfMeasure?: string } };
+}): boolean {
+  return (item.impactSummary?.contribution?.unitOfMeasure ?? "")
+    .toLowerCase()
+    .includes("tree");
+}
+
+// Records whose contribution is the headline stat (impact hidden), e.g. patrol
+// hours on crime challenges or trees planted on greening challenges.
+export function isContributionOnlyImpact(item: {
+  siUnit?: string;
+  impactType?: string;
+  impactSummary?: {
+    contribution?: { unitOfMeasure?: string };
+    impact?: { unitOfMeasure?: string; shortSummary?: string };
+  };
+}): boolean {
+  return isCrimeIncidentImpact(item) || isTreePlantingImpact(item);
+}
+
 export function deriveImpactLabel(shortSummary: string): string {
   const withUnitOf = shortSummary.replace(/^[\d,.]+ \S+ of /i, "");
   if (withUnitOf !== shortSummary) {

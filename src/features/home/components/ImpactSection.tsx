@@ -3,7 +3,7 @@
 import Skeleton from "@/components/ui/Skeleton";
 import Text from "@/components/ui/Text";
 import type { ImpactMatrixItem, ThingsMatrixItem } from "@/lib/hooks/metrics";
-import { deriveImpactLabel, formatImpactDisplayValue, isCrimeIncidentImpact } from "@/lib/utils";
+import { deriveImpactLabel, formatImpactDisplayValue, isContributionOnlyImpact } from "@/lib/utils";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -25,11 +25,11 @@ function ImpactGrid({ items }: { items: ImpactMatrixItem[] }) {
   return (
     <div className="grid grid-cols-3 gap-x-2 gap-y-5 px-5 py-5">
       {items.map((item) => {
-        const isCrime = isCrimeIncidentImpact(item);
-        const label = isCrime
+        const contributionOnly = isContributionOnlyImpact(item);
+        const label = contributionOnly
           ? item.impactSummary.contribution.unitOfMeasure
           : deriveImpactLabel(item.impactSummary.impact.shortSummary);
-        const value = isCrime
+        const value = contributionOnly
           ? formatImpactDisplayValue(item.impactSummary.contribution.displayName)
           : formatImpactDisplayValue(item.impactSummary.impact.displayName);
         return (

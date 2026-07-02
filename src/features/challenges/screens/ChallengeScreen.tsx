@@ -19,7 +19,7 @@ import {
   calcChallengeProgress,
   deriveImpactLabel,
   formatImpactDisplayValue,
-  isCrimeIncidentImpact,
+  isContributionOnlyImpact,
 } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, ChevronLeft, ChevronRight, MapPin, Pencil } from "lucide-react";
@@ -224,14 +224,14 @@ function HomeTab({
           </p>
           <div className="grid grid-cols-2 border-t border-[#e6e6e6]">
             {(challenge.impactRecords ?? []).map((record, i) => {
-              const isCrime = isCrimeIncidentImpact(record);
+              const contributionOnly = isContributionOnlyImpact(record);
               return (
                 <div
                   key={record.impactRecordId}
                   className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-1.5 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}
                 >
                   <p className="text-[12px] text-[#767676] leading-snug">
-                    {isCrime
+                    {contributionOnly
                       ? record.impactSummary.contribution.unitOfMeasure
                       : deriveImpactLabel(
                           record.impactSummary.impact.shortSummary ??
@@ -240,7 +240,7 @@ function HomeTab({
                   </p>
                   <p className="text-2xl font-semibold text-[#333]">
                     {formatImpactDisplayValue(
-                      isCrime
+                      contributionOnly
                         ? record.impactSummary.contribution.displayName
                         : record.impactSummary.impact.displayName,
                     )}

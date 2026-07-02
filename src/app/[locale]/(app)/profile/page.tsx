@@ -13,7 +13,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { PROFILE_CONFIG } from "@/lib/config";
 import type { ApiCircle, ApiImpactRecord } from "@/lib/types/circles";
 import type { ContributionMarker } from "@/lib/types/auth";
-import { isCrimeIncidentImpact } from "@/lib/utils";
+import { isContributionOnlyImpact } from "@/lib/utils";
 import {
   Calendar,
   CheckCircle,
@@ -388,12 +388,12 @@ export default function ProfilePage() {
           {userRecords.map((ur, i) => {
             const cr = circleRecords.find((r) => r.siUnit === ur.siUnit);
             const unit = ur.impactSummary.contribution.unitOfMeasure;
-            const isCrime = isCrimeIncidentImpact(ur);
-            const isOpen = !isCrime && expandedImpact === i;
+            const contributionOnly = isContributionOnlyImpact(ur);
+            const isOpen = !contributionOnly && expandedImpact === i;
             return (
               <div key={ur.impactRecordId ?? i}>
                 <button
-                  onClick={() => !isCrime && setExpandedImpact(isOpen ? null : i)}
+                  onClick={() => !contributionOnly && setExpandedImpact(isOpen ? null : i)}
                   className="flex items-end w-full border-b border-progress-track"
                 >
                   <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
@@ -412,7 +412,7 @@ export default function ProfilePage() {
                       {cr?.impactSummary.contribution.displayName ?? "—"}
                     </p>
                   </div>
-                  {!isCrime && (
+                  {!contributionOnly && (
                     <div className="pb-6 pl-2 shrink-0">
                       {isOpen ? (
                         <ChevronUp size={14} className="text-text-muted" />
