@@ -107,6 +107,22 @@ type SubmitEvidencePayload = {
   };
 };
 
+export type SubmitEvidenceResponse = {
+  impactSummary?: {
+    contribution?: { value: number; unitOfMeasure: string; displayName: string };
+    impact?: {
+      value: number;
+      unitOfMeasure: string;
+      displayName: string;
+      siUnit: string;
+      shortSummary?: string;
+      summary?: string;
+    };
+  };
+  message?: string;
+  volunteerHours?: { value: number; unitOfMeasure: string; siUnit: string };
+};
+
 export function useSubmitEvidence() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -124,7 +140,7 @@ export function useSubmitEvidence() {
       payload: SubmitEvidencePayload;
     }) => {
       const endpoint = `/submit${challengeCode.replace("-", "")}`;
-      return apiFetch<void>(endpoint, {
+      return apiFetch<SubmitEvidenceResponse>(endpoint, {
         method: "POST",
         body: payload,
         headers: {
@@ -156,7 +172,7 @@ export function useUpdateEvidence() {
       userId: string;
       payload: SubmitEvidencePayload;
     }) => {
-      return apiFetch<void>(`/evidences/${evidenceId}`, {
+      return apiFetch<SubmitEvidenceResponse>(`/evidences/${evidenceId}`, {
         method: "PUT",
         body: payload,
         headers: {

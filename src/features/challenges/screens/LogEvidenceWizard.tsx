@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/contexts/AuthContext";
-import { useChallenge, useTemplates, useSubmitEvidence, useSubmitRegistration, useUpdateEvidence, useMarkStepComplete } from "@/lib/hooks/challenges";
+import { useChallenge, useTemplates, useSubmitEvidence, useSubmitRegistration, useUpdateEvidence, useMarkStepComplete, type SubmitEvidenceResponse } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import { EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
 import { computeChallengeRoles } from "@/lib/roles";
@@ -150,6 +150,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
   }, [viewId, derivedConfig]);
   const [isViewMode, setIsViewMode] = useState(!!viewId);
   const [submitted, setSubmitted] = useState(false);
+  const [impactMessage, setImpactMessage] = useState<string | null>(null);
   const [viewActivity, setViewActivity] = useState<ApiRecentActivity | null>(null);
 
   // ── Static form state ──────────────────────────────────────────────────────
@@ -460,8 +461,9 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
   };
 
   // ── Submission ─────────────────────────────────────────────────────────────
-  const onSuccess = () => {
+  const onSuccess = (data?: SubmitEvidenceResponse) => {
     localStorage.removeItem(STORAGE_KEY(stepId));
+    setImpactMessage(data?.impactSummary?.impact?.summary ?? null);
     if (shouldMarkComplete && stepMeta && challenge) {
       markStepComplete.mutate({
         challengeId: challenge.challengeId,
@@ -506,7 +508,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
           payload,
           mediaFile: form.evidenceFiles[0],
         },
-        { onSuccess },
+        { onSuccess: () => onSuccess() },
       );
       return;
     }
@@ -516,7 +518,12 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     if (viewId && !isViewMode) {
       updateEvidence.mutate(
         { evidenceId: viewId, challengeId: challenge.challengeId, stepId: stepMeta.stepId, userId: user.id, payload },
-        { onSuccess: () => setSubmitted(true) },
+        {
+          onSuccess: (data) => {
+            setImpactMessage(data?.impactSummary?.impact?.summary ?? null);
+            setSubmitted(true);
+          },
+        },
       );
     } else {
       submitEvidence.mutate(
@@ -544,8 +551,7 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     return (
       <WizardSuccessScreen
         title={viewId && !isViewMode ? t("activityUpdated") : t("activityUploaded")}
-        subtitle={t("inviteSubtitle")}
-        inviteLink={`${window.location.origin}/challenges/${challengeId}`}
+        subtitle={impactMessage ?? (viewId && !isViewMode ? t("activityUpdatedSubtitle") : t("activityUploadedSubtitle"))}
         onDone={() => router.push(`/challenges/${challengeId}`)}
       />
     );
