@@ -21,8 +21,20 @@ export function isTreePlantingImpact(item: {
     .includes("tree");
 }
 
+export function isGreenedAreaImpact(item: {
+  siUnit?: string;
+  impactSummary?: { contribution?: { unitOfMeasure?: string } };
+}): boolean {
+  const unit = (item.impactSummary?.contribution?.unitOfMeasure ?? "").toLowerCase();
+  return (
+    (item.siUnit ?? "").toUpperCase() === "AREA" ||
+    unit.includes("m²") ||
+    unit.includes("m2")
+  );
+}
+
 // Records whose contribution is the headline stat (impact hidden), e.g. patrol
-// hours on crime challenges or trees planted on greening challenges.
+// hours on crime challenges, trees planted or area greened on greening challenges.
 export function isContributionOnlyImpact(item: {
   siUnit?: string;
   impactType?: string;
@@ -31,7 +43,7 @@ export function isContributionOnlyImpact(item: {
     impact?: { unitOfMeasure?: string; shortSummary?: string };
   };
 }): boolean {
-  return isCrimeIncidentImpact(item) || isTreePlantingImpact(item);
+  return isCrimeIncidentImpact(item) || isTreePlantingImpact(item) || isGreenedAreaImpact(item);
 }
 
 export function deriveImpactLabel(shortSummary: string): string {
