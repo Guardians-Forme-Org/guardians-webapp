@@ -375,8 +375,102 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     };
   };
 
+  // CH-015 (urban greening) only: the API parses exactly data.measurement +
+  // data.description — any other key is silently dropped by its body parser
+  // and produces no impact. Map the dynamic form fields into that shape.
+  const buildCH015Payload = () => {
+    if (!user || !challenge || !stepMeta) throw new Error("Not ready");
+
+    const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
+    const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
+    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const knownNames = new Set([vhFieldName, contribFieldName, "CONFIRM_COMPLETION", "CONFIRMATION"]);
+
+    // The AREA impact formula assumes square metres — convert before sending
+    const areaToSqm: Record<string, number> = {
+      SQM: 1,
+      SQFT: 0.09290304,
+      ACRES: 4046.8564224,
+      HECTARES: 10000,
+    };
+
+    const sorted = [...(stepForm ?? [])].sort((a, b) => a.displayOrder - b.displayOrder);
+    const hasValue = (name: string) => {
+      const v = dynamicValues[name];
+      return v !== undefined && v !== null && v !== "";
+    };
+
+    // Measurement source: the last numeric field with unit options — the
+    // form's outcome metric (AREA_GREENED, after AREA_SEALED_OR_REMOVED)
+    const numericFields = sorted.filter(
+      (f) =>
+        !knownNames.has(f.name) &&
+        (f.type === "NUMBER" || f.type === "NUMERIC") &&
+        f.unitOfMeasureOptions?.length &&
+        hasValue(f.name),
+    );
+    const measurementField = numericFields[numericFields.length - 1];
+
+    let measurement: { value: number; unitofMeasure: string; siUnit: string; description?: string } | undefined;
+    if (measurementField) {
+      const value = parseFloat(dynamicValues[measurementField.name] as string) || 0;
+      const unit =
+        (dynamicValues[`${measurementField.name}__unit`] as string) ??
+        measurementField.unitOfMeasureOptions?.[0]?.value ??
+        "SQM";
+      measurement = { value: value * (areaToSqm[unit] ?? 1), unitofMeasure: "m²", siUnit: "AREA" };
+    }
+
+    // Description: an explicit DESCRIPTION field, else the species free-text field
+    const descriptionField =
+      sorted.find((f) => f.name.includes("DESCRIPTION") && hasValue(f.name)) ??
+      sorted.find((f) => f.name.includes("SPECIES") && f.type === "TEXT" && hasValue(f.name));
+    const description = descriptionField ? String(dynamicValues[descriptionField.name]) : "";
+    if (measurement && description) measurement.description = description;
+
+    // Also send every captured field under its raw name (original values,
+    // pre-conversion). The API ignores these today but this preserves the
+    // data for when it starts storing them.
+    const rawFields: Record<string, unknown> = {};
+    for (const field of sorted) {
+      if (knownNames.has(field.name) || field.type === "IMAGE" || !hasValue(field.name)) continue;
+      if ((field.type === "NUMBER" || field.type === "NUMERIC") && field.unitOfMeasureOptions?.length) {
+        const unit = (dynamicValues[`${field.name}__unit`] as string) ?? field.unitOfMeasureOptions[0].value;
+        rawFields[field.name] = { value: parseFloat(dynamicValues[field.name] as string) || 0, unit };
+      } else {
+        rawFields[field.name] = dynamicValues[field.name];
+      }
+    }
+
+    // First IMAGE field becomes the media file
+    const imageField = stepForm?.find((f) => f.type === "IMAGE");
+    const mediaFile = imageField ? (dynamicValues[imageField.name] as File | undefined) : undefined;
+
+    return {
+      payload: {
+        stepId: stepMeta.stepId,
+        stepNumber: stepMeta.stepNumber,
+        challengeCode: challenge.challengeCode,
+        circleId: challenge.circleId,
+        thingId: challenge.challengeId,
+        thingUUID: challenge.id,
+        submittedBy: user.id,
+        approvalRequired: false,
+        volunteerHours: {
+          value: vhValue,
+          unitOfMeasure: vhUnit === "H" ? "hours" : vhUnit.toLowerCase(),
+          SiUnit: "TIME",
+        },
+        contributors,
+        data: { ...rawFields, ...(measurement ? { measurement } : {}), description },
+      },
+      mediaFile,
+    };
+  };
+
   const buildDynamicPayload = () => {
     if (!user || !challenge || !stepMeta) throw new Error("Not ready");
+    if (challenge.challengeCode === "CH-015") return buildCH015Payload();
 
     const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
     const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
