@@ -298,6 +298,26 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     else if (k === "contributors") updateDynamic(contribFieldName, v);
   };
 
+  // CH-015 only: one measurement per submission — filling an area field
+  // disables the trees count field and vice versa
+  const disabledFields = useMemo(() => {
+    const disabled = new Set<string>();
+    if (challenge?.challengeCode !== "CH-015" || !stepForm) return disabled;
+    const knownNames = new Set([vhFieldName, contribFieldName, "CONFIRM_COMPLETION", "CONFIRMATION"]);
+    const filled = (name: string) => {
+      const v = dynamicValues[name];
+      return v !== undefined && v !== null && v !== "";
+    };
+    const numeric = stepForm.filter(
+      (f) => !knownNames.has(f.name) && (f.type === "NUMBER" || f.type === "NUMERIC"),
+    );
+    const areaFields = numeric.filter((f) => f.unitOfMeasureOptions?.length);
+    const countFields = numeric.filter((f) => !f.unitOfMeasureOptions?.length && f.name.includes("COUNT"));
+    if (areaFields.some((f) => filled(f.name))) countFields.forEach((f) => disabled.add(f.name));
+    else if (countFields.some((f) => filled(f.name))) areaFields.forEach((f) => disabled.add(f.name));
+    return disabled;
+  }, [challenge?.challengeCode, stepForm, dynamicValues, vhFieldName, contribFieldName]);
+
   // ── Payload builders ───────────────────────────────────────────────────────
   const buildPayload = () => {
     if (!user || !challenge || !stepMeta) throw new Error("Not ready");
@@ -419,6 +439,21 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
         measurementField.unitOfMeasureOptions?.[0]?.value ??
         "SQM";
       measurement = { value: value * (areaToSqm[unit] ?? 1), unitofMeasure: "m²", siUnit: "AREA" };
+    } else {
+      // Tree-planting variant: no area filled — the count field becomes a
+      // COUNT measurement (drives the trees-planted impact formula)
+      const countField = sorted.find(
+        (f) =>
+          !knownNames.has(f.name) &&
+          (f.type === "NUMBER" || f.type === "NUMERIC") &&
+          !f.unitOfMeasureOptions?.length &&
+          f.name.includes("COUNT") &&
+          hasValue(f.name),
+      );
+      if (countField) {
+        const value = parseFloat(dynamicValues[countField.name] as string) || 0;
+        measurement = { value, unitofMeasure: "count", siUnit: "COUNT" };
+      }
     }
 
     // Description: an explicit DESCRIPTION field, else the species free-text field
@@ -673,6 +708,8 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
                 update={updateDynamic}
                 onNext={next}
                 nextLabel={nextLabel}
+                disabledFields={disabledFields}
+                disabledHint={t("oneMeasurementHint")}
               />
             );
           }

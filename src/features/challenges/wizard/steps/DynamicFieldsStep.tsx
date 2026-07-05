@@ -15,6 +15,9 @@ type Props = {
   update: (name: string, value: unknown) => void;
   onNext: () => void;
   nextLabel: string;
+  // Fields greyed out because a mutually exclusive field is filled
+  disabledFields?: Set<string>;
+  disabledHint?: string;
 };
 
 function RadioDot({ selected }: { selected: boolean }) {
@@ -96,7 +99,7 @@ function ImageField({
   );
 }
 
-export default function DynamicFieldsStep({ fields, values, update, onNext, nextLabel }: Props) {
+export default function DynamicFieldsStep({ fields, values, update, onNext, nextLabel, disabledFields, disabledHint }: Props) {
   const t = useTranslations("challenges");
 
   return (
@@ -183,22 +186,29 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
 
           // ── NUMBER / NUMERIC ────────────────────────────────────────────────
           if (field.type === "NUMBER" || field.type === "NUMERIC") {
+            const isDisabled = disabledFields?.has(field.name) ?? false;
             return (
               <FieldGroup key={field.name} label={field.label} required={field.required}>
-                <div className="w-full flex items-center border border-[rgba(26,26,24,0.28)] rounded-[8px] overflow-hidden">
+                <div
+                  className={`w-full flex items-center border border-[rgba(26,26,24,0.28)] rounded-[8px] overflow-hidden transition-opacity ${
+                    isDisabled ? "opacity-40" : ""
+                  }`}
+                >
                   <input
                     type="number"
                     inputMode="decimal"
                     min="0"
+                    disabled={isDisabled}
                     value={(value as string) ?? ""}
                     onChange={(e) => update(field.name, e.target.value)}
                     placeholder="0"
-                    className="flex-1 min-w-0 h-[44px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none bg-white"
+                    className="flex-1 min-w-0 h-[44px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none bg-white disabled:bg-[#f0efeb]"
                   />
                   {field.unitOfMeasureOptions && field.unitOfMeasureOptions.length > 1 ? (
                     <div className="relative h-[44px] shrink-0">
                       <select
                         value={activeUnit}
+                        disabled={isDisabled}
                         onChange={(e) => update(`${field.name}__unit`, e.target.value)}
                         className="h-full w-24 bg-[#f0efeb] border-l border-[rgba(26,26,24,0.14)] px-2 text-xs font-semibold text-[#5c5c59] outline-none appearance-none cursor-pointer pr-5"
                       >
@@ -218,6 +228,9 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
                     </div>
                   ) : null}
                 </div>
+                {isDisabled && disabledHint && (
+                  <p className="text-xs text-text-muted mt-1.5">{disabledHint}</p>
+                )}
               </FieldGroup>
             );
           }

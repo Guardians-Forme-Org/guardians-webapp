@@ -69,6 +69,7 @@
   "activityUploaded": "Activity Uploaded",
   "activityUpdatedSubtitle": "Your changes have been saved",
   "activityUploadedSubtitle": "Your activity has been submitted to this challenge",
+  "oneMeasurementHint": "Only one measurement per submission — clear the other field to use this one",
   "update": "Update",
   "upload": "Upload",
   "optionalBadge": "optional",
