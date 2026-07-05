@@ -527,8 +527,41 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
       const val = dynamicValues[field.name];
       if (val === undefined || val === null || val === "") continue;
 
-      if ((field.type === "NUMBER" || field.type === "NUMERIC") && field.unitOfMeasureOptions?.length) {
-        const unit = (dynamicValues[`${field.name}__unit`] as string) ?? field.unitOfMeasureOptions[0].value;
+      // GROUP fields hold an array of sub-form entry objects
+      if (field.type === "GROUP") {
+        const entries = (Array.isArray(val) ? (val as Record<string, unknown>[]) : [])
+          .map((entry) => {
+            const out: Record<string, unknown> = {};
+            for (const sub of field.fields ?? []) {
+              const sv = entry[sub.name];
+              if (sv === undefined || sv === null || sv === "") continue;
+              if ((sub.type === "NUMBER" || sub.type === "NUMERIC") && sub.unitOfMeasureOptions?.length) {
+                const subUnit = (entry[`${sub.name}__unit`] as string) ?? sub.unitOfMeasureOptions[0].value;
+                out[sub.name] = { value: parseFloat(sv as string) || 0, unit: subUnit };
+              } else {
+                out[sub.name] = sv;
+              }
+            }
+            return out;
+          })
+          .filter((entry) => Object.keys(entry).length > 0);
+        if (entries.length) rawFields[field.name] = entries;
+        continue;
+      }
+
+      const isNumeric = (field.type === "NUMBER" || field.type === "NUMERIC") && field.unitOfMeasureOptions?.length;
+      const unit = isNumeric
+        ? ((dynamicValues[`${field.name}__unit`] as string) ?? field.unitOfMeasureOptions![0].value)
+        : undefined;
+
+      // Addable fields hold an array of entries — send one item per entry
+      if (field.addableInput && Array.isArray(val)) {
+        const entries = val.filter((v) => v !== undefined && v !== null && v !== "");
+        if (!entries.length) continue;
+        rawFields[field.name] = isNumeric
+          ? entries.map((v) => ({ value: parseFloat(v as string) || 0, unit }))
+          : entries;
+      } else if (isNumeric) {
         rawFields[field.name] = { value: parseFloat(val as string) || 0, unit };
       } else {
         rawFields[field.name] = val;

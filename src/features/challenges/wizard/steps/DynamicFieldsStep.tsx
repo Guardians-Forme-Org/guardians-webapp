@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import { Camera, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { Camera, ChevronDown, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
 import { FieldGroup, SaveButton, ToggleCard } from "../shared";
@@ -99,221 +99,428 @@ function ImageField({
   );
 }
 
-export default function DynamicFieldsStep({ fields, values, update, onNext, nextLabel, disabledFields, disabledHint }: Props) {
+// Renders a single form field. Used for top-level fields and for the
+// sub-fields inside GROUP entries (which bind into the entry object).
+function FieldControl({
+  field,
+  value,
+  unitValue,
+  onChange,
+  onUnitChange,
+  disabled = false,
+  disabledHint,
+}: {
+  field: ApiTemplateFormField;
+  value: unknown;
+  unitValue?: string;
+  onChange: (value: unknown) => void;
+  onUnitChange: (unit: string) => void;
+  disabled?: boolean;
+  disabledHint?: string;
+}) {
   const t = useTranslations("challenges");
+  const activeUnit = unitValue ?? field.unitOfMeasureOptions?.[0]?.value;
 
+  // ── TOGGLE / BOOLEAN ────────────────────────────────────────────────
+  if (field.type === "TOGGLE" || field.type === "BOOLEAN") {
+    return (
+      <ToggleCard
+        label={field.label}
+        description=""
+        checked={(value as boolean) ?? false}
+        onChange={() => onChange(!((value as boolean) ?? false))}
+      />
+    );
+  }
+
+  // ── SELECT ──────────────────────────────────────────────────────────
+  if (field.type === "SELECT") {
+    return (
+      <FieldGroup label={field.label} required={field.required}>
+        <div className="flex flex-col gap-2">
+          {(field.options ?? []).length === 0 ? (
+            <p className="text-sm text-text-muted py-2 px-1">{t("noOptionsAvailable")}</p>
+          ) : (
+            field.options!.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => onChange(opt.value)}
+                className={`flex items-center justify-between h-[50px] px-5 rounded-[8px] border transition-colors ${
+                  value === opt.value
+                    ? "border-gotf-green"
+                    : "border-[rgba(26,26,24,0.28)]"
+                }`}
+              >
+                <span className="text-base text-text-primary">{opt.label}</span>
+                <RadioDot selected={value === opt.value} />
+              </button>
+            ))
+          )}
+        </div>
+      </FieldGroup>
+    );
+  }
+
+  // ── MULTISELECT ─────────────────────────────────────────────────────
+  if (field.type === "MULTISELECT") {
+    const selected = (value as string[]) ?? [];
+    return (
+      <FieldGroup label={field.label} required={field.required}>
+        <div className="flex flex-col gap-2">
+          {(field.options ?? []).map((opt) => {
+            const isChecked = selected.includes(opt.value);
+            return (
+              <button
+                key={opt.value}
+                onClick={() =>
+                  onChange(
+                    isChecked
+                      ? selected.filter((v) => v !== opt.value)
+                      : [...selected, opt.value],
+                  )
+                }
+                className={`flex items-center justify-between h-[50px] px-5 rounded-[8px] border transition-colors ${
+                  isChecked ? "border-gotf-green" : "border-[rgba(26,26,24,0.28)]"
+                }`}
+              >
+                <span className="text-base text-text-primary">{opt.label}</span>
+                <CheckBox checked={isChecked} />
+              </button>
+            );
+          })}
+        </div>
+      </FieldGroup>
+    );
+  }
+
+  // ── NUMBER / NUMERIC ────────────────────────────────────────────────
+  if (field.type === "NUMBER" || field.type === "NUMERIC") {
+    const numberInput = (val: string, onValueChange: (v: string) => void) => (
+      <div
+        className={`w-full flex items-center border border-[rgba(26,26,24,0.28)] rounded-[8px] overflow-hidden transition-opacity ${
+          disabled ? "opacity-40" : ""
+        }`}
+      >
+        <input
+          type="number"
+          inputMode="decimal"
+          min="0"
+          disabled={disabled}
+          value={val}
+          onChange={(e) => onValueChange(e.target.value)}
+          placeholder="0"
+          className="flex-1 min-w-0 h-[44px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none bg-white disabled:bg-[#f0efeb]"
+        />
+        {field.unitOfMeasureOptions && field.unitOfMeasureOptions.length > 1 ? (
+          <div className="relative h-[44px] shrink-0">
+            <select
+              value={activeUnit}
+              disabled={disabled}
+              onChange={(e) => onUnitChange(e.target.value)}
+              className="h-full w-24 bg-[#f0efeb] border-l border-[rgba(26,26,24,0.14)] px-2 text-xs font-semibold text-[#5c5c59] outline-none appearance-none cursor-pointer pr-5"
+            >
+              {field.unitOfMeasureOptions.map((u) => (
+                <option key={u.value} value={u.value}>
+                  {u.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#5c5c59] pointer-events-none text-[10px]">
+              ▾
+            </div>
+          </div>
+        ) : activeUnit ? (
+          <div className="h-[44px] px-4 flex items-center bg-[#f0efeb] border-l border-[rgba(26,26,24,0.14)]">
+            <span className="text-xs font-semibold text-[#5c5c59]">{activeUnit}</span>
+          </div>
+        ) : null}
+      </div>
+    );
+
+    // Addable: value is an array — one input row per entry, plus add/remove
+    if (field.addableInput) {
+      const entries = Array.isArray(value)
+        ? (value as string[])
+        : value !== undefined && value !== null && value !== ""
+          ? [value as string]
+          : [""];
+      return (
+        <FieldGroup label={field.label} required={field.required}>
+          <div className="flex flex-col gap-2">
+            {entries.map((entry, i) => (
+              <div key={i} className="flex items-center gap-2">
+                {numberInput(entry, (v) => {
+                  const next = [...entries];
+                  next[i] = v;
+                  onChange(next);
+                })}
+                {entries.length > 1 && (
+                  <button
+                    onClick={() => onChange(entries.filter((_, j) => j !== i))}
+                    disabled={disabled}
+                    className="size-8 shrink-0 rounded-full flex items-center justify-center border border-[rgba(26,26,24,0.28)]"
+                    aria-label={t("removeEntry")}
+                  >
+                    <X size={14} className="text-[#5c5c59]" />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              onClick={() => onChange([...entries, ""])}
+              disabled={disabled}
+              className="self-start text-sm font-semibold text-gotf-green py-1"
+            >
+              + {t("addAnother")}
+            </button>
+          </div>
+          {disabled && disabledHint && (
+            <p className="text-xs text-text-muted mt-1.5">{disabledHint}</p>
+          )}
+        </FieldGroup>
+      );
+    }
+
+    return (
+      <FieldGroup label={field.label} required={field.required}>
+        {numberInput((value as string) ?? "", (v) => onChange(v))}
+        {disabled && disabledHint && (
+          <p className="text-xs text-text-muted mt-1.5">{disabledHint}</p>
+        )}
+      </FieldGroup>
+    );
+  }
+
+  // ── DATE ────────────────────────────────────────────────────────────
+  if (field.type === "DATE") {
+    // Evidence dates record when an activity happened — never the future
+    const today = new Date().toLocaleDateString("en-CA");
+    return (
+      <FieldGroup label={field.label} required={field.required}>
+        <div className="w-full overflow-hidden">
+          <input
+            type="date"
+            max={today}
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(e.target.value > today ? today : e.target.value)}
+            className="w-full max-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
+          />
+        </div>
+      </FieldGroup>
+    );
+  }
+
+  // ── TEXTAREA ────────────────────────────────────────────────────────
+  if (field.type === "TEXTAREA") {
+    return (
+      <FieldGroup label={field.label} required={field.required}>
+        <textarea
+          value={(value as string) ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+          rows={4}
+          placeholder={field.label}
+          className="w-full min-w-0 border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 py-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none resize-none"
+        />
+      </FieldGroup>
+    );
+  }
+
+  // ── LOCATION ────────────────────────────────────────────────────────
+  if (field.type === "LOCATION") {
+    const loc = value as LocationResult | null | undefined;
+    return (
+      <FieldGroup label={field.label} required={field.required}>
+        <LocationPicker
+          defaultValue={loc?.formattedAddress}
+          onSelect={(l) => onChange(l)}
+          showUseCurrent
+          showMapPick
+          initialCenter={loc ? { lat: loc.latitude, lng: loc.longitude } : null}
+        />
+      </FieldGroup>
+    );
+  }
+
+  // ── IMAGE ────────────────────────────────────────────────────────────
+  if (field.type === "IMAGE") {
+    return (
+      <ImageField
+        field={field}
+        value={(value as File | null) ?? null}
+        onSelect={(f) => onChange(f)}
+        onClear={() => onChange(null)}
+      />
+    );
+  }
+
+  // ── LOCATION_LIST (not yet supported) ────────────────────────────────
+  if (field.type === "LOCATION_LIST") {
+    return (
+      <FieldGroup label={field.label} required={field.required}>
+        <p className="text-sm text-text-muted py-2 px-1">{t("locationListComingSoon")}</p>
+      </FieldGroup>
+    );
+  }
+
+  // ── TEXT (default) ──────────────────────────────────────────────────
+  return (
+    <FieldGroup label={field.label} required={field.required}>
+      <input
+        type="text"
+        value={(value as string) ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={field.label}
+        className="w-full min-w-0 h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none"
+      />
+    </FieldGroup>
+  );
+}
+
+// GROUP — a sub-form; addable groups repeat as collapsible entry cards
+function GroupField({
+  field,
+  value,
+  update,
+}: {
+  field: ApiTemplateFormField;
+  value: unknown;
+  update: (name: string, value: unknown) => void;
+}) {
+  const t = useTranslations("challenges");
+  const [expanded, setExpanded] = useState<Set<number>>(() => new Set([0]));
+  // Index of the entry whose remove button is awaiting a confirming second tap
+  const [confirmingRemove, setConfirmingRemove] = useState<number | null>(null);
+
+  const subFields = [...(field.fields ?? [])].sort((a, b) => a.displayOrder - b.displayOrder);
+  const nameField = subFields.find((f) => f.type === "TEXT");
+  const entries: Record<string, unknown>[] =
+    Array.isArray(value) && value.length ? (value as Record<string, unknown>[]) : [{}];
+
+  const setEntry = (i: number, patch: Record<string, unknown>) =>
+    update(field.name, entries.map((e, j) => (j === i ? { ...e, ...patch } : e)));
+
+  const toggleEntry = (i: number) => {
+    setConfirmingRemove(null);
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  };
+
+  const addEntry = () => {
+    setConfirmingRemove(null);
+    update(field.name, [...entries, {}]);
+    setExpanded((prev) => new Set(prev).add(entries.length));
+  };
+
+  const removeEntry = (i: number) => {
+    setConfirmingRemove(null);
+    update(field.name, entries.filter((_, j) => j !== i));
+    // Re-key expanded indices after the removed entry shifts them down
+    setExpanded((prev) => {
+      const next = new Set<number>();
+      prev.forEach((j) => {
+        if (j < i) next.add(j);
+        else if (j > i) next.add(j - 1);
+      });
+      return next;
+    });
+  };
+
+  // Empty cards remove on first tap; filled ones need a confirming second tap
+  const handleRemoveTap = (i: number, entry: Record<string, unknown>) => {
+    const hasData = Object.values(entry).some((v) => v !== undefined && v !== null && v !== "");
+    if (!hasData || confirmingRemove === i) removeEntry(i);
+    else setConfirmingRemove(i);
+  };
+
+  return (
+    <FieldGroup label={field.label} required={field.required}>
+      <div className="flex flex-col gap-3">
+        {entries.map((entry, i) => {
+          const isExpanded = expanded.has(i);
+          const title = ((nameField ? entry[nameField.name] : "") as string) || `#${i + 1}`;
+          return (
+            <div key={i} className="border border-[rgba(26,26,24,0.14)] rounded-[12px] overflow-hidden">
+              <div className="flex items-center px-4 py-3 gap-2">
+                <button
+                  onClick={() => toggleEntry(i)}
+                  className="flex-1 min-w-0 flex items-center gap-2"
+                >
+                  <ChevronDown
+                    size={18}
+                    className={`shrink-0 text-[#5c5c59] transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                  />
+                  <span className="text-base font-semibold text-text-primary truncate">{title}</span>
+                </button>
+                {entries.length > 1 && (
+                  confirmingRemove === i ? (
+                    <button
+                      onClick={() => removeEntry(i)}
+                      className="h-7 shrink-0 rounded-full flex items-center px-3 bg-red-600 text-white text-xs font-semibold"
+                    >
+                      {t("removeEntry")}?
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleRemoveTap(i, entry)}
+                      className="size-7 shrink-0 rounded-full flex items-center justify-center border border-[rgba(26,26,24,0.28)] bg-white"
+                      aria-label={t("removeEntry")}
+                    >
+                      <X size={14} className="text-[#5c5c59]" />
+                    </button>
+                  )
+                )}
+              </div>
+              {isExpanded && (
+                <div className="px-4 pb-4 flex flex-col gap-5">
+                  {subFields.map((sub) => (
+                    <FieldControl
+                      key={sub.name}
+                      field={sub}
+                      value={entry[sub.name]}
+                      unitValue={entry[`${sub.name}__unit`] as string | undefined}
+                      onChange={(v) => setEntry(i, { [sub.name]: v })}
+                      onUnitChange={(u) => setEntry(i, { [`${sub.name}__unit`]: u })}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {field.addableInput && (
+          <button onClick={addEntry} className="self-start text-sm font-semibold text-gotf-green py-1">
+            + {t("addAnother")}
+          </button>
+        )}
+      </div>
+    </FieldGroup>
+  );
+}
+
+export default function DynamicFieldsStep({ fields, values, update, onNext, nextLabel, disabledFields, disabledHint }: Props) {
   return (
     <>
       <div className="flex flex-col gap-5 px-5 mt-7 flex-1">
         {fields.map((field) => {
-          const value = values[field.name];
-          const activeUnit = (values[`${field.name}__unit`] as string | undefined)
-            ?? field.unitOfMeasureOptions?.[0]?.value;
-
-          // ── TOGGLE / BOOLEAN ────────────────────────────────────────────────
-          if (field.type === "TOGGLE" || field.type === "BOOLEAN") {
-            return (
-              <ToggleCard
-                key={field.name}
-                label={field.label}
-                description=""
-                checked={(value as boolean) ?? false}
-                onChange={() => update(field.name, !((value as boolean) ?? false))}
-              />
-            );
+          if (field.type === "GROUP") {
+            return <GroupField key={field.name} field={field} value={values[field.name]} update={update} />;
           }
 
-          // ── SELECT ──────────────────────────────────────────────────────────
-          if (field.type === "SELECT") {
-            return (
-              <FieldGroup key={field.name} label={field.label} required={field.required}>
-                <div className="flex flex-col gap-2">
-                  {(field.options ?? []).length === 0 ? (
-                    <p className="text-sm text-text-muted py-2 px-1">{t("noOptionsAvailable")}</p>
-                  ) : (
-                    field.options!.map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => update(field.name, opt.value)}
-                        className={`flex items-center justify-between h-[50px] px-5 rounded-[8px] border transition-colors ${
-                          value === opt.value
-                            ? "border-gotf-green"
-                            : "border-[rgba(26,26,24,0.28)]"
-                        }`}
-                      >
-                        <span className="text-base text-text-primary">{opt.label}</span>
-                        <RadioDot selected={value === opt.value} />
-                      </button>
-                    ))
-                  )}
-                </div>
-              </FieldGroup>
-            );
-          }
-
-          // ── MULTISELECT ─────────────────────────────────────────────────────
-          if (field.type === "MULTISELECT") {
-            const selected = (value as string[]) ?? [];
-            return (
-              <FieldGroup key={field.name} label={field.label} required={field.required}>
-                <div className="flex flex-col gap-2">
-                  {(field.options ?? []).map((opt) => {
-                    const isChecked = selected.includes(opt.value);
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() =>
-                          update(
-                            field.name,
-                            isChecked
-                              ? selected.filter((v) => v !== opt.value)
-                              : [...selected, opt.value],
-                          )
-                        }
-                        className={`flex items-center justify-between h-[50px] px-5 rounded-[8px] border transition-colors ${
-                          isChecked ? "border-gotf-green" : "border-[rgba(26,26,24,0.28)]"
-                        }`}
-                      >
-                        <span className="text-base text-text-primary">{opt.label}</span>
-                        <CheckBox checked={isChecked} />
-                      </button>
-                    );
-                  })}
-                </div>
-              </FieldGroup>
-            );
-          }
-
-          // ── NUMBER / NUMERIC ────────────────────────────────────────────────
-          if (field.type === "NUMBER" || field.type === "NUMERIC") {
-            const isDisabled = disabledFields?.has(field.name) ?? false;
-            return (
-              <FieldGroup key={field.name} label={field.label} required={field.required}>
-                <div
-                  className={`w-full flex items-center border border-[rgba(26,26,24,0.28)] rounded-[8px] overflow-hidden transition-opacity ${
-                    isDisabled ? "opacity-40" : ""
-                  }`}
-                >
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    disabled={isDisabled}
-                    value={(value as string) ?? ""}
-                    onChange={(e) => update(field.name, e.target.value)}
-                    placeholder="0"
-                    className="flex-1 min-w-0 h-[44px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none bg-white disabled:bg-[#f0efeb]"
-                  />
-                  {field.unitOfMeasureOptions && field.unitOfMeasureOptions.length > 1 ? (
-                    <div className="relative h-[44px] shrink-0">
-                      <select
-                        value={activeUnit}
-                        disabled={isDisabled}
-                        onChange={(e) => update(`${field.name}__unit`, e.target.value)}
-                        className="h-full w-24 bg-[#f0efeb] border-l border-[rgba(26,26,24,0.14)] px-2 text-xs font-semibold text-[#5c5c59] outline-none appearance-none cursor-pointer pr-5"
-                      >
-                        {field.unitOfMeasureOptions.map((u) => (
-                          <option key={u.value} value={u.value}>
-                            {u.label}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#5c5c59] pointer-events-none text-[10px]">
-                        ▾
-                      </div>
-                    </div>
-                  ) : activeUnit ? (
-                    <div className="h-[44px] px-4 flex items-center bg-[#f0efeb] border-l border-[rgba(26,26,24,0.14)]">
-                      <span className="text-xs font-semibold text-[#5c5c59]">{activeUnit}</span>
-                    </div>
-                  ) : null}
-                </div>
-                {isDisabled && disabledHint && (
-                  <p className="text-xs text-text-muted mt-1.5">{disabledHint}</p>
-                )}
-              </FieldGroup>
-            );
-          }
-
-          // ── DATE ────────────────────────────────────────────────────────────
-          if (field.type === "DATE") {
-            // Evidence dates record when an activity happened — never the future
-            const today = new Date().toLocaleDateString("en-CA");
-            return (
-              <FieldGroup key={field.name} label={field.label} required={field.required}>
-                <div className="w-full overflow-hidden">
-                  <input
-                    type="date"
-                    max={today}
-                    value={(value as string) ?? ""}
-                    onChange={(e) => update(field.name, e.target.value > today ? today : e.target.value)}
-                    className="w-full max-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
-                  />
-                </div>
-              </FieldGroup>
-            );
-          }
-
-          // ── TEXTAREA ────────────────────────────────────────────────────────
-          if (field.type === "TEXTAREA") {
-            return (
-              <FieldGroup key={field.name} label={field.label} required={field.required}>
-                <textarea
-                  value={(value as string) ?? ""}
-                  onChange={(e) => update(field.name, e.target.value)}
-                  rows={4}
-                  placeholder={field.label}
-                  className="w-full min-w-0 border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 py-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none resize-none"
-                />
-              </FieldGroup>
-            );
-          }
-
-          // ── LOCATION ────────────────────────────────────────────────────────
-          if (field.type === "LOCATION") {
-            return (
-              <FieldGroup key={field.name} label={field.label} required={field.required}>
-                <LocationPicker
-                  defaultValue={(value as LocationResult | null)?.formattedAddress}
-                  onSelect={(loc) => update(field.name, loc)}
-                />
-              </FieldGroup>
-            );
-          }
-
-          // ── IMAGE ────────────────────────────────────────────────────────────
-          if (field.type === "IMAGE") {
-            return (
-              <ImageField
-                key={field.name}
-                field={field}
-                value={(value as File | null) ?? null}
-                onSelect={(f) => update(field.name, f)}
-                onClear={() => update(field.name, null)}
-              />
-            );
-          }
-
-          // ── LOCATION_LIST (not yet supported) ────────────────────────────────
-          if (field.type === "LOCATION_LIST") {
-            return (
-              <FieldGroup key={field.name} label={field.label} required={field.required}>
-                <p className="text-sm text-text-muted py-2 px-1">{t("locationListComingSoon")}</p>
-              </FieldGroup>
-            );
-          }
-
-          // ── TEXT (default) ──────────────────────────────────────────────────
           return (
-            <FieldGroup key={field.name} label={field.label} required={field.required}>
-              <input
-                type="text"
-                value={(value as string) ?? ""}
-                onChange={(e) => update(field.name, e.target.value)}
-                placeholder={field.label}
-                className="w-full min-w-0 h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none"
-              />
-            </FieldGroup>
+            <FieldControl
+              key={field.name}
+              field={field}
+              value={values[field.name]}
+              unitValue={values[`${field.name}__unit`] as string | undefined}
+              onChange={(v) => update(field.name, v)}
+              onUnitChange={(u) => update(`${field.name}__unit`, u)}
+              disabled={disabledFields?.has(field.name) ?? false}
+              disabledHint={disabledHint}
+            />
           );
         })}
       </div>

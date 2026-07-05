@@ -10,7 +10,8 @@ export type ApiTemplateFormFieldType =
   | "TOGGLE"
   | "BOOLEAN"
   | "SELECT"
-  | "MULTISELECT";
+  | "MULTISELECT"
+  | "GROUP";
 
 export type ApiTemplateFormField = {
   name: string;
@@ -20,6 +21,11 @@ export type ApiTemplateFormField = {
   displayOrder: number;
   options?: { value: string; label: string }[];
   unitOfMeasureOptions?: { value: string; label: string }[];
+  // User can append multiple entries for this field — the value becomes an
+  // array of whatever the base input type produces (strings, objects, …)
+  addableInput?: boolean;
+  // GROUP only: the sub-form rendered for each entry
+  fields?: ApiTemplateFormField[];
 };
 
 export type ApiTemplateStep = {

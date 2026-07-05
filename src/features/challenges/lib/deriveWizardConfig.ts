@@ -23,7 +23,7 @@ const CONTRIBUTORS_NAMES = new Set(["CONTRIBUTORS"]);
 const COMPLETION_NAMES = new Set(["CONFIRM_COMPLETION", "CONFIRMATION"]);
 
 // Fields that are heavy UI (need their own wizard screen)
-const SOLO_TYPES = new Set(["LOCATION", "LOCATION_LIST", "IMAGE"]);
+const SOLO_TYPES = new Set(["LOCATION", "LOCATION_LIST", "IMAGE", "GROUP"]);
 
 const DYNAMIC_BATCH_SIZE = 4;
 

@@ -24,7 +24,7 @@ export async function apiFetch<T>(
     body?: unknown;
     headers?: Record<string, string>;
     lang?: string;
-  } = {}
+  } = {},
 ): Promise<T> {
   const token = getToken();
 
@@ -42,11 +42,18 @@ export async function apiFetch<T>(
   if (isFormData) {
     const entries: Record<string, unknown> = {};
     for (const [key, val] of (options.body as FormData).entries()) {
-      entries[key] = val instanceof File ? `File(${val.name}, ${val.size}b)` : val;
+      entries[key] =
+        val instanceof File ? `File(${val.name}, ${val.size}b)` : val;
     }
-    console.log(`[api] ${method} ${BASE_URL}${path}\n` + JSON.stringify({ headers, body: entries }, null, 2));
+    console.log(
+      `[api] ${method} ${BASE_URL}${path}\n` +
+        JSON.stringify({ headers, body: entries }, null, 2),
+    );
   } else {
-    console.log(`[api] ${method} ${BASE_URL}${path}\n` + JSON.stringify({ headers, body: options.body ?? null }, null, 2));
+    console.log(
+      `[api] ${method} ${BASE_URL}${path}\n` +
+        JSON.stringify({ headers, body: options.body ?? null }, null, 2),
+    );
   }
 
   const body = isFormData
@@ -63,8 +70,8 @@ export async function apiFetch<T>(
 
   const json = await response.json().catch(() => null);
   console.log(
-    `[api] ${method} ${BASE_URL}${path} → ${response.status}\n` +
-    JSON.stringify(json, null, 2)
+    `[api] ${method} ${BASE_URL}${path} → ${response.status}\n`,
+    JSON.stringify(json, null, 2),
   );
 
   if (!response.ok) {
@@ -97,7 +104,7 @@ export const api = {
 export async function fetchLanguages(lang?: string): Promise<Language[]> {
   const result = await apiFetch<{ data: Language[]; success: boolean }>(
     "/languages",
-    { lang }
+    { lang },
   );
   return result.data;
 }

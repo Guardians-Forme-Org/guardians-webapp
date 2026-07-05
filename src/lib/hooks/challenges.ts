@@ -236,6 +236,44 @@ type RegistrationPayload = {
   };
 };
 
+export type ChallengeSetupLocation = {
+  placeId: string;
+  suburb: string;
+  city: string;
+  country: string;
+  countryCode: string;
+  province: string;
+  latitude: number;
+  longitude: number;
+  formattedAddress: string;
+  postalCode: string;
+};
+
+export type ChallengeSetupAnchorPoint = {
+  name: string;
+  location?: ChallengeSetupLocation;
+  measurement?: { value: number; unitOfMeasure: string };
+};
+
+// CH-001 heat mapping: step 1 registers anchor points via /challengeSetup
+export type CH001SetupPayload = {
+  stepId: string;
+  stepNumber: number;
+  stepType: string;
+  challengeCode: string;
+  challengeId: string;
+  circleId: string;
+  submittedBy: string;
+  volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
+  contributors: string[];
+  data: {
+    volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
+    weatherCondition?: string;
+    location?: ChallengeSetupLocation;
+    anchorPoints: ChallengeSetupAnchorPoint[];
+  };
+};
+
 export function useSubmitRegistration() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -251,7 +289,7 @@ export function useSubmitRegistration() {
       challengeId: string;
       stepId: string;
       userId: string;
-      payload: RegistrationPayload;
+      payload: RegistrationPayload | CH001SetupPayload;
       mediaFile?: File;
     }) => {
       const formData = new FormData();

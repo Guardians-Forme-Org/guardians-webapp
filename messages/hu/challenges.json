@@ -70,6 +70,8 @@
   "activityUpdatedSubtitle": "A módosításaidat elmentettük",
   "activityUploadedSubtitle": "A tevékenységedet beküldtük ehhez a kihíváshoz",
   "oneMeasurementHint": "Beküldésenként csak egy mérés adható meg — töröld a másik mezőt, ha ezt szeretnéd használni",
+  "addAnother": "Új hozzáadása",
+  "removeEntry": "Bejegyzés törlése",
   "update": "Frissítés",
   "upload": "Feltöltés",
   "optionalBadge": "opcionális",

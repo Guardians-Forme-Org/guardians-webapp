@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MapPin } from "lucide-react";
+import { LocateFixed, Map as MapIcon, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
+import MapPickerSheet from "./MapPickerSheet";
 
 export type LocationResult = {
   placeId: string;
@@ -23,9 +24,17 @@ type Props = {
   onSelect: (place: LocationResult) => void;
   placeholder?: string;
   className?: string;
+  // Show a "use current location" button (geolocation + reverse geocode)
+  showUseCurrent?: boolean;
+  // Show a "pick on map" button (full-screen map sheet)
+  showMapPick?: boolean;
+  // Where the map sheet opens when there is already a selection
+  initialCenter?: { lat: number; lng: number } | null;
 };
 
-function extractLocation(place: google.maps.places.PlaceResult): LocationResult | null {
+export function extractLocation(
+  place: google.maps.places.PlaceResult | google.maps.GeocoderResult,
+): LocationResult | null {
   if (!place.geometry?.location) return null;
 
   const components = place.address_components ?? [];
@@ -59,6 +68,9 @@ export default function LocationPicker({
   onSelect,
   placeholder,
   className,
+  showUseCurrent,
+  showMapPick,
+  initialCenter,
 }: Props) {
   const t = useTranslations("common");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -66,6 +78,41 @@ export default function LocationPicker({
   onSelectRef.current = onSelect;
 
   const [display, setDisplay] = useState(defaultValue);
+  const [locating, setLocating] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const [mapOpen, setMapOpen] = useState(false);
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setGeoError(t("currentLocationFailed"));
+      return;
+    }
+    setLocating(true);
+    setGeoError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { Geocoder } = await importLibrary("geocoding");
+          const { results } = await new Geocoder().geocode({
+            location: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+          });
+          const result = results?.[0] ? extractLocation(results[0]) : null;
+          if (!result) throw new Error("No geocoding result");
+          setDisplay(result.formattedAddress);
+          onSelectRef.current(result);
+        } catch {
+          setGeoError(t("currentLocationFailed"));
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => {
+        setGeoError(t("currentLocationFailed"));
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
 
   useEffect(() => {
     setOptions({
@@ -100,22 +147,64 @@ export default function LocationPicker({
   }, []);
 
   return (
-    <div className="relative">
-      <input
-        ref={inputRef}
-        type="text"
-        value={display}
-        onChange={(e) => setDisplay(e.target.value)}
-        placeholder={placeholder ?? t("locationSearchDefault")}
-        className={
-          className ??
-          "w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
-        }
-      />
-      <MapPin
-        size={16}
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-      />
+    <div>
+      <div className="relative">
+        <input
+          ref={inputRef}
+          type="text"
+          value={display}
+          onChange={(e) => setDisplay(e.target.value)}
+          placeholder={placeholder ?? t("locationSearchDefault")}
+          className={
+            className ??
+            "w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
+          }
+        />
+        <MapPin
+          size={16}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+        />
+      </div>
+      {(showUseCurrent || showMapPick) && (
+        <>
+          <div className="mt-2 flex items-center gap-5">
+            {showUseCurrent && (
+              <button
+                type="button"
+                onClick={useCurrentLocation}
+                disabled={locating}
+                className="flex items-center gap-1.5 text-sm font-semibold text-gotf-green disabled:opacity-50"
+              >
+                <LocateFixed size={15} />
+                {locating ? t("locating") : t("useCurrentLocation")}
+              </button>
+            )}
+            {showMapPick && (
+              <button
+                type="button"
+                onClick={() => setMapOpen(true)}
+                className="flex items-center gap-1.5 text-sm font-semibold text-gotf-green"
+              >
+                <MapIcon size={15} />
+                {t("pickOnMap")}
+              </button>
+            )}
+          </div>
+          {geoError && <p className="text-xs text-red-600 mt-1">{geoError}</p>}
+        </>
+      )}
+      {mapOpen && (
+        <MapPickerSheet
+          initialCenter={initialCenter}
+          onConfirm={(result) => {
+            setDisplay(result.formattedAddress);
+            setGeoError(null);
+            setMapOpen(false);
+            onSelectRef.current(result);
+          }}
+          onClose={() => setMapOpen(false)}
+        />
+      )}
     </div>
   );
 }

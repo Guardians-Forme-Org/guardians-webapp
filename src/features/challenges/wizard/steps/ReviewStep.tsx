@@ -114,6 +114,12 @@ function formatDynamicValue(
       return value as string;
     case "NUMBER":
     case "NUMERIC": {
+      // Addable fields hold an array of entries
+      if (Array.isArray(value)) {
+        const nums = (value as string[]).filter((v) => v !== "" && v !== undefined && v !== null);
+        if (!nums.length) return null;
+        return nums.map((n) => (unit ? `${n} ${unit}` : n)).join(", ");
+      }
       const num = value as string;
       if (!num) return null;
       return unit ? `${num} ${unit}` : num;
@@ -219,6 +225,47 @@ export default function ReviewStep({
               const isImage = field.type === "IMAGE";
               const isContributors =
                 field.name === "CONTRIBUTORS" || field.name === "CONTRIBUTORS_LIST";
+
+              // GROUP: one row per entry, sub-values joined
+              if (field.type === "GROUP") {
+                const entries = (Array.isArray(value) ? (value as Record<string, unknown>[]) : [])
+                  .map((entry) =>
+                    (field.fields ?? [])
+                      .map((sub) => {
+                        const sv = entry[sub.name];
+                        if (sv === undefined || sv === null || sv === "") return null;
+                        if (typeof sv === "object") {
+                          return (sv as { formattedAddress?: string }).formattedAddress ?? null;
+                        }
+                        if (sub.type === "NUMBER" || sub.type === "NUMERIC") {
+                          const subUnit =
+                            (entry[`${sub.name}__unit`] as string | undefined) ??
+                            sub.unitOfMeasureOptions?.[0]?.value;
+                          return subUnit ? `${sv} ${subUnit}` : String(sv);
+                        }
+                        return String(sv);
+                      })
+                      .filter((p): p is string => !!p)
+                      .join(" · "),
+                  )
+                  .filter((line) => line.length > 0);
+                if (!entries.length) return null;
+                return (
+                  <ReviewSection
+                    key={field.name}
+                    label={field.label}
+                    stepIndex={stepIndex}
+                    onEdit={onGoToStep}
+                    showEdit={showEdit}
+                  >
+                    <div className="flex flex-col gap-2">
+                      {entries.map((line, i) => (
+                        <ReadOnlyField key={i} label="" value={line} />
+                      ))}
+                    </div>
+                  </ReviewSection>
+                );
+              }
 
               if (isContributors) {
                 const ids = (value as string[] | undefined) ?? [];
