@@ -237,13 +237,16 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
 
           // ── DATE ────────────────────────────────────────────────────────────
           if (field.type === "DATE") {
+            // Evidence dates record when an activity happened — never the future
+            const today = new Date().toLocaleDateString("en-CA");
             return (
               <FieldGroup key={field.name} label={field.label} required={field.required}>
                 <div className="w-full overflow-hidden">
                   <input
                     type="date"
+                    max={today}
                     value={(value as string) ?? ""}
-                    onChange={(e) => update(field.name, e.target.value)}
+                    onChange={(e) => update(field.name, e.target.value > today ? today : e.target.value)}
                     className="w-full max-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
                   />
                 </div>
