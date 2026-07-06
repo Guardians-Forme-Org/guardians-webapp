@@ -13,7 +13,7 @@ type Props =
   | { thingId: string; filterStepId?: string; userId?: never }
   | { userId: string; filterStepId?: never; thingId?: never };
 
-const LIMIT_STEPS = [3, 6, 10, 20, 50];
+const LIMIT_STEPS = [3, 6, 10, 20, 50, 100];
 
 function formatStepId(stepId: string): string {
   return stepId
