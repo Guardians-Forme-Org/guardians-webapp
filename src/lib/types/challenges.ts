@@ -71,6 +71,52 @@ export type ApiTemplate = {
 
 export type TemplatesListResponse = ApiTemplate[];
 
+// ── Setup submissions (/challengeSetup) ────────────────────────────────────────
+
+export type ChallengeSetupLocation = {
+  placeId: string;
+  suburb: string;
+  city: string;
+  country: string;
+  countryCode: string;
+  province: string;
+  latitude: number;
+  longitude: number;
+  formattedAddress: string;
+  postalCode: string;
+};
+
+export type ChallengeSetupAnchorPoint = {
+  name: string;
+  location?: ChallengeSetupLocation;
+  higherRiskFlag?: boolean;
+  measurement?: { value: number; unitOfMeasure: string };
+};
+
+// Attached to the challenge by the BE after a successful setup-step
+// submission; later steps re-measure the registered entries
+export type ApiSubmittedSetupDetail = {
+  id: string;
+  circleId: string;
+  challengeCode: string;
+  thingId: string;
+  thingUUID: string;
+  submittedBy: string;
+  contributors: string[] | null;
+  stepId: string;
+  stepNumber: number;
+  submittedAt: string;
+  modifiedAt: string;
+  locksOnCompletion: boolean;
+  volunteerHours?: { value: number; unitOfMeasure: string; siUnit: string };
+  data: {
+    anchorPoints?: ChallengeSetupAnchorPoint[] | null;
+    location?: ChallengeSetupLocation;
+    mediaFiles?: { type: string; url: string; description: string }[];
+    volunteerHours?: { value: number; unitOfMeasure: string; siUnit: string };
+  };
+};
+
 // ── Challenge creation ─────────────────────────────────────────────────────────
 
 export type ChallengeLocation = {

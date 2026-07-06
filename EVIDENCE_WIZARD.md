@@ -79,7 +79,10 @@ Takes the flat `ApiTemplateFormField[]` from the BE and sorts them into a
 
 ### Step ordering
 
-1. Solo fields (LOCATION / LOCATION_LIST / IMAGE) — one screen each
+0. `setup-update` screen (if triggered — see
+   [SETUP_UPDATE_FLOW.md](./SETUP_UPDATE_FLOW.md); consumes the `locations`
+   SELECT and the `FLAG` toggle)
+1. Solo fields (LOCATION / LOCATION_LIST / IMAGE / GROUP) — one screen each
 2. Simple batchable fields — up to 4 per screen (`DYNAMIC_BATCH_SIZE = 4`)
 3. `volunteer-hours` screen (if the field exists)
 4. `contributors` screen (if the field exists)
@@ -91,6 +94,7 @@ Takes the flat `ApiTemplateFormField[]` from the BE and sorts them into a
 | kind | What renders |
 |---|---|
 | `dynamic` | `DynamicFieldsStep` with the step's `fields` array |
+| `setup-update` | `SetupUpdateStep` — re-measure a point registered at setup ([SETUP_UPDATE_FLOW.md](./SETUP_UPDATE_FLOW.md)) |
 | `volunteer-hours` | `VolunteerHoursStep` (bridged from `dynamicValues`) |
 | `contributors` | `ContributorsStep` (bridged from `dynamicValues`) |
 | `mark-complete` | `MarkCompleteStep` → calls `submit()` directly |
@@ -188,13 +192,20 @@ adapter that writes back to `dynamicValues` using the actual field names
 
 ## Submission
 
-Three payload builders, one per path:
+Payload builders, one per path (checked in this order in `submit()`):
 
 | Function | Used when |
 |---|---|
-| `buildDynamicPayload()` | `isDerived === true` — sends `data.fields` map to `submitEvidence` |
-| `buildRegistrationPayload()` | `stepId === "SETUP_AND_REGISTRATION"` |
-| `buildPayload()` | All other static steps |
+| `buildCH001SetupPayload()` | derived + `CH-001` + registration step → multipart `/challengeSetup` |
+| `buildSetupUpdatePayload()` | derived + config has a `setup-update` step → multipart `/submit{CODE}` |
+| `buildCH015Payload()` | derived + `CH-015` — maps fields to `data.measurement` + `data.description` |
+| `buildDynamicPayload()` | all other derived steps — JSON to `submitEvidence` |
+| `buildRegistrationPayload()` | static + `stepId === "SETUP_AND_REGISTRATION"` |
+| `buildPayload()` | all other static steps |
+
+Setup and setup-update submissions are **multipart form-data** (`metadata`
+JSON part + `mediaFile`); the rest are JSON bodies for now (the BE plans to
+move everything to multipart). Details: [SETUP_UPDATE_FLOW.md](./SETUP_UPDATE_FLOW.md).
 
 Edit flows (when `viewId` is set and `isViewMode` is false) call `useUpdateEvidence`
 (`PUT /evidences/{id}`) instead of `useSubmitEvidence`. This currently applies to

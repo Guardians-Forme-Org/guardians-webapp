@@ -13,6 +13,7 @@ import {
   type CH001SetupPayload,
   type ChallengeSetupAnchorPoint,
   type ChallengeSetupLocation,
+  type SetupUpdateEvidencePayload,
   type SubmitEvidenceResponse,
 } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
@@ -22,7 +23,7 @@ import type { ApiRecentActivity } from "@/lib/types/circles";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { DerivedWizardConfig } from "../lib/deriveWizardConfig";
+import type { DerivedStep, DerivedWizardConfig } from "../lib/deriveWizardConfig";
 import { deriveWizardConfig } from "../lib/deriveWizardConfig";
 import { DEFAULT_FORM_CONFIG, STEP_FORM_CONFIGS } from "../stepFormConfig";
 import { WizardHeader } from "../wizard/shared";
@@ -38,6 +39,7 @@ import MeasurementStep from "../wizard/steps/MeasurementStep";
 import MetricsStep from "../wizard/steps/MetricsStep";
 import RegionStep from "../wizard/steps/RegionStep";
 import ReviewStep from "../wizard/steps/ReviewStep";
+import SetupUpdateStep, { type SetupUpdateEntry } from "../wizard/steps/SetupUpdateStep";
 import SiteConditionStep from "../wizard/steps/SiteConditionStep";
 import SiteDetailsStep from "../wizard/steps/SiteDetailsStep";
 import VolunteerHoursStep from "../wizard/steps/VolunteerHoursStep";
@@ -145,10 +147,23 @@ export default function LogEvidenceWizard({
   // BE form takes precedence over FE config whenever form fields are present.
   const isDerived = !!stepForm?.length;
 
+  // Setup-step data (anchor points) feeds the update screens of later steps —
+  // never the setup step itself
+  const setupDetail = challenge?.submittedSetupDetail;
+  const setupData =
+    setupDetail && stepMeta && setupDetail.stepId !== stepMeta.stepId
+      ? setupDetail.data
+      : undefined;
+
   const derivedConfig: DerivedWizardConfig | null = useMemo(() => {
     if (!isDerived || !stepForm) return null;
-    return deriveWizardConfig(stepForm);
-  }, [isDerived, stepForm]);
+    return deriveWizardConfig(stepForm, setupData);
+  }, [isDerived, stepForm, setupData]);
+
+  const setupUpdateStep = useMemo(
+    () => derivedConfig?.steps.find((s) => s.kind === "setup-update"),
+    [derivedConfig],
+  );
 
   // ── Static config — FE fallback (also used for synchronous step init) ──────
   const feConfig = STEP_FORM_CONFIGS[stepId] ?? DEFAULT_FORM_CONFIG;
@@ -720,6 +735,74 @@ export default function LogEvidenceWizard({
     return { payload, mediaFile };
   };
 
+  // Steps that re-measure a point registered during setup (setup-update):
+  // one submission = one observation of one point. The point's name and
+  // location pass through unchanged (placeId is the identity); only the
+  // measurement and risk flag are new.
+  const buildSetupUpdatePayload = (setupStep: DerivedStep) => {
+    if (!user || !challenge || !stepMeta) throw new Error("Not ready");
+
+    const pointsField = setupStep.fields[0];
+    const entry = dynamicValues[pointsField.name] as SetupUpdateEntry | undefined;
+    const point = (setupStep.anchorPoints ?? []).find(
+      (p) => p.name === entry?.selected,
+    );
+    if (!point) throw new Error("No observation point selected");
+
+    const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
+    const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
+    const volunteerHours = {
+      value: vhValue,
+      unitOfMeasure: vhUnit === "H" ? "hours" : vhUnit.toLowerCase(),
+      siUnit: "TIME",
+    };
+
+    const anchorPoint: ChallengeSetupAnchorPoint = {
+      name: point.name,
+      ...(point.location ? { location: point.location } : {}),
+      higherRiskFlag: entry?.higherRiskFlag ?? point.higherRiskFlag ?? false,
+    };
+
+    const weatherField = stepForm?.find((f) => f.name.includes("WEATHER"));
+    const weatherRaw = weatherField
+      ? dynamicValues[weatherField.name]
+      : undefined;
+    const weatherCondition =
+      weatherRaw !== undefined && weatherRaw !== null && weatherRaw !== ""
+        ? String(weatherRaw)
+        : undefined;
+
+    const imageField = stepForm?.find((f) => f.type === "IMAGE");
+    const mediaFile = imageField
+      ? (dynamicValues[imageField.name] as File | undefined)
+      : undefined;
+
+    const payload: SetupUpdateEvidencePayload = {
+      stepId: stepMeta.stepId,
+      stepNumber: stepMeta.stepNumber,
+      stepType: stepMeta.stepType,
+      challengeCode: challenge.challengeCode,
+      challengeId: challenge.challengeId,
+      thingId: challenge.challengeId,
+      circleId: challenge.circleId,
+      submittedBy: user.id,
+      volunteerHours,
+      contributors: (dynamicValues[contribFieldName] as string[]) ?? [],
+      data: {
+        anchorPoint,
+        capturedAt: new Date().toISOString(),
+        measurement: {
+          value: parseFloat(entry?.measurement ?? "") || 0,
+          unitOfMeasure: point.measurement?.unitOfMeasure ?? "°C",
+        },
+        volunteerHours,
+        ...(weatherCondition ? { weatherCondition } : {}),
+      },
+    };
+
+    return { payload, mediaFile };
+  };
+
   const buildDynamicPayload = () => {
     if (!user || !challenge || !stepMeta) throw new Error("Not ready");
     if (challenge.challengeCode === "CH-015") return buildCH015Payload();
@@ -917,6 +1000,24 @@ export default function LogEvidenceWizard({
         return;
       }
 
+      // Setup-update steps resend the setup data shape as multipart
+      if (setupUpdateStep) {
+        const { payload, mediaFile } = buildSetupUpdatePayload(setupUpdateStep);
+        submitEvidence.mutate(
+          {
+            challengeCode: challenge.challengeCode,
+            challengeId: challenge.challengeId,
+            stepId: stepMeta.stepId,
+            userId: user.id,
+            payload,
+            mediaFile,
+            multipart: true,
+          },
+          { onSuccess },
+        );
+        return;
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { payload } = buildDynamicPayload() as any;
       submitEvidence.mutate(
@@ -1055,6 +1156,20 @@ export default function LogEvidenceWizard({
               );
             }
 
+            if (ds.kind === "setup-update") {
+              return (
+                <SetupUpdateStep
+                  pointsField={ds.fields[0]}
+                  flagField={ds.fields[1]}
+                  anchorPoints={ds.anchorPoints ?? []}
+                  values={dynamicValues}
+                  update={updateDynamic}
+                  onNext={next}
+                  nextLabel={nextLabel}
+                />
+              );
+            }
+
             if (ds.kind === "volunteer-hours") {
               return (
                 <VolunteerHoursStep
@@ -1103,9 +1218,42 @@ export default function LogEvidenceWizard({
                     viewId && !isViewMode ? t("update") : t("upload")
                   }
                   dynamicConfig={{
-                    fields: stepForm ?? [],
+                    // Fields consumed by the setup-update screen render via
+                    // setupUpdate rows instead
+                    fields: (stepForm ?? []).filter(
+                      (f) => !setupUpdateStep?.fields.some((sf) => sf.name === f.name),
+                    ),
                     values: dynamicValues,
                     fieldToStepIndex: derivedConfig.fieldToStepIndex,
+                    setupUpdate: setupUpdateStep
+                      ? {
+                          label: setupUpdateStep.fields[0].label,
+                          stepIndex:
+                            derivedConfig.fieldToStepIndex[
+                              setupUpdateStep.fields[0].name
+                            ] ?? 1,
+                          rows: (() => {
+                            const entry = dynamicValues[
+                              setupUpdateStep.fields[0].name
+                            ] as SetupUpdateEntry | undefined;
+                            const point = (
+                              setupUpdateStep.anchorPoints ?? []
+                            ).find((p) => p.name === entry?.selected);
+                            if (!point) return [];
+                            return [
+                              [
+                                point.name,
+                                point.location?.formattedAddress,
+                                entry?.measurement
+                                  ? `${entry.measurement} ${point.measurement?.unitOfMeasure ?? ""}`.trim()
+                                  : null,
+                              ]
+                                .filter(Boolean)
+                                .join(" · "),
+                            ];
+                          })(),
+                        }
+                      : undefined,
                   }}
                 />
               );

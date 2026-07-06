@@ -72,6 +72,8 @@
   "oneMeasurementHint": "Beküldésenként csak egy mérés adható meg — töröld a másik mezőt, ha ezt szeretnéd használni",
   "addAnother": "Új hozzáadása",
   "removeEntry": "Bejegyzés törlése",
+  "newReading": "Új mérés",
+  "lastReading": "Előző mérés: {value}",
   "update": "Frissítés",
   "upload": "Feltöltés",
   "optionalBadge": "opcionális",

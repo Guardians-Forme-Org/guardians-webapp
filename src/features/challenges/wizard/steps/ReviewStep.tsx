@@ -47,6 +47,8 @@ export type DynamicReviewConfig = {
   fields: ApiTemplateFormField[];
   values: DynamicValues;
   fieldToStepIndex: Record<string, number>;
+  // Setup-registered points re-measured this step — pre-formatted display rows
+  setupUpdate?: { label: string; stepIndex: number; rows: string[] };
 };
 
 type Props = {
@@ -213,6 +215,22 @@ export default function ReviewStep({
       </div>
 
       <div className="flex flex-col gap-6 px-5">
+        {/* ── Setup-update rows (points registered during setup) ─────────── */}
+        {dynamicConfig?.setupUpdate && dynamicConfig.setupUpdate.rows.length > 0 && (
+          <ReviewSection
+            label={dynamicConfig.setupUpdate.label}
+            stepIndex={dynamicConfig.setupUpdate.stepIndex}
+            onEdit={onGoToStep}
+            showEdit={showEdit}
+          >
+            <div className="flex flex-col gap-2">
+              {dynamicConfig.setupUpdate.rows.map((line, i) => (
+                <ReadOnlyField key={i} label="" value={line} />
+              ))}
+            </div>
+          </ReviewSection>
+        )}
+
         {/* ── Dynamic fields (BE-driven config) ──────────────────────────── */}
         {dynamicConfig &&
           [...dynamicConfig.fields]

@@ -1,15 +1,24 @@
-import type { ApiTemplateFormField } from "@/lib/types/challenges";
+import type { ApiTemplateFormField, ChallengeSetupAnchorPoint } from "@/lib/types/challenges";
 
 export type DerivedStepKind =
   | "volunteer-hours"
   | "contributors"
   | "mark-complete"
   | "dynamic"
+  | "setup-update"
   | "review";
 
 export type DerivedStep = {
   kind: DerivedStepKind;
   fields: ApiTemplateFormField[];
+  // setup-update only: the previously registered entries being re-measured
+  anchorPoints?: ChallengeSetupAnchorPoint[];
+};
+
+// Setup-step data carried by the challenge (submittedSetupDetail.data) —
+// feeds the setup-update screen of later steps
+export type SetupUpdateSource = {
+  anchorPoints?: ChallengeSetupAnchorPoint[] | null;
 };
 
 export type DerivedWizardConfig = {
@@ -27,15 +36,35 @@ const SOLO_TYPES = new Set(["LOCATION", "LOCATION_LIST", "IMAGE", "GROUP"]);
 
 const DYNAMIC_BATCH_SIZE = 4;
 
-export function deriveWizardConfig(fields: ApiTemplateFormField[]): DerivedWizardConfig {
+export function deriveWizardConfig(
+  fields: ApiTemplateFormField[],
+  setupData?: SetupUpdateSource,
+): DerivedWizardConfig {
   const sorted = [...fields].sort((a, b) => a.displayOrder - b.displayOrder);
+
+  // A SELECT named "locations" is the BE's reference to the points registered
+  // during the setup step. When the challenge carries those, the field becomes
+  // an update-values screen (fixed set — no adding or removing points).
+  const anchorPoints = setupData?.anchorPoints ?? [];
+  const pointsField = anchorPoints.length
+    ? sorted.find((f) => f.type === "SELECT" && f.name.toLowerCase() === "locations")
+    : undefined;
+  // The per-point risk flag renders inside each entry card, not as its own field
+  const flagField = pointsField
+    ? sorted.find((f) => (f.type === "TOGGLE" || f.type === "BOOLEAN") && f.name === "FLAG")
+    : undefined;
+  const setupUpdateNames = new Set(
+    [pointsField?.name, flagField?.name].filter((n): n is string => !!n),
+  );
 
   const knownNameFields: ApiTemplateFormField[] = [];
   const soloFields: ApiTemplateFormField[] = [];
   const batchableFields: ApiTemplateFormField[] = [];
 
   for (const field of sorted) {
-    if (VOLUNTEER_HOURS_NAMES.has(field.name) || CONTRIBUTORS_NAMES.has(field.name) || COMPLETION_NAMES.has(field.name)) {
+    if (setupUpdateNames.has(field.name)) {
+      continue;
+    } else if (VOLUNTEER_HOURS_NAMES.has(field.name) || CONTRIBUTORS_NAMES.has(field.name) || COMPLETION_NAMES.has(field.name)) {
       knownNameFields.push(field);
     } else if (SOLO_TYPES.has(field.type)) {
       soloFields.push(field);
@@ -53,6 +82,15 @@ export function deriveWizardConfig(fields: ApiTemplateFormField[]): DerivedWizar
       fieldToStepIndex[f.name] = steps.length;
     });
   };
+
+  // 0. Re-measure previously registered points — the heart of such a step
+  if (pointsField) {
+    push({
+      kind: "setup-update",
+      fields: flagField ? [pointsField, flagField] : [pointsField],
+      anchorPoints,
+    });
+  }
 
   // 1. Heavy solo fields — each gets its own screen
   for (const field of soloFields) {

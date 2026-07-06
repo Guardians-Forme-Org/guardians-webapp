@@ -171,6 +171,7 @@ export type ApiCircleChallenge = {
     isCompleted: boolean;
     form?: import("@/lib/types/challenges").ApiTemplateFormField[] | null;
   }> | null;
+  submittedSetupDetail?: import("@/lib/types/challenges").ApiSubmittedSetupDetail | null;
   template?: {
     SDGAlignments?: { code: string; name: string; infoUrl?: string }[] | null;
     impactDomains?: { code: string; name: string; infoUrl?: string }[] | null;

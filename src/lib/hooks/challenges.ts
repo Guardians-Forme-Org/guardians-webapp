@@ -1,6 +1,8 @@
 import { api, apiFetch } from "@/lib/api";
 import type {
   ApiChallenge,
+  ChallengeSetupAnchorPoint,
+  ChallengeSetupLocation,
   CreateChallengeRequest,
   TemplatesListResponse,
 } from "@/lib/types/challenges";
@@ -132,21 +134,37 @@ export function useSubmitEvidence() {
       stepId,
       userId,
       payload,
+      mediaFile,
+      multipart,
     }: {
       challengeCode: string;
       challengeId: string;
       stepId: string;
       userId: string;
-      payload: SubmitEvidencePayload;
+      payload: SubmitEvidencePayload | CH001SetupPayload | SetupUpdateEvidencePayload;
+      mediaFile?: File;
+      // Send as metadata + mediaFile form parts instead of a JSON body
+      multipart?: boolean;
     }) => {
       const endpoint = `/submit${challengeCode.replace("-", "")}`;
+      const headers = {
+        "X-Step-ID": stepId,
+        "X-User-Id": userId,
+      };
+      if (multipart) {
+        const formData = new FormData();
+        formData.append("metadata", JSON.stringify(payload));
+        if (mediaFile) formData.append("mediaFile", mediaFile);
+        return apiFetch<SubmitEvidenceResponse>(endpoint, {
+          method: "POST",
+          body: formData,
+          headers,
+        });
+      }
       return apiFetch<SubmitEvidenceResponse>(endpoint, {
         method: "POST",
         body: payload,
-        headers: {
-          "X-Step-ID": stepId,
-          "X-User-Id": userId,
-        },
+        headers,
       });
     },
     onSuccess: (_data, { challengeId }) => {
@@ -236,23 +254,31 @@ type RegistrationPayload = {
   };
 };
 
-export type ChallengeSetupLocation = {
-  placeId: string;
-  suburb: string;
-  city: string;
-  country: string;
-  countryCode: string;
-  province: string;
-  latitude: number;
-  longitude: number;
-  formattedAddress: string;
-  postalCode: string;
-};
+export type {
+  ChallengeSetupAnchorPoint,
+  ChallengeSetupLocation,
+} from "@/lib/types/challenges";
 
-export type ChallengeSetupAnchorPoint = {
-  name: string;
-  location?: ChallengeSetupLocation;
-  measurement?: { value: number; unitOfMeasure: string };
+// One observation of one setup-registered point — later steps of
+// register-then-re-measure challenges (see SETUP_UPDATE_FLOW.md)
+export type SetupUpdateEvidencePayload = {
+  stepId: string;
+  stepNumber: number;
+  stepType: string;
+  challengeCode: string;
+  challengeId: string;
+  thingId: string;
+  circleId: string;
+  submittedBy: string;
+  volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
+  contributors: string[];
+  data: {
+    anchorPoint: ChallengeSetupAnchorPoint;
+    capturedAt: string;
+    measurement: { value: number; unitOfMeasure: string };
+    volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
+    weatherCondition?: string;
+  };
 };
 
 // CH-001 heat mapping: step 1 registers anchor points via /challengeSetup
