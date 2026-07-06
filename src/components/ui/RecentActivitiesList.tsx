@@ -6,12 +6,14 @@ import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUsers } from "@/lib/hooks/users";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 
 type Props =
   | { thingId: string; filterStepId?: string; userId?: never }
   | { userId: string; filterStepId?: never; thingId?: never };
+
+const LIMIT_STEPS = [3, 6, 10, 20, 50];
 
 function formatStepId(stepId: string): string {
   return stepId
@@ -21,9 +23,13 @@ function formatStepId(stepId: string): string {
 }
 
 export default function RecentActivitiesList({ thingId, filterStepId, userId }: Props) {
-  const thing = useRecentActivities(thingId ?? "");
-  const user = useUserRecentActivities(userId ?? "");
-  const { data: rawActivities = [], isLoading, error } = thingId ? thing : user;
+  const [limitIndex, setLimitIndex] = useState(0);
+  const limit = LIMIT_STEPS[limitIndex];
+  const thing = useRecentActivities(thingId ?? "", limit);
+  const user = useUserRecentActivities(userId ?? "", limit);
+  const { data: rawActivities = [], isLoading, isFetching, error } = thingId ? thing : user;
+  // More items may exist when the API filled the requested window
+  const hasMore = rawActivities.length >= limit && limitIndex < LIMIT_STEPS.length - 1;
   const activities = filterStepId
     ? rawActivities.filter((a) => a.stepId === filterStepId)
     : rawActivities;
@@ -130,6 +136,15 @@ export default function RecentActivitiesList({ thingId, filterStepId, userId }: 
           </div>
         );
       })}
+      {hasMore && (
+        <button
+          onClick={() => setLimitIndex((i) => i + 1)}
+          disabled={isFetching}
+          className="self-start text-base text-gotf-blue disabled:opacity-50"
+        >
+          {isFetching ? t("pleaseWait") : t("showMore")}
+        </button>
+      )}
     </div>
   );
 }
