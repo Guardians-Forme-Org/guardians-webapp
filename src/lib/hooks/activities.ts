@@ -22,4 +22,10 @@ export function useUserRecentActivities(userId: string, limit = DEFAULT_ACTIVITI
   });
 }
 
-export const EVIDENCE_SESSION_KEY = (id: string) => `evidence_view_${id}`;
+export function useEvidence(evidenceId: string) {
+  return useQuery({
+    queryKey: ["evidence", evidenceId],
+    queryFn: () => api.get<ApiRecentActivity>(`/evidences/${evidenceId}`),
+    enabled: !!evidenceId,
+  });
+}

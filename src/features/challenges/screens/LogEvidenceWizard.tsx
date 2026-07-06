@@ -2,7 +2,7 @@
 
 import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import { useAuth } from "@/contexts/AuthContext";
-import { EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
+import { useEvidence } from "@/lib/hooks/activities";
 import {
   useChallenge,
   useMarkStepComplete,
@@ -47,20 +47,38 @@ import { initForm, type LogFormData } from "../wizard/types";
 
 const STORAGE_KEY = (stepId: string) => `log-evidence-draft-${stepId}`;
 
+const AREA_UNITS: LogFormData["areaUnit"][] = ["m²", "ha", "km²", "acres"];
+
 function activityToForm(activity: ApiRecentActivity): LogFormData {
   const m = activity.data.measurement;
   const siUnit = (m?.siUnit ?? "").toUpperCase();
+  const measurementType =
+    siUnit === "VOLUME" ? "VOLUME" : siUnit === "AREA" ? "AREA" : "MASS";
   return {
     ...initForm(),
     measurementValue: m?.value != null ? String(m.value) : "",
-    measurementType: siUnit === "VOLUME" ? "VOLUME" : "MASS",
+    measurementType,
+    ...(measurementType === "AREA" && m?.value != null
+      ? {
+          estimatedArea: String(m.value),
+          areaUnit: AREA_UNITS.includes(m.unitOfMeasure as LogFormData["areaUnit"])
+            ? (m.unitOfMeasure as LogFormData["areaUnit"])
+            : "m²",
+        }
+      : {}),
     impactDescription: activity.data.description ?? "",
+    locationResult: activity.data.location ?? null,
     volunteerHours:
       activity.volunteerHours?.value != null
         ? String(activity.volunteerHours.value)
         : "",
     contributors: activity.contributors,
   };
+}
+
+// {value, unit} objects are how dynamic submissions store numeric fields
+function isValueUnit(v: unknown): v is { value: number; unit?: string } {
+  return v !== null && typeof v === "object" && !Array.isArray(v) && "value" in v && "unit" in v;
 }
 
 function activityToDynamic(
@@ -70,30 +88,132 @@ function activityToDynamic(
   stepForm?: import("@/lib/types/challenges").ApiTemplateFormField[] | null,
 ): DynamicValues {
   const result: DynamicValues = {};
+  const data = activity.data;
+  const fields = stepForm ?? [];
 
-  // New shape: data.measurement + data.description
-  if (activity.data.measurement) {
-    result["MEASUREMENT"] = String(activity.data.measurement.value);
-    result["MEASUREMENT__unit"] = activity.data.measurement.unitOfMeasure;
+  // Generic reverse of buildDynamicPayload: captured fields were merged into
+  // data under their raw template field names
+  for (const field of fields) {
+    if (field.name === vhFieldName || field.name === contribFieldName) continue;
+    const raw = data[field.name];
+    if (raw === undefined || raw === null || raw === "") continue;
+
+    if (field.type === "GROUP" && Array.isArray(raw)) {
+      result[field.name] = (raw as Record<string, unknown>[]).map((entry) => {
+        const out: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(entry)) {
+          if (isValueUnit(v)) {
+            out[k] = String(v.value);
+            out[`${k}__unit`] = v.unit;
+          } else {
+            out[k] = v;
+          }
+        }
+        return out;
+      });
+    } else if (Array.isArray(raw)) {
+      // Addable numeric fields hold one {value, unit} per entry
+      if (raw.length && isValueUnit(raw[0])) {
+        result[field.name] = (raw as { value: number; unit?: string }[]).map((v) =>
+          String(v.value),
+        );
+        result[`${field.name}__unit`] = (raw[0] as { unit?: string }).unit;
+      } else {
+        result[field.name] = raw;
+      }
+    } else if (isValueUnit(raw)) {
+      result[field.name] = String(raw.value);
+      result[`${field.name}__unit`] = raw.unit;
+    } else {
+      result[field.name] = raw;
+    }
   }
 
-  if (activity.data.description !== undefined) {
-    const descField = stepForm?.find((f) => f.name.includes("DESCRIPTION"));
-    result[descField?.name ?? "ACTIVITY_DESCRIPTION"] =
-      activity.data.description;
+  // Re-measured registered point (setup-update steps): data.anchorPoint +
+  // data.measurement feed the SELECT "locations" entry
+  const pointsField = fields.find(
+    (f) => f.type === "SELECT" && f.name.toLowerCase() === "locations",
+  );
+  if (pointsField && (data.anchorPoint || data.measurement)) {
+    result[pointsField.name] = {
+      selected: data.anchorPoint?.name ?? "",
+      measurement: data.measurement?.value != null ? String(data.measurement.value) : "",
+      higherRiskFlag: data.anchorPoint?.higherRiskFlag ?? false,
+    };
+  } else if (data.measurement) {
+    // data.measurement belongs to the first free numeric field, or the
+    // legacy MEASUREMENT name when the template has none
+    const numField = fields.find(
+      (f) =>
+        (f.type === "NUMBER" || f.type === "NUMERIC") &&
+        f.name !== vhFieldName &&
+        result[f.name] === undefined,
+    );
+    const key = numField?.name ?? "MEASUREMENT";
+    result[key] = String(data.measurement.value);
+    result[`${key}__unit`] = data.measurement.unitOfMeasure;
+  }
+
+  if (data.description !== undefined) {
+    const descField = fields.find((f) => f.name.includes("DESCRIPTION"));
+    result[descField?.name ?? "ACTIVITY_DESCRIPTION"] = data.description;
+  }
+
+  // Registered anchor points (setup steps) → the GROUP field's entries
+  if (data.anchorPoints?.length) {
+    const groupField = fields.find((f) => f.type === "GROUP");
+    if (groupField && result[groupField.name] === undefined) {
+      const subs = groupField.fields ?? [];
+      const nameSub = subs.find((f) => f.type === "TEXT");
+      const locSub = subs.find((f) => f.type === "LOCATION");
+      const numSub = subs.find((f) => f.type === "NUMBER" || f.type === "NUMERIC");
+      result[groupField.name] = data.anchorPoints.map((p) => {
+        const entry: Record<string, unknown> = {};
+        if (nameSub) entry[nameSub.name] = p.name;
+        if (locSub && p.location) entry[locSub.name] = p.location;
+        if (numSub && p.measurement) {
+          entry[numSub.name] = String(p.measurement.value);
+          entry[`${numSub.name}__unit`] = p.measurement.unitOfMeasure;
+        }
+        return entry;
+      });
+    }
+  }
+
+  if (data.location) {
+    const locField = fields.find((f) => f.type === "LOCATION");
+    if (locField && result[locField.name] === undefined) {
+      result[locField.name] = data.location;
+    }
+  }
+
+  // First uploaded media file → the IMAGE field (as a URL string)
+  if (data.mediaFiles?.length) {
+    const imgField = fields.find((f) => f.type === "IMAGE");
+    if (imgField && result[imgField.name] === undefined) {
+      result[imgField.name] = data.mediaFiles[0].url;
+    }
+  }
+
+  if (data.weatherCondition) {
+    const weatherField = fields.find((f) => f.name.includes("WEATHER"));
+    if (weatherField && result[weatherField.name] === undefined) {
+      result[weatherField.name] = data.weatherCondition;
+    }
+  }
+
+  if (data.capturedAt) {
+    const dateField = fields.find(
+      (f) => f.type === "DATE" && result[f.name] === undefined,
+    );
+    if (dateField) result[dateField.name] = data.capturedAt;
   }
 
   // Legacy shape: data.fields
-  for (const [key, val] of Object.entries(activity.data.fields ?? {})) {
-    if (
-      val !== null &&
-      typeof val === "object" &&
-      !Array.isArray(val) &&
-      "value" in val &&
-      "unit" in val
-    ) {
-      result[key] = String((val as { value: number }).value);
-      result[`${key}__unit`] = (val as { unit: string }).unit;
+  for (const [key, val] of Object.entries(data.fields ?? {})) {
+    if (isValueUnit(val)) {
+      result[key] = String(val.value);
+      result[`${key}__unit`] = val.unit;
     } else {
       result[key] = val;
     }
@@ -268,19 +388,12 @@ export default function LogEvidenceWizard({
     );
   }, [dynamicValues, stepId, viewId, isDerived]);
 
-  // ── View mode: load from session storage ───────────────────────────────────
+  // ── View mode: fetch the submission — refresh and shared links work too ────
+  // Only applied while still in view mode so it can't clobber in-progress edits.
+  const { data: fetchedEvidence } = useEvidence(viewId ?? "");
   useEffect(() => {
-    if (!viewId) return;
-    const raw = sessionStorage.getItem(EVIDENCE_SESSION_KEY(viewId));
-    if (!raw) return;
-    try {
-      const activity = JSON.parse(raw) as ApiRecentActivity;
-      setViewActivity(activity);
-      sessionStorage.removeItem(EVIDENCE_SESSION_KEY(viewId));
-    } catch {
-      /* ignore */
-    }
-  }, [viewId]);
+    if (fetchedEvidence && isViewMode) setViewActivity(fetchedEvidence);
+  }, [fetchedEvidence, isViewMode]);
 
   // ── Edit permissions ───────────────────────────────────────────────────────
   const isCircleLead =
@@ -1239,7 +1352,14 @@ export default function LogEvidenceWizard({
                             const point = (
                               setupUpdateStep.anchorPoints ?? []
                             ).find((p) => p.name === entry?.selected);
-                            if (!point) return [];
+                            if (!point) {
+                              // Older submissions carry only the measurement
+                              if (!entry?.measurement) return [];
+                              const unit =
+                                setupUpdateStep.anchorPoints?.[0]?.measurement
+                                  ?.unitOfMeasure ?? "";
+                              return [`${entry.measurement} ${unit}`.trim()];
+                            }
                             return [
                               [
                                 point.name,

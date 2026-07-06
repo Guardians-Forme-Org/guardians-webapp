@@ -332,6 +332,25 @@ export default function ReviewStep({
                 );
               }
 
+              // Already-uploaded media (view mode) arrives as a URL string
+              if (isImage && typeof value === "string" && value) {
+                return (
+                  <ReviewSection
+                    key={field.name}
+                    label={field.label}
+                    stepIndex={stepIndex}
+                    onEdit={onGoToStep}
+                    showEdit={showEdit}
+                  >
+                    <img
+                      src={value}
+                      alt=""
+                      className="w-full h-48 object-cover rounded-[8px] border border-[rgba(26,26,24,0.14)]"
+                    />
+                  </ReviewSection>
+                );
+              }
+
               const displayValue = formatDynamicValue(field, value, unit, users);
               if (displayValue === null) return null;
 

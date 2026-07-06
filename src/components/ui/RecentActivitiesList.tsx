@@ -1,6 +1,6 @@
 "use client";
 
-import { useRecentActivities, useUserRecentActivities, EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
+import { useRecentActivities, useUserRecentActivities } from "@/lib/hooks/activities";
 import Avatar from "@/components/ui/Avatar";
 import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,7 +98,6 @@ export default function RecentActivitiesList({ thingId, filterStepId, userId }: 
         );
         const isClickable = !!authUser;
         const handleClick = () => {
-          sessionStorage.setItem(EVIDENCE_SESSION_KEY(record.id), JSON.stringify(record));
           router.push(`/challenges/${record.thingId}/steps/${record.stepId}/log?view=${record.id}`);
         };
         return (

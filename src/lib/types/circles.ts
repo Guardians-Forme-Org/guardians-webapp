@@ -1,3 +1,14 @@
+import type {
+  ChallengeSetupAnchorPoint,
+  ChallengeSetupLocation,
+} from "./challenges";
+
+export type ApiActivityMediaFile = {
+  type: string;
+  url: string;
+  description?: string;
+};
+
 export type ApiRecentActivity = {
   id: string;
   circleId: string;
@@ -10,10 +21,19 @@ export type ApiRecentActivity = {
     measurement?: {
       value: number;
       unitOfMeasure: string;
-      siUnit: string;
+      siUnit?: string;
     };
     description?: string;
+    location?: ChallengeSetupLocation;
+    anchorPoint?: ChallengeSetupAnchorPoint;
+    anchorPoints?: ChallengeSetupAnchorPoint[];
+    mediaFiles?: ApiActivityMediaFile[];
+    capturedAt?: string;
+    weatherCondition?: string;
     fields?: Record<string, unknown>;
+    // Dynamic-form submissions also merge captured fields into data under
+    // their raw template field names
+    [key: string]: unknown;
   };
   stepId: string;
   stepNumber: number;
