@@ -262,6 +262,7 @@ export type CH001SetupPayload = {
   stepType: string;
   challengeCode: string;
   challengeId: string;
+  thingId: string;
   circleId: string;
   submittedBy: string;
   volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
