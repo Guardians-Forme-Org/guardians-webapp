@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { LocateFixed, Map as MapIcon, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
+import { useCurrentLocation } from "@/lib/hooks/location";
 import MapPickerSheet from "./MapPickerSheet";
 
 export type LocationResult = {
@@ -82,36 +83,20 @@ export default function LocationPicker({
   const [geoError, setGeoError] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
 
-  const useCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setGeoError(t("currentLocationFailed"));
-      return;
-    }
+  const locateCurrent = useCurrentLocation();
+
+  const handleUseCurrent = async () => {
     setLocating(true);
     setGeoError(null);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { Geocoder } = await importLibrary("geocoding");
-          const { results } = await new Geocoder().geocode({
-            location: { lat: pos.coords.latitude, lng: pos.coords.longitude },
-          });
-          const result = results?.[0] ? extractLocation(results[0]) : null;
-          if (!result) throw new Error("No geocoding result");
-          setDisplay(result.formattedAddress);
-          onSelectRef.current(result);
-        } catch {
-          setGeoError(t("currentLocationFailed"));
-        } finally {
-          setLocating(false);
-        }
-      },
-      () => {
-        setGeoError(t("currentLocationFailed"));
-        setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
+    try {
+      const result = await locateCurrent();
+      setDisplay(result.formattedAddress);
+      onSelectRef.current(result);
+    } catch {
+      setGeoError(t("currentLocationFailed"));
+    } finally {
+      setLocating(false);
+    }
   };
 
   useEffect(() => {
@@ -171,7 +156,7 @@ export default function LocationPicker({
             {showUseCurrent && (
               <button
                 type="button"
-                onClick={useCurrentLocation}
+                onClick={handleUseCurrent}
                 disabled={locating}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gotf-green disabled:opacity-50"
               >

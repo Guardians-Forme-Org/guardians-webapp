@@ -421,6 +421,7 @@ function Step2({
             defaultValue={location?.formattedAddress}
             onSelect={onSelect}
             placeholder={t("locationSearchPlaceholder")}
+            showUseCurrent
           />
         </div>
 

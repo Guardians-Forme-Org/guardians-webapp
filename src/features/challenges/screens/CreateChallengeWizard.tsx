@@ -503,6 +503,7 @@ function Step3({
               defaultValue={location?.formattedAddress}
               onSelect={onLocationSelect}
               placeholder={t("challengeLocationPlaceholder")}
+              showUseCurrent
             />
           </div>
         )}

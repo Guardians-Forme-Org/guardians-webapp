@@ -353,6 +353,7 @@ function Step2({
             defaultValue={form.location?.formattedAddress ?? ""}
             onSelect={onLocationSelect}
             placeholder={t("step2.locationPlaceholder")}
+            showUseCurrent
           />
           <div className="border border-[#ccc] rounded-[10px] h-[200px] overflow-hidden relative bg-[#eef4ee]">
             {form.location ? (

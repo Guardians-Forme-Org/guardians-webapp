@@ -165,6 +165,7 @@ export default function EditProfileScreen() {
               defaultValue={currentLocationLabel}
               onSelect={setLocation}
               className="w-full h-[56px] border border-[#d9d9d9] rounded-[10px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none focus:border-gotf-green transition-colors"
+              showUseCurrent
             />
           </div>
 

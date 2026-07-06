@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/contexts/AuthContext";
-import { useChallenge, useTemplates, useSubmitEvidence, useSubmitRegistration, useUpdateEvidence, useMarkStepComplete, type SubmitEvidenceResponse } from "@/lib/hooks/challenges";
+import { useChallenge, useTemplates, useSubmitEvidence, useSubmitRegistration, useUpdateEvidence, useMarkStepComplete, type SubmitEvidenceResponse, type CH001SetupPayload, type ChallengeSetupLocation, type ChallengeSetupAnchorPoint } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
 import { EVIDENCE_SESSION_KEY } from "@/lib/hooks/activities";
 import { computeChallengeRoles } from "@/lib/roles";
@@ -503,6 +503,90 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
     };
   };
 
+  // CH-001 (heat mapping) step 1 only: the setup endpoint expects camelCase
+  // data keys — anchorPoints[{name, location, measurement}] — and drops the
+  // raw ANCHOR_POINT group shape entirely.
+  const buildCH001SetupPayload = () => {
+    if (!user || !challenge || !stepMeta) throw new Error("Not ready");
+
+    const tempUnitLabels: Record<string, string> = { C: "°C", F: "°F", K: "K" };
+
+    const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
+    const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
+    const volunteerHours = {
+      value: vhValue,
+      unitOfMeasure: vhUnit === "H" ? "hours" : vhUnit.toLowerCase(),
+      siUnit: "TIME",
+    };
+
+    const groupField = stepForm?.find((f) => f.type === "GROUP");
+    const subFields = groupField?.fields ?? [];
+    const nameSub = subFields.find((f) => f.type === "TEXT");
+    const locSub = subFields.find((f) => f.type === "LOCATION");
+    const tempSub = subFields.find((f) => f.type === "NUMBER" || f.type === "NUMERIC");
+
+    const entries = groupField && Array.isArray(dynamicValues[groupField.name])
+      ? (dynamicValues[groupField.name] as Record<string, unknown>[])
+      : [];
+
+    const anchorPoints: ChallengeSetupAnchorPoint[] = entries
+      .map((entry) => {
+        const point: ChallengeSetupAnchorPoint = {
+          name: nameSub ? ((entry[nameSub.name] as string) ?? "") : "",
+        };
+        const location = locSub ? (entry[locSub.name] as ChallengeSetupLocation | undefined) : undefined;
+        if (location) point.location = location;
+        const tempRaw = tempSub ? entry[tempSub.name] : undefined;
+        if (tempSub && tempRaw !== undefined && tempRaw !== null && tempRaw !== "") {
+          const unit =
+            (entry[`${tempSub.name}__unit`] as string) ??
+            tempSub.unitOfMeasureOptions?.[0]?.value ??
+            "C";
+          point.measurement = {
+            value: parseFloat(tempRaw as string) || 0,
+            unitOfMeasure: tempUnitLabels[unit] ?? unit,
+          };
+        }
+        return point;
+      })
+      .filter((p) => p.name || p.location || p.measurement);
+
+    const locationField = stepForm?.find((f) => f.type === "LOCATION");
+    const location = locationField
+      ? (dynamicValues[locationField.name] as ChallengeSetupLocation | undefined)
+      : undefined;
+
+    const weatherField = stepForm?.find((f) => f.name.includes("WEATHER"));
+    const weatherRaw = weatherField ? dynamicValues[weatherField.name] : undefined;
+    const weatherCondition =
+      weatherRaw !== undefined && weatherRaw !== null && weatherRaw !== ""
+        ? String(weatherRaw)
+        : undefined;
+
+    const imageField = stepForm?.find((f) => f.type === "IMAGE");
+    const mediaFile = imageField ? (dynamicValues[imageField.name] as File | undefined) : undefined;
+
+    const payload: CH001SetupPayload = {
+      stepId: stepMeta.stepId,
+      stepNumber: stepMeta.stepNumber,
+      stepType: stepMeta.stepType,
+      challengeCode: challenge.challengeCode,
+      challengeId: challenge.challengeId,
+      circleId: challenge.circleId,
+      submittedBy: user.id,
+      volunteerHours,
+      contributors: (dynamicValues[contribFieldName] as string[]) ?? [],
+      data: {
+        volunteerHours,
+        ...(weatherCondition ? { weatherCondition } : {}),
+        ...(location ? { location } : {}),
+        anchorPoints,
+      },
+    };
+
+    return { payload, mediaFile };
+  };
+
   const buildDynamicPayload = () => {
     if (!user || !challenge || !stepMeta) throw new Error("Not ready");
     if (challenge.challengeCode === "CH-015") return buildCH015Payload();
@@ -649,6 +733,24 @@ export default function LogEvidenceWizard({ challengeId, stepId, viewId }: Props
 
     // ── Dynamic path ───────────────────────────────────────────────────────
     if (isDerived) {
+      // CH-001 step 1 registers anchor points via the multipart /challengeSetup
+      // endpoint, not /submitCH001
+      if (challenge.challengeCode === "CH-001" && isRegistrationStep) {
+        const { payload, mediaFile } = buildCH001SetupPayload();
+        submitRegistration.mutate(
+          {
+            challengeCode: challenge.challengeCode,
+            challengeId: challenge.challengeId,
+            stepId: stepMeta.stepId,
+            userId: user.id,
+            payload,
+            mediaFile,
+          },
+          { onSuccess: () => onSuccess() },
+        );
+        return;
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { payload } = buildDynamicPayload() as any;
       submitEvidence.mutate(
