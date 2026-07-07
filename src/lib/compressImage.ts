@@ -1,3 +1,8 @@
+// The API's nginx rejects request bodies over 1MB (client_max_body_size 1m),
+// and the CORS-less 413 surfaces as an opaque "Load failed" in the browser.
+// Kept slightly under 1MiB to leave room for the metadata part and multipart framing.
+export const MAX_UPLOAD_BYTES = 1_000_000;
+
 export async function compressImage(
   file: File,
   maxDimension = 1024,
@@ -20,7 +25,10 @@ export async function compressImage(
       canvas.toBlob(
         (blob) => {
           if (!blob) return reject(new Error("Compression failed"));
-          resolve(new File([blob], "avatar.jpg", { type: "image/jpeg" }));
+          const name = file.name
+            ? `${file.name.replace(/\.[^.]+$/, "")}.jpg`
+            : "image.jpg";
+          resolve(new File([blob], name, { type: "image/jpeg" }));
         },
         "image/jpeg",
         quality,

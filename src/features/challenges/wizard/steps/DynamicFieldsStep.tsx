@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Camera, ChevronDown, X } from "lucide-react";
+import { AlertTriangle, Camera, ChevronDown, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
+import { compressImage, MAX_UPLOAD_BYTES } from "@/lib/compressImage";
 import { FieldGroup, SaveButton, ToggleCard } from "../shared";
 import type { ApiTemplateFormField } from "@/lib/types/challenges";
 
@@ -55,6 +56,7 @@ function ImageField({
 }) {
   const t = useTranslations("challenges");
   const ref = useRef<HTMLInputElement>(null);
+  const [sizeError, setSizeError] = useState<string | null>(null);
 
   return (
     <FieldGroup label={field.label} required={field.required}>
@@ -63,10 +65,18 @@ function ImageField({
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={(e) => {
+        onChange={async (e) => {
           const f = e.target.files?.[0];
-          if (f) onSelect(f);
           e.target.value = "";
+          if (!f) return;
+          // Phone photos exceed the API's 1MB body limit; compress before storing
+          const processed = await compressImage(f).catch(() => f);
+          if (processed.size > MAX_UPLOAD_BYTES) {
+            setSizeError(t("fileTooLarge", { name: f.name }));
+            return;
+          }
+          setSizeError(null);
+          onSelect(processed);
         }}
       />
       {value ? (
@@ -94,6 +104,12 @@ function ImageField({
           </div>
           <p className="text-[14px] font-semibold text-text-primary">{t("tapToUploadFiles")}</p>
         </button>
+      )}
+      {sizeError && (
+        <div className="flex items-center gap-1 text-[#a32d2d] mt-1.5">
+          <AlertTriangle size={13} className="shrink-0" />
+          <span className="text-xs">{sizeError}</span>
+        </div>
       )}
     </FieldGroup>
   );

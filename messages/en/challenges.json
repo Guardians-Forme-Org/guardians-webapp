@@ -192,5 +192,6 @@
   "contributorsQuestion": "Who performed the action?",
   "searchContributors": "Search contributors",
   "addFile": "Add file",
-  "fileUploadHint": "Select images, PDFs and CSVs from your phone"
+  "fileUploadHint": "Select images, PDFs and CSVs from your phone",
+  "fileTooLarge": "{name} is too large — files must be under 1MB"
 }

@@ -192,5 +192,6 @@
   "contributorsQuestion": "Ki végezte a tevékenységet?",
   "searchContributors": "Közreműködők keresése",
   "addFile": "Fájl hozzáadása",
-  "fileUploadHint": "Válassz képeket, PDF-eket és CSV-ket a telefonodról"
+  "fileUploadHint": "Válassz képeket, PDF-eket és CSV-ket a telefonodról",
+  "fileTooLarge": "A(z) {name} fájl túl nagy — a fájlok mérete legfeljebb 1 MB lehet"
 }

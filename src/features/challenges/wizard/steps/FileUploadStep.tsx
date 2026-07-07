@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef } from "react";
-import { Plus, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { AlertTriangle, Plus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { FileThumb, SaveButton } from "../shared";
+import { compressImage, MAX_UPLOAD_BYTES } from "@/lib/compressImage";
 import type { LogFormData } from "../types";
 
 type Props = {
@@ -17,10 +18,22 @@ export default function FileUploadStep({ form, update, onNext, nextLabel }: Prop
   const t = useTranslations("challenges");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFilesAdded = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const added = Array.from(e.target.files ?? []);
-    if (added.length) update("evidenceFiles", [...form.evidenceFiles, ...added]);
+  const [sizeError, setSizeError] = useState<string | null>(null);
+
+  const handleFilesAdded = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = Array.from(e.target.files ?? []);
     e.target.value = "";
+    if (!picked.length) return;
+    // Phone photos exceed the API's 1MB body limit; compress before storing
+    const processed = await Promise.all(
+      picked.map((f) =>
+        f.type.startsWith("image/") ? compressImage(f).catch(() => f) : f,
+      ),
+    );
+    const added = processed.filter((f) => f.size <= MAX_UPLOAD_BYTES);
+    const rejected = processed.find((f) => f.size > MAX_UPLOAD_BYTES);
+    setSizeError(rejected ? t("fileTooLarge", { name: rejected.name }) : null);
+    if (added.length) update("evidenceFiles", [...form.evidenceFiles, ...added]);
   };
 
   const removeFile = (index: number) => {
@@ -54,6 +67,12 @@ export default function FileUploadStep({ form, update, onNext, nextLabel }: Prop
             {t("fileUploadHint")}
           </p>
         </button>
+        {sizeError && (
+          <div className="flex items-center gap-1 text-[#a32d2d]">
+            <AlertTriangle size={13} className="shrink-0" />
+            <span className="text-xs">{sizeError}</span>
+          </div>
+        )}
 
         {form.evidenceFiles.map((file, i) => (
           <div
