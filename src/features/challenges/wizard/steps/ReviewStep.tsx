@@ -207,7 +207,7 @@ export default function ReviewStep({
           <h1 className="text-[32px] font-bold text-black">{t("reviewHeading")}</h1>
           <p className="text-base text-text-muted mt-1">{t("checkDetails")}</p>
         </div>
-        <div className="flex flex-col gap-6 px-5">
+        <div className={`flex flex-col gap-6 px-5 ${readOnly ? "pb-safe-nav" : ""}`}>
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="flex flex-col gap-3">
               <Skeleton className="h-3 w-28" />
@@ -236,7 +236,7 @@ export default function ReviewStep({
         </p>
       </div>
 
-      <div className="flex flex-col gap-6 px-5">
+      <div className={`flex flex-col gap-6 px-5 ${readOnly ? "pb-safe-nav" : ""}`}>
         {/* ── Setup-update rows (points registered during setup) ─────────── */}
         {dynamicConfig?.setupUpdate && dynamicConfig.setupUpdate.rows.length > 0 && (
           <ReviewSection
