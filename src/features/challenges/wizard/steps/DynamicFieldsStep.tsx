@@ -50,7 +50,8 @@ function ImageField({
   onClear,
 }: {
   field: ApiTemplateFormField;
-  value: File | null;
+  // string = already-uploaded media URL (editing an existing submission)
+  value: File | string | null;
   onSelect: (f: File) => void;
   onClear: () => void;
 }) {
@@ -83,7 +84,7 @@ function ImageField({
         <div className="relative w-full h-44 rounded-[8px] overflow-hidden border border-[rgba(26,26,24,0.14)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={URL.createObjectURL(value)}
+            src={typeof value === "string" ? value : URL.createObjectURL(value)}
             alt=""
             className="w-full h-full object-cover"
           />
@@ -362,7 +363,7 @@ function FieldControl({
     return (
       <ImageField
         field={field}
-        value={(value as File | null) ?? null}
+        value={(value as File | string | null) ?? null}
         onSelect={(f) => onChange(f)}
         onClear={() => onChange(null)}
       />

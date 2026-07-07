@@ -1150,7 +1150,7 @@ export default function CreateChallengeWizard({
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [createdChallenge, setCreatedChallenge] = useState<ApiChallenge | null>(null);
   const { data: rawTemplates = [], isLoading: templatesLoading } = useTemplates();
-  const ENABLED_TEMPLATE_IDS = ["CH-001", "CH-004", "CH-015"];
+  const ENABLED_TEMPLATE_IDS = ["CH-001", "CH-002", "CH-004", "CH-015"];
   const templates = rawTemplates.filter((t) => ENABLED_TEMPLATE_IDS.includes(t.templateId));
   const { data: users = [], isLoading: usersLoading } = useUsers();
   const { data: selectedCircle } = useCircle(circleId);

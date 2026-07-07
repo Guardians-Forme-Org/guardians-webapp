@@ -206,7 +206,8 @@ function activityToDynamic(
     const dateField = fields.find(
       (f) => f.type === "DATE" && result[f.name] === undefined,
     );
-    if (dateField) result[dateField.name] = data.capturedAt;
+    // ISO timestamp → yyyy-mm-dd so the date input can render it on edit
+    if (dateField) result[dateField.name] = String(data.capturedAt).slice(0, 10);
   }
 
   // Legacy shape: data.fields
@@ -855,6 +856,71 @@ export default function LogEvidenceWizard({
     return { payload, mediaFile };
   };
 
+  // CH-002 step 1 only: registers the fixed observation point via the
+  // multipart /challengeSetup endpoint — camelCase data keys (location,
+  // capturedAt, weatherCondition) plus the baseline image as mediaFile.
+  const buildCH002SetupPayload = () => {
+    if (!user || !challenge || !stepMeta) throw new Error("Not ready");
+
+    const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
+    const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
+    const volunteerHours = {
+      value: vhValue,
+      unitOfMeasure: vhUnit === "H" ? "hours" : vhUnit.toLowerCase(),
+      siUnit: "TIME",
+    };
+
+    const locationField = stepForm?.find((f) => f.type === "LOCATION");
+    const location = locationField
+      ? (dynamicValues[locationField.name] as
+          | ChallengeSetupLocation
+          | undefined)
+      : undefined;
+
+    const weatherField = stepForm?.find((f) => f.name.includes("WEATHER"));
+    const weatherRaw = weatherField
+      ? dynamicValues[weatherField.name]
+      : undefined;
+    const weatherCondition =
+      weatherRaw !== undefined && weatherRaw !== null && weatherRaw !== ""
+        ? String(weatherRaw)
+        : undefined;
+
+    const dateField = stepForm?.find((f) => f.type === "DATE");
+    const dateRaw = dateField
+      ? (dynamicValues[dateField.name] as string | undefined)
+      : undefined;
+    const capturedAt = dateRaw
+      ? new Date(dateRaw).toISOString()
+      : new Date().toISOString();
+
+    const imageField = stepForm?.find((f) => f.type === "IMAGE");
+    const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
+    const mediaFile = imageValue instanceof File ? imageValue : undefined;
+
+    const payload: CH001SetupPayload = {
+      stepId: stepMeta.stepId,
+      stepNumber: stepMeta.stepNumber,
+      stepType: stepMeta.stepType,
+      challengeCode: challenge.challengeCode,
+      challengeId: challenge.challengeId,
+      thingId: challenge.challengeId,
+      circleId: challenge.circleId,
+      submittedBy: user.id,
+      volunteerHours,
+      contributors: (dynamicValues[contribFieldName] as string[]) ?? [],
+      data: {
+        volunteerHours,
+        capturedAt,
+        ...(weatherCondition ? { weatherCondition } : {}),
+        ...(location ? { location } : {}),
+        anchorPoints: [],
+      },
+    };
+
+    return { payload, mediaFile };
+  };
+
   // Steps that re-measure a point registered during setup (setup-update):
   // one submission = one observation of one point. The point's name and
   // location pass through unchanged (placeId is the identity); only the
@@ -1042,11 +1108,11 @@ export default function LogEvidenceWizard({
     // Merge remaining fields directly into data
     Object.assign(data, rawFields);
 
-    // First IMAGE field becomes the media file
+    // First IMAGE field becomes the media file. In view/edit mode the value
+    // can be the already-uploaded URL string — only a fresh File is sendable.
     const imageField = stepForm?.find((f) => f.type === "IMAGE");
-    const mediaFile = imageField
-      ? (dynamicValues[imageField.name] as File | undefined)
-      : undefined;
+    const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
+    const mediaFile = imageValue instanceof File ? imageValue : undefined;
 
     const unitLabel = vhUnit === "H" ? "hours" : vhUnit.toLowerCase();
 
@@ -1120,6 +1186,27 @@ export default function LogEvidenceWizard({
         return;
       }
 
+      // CH-002 step 1 registers the observation point via /challengeSetup
+      // (its registration stepId differs from CH-001's SETUP_AND_REGISTRATION)
+      if (
+        challenge.challengeCode === "CH-002" &&
+        stepMeta.stepType === "REGISTRATION"
+      ) {
+        const { payload, mediaFile } = buildCH002SetupPayload();
+        submitRegistration.mutate(
+          {
+            challengeCode: challenge.challengeCode,
+            challengeId: challenge.challengeId,
+            stepId: stepMeta.stepId,
+            userId: user.id,
+            payload,
+            mediaFile,
+          },
+          { onSuccess: () => onSuccess() },
+        );
+        return;
+      }
+
       // Setup-update steps resend the setup data shape as multipart
       if (setupUpdateStep) {
         const { payload, mediaFile } = buildSetupUpdatePayload(setupUpdateStep);
@@ -1139,7 +1226,11 @@ export default function LogEvidenceWizard({
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { payload } = buildDynamicPayload() as any;
+      const { payload, mediaFile } = buildDynamicPayload() as any;
+      // CH-002 only: always multipart (metadata + optional mediaFile) — the
+      // observation photo is the evidence itself. Other codes keep the JSON
+      // body that their endpoints accept (CH-004 contract — do not widen).
+      const isCH002 = challenge.challengeCode === "CH-002";
       submitEvidence.mutate(
         {
           challengeCode: challenge.challengeCode,
@@ -1147,6 +1238,7 @@ export default function LogEvidenceWizard({
           stepId: stepMeta.stepId,
           userId: user.id,
           payload,
+          ...(isCH002 ? { multipart: true, mediaFile } : {}),
         },
         { onSuccess },
       );

@@ -296,6 +296,8 @@ export type CH001SetupPayload = {
   data: {
     volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
     weatherCondition?: string;
+    // CH-002: when the observation was captured (DATE_CAPTURED field)
+    capturedAt?: string;
     location?: ChallengeSetupLocation;
     anchorPoints: ChallengeSetupAnchorPoint[];
   };
