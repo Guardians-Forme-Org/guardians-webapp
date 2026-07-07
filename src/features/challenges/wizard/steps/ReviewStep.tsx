@@ -9,6 +9,7 @@ import type { ApiTemplateFormField } from "@/lib/types/challenges";
 import type { DynamicValues } from "./DynamicFieldsStep";
 import { useUser } from "@/lib/hooks/users";
 import Avatar from "@/components/ui/Avatar";
+import Skeleton from "@/components/ui/Skeleton";
 
 type UserLike = {
   id: string;
@@ -64,6 +65,7 @@ type Props = {
   canEdit?: boolean;
   uploadLabel?: string;
   dynamicConfig?: DynamicReviewConfig;
+  isLoading?: boolean;
 };
 
 function ReviewSection({
@@ -192,10 +194,30 @@ export default function ReviewStep({
   canEdit,
   uploadLabel = "Upload",
   dynamicConfig,
+  isLoading,
 }: Props) {
   const t = useTranslations("challenges");
   const idx = (type: WizardStepType) => stepTypes.indexOf(type) + 1;
   const showEdit = !readOnly || !!canEdit;
+
+  if (isLoading) {
+    return (
+      <>
+        <div className="px-5 mt-7 mb-6">
+          <h1 className="text-[32px] font-bold text-black">{t("reviewHeading")}</h1>
+          <p className="text-base text-text-muted mt-1">{t("checkDetails")}</p>
+        </div>
+        <div className="flex flex-col gap-6 px-5">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="flex flex-col gap-3">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-[44px] w-full rounded-[8px]" />
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
 
   const hasFileUpload = stepTypes.includes("file-upload");
   const hasVolunteerHours = stepTypes.includes("volunteer-hours");

@@ -390,10 +390,17 @@ export default function LogEvidenceWizard({
 
   // ── View mode: fetch the submission — refresh and shared links work too ────
   // Only applied while still in view mode so it can't clobber in-progress edits.
-  const { data: fetchedEvidence } = useEvidence(viewId ?? "");
+  const { data: fetchedEvidence, isError: evidenceFetchFailed } = useEvidence(
+    viewId ?? "",
+  );
   useEffect(() => {
     if (fetchedEvidence && isViewMode) setViewActivity(fetchedEvidence);
   }, [fetchedEvidence, isViewMode]);
+
+  // Loading until the fetched submission has been applied to local state
+  // (viewActivity feeds form/dynamicValues via effects). Stops on fetch error
+  // rather than skeleton-ing forever.
+  const isViewLoading = isViewMode && !viewActivity && !evidenceFetchFailed;
 
   // ── Edit permissions ───────────────────────────────────────────────────────
   const isCircleLead =
@@ -1327,6 +1334,7 @@ export default function LogEvidenceWizard({
                   users={users}
                   readOnly={isViewMode}
                   canEdit={isViewMode ? false : canEdit}
+                  isLoading={isViewLoading}
                   uploadLabel={
                     viewId && !isViewMode ? t("update") : t("upload")
                   }
@@ -1482,6 +1490,7 @@ export default function LogEvidenceWizard({
                 users={users}
                 readOnly={isViewMode}
                 canEdit={isViewMode ? false : canEdit}
+                isLoading={isViewLoading}
                 uploadLabel={viewId && !isViewMode ? t("update") : t("upload")}
               />
             )}
