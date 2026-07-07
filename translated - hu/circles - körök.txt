@@ -10,7 +10,6 @@
   "seeAll": "Összes megtekintése ({count})",
   "showLess": "Kevesebb megjelenítése",
   "activeChallengeStat": "Aktív kihívások",
-  "circle": "Kör",
   "impact": "Hatás",
   "contributed": "hozzájárult",
   "recentActivities": "Legutóbbi tevékenységek",

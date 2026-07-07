@@ -1,0 +1,8 @@
+{
+  "showMore": "Több megjelenítése",
+  "useCurrentLocation": "Jelenlegi hely használata",
+  "pickOnMap": "Kiválasztás térképen",
+  "confirmLocation": "Helyszín megerősítése",
+  "locating": "Helymeghatározás…",
+  "currentLocationFailed": "Nem sikerült lekérni a helyzetedet. Ellenőrizd a helymeghatározási engedélyeket, és próbáld újra."
+}
