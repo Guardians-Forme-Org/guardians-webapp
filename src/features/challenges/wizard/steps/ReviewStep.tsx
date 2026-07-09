@@ -165,6 +165,66 @@ function formatDynamicValue(
   }
 }
 
+// One GROUP entry (e.g. a registered anchor point) — every filled sub-field
+// rendered with its label; the first TEXT sub doubles as the card title
+function GroupEntryCard({
+  field,
+  entry,
+  index,
+  users,
+}: {
+  field: ApiTemplateFormField;
+  entry: Record<string, unknown>;
+  index: number;
+  users?: UserLike[];
+}) {
+  const subs = field.fields ?? [];
+  const nameSub = subs.find((s) => s.type === "TEXT");
+  const title = (nameSub && (entry[nameSub.name] as string)) || `#${index + 1}`;
+
+  return (
+    <div className="border border-[rgba(26,26,24,0.14)] rounded-[12px] p-4 flex flex-col gap-3">
+      <p className="text-sm font-semibold text-text-primary">{title}</p>
+      {subs.map((sub) => {
+        if (sub === nameSub) return null;
+        const sv = entry[sub.name];
+        if (sv === undefined || sv === null || sv === "") return null;
+
+        if (sub.type === "IMAGE") {
+          return (
+            <div key={sub.name} className="flex flex-col gap-1">
+              <p className="text-xs text-text-muted">{sub.label}</p>
+              {sv instanceof File ? (
+                <div className="h-32 rounded-[8px] overflow-hidden border border-[rgba(26,26,24,0.14)] flex items-center justify-center bg-[#f5f5f5]">
+                  <FileThumb file={sv} />
+                </div>
+              ) : typeof sv === "string" ? (
+                <img
+                  src={sv}
+                  alt=""
+                  className="w-full h-32 object-cover rounded-[8px] border border-[rgba(26,26,24,0.14)]"
+                />
+              ) : null}
+            </div>
+          );
+        }
+
+        const unit =
+          (entry[`${sub.name}__unit`] as string | undefined) ??
+          sub.unitOfMeasureOptions?.[0]?.value;
+        const formatted = formatDynamicValue(sub, sv, unit, users);
+        if (formatted === null) return null;
+        return (
+          <div key={sub.name} className="flex flex-col gap-0.5">
+            <p className="text-xs text-text-muted">{sub.label}</p>
+            <p className="text-base text-text-primary">{formatted}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function ReadOnlyToggle({ checked }: { checked: boolean }) {
   return (
     <div
@@ -266,29 +326,16 @@ export default function ReviewStep({
               const isContributors =
                 field.name === "CONTRIBUTORS" || field.name === "CONTRIBUTORS_LIST";
 
-              // GROUP: one row per entry, sub-values joined
+              // GROUP: one card per entry, every filled sub-field labeled
               if (field.type === "GROUP") {
-                const entries = (Array.isArray(value) ? (value as Record<string, unknown>[]) : [])
-                  .map((entry) =>
-                    (field.fields ?? [])
-                      .map((sub) => {
-                        const sv = entry[sub.name];
-                        if (sv === undefined || sv === null || sv === "") return null;
-                        if (typeof sv === "object") {
-                          return (sv as { formattedAddress?: string }).formattedAddress ?? null;
-                        }
-                        if (sub.type === "NUMBER" || sub.type === "NUMERIC") {
-                          const subUnit =
-                            (entry[`${sub.name}__unit`] as string | undefined) ??
-                            sub.unitOfMeasureOptions?.[0]?.value;
-                          return subUnit ? `${sv} ${subUnit}` : String(sv);
-                        }
-                        return String(sv);
-                      })
-                      .filter((p): p is string => !!p)
-                      .join(" · "),
-                  )
-                  .filter((line) => line.length > 0);
+                const entries = (
+                  Array.isArray(value) ? (value as Record<string, unknown>[]) : []
+                ).filter((entry) =>
+                  (field.fields ?? []).some((sub) => {
+                    const sv = entry[sub.name];
+                    return sv !== undefined && sv !== null && sv !== "";
+                  }),
+                );
                 if (!entries.length) return null;
                 return (
                   <ReviewSection
@@ -299,8 +346,14 @@ export default function ReviewStep({
                     showEdit={showEdit}
                   >
                     <div className="flex flex-col gap-2">
-                      {entries.map((line, i) => (
-                        <ReadOnlyField key={i} label="" value={line} />
+                      {entries.map((entry, i) => (
+                        <GroupEntryCard
+                          key={i}
+                          field={field}
+                          entry={entry}
+                          index={i}
+                          users={users}
+                        />
                       ))}
                     </div>
                   </ReviewSection>
