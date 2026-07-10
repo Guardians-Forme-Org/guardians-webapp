@@ -14,10 +14,10 @@ import { useUsers } from "@/lib/hooks/users";
 import type { AuthUser } from "@/lib/types/auth";
 import type { ApiChallenge, ApiTemplate } from "@/lib/types/challenges";
 import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
+import SdgPills from "../components/SdgPills";
 import {
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
   Globe,
   ImageIcon,
   Mail,
@@ -270,11 +270,7 @@ function Step1({
                     {tmpl.description}
                   </p>
                   <div className="flex flex-wrap gap-1 mt-0.5">
-                    {(tmpl.SDGAlignments ?? []).map((sdg) => (
-                      <span key={sdg.code} className="text-[12px] text-text-muted bg-[rgba(86,192,43,0.12)] rounded-full px-2 py-0.5">
-                        {sdg.code}
-                      </span>
-                    ))}
+                    <SdgPills sdgs={tmpl.SDGAlignments ?? []} variant="chip" />
                   </div>
                 </div>
                 <RadioCircle selected={selected} />
@@ -285,13 +281,6 @@ function Step1({
       </div>
     </>
   );
-}
-
-// ── SDG URL adapter ────────────────────────────────────────────────────────────
-
-function buildSdgUrl(code: string): string {
-  const number = code.replace(/\D/g, "");
-  return `https://sdgs.un.org/goals/goal${number}`;
 }
 
 // ── Step 2 — Template Preview ──────────────────────────────────────────────────
@@ -327,20 +316,7 @@ function Step2({
       {/* SDG + Impact Domain pills */}
       {((template?.SDGAlignments?.length ?? 0) > 0 || (template?.impactDomains?.length ?? 0) > 0) && (
         <div className="px-10 mb-7 flex flex-wrap gap-2">
-          {(template?.SDGAlignments ?? []).map((sdg) => (
-            <a
-              key={sdg.code}
-              href={buildSdgUrl(sdg.code)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 h-8 border-2 border-[#56c02b] rounded-[20px]"
-            >
-              <span className="text-[13px] text-[#1a1a1a] font-medium whitespace-nowrap">
-                {sdg.code.replace("SDG", "SDG ")} · {sdg.name}
-              </span>
-              <ExternalLink size={12} className="shrink-0 text-[#1a1a1a]" />
-            </a>
-          ))}
+          <SdgPills sdgs={template?.SDGAlignments ?? []} variant="link" />
           {(template?.impactDomains ?? []).map((domain) => (
             <span
               key={domain.code}
@@ -882,11 +858,7 @@ function Step6({
                 {circle.name}
               </span>
             )}
-            {(template?.SDGAlignments ?? []).map((sdg) => (
-              <span key={sdg.code} className="inline-block bg-[rgba(86,192,43,0.2)] rounded-[20px] px-3 py-1 text-[14px] font-medium text-text-subheading">
-                {sdg.code.replace("SDG", "SDG ")}
-              </span>
-            ))}
+            <SdgPills sdgs={template?.SDGAlignments ?? []} variant="badge" />
             {(template?.impactDomains ?? []).map((domain) => (
               <span key={domain.code} className="inline-block bg-[rgba(0,0,0,0.06)] rounded-[20px] px-3 py-1 text-[14px] font-medium text-text-subheading">
                 {domain.name}
@@ -1150,7 +1122,7 @@ export default function CreateChallengeWizard({
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [createdChallenge, setCreatedChallenge] = useState<ApiChallenge | null>(null);
   const { data: rawTemplates = [], isLoading: templatesLoading } = useTemplates();
-  const ENABLED_TEMPLATE_IDS = ["CH-001", "CH-002", "CH-004", "CH-015"];
+  const ENABLED_TEMPLATE_IDS = ["CH-001", "CH-002", "CH-004", "CH-008A", "CH-008B", "CH-009", "CH-010A", "CH-010B", "CH-015"];
   const templates = rawTemplates.filter((t) => ENABLED_TEMPLATE_IDS.includes(t.templateId));
   const { data: users = [], isLoading: usersLoading } = useUsers();
   const { data: selectedCircle } = useCircle(circleId);

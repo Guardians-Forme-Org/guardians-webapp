@@ -12,6 +12,55 @@ export function setUnauthorizedHandler(fn: (() => void) | null) {
 
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
+// ── Console copy helper ───────────────────────────────────────────────────────
+// Every request body is kept (last 50); `copyApi()` in the devtools console
+// copies the most recent one as pretty-printed JSON — `copyApi(12)` copies the
+// index shown in that request's log line.
+
+type ApiLogEntry = { method: Method; path: string; body: unknown };
+
+// Keyed by a stable per-session sequence number so the index printed in a
+// log line stays valid even after older entries are pruned
+const apiLog = new Map<number, ApiLogEntry>();
+let apiLogSeq = 0;
+const API_LOG_MAX = 50;
+
+function copyApi(index: number = apiLogSeq - 1): string | undefined {
+  const entry = apiLog.get(index);
+  if (!entry) {
+    console.warn(`[api] no logged request at index ${index}`);
+    return undefined;
+  }
+  const text = JSON.stringify(entry.body, null, 2);
+  const done = () =>
+    console.log(`[api] copied ${entry.method} ${entry.path} payload to clipboard`);
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(done, () => {
+      console.warn("[api] clipboard blocked — payload returned instead");
+    });
+  } else {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+    done();
+  }
+  return text;
+}
+
+declare global {
+  interface Window {
+    copyApi: typeof copyApi;
+    apiLog: Map<number, ApiLogEntry>;
+  }
+}
+if (typeof window !== "undefined") {
+  window.copyApi = copyApi;
+  window.apiLog = apiLog;
+}
+
 /**
  * Typed fetch wrapper for the Guardians API.
  * Automatically injects Authorization, X-Api-Key, and Accept-Language headers.
@@ -39,22 +88,37 @@ export async function apiFetch<T>(
   };
 
   const method = options.method ?? "GET";
+  let loggableBody: unknown = options.body ?? null;
   if (isFormData) {
     const entries: Record<string, unknown> = {};
     for (const [key, val] of (options.body as FormData).entries()) {
-      entries[key] =
-        val instanceof File ? `File(${val.name}, ${val.size}b)` : val;
+      if (val instanceof File) {
+        entries[key] = `File(${val.name}, ${val.size}b)`;
+      } else if (key === "metadata") {
+        // Parse the metadata part so it expands as an object in devtools
+        try {
+          entries[key] = JSON.parse(val as string);
+        } catch {
+          entries[key] = val;
+        }
+      } else {
+        entries[key] = val;
+      }
     }
-    console.log(
-      `[api] ${method} ${BASE_URL}${path}\n` +
-        JSON.stringify({ headers, body: entries }, null, 2),
-    );
-  } else {
-    console.log(
-      `[api] ${method} ${BASE_URL}${path}\n` +
-        JSON.stringify({ headers, body: options.body ?? null }, null, 2),
-    );
+    loggableBody = entries;
   }
+  const logId = apiLogSeq++;
+  apiLog.set(logId, { method, path, body: loggableBody });
+  if (apiLog.size > API_LOG_MAX) {
+    apiLog.delete(apiLog.keys().next().value!);
+  }
+
+  console.groupCollapsed(`[api] ${method} ${path}`);
+  console.log("url", `${BASE_URL}${path}`);
+  console.log("headers", headers);
+  console.log("body", loggableBody);
+  console.log(`copy payload as JSON → copyApi(${logId})`);
+  console.groupEnd();
 
   const body = isFormData
     ? (options.body as FormData)
@@ -69,10 +133,9 @@ export async function apiFetch<T>(
   });
 
   const json = await response.json().catch(() => null);
-  console.log(
-    `[api] ${method} ${BASE_URL}${path} → ${response.status}\n`,
-    JSON.stringify(json, null, 2),
-  );
+  console.groupCollapsed(`[api] ${method} ${path} → ${response.status}`);
+  console.log(json);
+  console.groupEnd();
 
   if (!response.ok) {
     if (response.status === 401) {

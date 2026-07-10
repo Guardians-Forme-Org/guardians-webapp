@@ -14,6 +14,7 @@ import { useJoinCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle, isWhitelisted } from "@/lib/permissions";
 import { computeChallengeRoles } from "@/lib/roles";
+import SdgPills from "../components/SdgPills";
 import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
 import {
   calcChallengeProgress,
@@ -442,16 +443,16 @@ export default function ChallengeScreen({ challengeId }: Props) {
               <span className="inline-block bg-[#d9d9d9] rounded-[20px] px-3 py-1 text-[14px] text-text-subheading">
                 {circle?.name ?? challenge.circleId}
               </span>
-              {(challenge.template?.SDGAlignments?.length
-                ? challenge.template.SDGAlignments
-                : challenge.template?.targetSDG
-                  ? [{ code: challenge.template.targetSDG.code, name: challenge.template.targetSDG.name ?? challenge.template.targetSDG.title ?? "" }]
-                  : []
-              ).map((sdg) => (
-                <span key={sdg.code} className="inline-block bg-[rgba(86,192,43,0.2)] rounded-[20px] px-3 py-1 text-[14px] font-medium text-text-subheading">
-                  {sdg.code.replace("SDG", "SDG ")}
-                </span>
-              ))}
+              <SdgPills
+                sdgs={
+                  challenge.template?.SDGAlignments?.length
+                    ? challenge.template.SDGAlignments
+                    : challenge.template?.targetSDG
+                      ? [{ code: challenge.template.targetSDG.code, name: challenge.template.targetSDG.name ?? challenge.template.targetSDG.title ?? "" }]
+                      : []
+                }
+                variant="badge"
+              />
               {(challenge.template?.impactDomains ?? []).map((domain) => (
                 <span key={domain.code} className="inline-block bg-[rgba(0,0,0,0.06)] rounded-[20px] px-3 py-1 text-[14px] font-medium text-text-subheading">
                   {domain.name}

@@ -146,6 +146,8 @@ export function useSubmitEvidence() {
       // Send as metadata + mediaFile form parts instead of a JSON body
       multipart?: boolean;
     }) => {
+      // Per-variant endpoints — the BE registers /submitCH008A and
+      // /submitCH008B separately (guardians-api server.go), no shared CH008
       const endpoint = `/submit${challengeCode.replace("-", "")}`;
       const headers = {
         "X-Step-ID": stepId,
@@ -300,6 +302,9 @@ export type CH001SetupPayload = {
     capturedAt?: string;
     location?: ChallengeSetupLocation;
     anchorPoints: ChallengeSetupAnchorPoint[];
+    // Unconsumed template fields pass through under their raw names
+    // (CH-008: SOURCE_TYPE, DATE_REGISTERED, …)
+    [key: string]: unknown;
   };
 };
 

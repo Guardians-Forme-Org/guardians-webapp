@@ -46,9 +46,27 @@ export function deriveWizardConfig(
   // during the setup step. When the challenge carries those, the field becomes
   // an update-values screen (fixed set — no adding or removing points).
   const anchorPoints = setupData?.anchorPoints ?? [];
-  const pointsField = anchorPoints.length
+  let pointsField = anchorPoints.length
     ? sorted.find((f) => f.type === "SELECT" && f.name.toLowerCase() === "locations")
     : undefined;
+
+  // Fallback (CH-008A/B): the BE ships the anchor-points reference as a
+  // degenerate field — all-blank (CH-008A) or named but type-less (CH-008B's
+  // ANCHOR_POINT_NAME). When registered points exist, adopt it as the points
+  // field so the step still renders the CH-001-style update screen. Adopted
+  // under the name "locations" so payload/view-mode keys stay consistent.
+  if (!pointsField && anchorPoints.length) {
+    const degenerate = sorted.find((f) => !f.type);
+    if (degenerate) {
+      pointsField = {
+        ...degenerate,
+        name: "locations",
+        type: "SELECT",
+        label: degenerate.label || "Observation Points",
+      };
+      sorted[sorted.indexOf(degenerate)] = pointsField;
+    }
+  }
   // The per-point risk flag renders inside each entry card, not as its own field
   const flagField = pointsField
     ? sorted.find((f) => (f.type === "TOGGLE" || f.type === "BOOLEAN") && f.name === "FLAG")

@@ -130,10 +130,13 @@ function activityToDynamic(
   }
 
   // Re-measured registered point (setup-update steps): data.anchorPoint +
-  // data.measurement feed the SELECT "locations" entry
-  const pointsField = fields.find(
-    (f) => f.type === "SELECT" && f.name.toLowerCase() === "locations",
-  );
+  // data.measurement feed the SELECT "locations" entry. A type-less field is
+  // the CH-008A/B shape — deriveWizardConfig adopts it under the name
+  // "locations", so mirror that key here.
+  const pointsField =
+    fields.find(
+      (f) => f.type === "SELECT" && f.name.toLowerCase() === "locations",
+    ) ?? (fields.some((f) => !f.type) ? { name: "locations" } : undefined);
   if (pointsField && (data.anchorPoint || data.measurement)) {
     result[pointsField.name] = {
       selected: data.anchorPoint?.name ?? "",
@@ -755,10 +758,12 @@ export default function LogEvidenceWizard({
     };
   };
 
-  // CH-001 (heat mapping) step 1 only: the setup endpoint expects camelCase
-  // data keys — anchorPoints[{name, location, measurement}] — and drops the
-  // raw ANCHOR_POINT group shape entirely.
-  const buildCH001SetupPayload = () => {
+  // Anchor-point registration steps (CH-001, CH-008A/B): the setup endpoint
+  // expects camelCase data keys — anchorPoints[{name, location, measurement}]
+  // — and drops the raw ANCHOR_POINT group shape entirely. Template fields the
+  // builder doesn't consume (e.g. SOURCE_TYPE, DATE_REGISTERED) pass through
+  // into data under their raw names.
+  const buildAnchorSetupPayload = () => {
     if (!user || !challenge || !stepMeta) throw new Error("Not ready");
 
     const tempUnitLabels: Record<string, string> = { C: "°C", F: "°F", K: "K" };
@@ -803,7 +808,9 @@ export default function LogEvidenceWizard({
           const unit =
             (entry[`${tempSub.name}__unit`] as string) ??
             tempSub.unitOfMeasureOptions?.[0]?.value ??
-            "C";
+            // CH-001 anchor readings are temperatures; CH-008 subs (capacity,
+            // baseline reading) declare no unit — don't mislabel them °C
+            (challenge.challengeCode === "CH-001" ? "C" : "");
           point.measurement = {
             value: parseFloat(tempRaw as string) || 0,
             unitOfMeasure: tempUnitLabels[unit] ?? unit,
@@ -834,6 +841,27 @@ export default function LogEvidenceWizard({
       ? (dynamicValues[imageField.name] as File | undefined)
       : undefined;
 
+    // Fields not consumed above (CH-008: SOURCE_TYPE, DATE_REGISTERED,
+    // NETWORK_HOUSEHOLD_COUNT, PRIORITY_LIST_EXISTS, …) pass through under
+    // their raw names. No-op for CH-001 — its form has no extra fields.
+    const consumed = new Set(
+      [
+        groupField?.name,
+        locationField?.name,
+        weatherField?.name,
+        imageField?.name,
+        vhFieldName,
+        contribFieldName,
+      ].filter((n): n is string => !!n),
+    );
+    const extraFields: Record<string, unknown> = {};
+    for (const field of stepForm ?? []) {
+      if (consumed.has(field.name) || !field.name) continue;
+      const val = dynamicValues[field.name];
+      if (val === undefined || val === null || val === "" || val instanceof File) continue;
+      extraFields[field.name] = val;
+    }
+
     const payload: CH001SetupPayload = {
       stepId: stepMeta.stepId,
       stepNumber: stepMeta.stepNumber,
@@ -846,6 +874,7 @@ export default function LogEvidenceWizard({
       volunteerHours,
       contributors: (dynamicValues[contribFieldName] as string[]) ?? [],
       data: {
+        ...extraFields,
         volunteerHours,
         ...(weatherCondition ? { weatherCondition } : {}),
         ...(location ? { location } : {}),
@@ -979,7 +1008,11 @@ export default function LogEvidenceWizard({
         capturedAt: new Date().toISOString(),
         measurement: {
           value: parseFloat(entry?.measurement ?? "") || 0,
-          unitOfMeasure: point.measurement?.unitOfMeasure ?? "°C",
+          // °C is CH-001's temperature default; other codes (CH-008A water
+          // levels) inherit the unit stored on the registered point
+          unitOfMeasure:
+            point.measurement?.unitOfMeasure ??
+            (challenge.challengeCode === "CH-001" ? "°C" : ""),
         },
         volunteerHours,
         ...(weatherCondition ? { weatherCondition } : {}),
@@ -1168,10 +1201,17 @@ export default function LogEvidenceWizard({
 
     // ── Dynamic path ───────────────────────────────────────────────────────
     if (isDerived) {
-      // CH-001 step 1 registers anchor points via the multipart /challengeSetup
-      // endpoint, not /submitCH001
-      if (challenge.challengeCode === "CH-001" && isRegistrationStep) {
-        const { payload, mediaFile } = buildCH001SetupPayload();
+      // Anchor-point templates register step 1 via the multipart
+      // /challengeSetup endpoint, not /submit{code}. Keyed on stepType — the
+      // registration stepId varies per template (SETUP_AND_REGISTRATION,
+      // CIRCLE_FORMATION, …)
+      if (
+        ["CH-001", "CH-008A", "CH-008B", "CH-009", "CH-010A", "CH-010B"].includes(
+          challenge.challengeCode,
+        ) &&
+        stepMeta.stepType === "REGISTRATION"
+      ) {
+        const { payload, mediaFile } = buildAnchorSetupPayload();
         submitRegistration.mutate(
           {
             challengeCode: challenge.challengeCode,
@@ -1227,10 +1267,18 @@ export default function LogEvidenceWizard({
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { payload, mediaFile } = buildDynamicPayload() as any;
-      // CH-002 only: always multipart (metadata + optional mediaFile) — the
-      // observation photo is the evidence itself. Other codes keep the JSON
-      // body that their endpoints accept (CH-004 contract — do not widen).
-      const isCH002 = challenge.challengeCode === "CH-002";
+      // These endpoints parse multipart only (metadata part + optional
+      // mediaFile — see guardians-api GetMetadataFromForm). CH-001/004/015
+      // keep the JSON body their handlers accept (do not widen).
+      const MULTIPART_CODES = [
+        "CH-002",
+        "CH-008A",
+        "CH-008B",
+        "CH-009",
+        "CH-010A",
+        "CH-010B",
+      ];
+      const asMultipart = MULTIPART_CODES.includes(challenge.challengeCode);
       submitEvidence.mutate(
         {
           challengeCode: challenge.challengeCode,
@@ -1238,7 +1286,7 @@ export default function LogEvidenceWizard({
           stepId: stepMeta.stepId,
           userId: user.id,
           payload,
-          ...(isCH002 ? { multipart: true, mediaFile } : {}),
+          ...(asMultipart ? { multipart: true, mediaFile } : {}),
         },
         { onSuccess },
       );
