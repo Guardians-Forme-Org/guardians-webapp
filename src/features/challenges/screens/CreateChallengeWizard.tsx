@@ -264,7 +264,10 @@ function Step1({
               >
                 <div className="flex flex-col gap-0.5">
                   <p className="text-[18px] font-bold text-text-subheading">
-                    {tmpl.name}
+                    {tmpl.name}{" "}
+                    <span className="text-[13px] font-medium text-text-muted align-middle">
+                      {tmpl.templateId}
+                    </span>
                   </p>
                   <p className="text-[14px] text-text-subheading line-clamp-1">
                     {tmpl.description}
@@ -303,6 +306,11 @@ function Step2({
     <>
       {/* Title + description */}
       <div className="px-10 mt-5 mb-5">
+        {template?.templateId && (
+          <p className="text-[14px] font-semibold text-text-muted">
+            {template.templateId}
+          </p>
+        )}
         <h1 className="text-[32px] font-bold text-gotf-green">
           {template?.name}
         </h1>
