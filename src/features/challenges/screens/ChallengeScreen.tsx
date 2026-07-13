@@ -461,7 +461,12 @@ export default function ChallengeScreen({ challengeId }: Props) {
             </div>
             <div className="flex items-start justify-between mt-3 gap-2">
               <h1 className="text-[28px] font-bold text-text-subheading leading-tight flex-1">
-                {challenge.name}
+                {challenge.name}{" "}
+                {challenge.challengeCode && (
+                  <span className="text-[14px] font-medium text-text-muted align-middle whitespace-nowrap">
+                    {challenge.challengeCode}
+                  </span>
+                )}
               </h1>
               {canEdit && (
                 <Link
