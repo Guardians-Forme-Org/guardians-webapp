@@ -3,7 +3,13 @@
 import { useTranslations } from "next-intl";
 import { SaveButton } from "../shared";
 
-export default function MarkCompleteStep({ onSubmit }: { onSubmit: () => void }) {
+export default function MarkCompleteStep({
+  onSubmit,
+  isPending,
+}: {
+  onSubmit: () => void;
+  isPending?: boolean;
+}) {
   const t = useTranslations("challenges");
 
   return (
@@ -13,7 +19,11 @@ export default function MarkCompleteStep({ onSubmit }: { onSubmit: () => void })
         <p className="text-[18px] text-black mt-2">{t("markCompleteSubtitle")}</p>
       </div>
       <div className="flex-1" />
-      <SaveButton label={t("markComplete")} onClick={onSubmit} />
+      <SaveButton
+        label={isPending ? t("saving") : t("markComplete")}
+        onClick={onSubmit}
+        disabled={isPending}
+      />
     </>
   );
 }

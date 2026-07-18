@@ -55,6 +55,31 @@ export function deriveImpactLabel(shortSummary: string): string {
   return numberOnly.charAt(0).toUpperCase() + numberOnly.slice(1);
 }
 
+// BE sends description/slug per impact & contribution only on records created
+// after 2026-07-17; older records fall back to the derived label.
+export function getImpactTileLabel(item: {
+  siUnit?: string;
+  impactType?: string;
+  impactSummary: {
+    contribution: { unitOfMeasure: string; description?: string };
+    impact: {
+      unitOfMeasure?: string;
+      shortSummary?: string;
+      summary?: string;
+      description?: string;
+    };
+  };
+}): string {
+  const contributionOnly = isContributionOnlyImpact(item);
+  const source = contributionOnly ? item.impactSummary.contribution : item.impactSummary.impact;
+  if (source.description) return source.description;
+  return contributionOnly
+    ? item.impactSummary.contribution.unitOfMeasure
+    : deriveImpactLabel(
+        item.impactSummary.impact.shortSummary ?? item.impactSummary.impact.summary ?? ""
+      );
+}
+
 export function formatImpactDisplayValue(displayName: string): string {
   return displayName
     .replace(/^([\d.]+)/, (_, n) => {

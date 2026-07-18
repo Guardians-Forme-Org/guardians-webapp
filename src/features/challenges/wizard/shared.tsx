@@ -338,12 +338,21 @@ export function GateBanner({ message }: { message: string }) {
   );
 }
 
-export function SaveButton({ label = "Save", onClick }: { label?: string; onClick: () => void }) {
+export function SaveButton({
+  label = "Save",
+  onClick,
+  disabled,
+}: {
+  label?: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
   return (
     <div className="px-5 pb-8 pt-4 shrink-0">
       <button
         onClick={onClick}
-        className="w-full h-14 bg-black text-white rounded-full text-xl font-medium"
+        disabled={disabled}
+        className="w-full h-14 bg-black text-white rounded-full text-xl font-medium disabled:opacity-50"
       >
         {label}
       </button>

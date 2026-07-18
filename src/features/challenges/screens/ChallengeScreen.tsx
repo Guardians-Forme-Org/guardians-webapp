@@ -18,7 +18,7 @@ import SdgPills from "../components/SdgPills";
 import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
 import {
   calcChallengeProgress,
-  deriveImpactLabel,
+  getImpactTileLabel,
   formatImpactDisplayValue,
   isContributionOnlyImpact,
 } from "@/lib/utils";
@@ -232,12 +232,7 @@ function HomeTab({
                   className={`border-b border-[#e6e6e6] pt-6 pb-7.5 flex flex-col gap-1.5 ${i % 2 === 0 ? "px-10 border-r border-[#e6e6e6]" : "px-5"}`}
                 >
                   <p className="text-[12px] text-[#767676] leading-snug">
-                    {contributionOnly
-                      ? record.impactSummary.contribution.unitOfMeasure
-                      : deriveImpactLabel(
-                          record.impactSummary.impact.shortSummary ??
-                            record.impactSummary.impact.summary,
-                        )}
+                    {getImpactTileLabel(record)}
                   </p>
                   <p className="text-2xl font-semibold text-[#333]">
                     {formatImpactDisplayValue(

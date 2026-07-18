@@ -5,7 +5,13 @@ export type ImpactMatrixItem = {
   id: string;
   impactRecordId: string;
   impactSummary: {
-    contribution: { value: number; unitOfMeasure: string; displayName: string };
+    contribution: {
+      value: number;
+      unitOfMeasure: string;
+      displayName: string;
+      description?: string;
+      slug?: string;
+    };
     impact: {
       value: number;
       unitOfMeasure: string;
@@ -13,6 +19,8 @@ export type ImpactMatrixItem = {
       siUnit: string;
       shortSummary: string;
       summary: string;
+      description?: string;
+      slug?: string;
     };
   };
   verified: boolean;

@@ -1198,6 +1198,13 @@ export default function LogEvidenceWizard({
     if (!user) throw new Error("Not authenticated");
     if (!challenge) throw new Error("Challenge not loaded");
     if (!stepMeta) throw new Error("Step not found in challenge");
+    // Re-entry guard: a click can land before the pending state disables the button
+    if (
+      submitRegistration.isPending ||
+      submitEvidence.isPending ||
+      updateEvidence.isPending
+    )
+      return;
 
     // ── Dynamic path ───────────────────────────────────────────────────────
     if (isDerived) {
@@ -1455,7 +1462,7 @@ export default function LogEvidenceWizard({
             }
 
             if (ds.kind === "mark-complete") {
-              return <MarkCompleteStep onSubmit={submit} />;
+              return <MarkCompleteStep onSubmit={submit} isPending={isPending} />;
             }
 
             if (ds.kind === "review") {
@@ -1609,7 +1616,7 @@ export default function LogEvidenceWizard({
               />
             )}
             {currentKind === "mark-complete" && (
-              <MarkCompleteStep onSubmit={submit} />
+              <MarkCompleteStep onSubmit={submit} isPending={isPending} />
             )}
             {currentKind === "review" && (
               <ReviewStep

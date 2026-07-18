@@ -85,6 +85,8 @@ export type ApiImpactRecord = {
       value: number;
       unitOfMeasure: string;
       displayName: string;
+      description?: string;
+      slug?: string;
     };
     impact: {
       value: number;
@@ -93,6 +95,8 @@ export type ApiImpactRecord = {
       siUnit: string;
       shortSummary?: string;
       summary: string;
+      description?: string;
+      slug?: string;
     };
   };
   verifiedDate: string | null;

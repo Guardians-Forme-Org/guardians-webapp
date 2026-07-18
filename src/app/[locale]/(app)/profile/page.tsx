@@ -288,8 +288,9 @@ export default function ProfilePage() {
                 </p>
               ) : (
                 (loginData?.challenges ?? []).map((ch) => (
-                  <div
+                  <Link
                     key={ch.challengeId}
+                    href={`/challenges/${ch.challengeId}`}
                     className="flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3"
                   >
                     <div className="size-10 rounded-lg bg-zinc-200 overflow-hidden shrink-0">
@@ -323,7 +324,7 @@ export default function ProfilePage() {
                         {(() => { const n = ch.membersCount?.total ?? ch.members?.length ?? 0; return `${n} ${n === 1 ? t("guardian") : t("guardians")}`; })()}
                       </span>
                     )}
-                  </div>
+                  </Link>
                 ))
               )}
             </div>
@@ -338,8 +339,9 @@ export default function ProfilePage() {
                 </p>
               ) : (
                 (loginData?.circles ?? []).map((ci) => (
-                  <div
+                  <Link
                     key={ci.circleId}
+                    href={`/circles/${ci.circleId}`}
                     className="flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3"
                   >
                     <div className="size-10 rounded-lg bg-zinc-200 overflow-hidden shrink-0">
@@ -371,7 +373,7 @@ export default function ProfilePage() {
                     <span className="text-xs font-medium text-text-muted shrink-0">
                       {(() => { const n = ci.membersCount?.total ?? ci.members?.length ?? 0; return `${n} ${n === 1 ? t("guardian") : t("guardians")}`; })()}
                     </span>
-                  </div>
+                  </Link>
                 ))
               )}
             </div>
