@@ -58,7 +58,14 @@ export default function ChallengeCard({ item }: Props) {
       <div className="flex-1 relative overflow-hidden pt-[19px] px-4 pr-8 flex flex-col">
         <ArrowRight size={20} className="absolute right-3 top-4 text-text-muted" />
 
-        <p className="text-[18px] font-bold text-text-subheading leading-tight">{item.name}</p>
+        <p className="text-[18px] font-bold text-text-subheading leading-tight">
+          {item.name}{" "}
+          {item.challengeCode && (
+            <span className="text-[12px] font-medium text-text-muted align-middle whitespace-nowrap">
+              {item.challengeCode}
+            </span>
+          )}
+        </p>
         <p className="text-[14px] text-text-subheading mt-1">{t("since", { date: since })}</p>
         {circle?.name && (
           <p className="text-[14px] text-text-muted">{t("by")} {circle.name}</p>
