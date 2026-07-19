@@ -27,9 +27,15 @@ export type DerivedWizardConfig = {
   fieldToStepIndex: Record<string, number>;
 };
 
-const VOLUNTEER_HOURS_NAMES = new Set(["VOLUNTEER_HOURS", "VOLUNTEERS_HOURS"]);
+// Templates are migrating from SCREAMING_SNAKE to camelCase field names
+// (CH-004/CH-008* are camelCase; CH-001/002/009/010/015 still uppercase) —
+// match on an underscore-stripped uppercase key so both conventions work
+export const normalizeFieldName = (name: string) =>
+  name.replace(/_/g, "").toUpperCase();
+
+const VOLUNTEER_HOURS_NAMES = new Set(["VOLUNTEERHOURS", "VOLUNTEERSHOURS"]);
 const CONTRIBUTORS_NAMES = new Set(["CONTRIBUTORS"]);
-const COMPLETION_NAMES = new Set(["CONFIRM_COMPLETION", "CONFIRMATION"]);
+const COMPLETION_NAMES = new Set(["CONFIRMCOMPLETION", "CONFIRMATION", "CONFIRM"]);
 
 // Fields that are heavy UI (need their own wizard screen)
 const SOLO_TYPES = new Set(["LOCATION", "LOCATION_LIST", "IMAGE", "GROUP"]);
@@ -69,7 +75,7 @@ export function deriveWizardConfig(
   }
   // The per-point risk flag renders inside each entry card, not as its own field
   const flagField = pointsField
-    ? sorted.find((f) => (f.type === "TOGGLE" || f.type === "BOOLEAN") && f.name === "FLAG")
+    ? sorted.find((f) => (f.type === "TOGGLE" || f.type === "BOOLEAN") && normalizeFieldName(f.name) === "FLAG")
     : undefined;
   const setupUpdateNames = new Set(
     [pointsField?.name, flagField?.name].filter((n): n is string => !!n),
@@ -82,7 +88,7 @@ export function deriveWizardConfig(
   for (const field of sorted) {
     if (setupUpdateNames.has(field.name)) {
       continue;
-    } else if (VOLUNTEER_HOURS_NAMES.has(field.name) || CONTRIBUTORS_NAMES.has(field.name) || COMPLETION_NAMES.has(field.name)) {
+    } else if (VOLUNTEER_HOURS_NAMES.has(normalizeFieldName(field.name)) || CONTRIBUTORS_NAMES.has(normalizeFieldName(field.name)) || COMPLETION_NAMES.has(normalizeFieldName(field.name))) {
       knownNameFields.push(field);
     } else if (SOLO_TYPES.has(field.type)) {
       soloFields.push(field);
@@ -121,15 +127,15 @@ export function deriveWizardConfig(
   }
 
   // 3. Volunteer hours
-  const vhField = knownNameFields.find((f) => VOLUNTEER_HOURS_NAMES.has(f.name));
+  const vhField = knownNameFields.find((f) => VOLUNTEER_HOURS_NAMES.has(normalizeFieldName(f.name)));
   if (vhField) push({ kind: "volunteer-hours", fields: [vhField] });
 
   // 4. Contributors
-  const contribField = knownNameFields.find((f) => CONTRIBUTORS_NAMES.has(f.name));
+  const contribField = knownNameFields.find((f) => CONTRIBUTORS_NAMES.has(normalizeFieldName(f.name)));
   if (contribField) push({ kind: "contributors", fields: [contribField] });
 
   // 5. Completion confirmation
-  const completionField = knownNameFields.find((f) => COMPLETION_NAMES.has(f.name));
+  const completionField = knownNameFields.find((f) => COMPLETION_NAMES.has(normalizeFieldName(f.name)));
   if (completionField) push({ kind: "mark-complete", fields: [completionField] });
 
   // Always end with review

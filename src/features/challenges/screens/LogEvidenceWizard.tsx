@@ -24,7 +24,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DerivedStep, DerivedWizardConfig } from "../lib/deriveWizardConfig";
-import { deriveWizardConfig } from "../lib/deriveWizardConfig";
+import { deriveWizardConfig, normalizeFieldName } from "../lib/deriveWizardConfig";
 import { DEFAULT_FORM_CONFIG, STEP_FORM_CONFIGS } from "../stepFormConfig";
 import { WizardHeader } from "../wizard/shared";
 import ContributorsStep from "../wizard/steps/ContributorsStep";
@@ -158,7 +158,7 @@ function activityToDynamic(
   }
 
   if (data.description !== undefined) {
-    const descField = fields.find((f) => f.name.includes("DESCRIPTION"));
+    const descField = fields.find((f) => f.name.toUpperCase().includes("DESCRIPTION"));
     result[descField?.name ?? "ACTIVITY_DESCRIPTION"] = data.description;
   }
 
@@ -199,7 +199,7 @@ function activityToDynamic(
   }
 
   if (data.weatherCondition) {
-    const weatherField = fields.find((f) => f.name.includes("WEATHER"));
+    const weatherField = fields.find((f) => f.name.toUpperCase().includes("WEATHER"));
     if (weatherField && result[weatherField.name] === undefined) {
       result[weatherField.name] = data.weatherCondition;
     }
@@ -827,7 +827,7 @@ export default function LogEvidenceWizard({
           | undefined)
       : undefined;
 
-    const weatherField = stepForm?.find((f) => f.name.includes("WEATHER"));
+    const weatherField = stepForm?.find((f) => f.name.toUpperCase().includes("WEATHER"));
     const weatherRaw = weatherField
       ? dynamicValues[weatherField.name]
       : undefined;
@@ -906,7 +906,7 @@ export default function LogEvidenceWizard({
           | undefined)
       : undefined;
 
-    const weatherField = stepForm?.find((f) => f.name.includes("WEATHER"));
+    const weatherField = stepForm?.find((f) => f.name.toUpperCase().includes("WEATHER"));
     const weatherRaw = weatherField
       ? dynamicValues[weatherField.name]
       : undefined;
@@ -978,7 +978,7 @@ export default function LogEvidenceWizard({
       higherRiskFlag: entry?.higherRiskFlag ?? point.higherRiskFlag ?? false,
     };
 
-    const weatherField = stepForm?.find((f) => f.name.includes("WEATHER"));
+    const weatherField = stepForm?.find((f) => f.name.toUpperCase().includes("WEATHER"));
     const weatherRaw = weatherField
       ? dynamicValues[weatherField.name]
       : undefined;
@@ -1117,21 +1117,24 @@ export default function LogEvidenceWizard({
     // Build data in the expected shape
     const data: Record<string, unknown> = {};
 
-    const measurementRaw = rawFields["MEASUREMENT"] as
-      | { value: number; unit: string }
-      | undefined;
-    if (measurementRaw) {
+    const measurementKey = Object.keys(rawFields).find(
+      (k) => normalizeFieldName(k) === "MEASUREMENT",
+    );
+    const measurementRaw = measurementKey
+      ? (rawFields[measurementKey] as { value: number; unit: string })
+      : undefined;
+    if (measurementKey && measurementRaw) {
       data.measurement = {
         value: measurementRaw.value,
         unitofMeasure: measurementRaw.unit,
         siUnit: unitToSiUnit[measurementRaw.unit] ?? measurementRaw.unit,
       };
-      delete rawFields["MEASUREMENT"];
+      delete rawFields[measurementKey];
     }
 
-    // Map any field whose name contains "DESCRIPTION" to data.description
+    // Map any field whose name contains "description" to data.description
     const descKey = Object.keys(rawFields).find((k) =>
-      k.includes("DESCRIPTION"),
+      k.toUpperCase().includes("DESCRIPTION"),
     );
     if (descKey !== undefined) {
       data.description = rawFields[descKey];

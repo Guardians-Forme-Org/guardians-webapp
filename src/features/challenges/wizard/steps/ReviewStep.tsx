@@ -3,6 +3,7 @@
 import { Pencil } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { WizardStepType } from "../../stepFormConfig";
+import { normalizeFieldName } from "../../lib/deriveWizardConfig";
 import { FileThumb, ReadOnlyField } from "../shared";
 import type { LogFormData } from "../types";
 import type { ApiTemplateFormField } from "@/lib/types/challenges";
@@ -324,7 +325,8 @@ export default function ReviewStep({
               const isBooleanType = field.type === "TOGGLE" || field.type === "BOOLEAN";
               const isImage = field.type === "IMAGE";
               const isContributors =
-                field.name === "CONTRIBUTORS" || field.name === "CONTRIBUTORS_LIST";
+                normalizeFieldName(field.name) === "CONTRIBUTORS" ||
+                normalizeFieldName(field.name) === "CONTRIBUTORSLIST";
 
               // GROUP: one card per entry, every filled sub-field labeled
               if (field.type === "GROUP") {
