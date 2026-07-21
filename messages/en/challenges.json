@@ -74,6 +74,7 @@
   "removeEntry": "Remove entry",
   "newReading": "New reading",
   "lastReading": "Last reading: {value}",
+  "noAnchorPoints": "No anchor points registered yet — complete the registration step first.",
   "update": "Update",
   "upload": "Upload",
   "optionalBadge": "optional",

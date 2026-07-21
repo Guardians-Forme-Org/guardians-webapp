@@ -13,6 +13,9 @@ export type DerivedStep = {
   fields: ApiTemplateFormField[];
   // setup-update only: the previously registered entries being re-measured
   anchorPoints?: ChallengeSetupAnchorPoint[];
+  // setup-update only: pick a point, no new reading (per-point data, if any,
+  // is collected by the promoted anchor-detail screens that follow)
+  selectionOnly?: boolean;
 };
 
 // Setup-step data carried by the challenge (submittedSetupDetail.data) —
@@ -25,26 +28,68 @@ export type DerivedWizardConfig = {
   steps: DerivedStep[];
   // 1-based step index for each field name — used by review to navigate back
   fieldToStepIndex: Record<string, number>;
+  // Leaf fields promoted out of an adopted anchor-reference GROUP — rendered
+  // as regular dynamic screens; the payload nests the AnchorPoint-struct ones
+  // back under data.anchorPoint
+  anchorDetailFields: ApiTemplateFormField[];
 };
 
 // Templates are migrating from SCREAMING_SNAKE to camelCase field names
 // (CH-004/CH-008* are camelCase; CH-001/002/009/010/015 still uppercase) —
 // match on an underscore-stripped uppercase key so both conventions work
-export const normalizeFieldName = (name: string) =>
-  name.replace(/_/g, "").toUpperCase();
+// Tolerates the degenerate nameless field CH-008A ships as its anchor ref
+export const normalizeFieldName = (name: string | undefined) =>
+  (name ?? "").replace(/_/g, "").toUpperCase();
 
 const VOLUNTEER_HOURS_NAMES = new Set(["VOLUNTEERHOURS", "VOLUNTEERSHOURS"]);
 const CONTRIBUTORS_NAMES = new Set(["CONTRIBUTORS"]);
-const COMPLETION_NAMES = new Set(["CONFIRMCOMPLETION", "CONFIRMATION", "CONFIRM"]);
+export const COMPLETION_NAMES = new Set([
+  "CONFIRMCOMPLETION",
+  "CONFIRMATION",
+  "CONFIRM",
+  // ch-008A/009/010 COMPLETION steps name the flag "completed"
+  "COMPLETED",
+]);
 
 // Fields that are heavy UI (need their own wizard screen)
 const SOLO_TYPES = new Set(["LOCATION", "LOCATION_LIST", "IMAGE", "GROUP"]);
 
 const DYNAMIC_BATCH_SIZE = 4;
 
+// Subfields of an anchor-reference GROUP that describe the registered point
+// itself — they come from the setup submission, never re-entered
+const ANCHOR_IDENTITY_NAMES = new Set(["ANCHORPOINTNAME", "LOCATION"]);
+
+// Data keys the BE nests under data.anchorPoint (Go AnchorPoint struct)
+// rather than at the top level of data
+export const ANCHOR_POINT_DATA_NAMES = new Set([
+  "MEASUREMENT",
+  "OPENINGHOURS",
+  "PERMISSIONOBTAINED",
+  "OPENED",
+  "WATERACCESS",
+  "SHADETYPE",
+  "ORIENTATION",
+  "NOTES",
+  "HIGHERRISKFLAG",
+]);
+
+// Usable data-entry subfields of a GROUP: typed, not a nested GROUP, and not
+// the registered point's identity
+const usableLeaves = (group: ApiTemplateFormField) =>
+  (group.fields ?? []).filter(
+    (f) =>
+      !!f.type &&
+      f.type !== "GROUP" &&
+      !ANCHOR_IDENTITY_NAMES.has(normalizeFieldName(f.name)),
+  );
+
 export function deriveWizardConfig(
   fields: ApiTemplateFormField[],
   setupData?: SetupUpdateSource,
+  // Template stepType of the step being derived (EXECUTION, COMPLETION, …) —
+  // gates whether a placeholder's nested per-anchor fields are promoted
+  stepType?: string,
 ): DerivedWizardConfig {
   const sorted = [...fields].sort((a, b) => a.displayOrder - b.displayOrder);
 
@@ -52,6 +97,7 @@ export function deriveWizardConfig(
   // during the setup step. When the challenge carries those, the field becomes
   // an update-values screen (fixed set — no adding or removing points).
   const anchorPoints = setupData?.anchorPoints ?? [];
+  let selectionOnly = false;
   let pointsField = anchorPoints.length
     ? sorted.find((f) => f.type === "SELECT" && f.name.toLowerCase() === "locations")
     : undefined;
@@ -71,6 +117,54 @@ export function deriveWizardConfig(
         label: degenerate.label || "Observation Points",
       };
       sorted[sorted.indexOf(degenerate)] = pointsField;
+    }
+  }
+
+  // Newer templates (CH-008B/C EXECUTION+COMPLETION, CH-010 SETUP/OUTREACH)
+  // ship the reference as a non-addable GROUP named "anchorPoint": select one
+  // of the registered points. Its shape varies —
+  //   • no usable leaves (empty / nested placeholder GROUP / location only):
+  //     pure reference, adopt even before any points exist so the placeholder
+  //     never renders as a form
+  //   • usable leaves (CH-010 SETUP: shadeType, setupDate, …): per-anchor data
+  //     entry — adopt only when registered points exist, and promote the
+  //     leaves to regular dynamic fields
+  // A placeholder's *nested* GROUP ("anchorPointA") carries the intended
+  // per-anchor fields; promote those only on COMPLETION steps — during
+  // EXECUTION the flow is select-point + log hours (per Tshaks).
+  const anchorDetailFields: ApiTemplateFormField[] = [];
+  if (!pointsField) {
+    const refGroup = sorted.find(
+      (f) =>
+        f.type === "GROUP" &&
+        !f.addableInput &&
+        normalizeFieldName(f.name) === "ANCHORPOINT",
+    );
+    if (refGroup) {
+      const directLeaves = usableLeaves(refGroup);
+      const isPureReference = directLeaves.length === 0;
+      if (isPureReference || anchorPoints.length) {
+        pointsField = {
+          ...refGroup,
+          name: "locations",
+          type: "SELECT",
+          fields: undefined,
+          label: refGroup.label || "Anchor Point",
+        };
+        selectionOnly = true;
+        sorted[sorted.indexOf(refGroup)] = pointsField;
+
+        anchorDetailFields.push(...directLeaves);
+        if (stepType === "COMPLETION") {
+          for (const sub of (refGroup.fields ?? []).filter(
+            (f) => f.type === "GROUP",
+          )) {
+            anchorDetailFields.push(...usableLeaves(sub));
+          }
+        }
+        // Insert after the reference so they render as the following screens
+        sorted.splice(sorted.indexOf(pointsField) + 1, 0, ...anchorDetailFields);
+      }
     }
   }
   // The per-point risk flag renders inside each entry card, not as its own field
@@ -113,6 +207,7 @@ export function deriveWizardConfig(
       kind: "setup-update",
       fields: flagField ? [pointsField, flagField] : [pointsField],
       anchorPoints,
+      ...(selectionOnly ? { selectionOnly } : {}),
     });
   }
 
@@ -141,5 +236,57 @@ export function deriveWizardConfig(
   // Always end with review
   steps.push({ kind: "review", fields: [] });
 
-  return { steps, fieldToStepIndex };
+  return { steps, fieldToStepIndex, anchorDetailFields };
+}
+
+// ── BE payload shaping ───────────────────────────────────────────────────────
+// The Go Data struct is strictly typed and json.Unmarshal fails the WHOLE
+// submission on any type mismatch, so values must match the struct's shape:
+// NUMBER → Measurement {value, unitOfMeasure}, DATE → RFC3339 timestamp,
+// TOGGLE/BOOLEAN → bool. Unknown keys are ignored (safe); wrong types 400.
+export function shapeFieldValue(
+  field: ApiTemplateFormField,
+  val: unknown,
+  unit?: string,
+): unknown {
+  const norm = normalizeFieldName(field.name);
+
+  if (field.type === "NUMBER" || field.type === "NUMERIC") {
+    return {
+      value: parseFloat(String(val)) || 0,
+      ...(unit ? { unitOfMeasure: unit } : {}),
+    };
+  }
+  if (field.type === "DATE") {
+    const d = new Date(String(val));
+    return isNaN(d.getTime()) ? undefined : d.toISOString();
+  }
+  if (field.type === "TOGGLE" || field.type === "BOOLEAN") {
+    return val === true || val === "true";
+  }
+  // Data.Report / Data.Receipt are MediaFile structs — a typed-in string
+  // travels in the description field (a real File goes out as the multipart
+  // mediaFile part instead)
+  if ((norm === "REPORT" || norm === "RECEIPT") && typeof val === "string") {
+    return { description: val };
+  }
+  if (field.type === "MULTISELECT" && Array.isArray(val)) {
+    // Data.OutreachMethod is a string, Data.AssistanceProvided a bool —
+    // an array into either fails the parse
+    if (norm === "OUTREACHMETHOD") return val.join(", ");
+    if (norm === "ASSISTANCEPROVIDED") return val.length > 0;
+    return val;
+  }
+  return val;
+}
+
+// Template names that differ from the Go Data struct json tags
+export function toDataKey(name: string, val: unknown): string {
+  const norm = normalizeFieldName(name);
+  // CH-009: registration's addable "address" persists as data.addresses;
+  // the monitoring step's single "address" as data.location
+  if (norm === "ADDRESS") return Array.isArray(val) ? "addresses" : "location";
+  // BE tag is singular
+  if (norm === "COMMUNICATIONCHANNELS") return "communicationChannel";
+  return name;
 }

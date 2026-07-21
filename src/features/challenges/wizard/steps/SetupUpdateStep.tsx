@@ -24,6 +24,9 @@ type Props = {
   update: (name: string, value: unknown) => void;
   onNext: () => void;
   nextLabel: string;
+  // Pick a point only — no new reading here (per-point data, if any, is
+  // collected on the screens that follow)
+  selectionOnly?: boolean;
 };
 
 function RadioDot({ selected }: { selected: boolean }) {
@@ -47,6 +50,7 @@ export default function SetupUpdateStep({
   update,
   onNext,
   nextLabel,
+  selectionOnly,
 }: Props) {
   const t = useTranslations("challenges");
 
@@ -71,6 +75,9 @@ export default function SetupUpdateStep({
       <div className="flex flex-col gap-5 px-5 mt-7 flex-1">
         <FieldGroup label={pointsField.label} required={pointsField.required}>
           <div className="flex flex-col gap-3">
+            {anchorPoints.length === 0 && (
+              <p className="text-sm text-text-muted">{t("noAnchorPoints")}</p>
+            )}
             {anchorPoints.map((point, i) => {
               const isSelected = entry?.selected === point.name;
               return (
@@ -98,7 +105,7 @@ export default function SetupUpdateStep({
                     </div>
                   </button>
 
-                  {isSelected && (
+                  {isSelected && !selectionOnly && (
                     <div className="px-4 pb-4 flex flex-col gap-3">
                       <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-medium text-text-primary">

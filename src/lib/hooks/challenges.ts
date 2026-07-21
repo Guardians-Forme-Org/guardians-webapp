@@ -147,8 +147,17 @@ export function useSubmitEvidence() {
       multipart?: boolean;
     }) => {
       // Per-variant endpoints — the BE registers /submitCH008A and
-      // /submitCH008B separately (guardians-api server.go), no shared CH008
-      const endpoint = `/submit${challengeCode.replace("-", "")}`;
+      // /submitCH008B separately (guardians-api server.go), no shared CH008.
+      // The merged CH-010 template has no /submitCH010 route yet: its SETUP
+      // (installation) step uses the old CH-010B route, everything else the
+      // old CH-010A route — both handlers are identical generic inserts.
+      const routeCode =
+        challengeCode === "CH-010"
+          ? stepId === "SETUP"
+            ? "CH-010B"
+            : "CH-010A"
+          : challengeCode;
+      const endpoint = `/submit${routeCode.replace("-", "")}`;
       const headers = {
         "X-Step-ID": stepId,
         "X-User-Id": userId,
@@ -277,9 +286,12 @@ export type SetupUpdateEvidencePayload = {
   data: {
     anchorPoint: ChallengeSetupAnchorPoint;
     capturedAt: string;
-    measurement: { value: number; unitOfMeasure: string };
+    // Absent on selection-only steps (CH-008B/C, CH-010): no new reading
+    measurement?: { value: number; unitOfMeasure: string };
     volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
     weatherCondition?: string;
+    // Anchor-detail / passthrough fields shaped to the BE Data struct
+    [key: string]: unknown;
   };
 };
 

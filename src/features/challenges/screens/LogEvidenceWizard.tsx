@@ -24,7 +24,14 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DerivedStep, DerivedWizardConfig } from "../lib/deriveWizardConfig";
-import { deriveWizardConfig, normalizeFieldName } from "../lib/deriveWizardConfig";
+import {
+  ANCHOR_POINT_DATA_NAMES,
+  COMPLETION_NAMES,
+  deriveWizardConfig,
+  normalizeFieldName,
+  shapeFieldValue,
+  toDataKey,
+} from "../lib/deriveWizardConfig";
 import { DEFAULT_FORM_CONFIG, STEP_FORM_CONFIGS } from "../stepFormConfig";
 import { WizardHeader } from "../wizard/shared";
 import ContributorsStep from "../wizard/steps/ContributorsStep";
@@ -281,8 +288,8 @@ export default function LogEvidenceWizard({
 
   const derivedConfig: DerivedWizardConfig | null = useMemo(() => {
     if (!isDerived || !stepForm) return null;
-    return deriveWizardConfig(stepForm, setupData);
-  }, [isDerived, stepForm, setupData]);
+    return deriveWizardConfig(stepForm, setupData, stepMeta?.stepType);
+  }, [isDerived, stepForm, setupData, stepMeta?.stepType]);
 
   const setupUpdateStep = useMemo(
     () => derivedConfig?.steps.find((s) => s.kind === "setup-update"),
@@ -816,11 +823,30 @@ export default function LogEvidenceWizard({
             unitOfMeasure: tempUnitLabels[unit] ?? unit,
           };
         }
+        // Remaining subfields (sourceType, confirm, …) pass through shaped —
+        // the BE drops keys its AnchorPoint struct lacks, but they persist
+        // the moment the struct fields land
+        for (const sub of subFields) {
+          if (sub === nameSub || sub === locSub || sub === tempSub) continue;
+          const sv = entry[sub.name];
+          if (sv === undefined || sv === null || sv === "" || sv instanceof File)
+            continue;
+          const subUnit =
+            (entry[`${sub.name}__unit`] as string) ??
+            sub.unitOfMeasureOptions?.[0]?.value;
+          const shaped = shapeFieldValue(sub, sv, subUnit);
+          if (shaped !== undefined)
+            (point as Record<string, unknown>)[sub.name] = shaped;
+        }
         return point;
       })
       .filter((p) => p.name || p.location || p.measurement);
 
-    const locationField = stepForm?.find((f) => f.type === "LOCATION");
+    // Addable LOCATION fields (CH-009's "address") are arrays — they pass
+    // through the extras loop as data.addresses instead
+    const locationField = stepForm?.find(
+      (f) => f.type === "LOCATION" && !f.addableInput,
+    );
     const location = locationField
       ? (dynamicValues[locationField.name] as
           | ChallengeSetupLocation
@@ -859,7 +885,22 @@ export default function LogEvidenceWizard({
       if (consumed.has(field.name) || !field.name) continue;
       const val = dynamicValues[field.name];
       if (val === undefined || val === null || val === "" || val instanceof File) continue;
-      extraFields[field.name] = val;
+      const unit =
+        (dynamicValues[`${field.name}__unit`] as string) ??
+        field.unitOfMeasureOptions?.[0]?.value;
+      // Shape to the BE Data struct types (CH-009: vulnerableMembers /
+      // assignedVolunteers are Measurements, CH-008A: dateRegistered is a
+      // timestamp) — raw strings fail the whole parse
+      const shaped =
+        field.addableInput && Array.isArray(val)
+          ? val
+              .filter((v) => v !== undefined && v !== null && v !== "")
+              .map((v) => shapeFieldValue(field, v, unit))
+              .filter((v) => v !== undefined)
+          : shapeFieldValue(field, val, unit);
+      if (shaped === undefined || (Array.isArray(shaped) && !shaped.length))
+        continue;
+      extraFields[toDataKey(field.name, shaped)] = shaped;
     }
 
     const payload: CH001SetupPayload = {
@@ -972,7 +1013,7 @@ export default function LogEvidenceWizard({
       siUnit: "TIME",
     };
 
-    const anchorPoint: ChallengeSetupAnchorPoint = {
+    const anchorPoint: Record<string, unknown> = {
       name: point.name,
       ...(point.location ? { location: point.location } : {}),
       higherRiskFlag: entry?.higherRiskFlag ?? point.higherRiskFlag ?? false,
@@ -987,10 +1028,60 @@ export default function LogEvidenceWizard({
         ? String(weatherRaw)
         : undefined;
 
+    // Anchor-detail fields (promoted out of the reference GROUP) and template
+    // fields not consumed above pass through shaped to the BE structs.
+    // AnchorPoint-struct names nest under data.anchorPoint, the rest sit on
+    // data; the first IMAGE among them becomes the multipart mediaFile.
+    const detailFields = derivedConfig?.anchorDetailFields ?? [];
+    const detailNames = new Set(detailFields.map((f) => f.name));
+    const consumed = new Set(
+      [
+        setupStep.fields.map((f) => f.name),
+        weatherField?.name,
+        vhFieldName,
+        contribFieldName,
+      ]
+        .flat()
+        .filter((n): n is string => !!n),
+    );
+    const extraData: Record<string, unknown> = {};
+    let detailImage: File | undefined;
+    for (const field of [...detailFields, ...(stepForm ?? [])]) {
+      if (!field.name || consumed.has(field.name)) continue;
+      if (!detailNames.has(field.name) && field.type === "GROUP") continue;
+      const val = dynamicValues[field.name];
+      if (val === undefined || val === null || val === "") continue;
+      if (field.type === "IMAGE" || val instanceof File) {
+        if (!detailImage && val instanceof File) detailImage = val;
+        continue;
+      }
+      const unit =
+        (dynamicValues[`${field.name}__unit`] as string) ??
+        field.unitOfMeasureOptions?.[0]?.value;
+      const shaped = shapeFieldValue(field, val, unit);
+      if (shaped === undefined) continue;
+      if (ANCHOR_POINT_DATA_NAMES.has(normalizeFieldName(field.name))) {
+        anchorPoint[field.name] = shaped;
+      } else {
+        extraData[toDataKey(field.name, val)] = shaped;
+      }
+      consumed.add(field.name);
+    }
+
+    // Submitting via the mark-complete screen implies the flag itself
+    // (BE Data.Confirm / Data.Completed)
+    if (shouldMarkComplete) {
+      const completionDetail = [...detailFields, ...(stepForm ?? [])].find(
+        (f) => COMPLETION_NAMES.has(normalizeFieldName(f.name)),
+      );
+      if (completionDetail) extraData[completionDetail.name] = true;
+    }
+
     const imageField = stepForm?.find((f) => f.type === "IMAGE");
-    const mediaFile = imageField
-      ? (dynamicValues[imageField.name] as File | undefined)
-      : undefined;
+    const mediaFile =
+      (imageField
+        ? (dynamicValues[imageField.name] as File | undefined)
+        : undefined) ?? detailImage;
 
     const payload: SetupUpdateEvidencePayload = {
       stepId: stepMeta.stepId,
@@ -1004,16 +1095,23 @@ export default function LogEvidenceWizard({
       volunteerHours,
       contributors: (dynamicValues[contribFieldName] as string[]) ?? [],
       data: {
-        anchorPoint,
+        ...extraData,
+        anchorPoint: anchorPoint as unknown as ChallengeSetupAnchorPoint,
         capturedAt: new Date().toISOString(),
-        measurement: {
-          value: parseFloat(entry?.measurement ?? "") || 0,
-          // °C is CH-001's temperature default; other codes (CH-008A water
-          // levels) inherit the unit stored on the registered point
-          unitOfMeasure:
-            point.measurement?.unitOfMeasure ??
-            (challenge.challengeCode === "CH-001" ? "°C" : ""),
-        },
+        // Selection-only steps (CH-008B/C, CH-010) log no new reading — the
+        // hours/detail screens carry the data
+        ...(setupStep.selectionOnly
+          ? {}
+          : {
+              measurement: {
+                value: parseFloat(entry?.measurement ?? "") || 0,
+                // °C is CH-001's temperature default; other codes (CH-008A
+                // water levels) inherit the unit stored on the registered point
+                unitOfMeasure:
+                  point.measurement?.unitOfMeasure ??
+                  (challenge.challengeCode === "CH-001" ? "°C" : ""),
+              },
+            }),
         volunteerHours,
         ...(weatherCondition ? { weatherCondition } : {}),
       },
@@ -1030,12 +1128,16 @@ export default function LogEvidenceWizard({
     const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
     const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
 
-    const knownNames = new Set([
-      vhFieldName,
-      contribFieldName,
-      "CONFIRM_COMPLETION",
-      "CONFIRMATION",
-    ]);
+    // The mark-complete screen consumes the completion flag field — matched
+    // by normalized name (CONFIRM_COMPLETION, confirm, completed, …)
+    const completionField = (stepForm ?? []).find((f) =>
+      COMPLETION_NAMES.has(normalizeFieldName(f.name)),
+    );
+    const knownNames = new Set(
+      [vhFieldName, contribFieldName, completionField?.name].filter(
+        (n): n is string => !!n,
+      ),
+    );
 
     const unitToSiUnit: Record<string, string> = {
       kg: "MASS",
@@ -1068,49 +1170,45 @@ export default function LogEvidenceWizard({
             for (const sub of field.fields ?? []) {
               const sv = entry[sub.name];
               if (sv === undefined || sv === null || sv === "") continue;
-              if (
-                (sub.type === "NUMBER" || sub.type === "NUMERIC") &&
-                sub.unitOfMeasureOptions?.length
-              ) {
-                const subUnit =
-                  (entry[`${sub.name}__unit`] as string) ??
-                  sub.unitOfMeasureOptions[0].value;
-                out[sub.name] = {
-                  value: parseFloat(sv as string) || 0,
-                  unit: subUnit,
-                };
-              } else {
-                out[sub.name] = sv;
-              }
+              if (sv instanceof File) continue;
+              const subUnit =
+                (entry[`${sub.name}__unit`] as string) ??
+                sub.unitOfMeasureOptions?.[0]?.value;
+              const shaped = shapeFieldValue(sub, sv, subUnit);
+              if (shaped !== undefined) out[sub.name] = shaped;
             }
             return out;
           })
           .filter((entry) => Object.keys(entry).length > 0);
-        if (entries.length) rawFields[field.name] = entries;
+        if (entries.length) {
+          // Data.AnchorPoint is a single struct, not an array — an unadopted
+          // anchorPoint GROUP (nothing registered yet) sends its one entry
+          rawFields[field.name] =
+            normalizeFieldName(field.name) === "ANCHORPOINT"
+              ? entries[0]
+              : entries;
+        }
         continue;
       }
 
-      const isNumeric =
-        (field.type === "NUMBER" || field.type === "NUMERIC") &&
-        field.unitOfMeasureOptions?.length;
-      const unit = isNumeric
-        ? ((dynamicValues[`${field.name}__unit`] as string) ??
-          field.unitOfMeasureOptions![0].value)
-        : undefined;
+      // Real Files travel as the multipart mediaFile part, never in data
+      if (val instanceof File) continue;
+
+      const unit =
+        (dynamicValues[`${field.name}__unit`] as string) ??
+        field.unitOfMeasureOptions?.[0]?.value;
 
       // Addable fields hold an array of entries — send one item per entry
       if (field.addableInput && Array.isArray(val)) {
-        const entries = val.filter(
-          (v) => v !== undefined && v !== null && v !== "",
-        );
+        const entries = val
+          .filter((v) => v !== undefined && v !== null && v !== "")
+          .map((v) => shapeFieldValue(field, v, unit))
+          .filter((v) => v !== undefined);
         if (!entries.length) continue;
-        rawFields[field.name] = isNumeric
-          ? entries.map((v) => ({ value: parseFloat(v as string) || 0, unit }))
-          : entries;
-      } else if (isNumeric) {
-        rawFields[field.name] = { value: parseFloat(val as string) || 0, unit };
+        rawFields[toDataKey(field.name, entries)] = entries;
       } else {
-        rawFields[field.name] = val;
+        const shaped = shapeFieldValue(field, val, unit);
+        if (shaped !== undefined) rawFields[toDataKey(field.name, val)] = shaped;
       }
     }
 
@@ -1121,13 +1219,14 @@ export default function LogEvidenceWizard({
       (k) => normalizeFieldName(k) === "MEASUREMENT",
     );
     const measurementRaw = measurementKey
-      ? (rawFields[measurementKey] as { value: number; unit: string })
+      ? (rawFields[measurementKey] as { value: number; unitOfMeasure?: string })
       : undefined;
     if (measurementKey && measurementRaw) {
+      const mUnit = measurementRaw.unitOfMeasure ?? "";
       data.measurement = {
         value: measurementRaw.value,
-        unitofMeasure: measurementRaw.unit,
-        siUnit: unitToSiUnit[measurementRaw.unit] ?? measurementRaw.unit,
+        unitOfMeasure: mUnit,
+        siUnit: unitToSiUnit[mUnit] ?? mUnit,
       };
       delete rawFields[measurementKey];
     }
@@ -1144,9 +1243,18 @@ export default function LogEvidenceWizard({
     // Merge remaining fields directly into data
     Object.assign(data, rawFields);
 
-    // First IMAGE field becomes the media file. In view/edit mode the value
-    // can be the already-uploaded URL string — only a fresh File is sendable.
-    const imageField = stepForm?.find((f) => f.type === "IMAGE");
+    // Submitting via the mark-complete screen implies the flag itself
+    // (BE Data.Confirm / Data.Completed)
+    if (completionField && shouldMarkComplete) {
+      data[completionField.name] = true;
+    }
+
+    // First IMAGE (or FILE) field becomes the media file. In view/edit mode
+    // the value can be the already-uploaded URL string — only a fresh File is
+    // sendable.
+    const imageField =
+      stepForm?.find((f) => f.type === "IMAGE") ??
+      stepForm?.find((f) => f.type === "FILE");
     const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
     const mediaFile = imageValue instanceof File ? imageValue : undefined;
 
@@ -1216,9 +1324,16 @@ export default function LogEvidenceWizard({
       // registration stepId varies per template (SETUP_AND_REGISTRATION,
       // CIRCLE_FORMATION, …)
       if (
-        ["CH-001", "CH-008A", "CH-008B", "CH-009", "CH-010A", "CH-010B"].includes(
-          challenge.challengeCode,
-        ) &&
+        [
+          "CH-001",
+          "CH-008A",
+          "CH-008B",
+          "CH-008C",
+          "CH-009",
+          "CH-010",
+          "CH-010A",
+          "CH-010B",
+        ].includes(challenge.challengeCode) &&
         stepMeta.stepType === "REGISTRATION"
       ) {
         const { payload, mediaFile } = buildAnchorSetupPayload();
@@ -1284,7 +1399,9 @@ export default function LogEvidenceWizard({
         "CH-002",
         "CH-008A",
         "CH-008B",
+        "CH-008C",
         "CH-009",
+        "CH-010",
         "CH-010A",
         "CH-010B",
       ];
@@ -1436,6 +1553,7 @@ export default function LogEvidenceWizard({
                   update={updateDynamic}
                   onNext={next}
                   nextLabel={nextLabel}
+                  selectionOnly={ds.selectionOnly}
                 />
               );
             }
@@ -1490,10 +1608,22 @@ export default function LogEvidenceWizard({
                   }
                   dynamicConfig={{
                     // Fields consumed by the setup-update screen render via
-                    // setupUpdate rows instead
-                    fields: (stepForm ?? []).filter(
-                      (f) => !setupUpdateStep?.fields.some((sf) => sf.name === f.name),
-                    ),
+                    // setupUpdate rows instead; an adopted anchor-reference
+                    // GROUP is replaced by its promoted detail fields
+                    fields: [
+                      ...(stepForm ?? []).filter(
+                        (f) =>
+                          !setupUpdateStep?.fields.some(
+                            (sf) => sf.name === f.name,
+                          ) &&
+                          !(
+                            setupUpdateStep &&
+                            f.type === "GROUP" &&
+                            normalizeFieldName(f.name) === "ANCHORPOINT"
+                          ),
+                      ),
+                      ...(derivedConfig.anchorDetailFields ?? []),
+                    ],
                     values: dynamicValues,
                     fieldToStepIndex: derivedConfig.fieldToStepIndex,
                     setupUpdate: setupUpdateStep
