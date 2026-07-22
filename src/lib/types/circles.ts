@@ -192,6 +192,8 @@ export type ApiCircleChallenge = {
     stepId: string;
     title: string;
     description: string;
+    // Human-readable step label (BE, 2026-07-22) — prefer over stepType
+    activity?: string;
     isCompleted: boolean;
     form?: import("@/lib/types/challenges").ApiTemplateFormField[] | null;
   }> | null;

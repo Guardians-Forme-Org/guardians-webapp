@@ -289,8 +289,10 @@ function HomeTab({
                   <p className="text-[12px] text-[#1a1a1a] truncate">
                     {step.description}
                   </p>
-                  {step.stepType && (
-                    <p className="text-[12px] text-[#999]">{step.stepType}</p>
+                  {(step.activity || step.stepType) && (
+                    <p className="text-[12px] text-[#999]">
+                      {step.activity || step.stepType}
+                    </p>
                   )}
                 </div>
                 <ChevronRight size={16} className="text-text-muted shrink-0" />

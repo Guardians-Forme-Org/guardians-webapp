@@ -364,7 +364,7 @@ function Step2({
                   <p className="text-xs text-[#1a1a1a] truncate mt-0.5 opacity-80">
                     {s.description}
                   </p>
-                  <p className="text-xs text-[#999]">{s.stepType}</p>
+                  <p className="text-xs text-[#999]">{s.activity || s.stepType}</p>
                 </div>
                 <ChevronRight
                   size={24}
@@ -1068,7 +1068,7 @@ function Step6({
                   <p className="text-xs text-text-primary truncate mt-0.5">
                     {s.description}
                   </p>
-                  <p className="text-xs text-text-secondary">{s.stepType}</p>
+                  <p className="text-xs text-text-secondary">{s.activity || s.stepType}</p>
                 </div>
                 <ChevronRight size={24} className="text-text-muted shrink-0" />
               </div>

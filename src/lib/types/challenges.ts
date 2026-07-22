@@ -36,6 +36,8 @@ export type ApiTemplateStep = {
   stepType: string;
   title: string;
   description: string;
+  // Human-readable step label (BE, 2026-07-22) — prefer over stepType
+  activity?: string;
   isCompleted?: boolean;
   form?: ApiTemplateFormField[];
 };
