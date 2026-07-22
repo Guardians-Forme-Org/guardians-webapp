@@ -94,6 +94,7 @@ export function useDeleteChallenge() {
 
 type SubmitEvidencePayload = {
   stepId: string;
+  activity?: string;
   stepNumber: number;
   challengeCode: string;
   circleId: string;
@@ -107,6 +108,8 @@ type SubmitEvidencePayload = {
     measurement?: { value: number; unitofMeasure: string; siUnit: string; description?: string };
     description: string;
   };
+  // Full copy of `data`, plus fields data omits (contributors, volunteerHours)
+  dataEnvelope: Record<string, unknown>;
 };
 
 export type SubmitEvidenceResponse = {
@@ -247,6 +250,7 @@ export function useUpdateChallenge() {
 
 type RegistrationPayload = {
   stepId: string;
+  activity?: string;
   circleId: string;
   stepNumber: number;
   stepType: string;
@@ -263,6 +267,8 @@ type RegistrationPayload = {
     measurement: { value: number; unitOfMeasure: string; siUnit: "AREA" };
     location: Record<string, unknown> | null;
   };
+  // Full copy of `data`, plus fields data omits (contributors, volunteerHours)
+  dataEnvelope: Record<string, unknown>;
 };
 
 export type {
@@ -274,6 +280,7 @@ export type {
 // register-then-re-measure challenges (see SETUP_UPDATE_FLOW.md)
 export type SetupUpdateEvidencePayload = {
   stepId: string;
+  activity?: string;
   stepNumber: number;
   stepType: string;
   challengeCode: string;
@@ -293,11 +300,14 @@ export type SetupUpdateEvidencePayload = {
     // Anchor-detail / passthrough fields shaped to the BE Data struct
     [key: string]: unknown;
   };
+  // Full copy of `data`, plus fields data omits (contributors, volunteerHours)
+  dataEnvelope: Record<string, unknown>;
 };
 
 // CH-001 heat mapping: step 1 registers anchor points via /challengeSetup
 export type CH001SetupPayload = {
   stepId: string;
+  activity?: string;
   stepNumber: number;
   stepType: string;
   challengeCode: string;
@@ -318,6 +328,8 @@ export type CH001SetupPayload = {
     // (CH-008: SOURCE_TYPE, DATE_REGISTERED, …)
     [key: string]: unknown;
   };
+  // Full copy of `data`, plus fields data omits (contributors, volunteerHours)
+  dataEnvelope: Record<string, unknown>;
 };
 
 export function useSubmitRegistration() {

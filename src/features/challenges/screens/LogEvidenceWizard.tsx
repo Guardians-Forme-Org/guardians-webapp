@@ -540,8 +540,22 @@ export default function LogEvidenceWizard({
   const buildPayload = () => {
     if (!user || !challenge || !stepMeta) throw new Error("Not ready");
     const description = form.impactDescription || form.siteCondition;
+    const volunteerHours = {
+      value: parseFloat(form.volunteerHours) || 0,
+      unitOfMeasure: "hours",
+      SiUnit: "TIME",
+    };
+    const data = {
+      measurement: {
+        value: parseFloat(form.measurementValue) || 0,
+        unitofMeasure: form.measurementType === "VOLUME" ? "L" : "kg",
+        siUnit: form.measurementType,
+      },
+      description,
+    };
     return {
       stepId: stepMeta.stepId,
+      activity: stepMeta.activity,
       stepNumber: stepMeta.stepNumber,
       challengeCode: challenge.challengeCode,
       circleId: challenge.circleId,
@@ -549,27 +563,51 @@ export default function LogEvidenceWizard({
       thingUUID: challenge.impactRecords?.[0]?.thingUUID ?? "",
       submittedBy: user.id,
       approvalRequired: false,
-      volunteerHours: {
-        value: parseFloat(form.volunteerHours) || 0,
-        unitOfMeasure: "hours",
-        SiUnit: "TIME",
-      },
+      volunteerHours,
       contributors: form.contributors,
-      data: {
-        measurement: {
-          value: parseFloat(form.measurementValue) || 0,
-          unitofMeasure: form.measurementType === "VOLUME" ? "L" : "kg",
-          siUnit: form.measurementType,
-        },
-        description,
-      },
+      data,
+      dataEnvelope: { ...data, volunteerHours, contributors: form.contributors },
     };
   };
 
   const buildRegistrationPayload = () => {
     if (!user || !challenge || !stepMeta) throw new Error("Not ready");
+    const volunteerHours = {
+      value: parseFloat(form.volunteerHours) || 0,
+      unitOfMeasure: "hours",
+      siUnit: "TIME",
+    };
+    const data = {
+      unitOfMeasure: "LOCATION" as const,
+      currentActivity: "",
+      permission: {
+        obtained: form.permissionConfirmed,
+        holder: form.permissionHolder,
+      },
+      currentCondition: form.siteCondition,
+      measurement: {
+        value: parseFloat(form.measurementValue) || 0,
+        unitOfMeasure: form.areaUnit,
+        siUnit: "AREA" as const,
+      },
+      location: form.locationResult
+        ? {
+            placeId: form.locationResult.placeId,
+            suburb: form.locationResult.suburb,
+            city: form.locationResult.city,
+            country: form.locationResult.country,
+            countryCode: form.locationResult.countryCode,
+            province: form.locationResult.province,
+            latitude: form.locationResult.latitude,
+            longitude: form.locationResult.longitude,
+            formattedAddress: form.locationResult.formattedAddress,
+            postalCode: form.locationResult.postalCode,
+          }
+        : null,
+    };
     return {
       stepId: stepMeta.stepId,
+      activity: stepMeta.activity,
       circleId: challenge.circleId,
       stepNumber: stepMeta.stepNumber,
       stepType: stepMeta.stepType,
@@ -577,40 +615,10 @@ export default function LogEvidenceWizard({
       challengeId: challenge.challengeId,
       thingId: challenge.challengeId,
       submittedBy: user.id,
-      volunteerHours: {
-        value: parseFloat(form.volunteerHours) || 0,
-        unitOfMeasure: "hours",
-        siUnit: "TIME",
-      },
+      volunteerHours,
       contributors: form.contributors,
-      data: {
-        unitOfMeasure: "LOCATION" as const,
-        currentActivity: "",
-        permission: {
-          obtained: form.permissionConfirmed,
-          holder: form.permissionHolder,
-        },
-        currentCondition: form.siteCondition,
-        measurement: {
-          value: parseFloat(form.measurementValue) || 0,
-          unitOfMeasure: form.areaUnit,
-          siUnit: "AREA" as const,
-        },
-        location: form.locationResult
-          ? {
-              placeId: form.locationResult.placeId,
-              suburb: form.locationResult.suburb,
-              city: form.locationResult.city,
-              country: form.locationResult.country,
-              countryCode: form.locationResult.countryCode,
-              province: form.locationResult.province,
-              latitude: form.locationResult.latitude,
-              longitude: form.locationResult.longitude,
-              formattedAddress: form.locationResult.formattedAddress,
-              postalCode: form.locationResult.postalCode,
-            }
-          : null,
-      },
+      data,
+      dataEnvelope: { ...data, volunteerHours, contributors: form.contributors },
     };
   };
 
@@ -739,9 +747,20 @@ export default function LogEvidenceWizard({
       ? (dynamicValues[imageField.name] as File | undefined)
       : undefined;
 
+    const volunteerHours = {
+      value: vhValue,
+      unitOfMeasure: vhUnit === "H" ? "hours" : vhUnit.toLowerCase(),
+      SiUnit: "TIME",
+    };
+    const data = {
+      ...rawFields,
+      ...(measurement ? { measurement } : {}),
+      description,
+    };
     return {
       payload: {
         stepId: stepMeta.stepId,
+        activity: stepMeta.activity,
         stepNumber: stepMeta.stepNumber,
         challengeCode: challenge.challengeCode,
         circleId: challenge.circleId,
@@ -749,17 +768,10 @@ export default function LogEvidenceWizard({
         thingUUID: challenge.id,
         submittedBy: user.id,
         approvalRequired: false,
-        volunteerHours: {
-          value: vhValue,
-          unitOfMeasure: vhUnit === "H" ? "hours" : vhUnit.toLowerCase(),
-          SiUnit: "TIME",
-        },
+        volunteerHours,
         contributors,
-        data: {
-          ...rawFields,
-          ...(measurement ? { measurement } : {}),
-          description,
-        },
+        data,
+        dataEnvelope: { ...data, volunteerHours, contributors },
       },
       mediaFile,
     };
@@ -903,8 +915,17 @@ export default function LogEvidenceWizard({
       extraFields[toDataKey(field.name, shaped)] = shaped;
     }
 
+    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const data = {
+      ...extraFields,
+      volunteerHours,
+      ...(weatherCondition ? { weatherCondition } : {}),
+      ...(location ? { location } : {}),
+      anchorPoints,
+    };
     const payload: CH001SetupPayload = {
       stepId: stepMeta.stepId,
+      activity: stepMeta.activity,
       stepNumber: stepMeta.stepNumber,
       stepType: stepMeta.stepType,
       challengeCode: challenge.challengeCode,
@@ -913,14 +934,9 @@ export default function LogEvidenceWizard({
       circleId: challenge.circleId,
       submittedBy: user.id,
       volunteerHours,
-      contributors: (dynamicValues[contribFieldName] as string[]) ?? [],
-      data: {
-        ...extraFields,
-        volunteerHours,
-        ...(weatherCondition ? { weatherCondition } : {}),
-        ...(location ? { location } : {}),
-        anchorPoints,
-      },
+      contributors,
+      data,
+      dataEnvelope: { ...data, contributors },
     };
 
     return { payload, mediaFile };
@@ -968,8 +984,17 @@ export default function LogEvidenceWizard({
     const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
     const mediaFile = imageValue instanceof File ? imageValue : undefined;
 
+    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const data = {
+      volunteerHours,
+      capturedAt,
+      ...(weatherCondition ? { weatherCondition } : {}),
+      ...(location ? { location } : {}),
+      anchorPoints: [],
+    };
     const payload: CH001SetupPayload = {
       stepId: stepMeta.stepId,
+      activity: stepMeta.activity,
       stepNumber: stepMeta.stepNumber,
       stepType: stepMeta.stepType,
       challengeCode: challenge.challengeCode,
@@ -978,14 +1003,9 @@ export default function LogEvidenceWizard({
       circleId: challenge.circleId,
       submittedBy: user.id,
       volunteerHours,
-      contributors: (dynamicValues[contribFieldName] as string[]) ?? [],
-      data: {
-        volunteerHours,
-        capturedAt,
-        ...(weatherCondition ? { weatherCondition } : {}),
-        ...(location ? { location } : {}),
-        anchorPoints: [],
-      },
+      contributors,
+      data,
+      dataEnvelope: { ...data, contributors },
     };
 
     return { payload, mediaFile };
@@ -1083,8 +1103,31 @@ export default function LogEvidenceWizard({
         ? (dynamicValues[imageField.name] as File | undefined)
         : undefined) ?? detailImage;
 
+    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const data = {
+      ...extraData,
+      anchorPoint: anchorPoint as unknown as ChallengeSetupAnchorPoint,
+      capturedAt: new Date().toISOString(),
+      // Selection-only steps (CH-008B/C, CH-010) log no new reading — the
+      // hours/detail screens carry the data
+      ...(setupStep.selectionOnly
+        ? {}
+        : {
+            measurement: {
+              value: parseFloat(entry?.measurement ?? "") || 0,
+              // °C is CH-001's temperature default; other codes (CH-008A
+              // water levels) inherit the unit stored on the registered point
+              unitOfMeasure:
+                point.measurement?.unitOfMeasure ??
+                (challenge.challengeCode === "CH-001" ? "°C" : ""),
+            },
+          }),
+      volunteerHours,
+      ...(weatherCondition ? { weatherCondition } : {}),
+    };
     const payload: SetupUpdateEvidencePayload = {
       stepId: stepMeta.stepId,
+      activity: stepMeta.activity,
       stepNumber: stepMeta.stepNumber,
       stepType: stepMeta.stepType,
       challengeCode: challenge.challengeCode,
@@ -1093,28 +1136,9 @@ export default function LogEvidenceWizard({
       circleId: challenge.circleId,
       submittedBy: user.id,
       volunteerHours,
-      contributors: (dynamicValues[contribFieldName] as string[]) ?? [],
-      data: {
-        ...extraData,
-        anchorPoint: anchorPoint as unknown as ChallengeSetupAnchorPoint,
-        capturedAt: new Date().toISOString(),
-        // Selection-only steps (CH-008B/C, CH-010) log no new reading — the
-        // hours/detail screens carry the data
-        ...(setupStep.selectionOnly
-          ? {}
-          : {
-              measurement: {
-                value: parseFloat(entry?.measurement ?? "") || 0,
-                // °C is CH-001's temperature default; other codes (CH-008A
-                // water levels) inherit the unit stored on the registered point
-                unitOfMeasure:
-                  point.measurement?.unitOfMeasure ??
-                  (challenge.challengeCode === "CH-001" ? "°C" : ""),
-              },
-            }),
-        volunteerHours,
-        ...(weatherCondition ? { weatherCondition } : {}),
-      },
+      contributors,
+      data,
+      dataEnvelope: { ...data, contributors },
     };
 
     return { payload, mediaFile };
@@ -1259,10 +1283,17 @@ export default function LogEvidenceWizard({
     const mediaFile = imageValue instanceof File ? imageValue : undefined;
 
     const unitLabel = vhUnit === "H" ? "hours" : vhUnit.toLowerCase();
+    const volunteerHours = {
+      value: vhValue,
+      unitOfMeasure: unitLabel,
+      SiUnit: "TIME",
+      siUnit: "TIME",
+    };
 
     return {
       payload: {
         stepId: stepMeta.stepId,
+        activity: stepMeta.activity,
         stepNumber: stepMeta.stepNumber,
         stepType: stepMeta.stepType,
         challengeCode: challenge.challengeCode,
@@ -1272,14 +1303,10 @@ export default function LogEvidenceWizard({
         thingUUID: challenge.impactRecords?.[0]?.thingUUID ?? "",
         submittedBy: user.id,
         approvalRequired: false,
-        volunteerHours: {
-          value: vhValue,
-          unitOfMeasure: unitLabel,
-          SiUnit: "TIME",
-          siUnit: "TIME",
-        },
+        volunteerHours,
         contributors,
         data,
+        dataEnvelope: { ...data, volunteerHours, contributors },
       },
       mediaFile,
     };
