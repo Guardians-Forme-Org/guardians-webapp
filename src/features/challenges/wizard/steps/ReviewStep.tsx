@@ -179,7 +179,7 @@ function GroupEntryCard({
   index: number;
   users?: UserLike[];
 }) {
-  const subs = field.fields ?? [];
+  const subs = [...(field.fields ?? [])].sort((a, b) => a.displayOrder - b.displayOrder);
   const nameSub = subs.find((s) => s.type === "TEXT");
   const title = (nameSub && (entry[nameSub.name] as string)) || `#${index + 1}`;
 

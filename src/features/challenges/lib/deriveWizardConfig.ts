@@ -77,12 +77,14 @@ export const ANCHOR_POINT_DATA_NAMES = new Set([
 // Usable data-entry subfields of a GROUP: typed, not a nested GROUP, and not
 // the registered point's identity
 const usableLeaves = (group: ApiTemplateFormField) =>
-  (group.fields ?? []).filter(
-    (f) =>
-      !!f.type &&
-      f.type !== "GROUP" &&
-      !ANCHOR_IDENTITY_NAMES.has(normalizeFieldName(f.name)),
-  );
+  (group.fields ?? [])
+    .filter(
+      (f) =>
+        !!f.type &&
+        f.type !== "GROUP" &&
+        !ANCHOR_IDENTITY_NAMES.has(normalizeFieldName(f.name)),
+    )
+    .sort((a, b) => a.displayOrder - b.displayOrder);
 
 export function deriveWizardConfig(
   fields: ApiTemplateFormField[],
