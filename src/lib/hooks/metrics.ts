@@ -22,7 +22,7 @@ export type ImpactMatrixItem = {
       description?: string;
       slug?: string;
     };
-  };
+  } | null;
   verified: boolean;
   impactType: string;
   siUnit: string;

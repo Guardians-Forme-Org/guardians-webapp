@@ -28,8 +28,8 @@ function ImpactGrid({ items }: { items: ImpactMatrixItem[] }) {
         const contributionOnly = isContributionOnlyImpact(item);
         const label = getImpactTileLabel(item);
         const value = contributionOnly
-          ? formatImpactDisplayValue(item.impactSummary.contribution.displayName)
-          : formatImpactDisplayValue(item.impactSummary.impact.displayName);
+          ? formatImpactDisplayValue(item.impactSummary?.contribution.displayName ?? "")
+          : formatImpactDisplayValue(item.impactSummary?.impact.displayName ?? "");
         return (
           <div key={item.id} className="flex flex-col items-center">
             <Text variant="caption" className="text-text-secondary leading-tight text-center text-balance">

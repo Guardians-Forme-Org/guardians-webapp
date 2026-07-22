@@ -1,7 +1,7 @@
 export function isCrimeIncidentImpact(item: {
   siUnit?: string;
   impactType?: string;
-  impactSummary?: { impact?: { unitOfMeasure?: string; shortSummary?: string } };
+  impactSummary?: { impact?: { unitOfMeasure?: string; shortSummary?: string } } | null;
 }): boolean {
   const lower = (s?: string) => (s ?? "").toLowerCase();
   return (
@@ -14,7 +14,7 @@ export function isCrimeIncidentImpact(item: {
 }
 
 export function isTreePlantingImpact(item: {
-  impactSummary?: { contribution?: { unitOfMeasure?: string } };
+  impactSummary?: { contribution?: { unitOfMeasure?: string } } | null;
 }): boolean {
   return (item.impactSummary?.contribution?.unitOfMeasure ?? "")
     .toLowerCase()
@@ -23,7 +23,7 @@ export function isTreePlantingImpact(item: {
 
 export function isGreenedAreaImpact(item: {
   siUnit?: string;
-  impactSummary?: { contribution?: { unitOfMeasure?: string } };
+  impactSummary?: { contribution?: { unitOfMeasure?: string } } | null;
 }): boolean {
   const unit = (item.impactSummary?.contribution?.unitOfMeasure ?? "").toLowerCase();
   return (
@@ -41,7 +41,7 @@ export function isContributionOnlyImpact(item: {
   impactSummary?: {
     contribution?: { unitOfMeasure?: string };
     impact?: { unitOfMeasure?: string; shortSummary?: string };
-  };
+  } | null;
 }): boolean {
   return isCrimeIncidentImpact(item) || isTreePlantingImpact(item) || isGreenedAreaImpact(item);
 }
@@ -60,7 +60,7 @@ export function deriveImpactLabel(shortSummary: string): string {
 export function getImpactTileLabel(item: {
   siUnit?: string;
   impactType?: string;
-  impactSummary: {
+  impactSummary?: {
     contribution: { unitOfMeasure: string; description?: string };
     impact: {
       unitOfMeasure?: string;
@@ -68,15 +68,15 @@ export function getImpactTileLabel(item: {
       summary?: string;
       description?: string;
     };
-  };
+  } | null;
 }): string {
   const contributionOnly = isContributionOnlyImpact(item);
-  const source = contributionOnly ? item.impactSummary.contribution : item.impactSummary.impact;
-  if (source.description) return source.description;
+  const source = contributionOnly ? item.impactSummary?.contribution : item.impactSummary?.impact;
+  if (source?.description) return source.description;
   return contributionOnly
-    ? item.impactSummary.contribution.unitOfMeasure
+    ? (item.impactSummary?.contribution.unitOfMeasure ?? "")
     : deriveImpactLabel(
-        item.impactSummary.impact.shortSummary ?? item.impactSummary.impact.summary ?? ""
+        item.impactSummary?.impact.shortSummary ?? item.impactSummary?.impact.summary ?? ""
       );
 }
 
