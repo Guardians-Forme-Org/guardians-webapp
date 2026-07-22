@@ -310,7 +310,12 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-text-primary leading-tight truncate">
-                        {ch.name}
+                        {ch.name}{" "}
+                        {ch.challengeCode && (
+                          <span className="text-[12px] font-medium text-text-muted align-middle whitespace-nowrap">
+                            {ch.challengeCode}
+                          </span>
+                        )}
                       </p>
                       <p className="text-xs text-text-muted mt-0.5 truncate">
                         {ch.region?.formattedAddress ||

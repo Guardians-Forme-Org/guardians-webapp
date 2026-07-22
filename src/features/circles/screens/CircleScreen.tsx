@@ -60,7 +60,12 @@ function CircleChallengeRow({
         </div>
         <div className="flex-1 min-w-0 px-1">
           <p className="text-base font-semibold text-text-primary leading-tight">
-            {item.name}
+            {item.name}{" "}
+            {item.challengeCode && (
+              <span className="text-[12px] font-medium text-text-muted align-middle whitespace-nowrap">
+                {item.challengeCode}
+              </span>
+            )}
           </p>
           <p className="text-xs text-text-secondary mt-0.5">{t("since", { date: since })}</p>
           <div className="mt-1.5 h-[3px] bg-[#787878] rounded-full overflow-hidden">
