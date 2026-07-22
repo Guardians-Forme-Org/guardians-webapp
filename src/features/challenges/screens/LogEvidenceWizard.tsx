@@ -1372,6 +1372,30 @@ export default function LogEvidenceWizard({
         return;
       }
 
+      // Every other REGISTRATION step also submits via /challengeSetup —
+      // CH-004/CH-015 are the sole exception, since their BE handlers only
+      // parse the JSON body /submit{code} sends (see MULTIPART_CODES note
+      // below; do not widen those two)
+      if (
+        stepMeta.stepType === "REGISTRATION" &&
+        !["CH-004", "CH-015"].includes(challenge.challengeCode)
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { payload, mediaFile } = buildDynamicPayload() as any;
+        submitRegistration.mutate(
+          {
+            challengeCode: challenge.challengeCode,
+            challengeId: challenge.challengeId,
+            stepId: stepMeta.stepId,
+            userId: user.id,
+            payload,
+            mediaFile,
+          },
+          { onSuccess: () => onSuccess() },
+        );
+        return;
+      }
+
       // Setup-update steps resend the setup data shape as multipart
       if (setupUpdateStep) {
         const { payload, mediaFile } = buildSetupUpdatePayload(setupUpdateStep);
