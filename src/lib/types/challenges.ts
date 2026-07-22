@@ -18,6 +18,7 @@ export type ApiTemplateFormFieldType =
 export type ApiTemplateFormField = {
   name: string;
   label: string;
+  placeholder?: string;
   type: ApiTemplateFormFieldType;
   required: boolean;
   displayOrder: number;

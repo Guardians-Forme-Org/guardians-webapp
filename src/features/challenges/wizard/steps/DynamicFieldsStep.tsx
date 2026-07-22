@@ -225,7 +225,7 @@ function FieldControl({
           disabled={disabled}
           value={val}
           onChange={(e) => onValueChange(e.target.value)}
-          placeholder="0"
+          placeholder={field.placeholder ?? "0"}
           className="flex-1 min-w-0 h-[44px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none bg-white disabled:bg-[#f0efeb]"
         />
         {field.unitOfMeasureOptions && field.unitOfMeasureOptions.length > 1 ? (
@@ -335,7 +335,7 @@ function FieldControl({
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
           rows={4}
-          placeholder={field.label}
+          placeholder={field.placeholder ?? field.label}
           className="w-full min-w-0 border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 py-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none resize-none"
         />
       </FieldGroup>
@@ -386,7 +386,7 @@ function FieldControl({
         type="text"
         value={(value as string) ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={field.label}
+        placeholder={field.placeholder ?? field.label}
         className="w-full min-w-0 h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none"
       />
     </FieldGroup>
