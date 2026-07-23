@@ -308,7 +308,7 @@ export default function ReviewStep({
           >
             <div className="flex flex-col gap-2">
               {dynamicConfig.setupUpdate.rows.map((line, i) => (
-                <ReadOnlyField key={i} label="" value={line} />
+                <ReadOnlyField key={i} label="" value={line} multiline />
               ))}
             </div>
           </ReviewSection>
