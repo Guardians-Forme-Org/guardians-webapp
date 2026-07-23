@@ -1418,9 +1418,10 @@ export default function LogEvidenceWizard({
       }
 
       // Every other REGISTRATION step also submits via /challengeSetup —
-      // CH-004/CH-015 are the sole exception, since their BE handlers only
-      // parse the JSON body /submit{code} sends (see MULTIPART_CODES note
-      // below; do not widen those two)
+      // CH-004/CH-015 are the sole exception, since they have their own
+      // dedicated /submit{code} handler rather than going through the
+      // shared /challengeSetup route (see MULTIPART_CODES note below for
+      // CH-004's transport — it is multipart, just not via /challengeSetup)
       if (
         stepMeta.stepType === "REGISTRATION" &&
         !["CH-004", "CH-015"].includes(challenge.challengeCode)
@@ -1462,10 +1463,12 @@ export default function LogEvidenceWizard({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { payload, mediaFile } = buildDynamicPayload() as any;
       // These endpoints parse multipart only (metadata part + optional
-      // mediaFile — see guardians-api GetMetadataFromForm). CH-001/004/015
-      // keep the JSON body their handlers accept (do not widen).
+      // mediaFile — see guardians-api GetMetadataFromForm/FormValue +
+      // GetFileFromForm). CH-001/015 keep the JSON body their handlers
+      // accept (do not widen).
       const MULTIPART_CODES = [
         "CH-002",
+        "CH-004",
         "CH-008A",
         "CH-008B",
         "CH-008C",
