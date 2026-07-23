@@ -83,9 +83,20 @@ function activityToForm(activity: ApiRecentActivity): LogFormData {
   };
 }
 
-// {value, unit} objects are how dynamic submissions store numeric fields
-function isValueUnit(v: unknown): v is { value: number; unit?: string } {
-  return v !== null && typeof v === "object" && !Array.isArray(v) && "value" in v && "unit" in v;
+// {value, unitOfMeasure} objects are how dynamic submissions store numeric
+// fields (the API returns "unitOfMeasure", not "unit")
+function isValueUnit(v: unknown): v is { value: number; unit?: string; unitOfMeasure?: string } {
+  return (
+    v !== null &&
+    typeof v === "object" &&
+    !Array.isArray(v) &&
+    "value" in v &&
+    ("unit" in v || "unitOfMeasure" in v)
+  );
+}
+
+function valueUnitOf(v: { unit?: string; unitOfMeasure?: string }): string | undefined {
+  return v.unit ?? v.unitOfMeasure;
 }
 
 function activityToDynamic(
@@ -111,7 +122,7 @@ function activityToDynamic(
         for (const [k, v] of Object.entries(entry)) {
           if (isValueUnit(v)) {
             out[k] = String(v.value);
-            out[`${k}__unit`] = v.unit;
+            out[`${k}__unit`] = valueUnitOf(v);
           } else {
             out[k] = v;
           }
@@ -121,16 +132,18 @@ function activityToDynamic(
     } else if (Array.isArray(raw)) {
       // Addable numeric fields hold one {value, unit} per entry
       if (raw.length && isValueUnit(raw[0])) {
-        result[field.name] = (raw as { value: number; unit?: string }[]).map((v) =>
-          String(v.value),
+        result[field.name] = (
+          raw as { value: number; unit?: string; unitOfMeasure?: string }[]
+        ).map((v) => String(v.value));
+        result[`${field.name}__unit`] = valueUnitOf(
+          raw[0] as { unit?: string; unitOfMeasure?: string },
         );
-        result[`${field.name}__unit`] = (raw[0] as { unit?: string }).unit;
       } else {
         result[field.name] = raw;
       }
     } else if (isValueUnit(raw)) {
       result[field.name] = String(raw.value);
-      result[`${field.name}__unit`] = raw.unit;
+      result[`${field.name}__unit`] = valueUnitOf(raw);
     } else {
       result[field.name] = raw;
     }
@@ -224,7 +237,7 @@ function activityToDynamic(
   for (const [key, val] of Object.entries(data.fields ?? {})) {
     if (isValueUnit(val)) {
       result[key] = String(val.value);
-      result[`${key}__unit`] = val.unit;
+      result[`${key}__unit`] = valueUnitOf(val);
     } else {
       result[key] = val;
     }
