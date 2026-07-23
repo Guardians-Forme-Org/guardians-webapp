@@ -401,7 +401,18 @@ function GroupField({
   update: (name: string, value: unknown) => void;
 }) {
   const t = useTranslations("challenges");
-  const [expanded, setExpanded] = useState<Set<number>>(() => new Set([0]));
+  // Entries loaded with existing data (viewing/editing a submitted activity)
+  // start expanded so all of it is visible at once, matching the review
+  // screen; a fresh blank entry starts expanded too, since there's nothing
+  // to hide
+  const [expanded, setExpanded] = useState<Set<number>>(() => {
+    const initial =
+      Array.isArray(value) && value.length ? (value as Record<string, unknown>[]) : [{}];
+    const withData = initial
+      .map((entry, i) => [i, entry] as const)
+      .filter(([, entry]) => Object.values(entry).some((v) => v !== undefined && v !== null && v !== ""));
+    return withData.length ? new Set(withData.map(([i]) => i)) : new Set([0]);
+  });
   // Index of the entry whose remove button is awaiting a confirming second tap
   const [confirmingRemove, setConfirmingRemove] = useState<number | null>(null);
 
