@@ -76,8 +76,61 @@ export default function StepScreen({ challengeId, stepId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-full p-10">
-        <Text variant="body">{t("loading")}</Text>
+      <div className="flex flex-col bg-white min-h-full">
+        {/* Hero */}
+        <div className="relative h-70 bg-[#e8e8e8] animate-pulse shrink-0" />
+        {/* Card */}
+        <div className="-mt-5 bg-white rounded-t-[20px] relative z-10">
+          {/* Identity */}
+          <div className="px-10 pt-7.5 pb-0">
+            <Skeleton className="h-7 w-28 rounded-[20px] mb-3" />
+            <Skeleton className="h-7 w-3/4 mb-3" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+          </div>
+
+          {/* Progress + Actions */}
+          <div className="px-10 py-7.5 border-t border-progress-track mt-5 flex flex-col gap-10">
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-6 w-24" />
+              <div className="flex items-center gap-5">
+                <Skeleton className="flex-1 h-2.5 rounded-full" />
+                <Skeleton className="h-6 w-12" />
+              </div>
+            </div>
+            <Skeleton className="h-11 w-full rounded-full" />
+            <div className="flex flex-col gap-2.5">
+              <Skeleton className="h-12 w-full rounded-full" />
+              <Skeleton className="h-12 w-full rounded-full" />
+            </div>
+          </div>
+
+          {/* Facilitator */}
+          <div className="border-t border-progress-track" />
+          <div className="flex items-center gap-5 px-10 py-5">
+            <Skeleton className="size-10 rounded-full shrink-0" />
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="border-t border-progress-track" />
+          <div className="px-10 py-7.5 flex flex-col gap-2.5">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+
+          {/* Activities log */}
+          <div className="border-t border-progress-track" />
+          <div className="px-10 pt-7.5 pb-3">
+            <Skeleton className="h-6 w-28" />
+          </div>
+        </div>
       </div>
     );
   }
