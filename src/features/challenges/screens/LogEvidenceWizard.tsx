@@ -57,7 +57,10 @@ const STORAGE_KEY = (stepId: string) => `log-evidence-draft-${stepId}`;
 const AREA_UNITS: LogFormData["areaUnit"][] = ["m²", "ha", "km²", "acres"];
 
 function activityToForm(activity: ApiRecentActivity): LogFormData {
-  const m = activity.data.measurement;
+  // dataEnvelope, when present, is the more complete echo of what was
+  // submitted — prefer it over the legacy `data` bag
+  const data = activity.dataEnvelope ?? activity.data;
+  const m = data.measurement;
   const siUnit = (m?.siUnit ?? "").toUpperCase();
   const measurementType =
     siUnit === "VOLUME" ? "VOLUME" : siUnit === "AREA" ? "AREA" : "MASS";
@@ -73,8 +76,8 @@ function activityToForm(activity: ApiRecentActivity): LogFormData {
             : "m²",
         }
       : {}),
-    impactDescription: activity.data.description ?? "",
-    locationResult: activity.data.location ?? null,
+    impactDescription: data.description ?? "",
+    locationResult: data.location ?? null,
     volunteerHours:
       activity.volunteerHours?.value != null
         ? String(activity.volunteerHours.value)
@@ -106,7 +109,9 @@ function activityToDynamic(
   stepForm?: import("@/lib/types/challenges").ApiTemplateFormField[] | null,
 ): DynamicValues {
   const result: DynamicValues = {};
-  const data = activity.data;
+  // dataEnvelope, when present, is the more complete echo of what was
+  // submitted — prefer it over the legacy `data` bag
+  const data = activity.dataEnvelope ?? activity.data;
   const fields = stepForm ?? [];
 
   // Generic reverse of buildDynamicPayload: captured fields were merged into

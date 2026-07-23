@@ -9,6 +9,25 @@ export type ApiActivityMediaFile = {
   description?: string;
 };
 
+export type ApiActivityData = {
+  measurement?: {
+    value: number;
+    unitOfMeasure: string;
+    siUnit?: string;
+  };
+  description?: string;
+  location?: ChallengeSetupLocation;
+  anchorPoint?: ChallengeSetupAnchorPoint;
+  anchorPoints?: ChallengeSetupAnchorPoint[];
+  mediaFiles?: ApiActivityMediaFile[];
+  capturedAt?: string;
+  weatherCondition?: string;
+  fields?: Record<string, unknown>;
+  // Dynamic-form submissions also merge captured fields into data under
+  // their raw template field names
+  [key: string]: unknown;
+};
+
 export type ApiRecentActivity = {
   id: string;
   circleId: string;
@@ -17,24 +36,11 @@ export type ApiRecentActivity = {
   thingUUID: string;
   submittedBy: string;
   contributors: string[];
-  data: {
-    measurement?: {
-      value: number;
-      unitOfMeasure: string;
-      siUnit?: string;
-    };
-    description?: string;
-    location?: ChallengeSetupLocation;
-    anchorPoint?: ChallengeSetupAnchorPoint;
-    anchorPoints?: ChallengeSetupAnchorPoint[];
-    mediaFiles?: ApiActivityMediaFile[];
-    capturedAt?: string;
-    weatherCondition?: string;
-    fields?: Record<string, unknown>;
-    // Dynamic-form submissions also merge captured fields into data under
-    // their raw template field names
-    [key: string]: unknown;
-  };
+  data: ApiActivityData;
+  // Echo of the payload the FE submitted (data + volunteerHours +
+  // contributors merged) — takes precedence over `data` when present, since
+  // it's the more complete/up-to-date copy
+  dataEnvelope?: ApiActivityData;
   stepId: string;
   stepNumber: number;
   status: {

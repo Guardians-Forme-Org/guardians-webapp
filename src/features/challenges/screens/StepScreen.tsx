@@ -1,6 +1,7 @@
 "use client";
 
 import Text from "@/components/ui/Text";
+import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { useChallenge, useMarkStepComplete, useTemplates } from "@/lib/hooks/challenges";
