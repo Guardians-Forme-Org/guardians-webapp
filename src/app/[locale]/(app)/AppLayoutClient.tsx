@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import BottomNavBar from "@/components/nav/BottomNavBar";
+import LogoSpinner from "@/components/ui/LogoSpinner";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -42,7 +43,7 @@ export default function AppLayoutClient({
   const wizard = isWizardPath(pathname);
   const isPublic = isPublicPath(pathname);
   const mainRef = useRef<HTMLElement>(null);
-  const { user: authUser, loginData } = useAuth();
+  const { user: authUser, loginData, loading: authLoading } = useAuth();
   const avatarUrl =
     authUser?.user_metadata?.avatarUrl ||
     loginData?.circles
@@ -67,12 +68,19 @@ export default function AppLayoutClient({
     mainRef.current?.scrollTo(0, 0);
   }, [pathname]);
 
-  // While auth check runs, render nothing to avoid flash (public routes skip this)
-  if (typeof window !== "undefined" && !getToken() && !isPublic) return null;
+  // While the session bootstraps (or, on private routes, while the auth gate is
+  // about to redirect), show the logo animation instead of a blank/flash frame
+  if (authLoading || (typeof window !== "undefined" && !getToken() && !isPublic)) {
+    return (
+      <div className="relative flex flex-col min-h-full max-w-md mx-auto bg-white shadow-xl items-center justify-center">
+        <LogoSpinner />
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`relative flex flex-col min-h-full max-w-md mx-auto bg-white shadow-xl ${
+      className={`fade-in relative flex flex-col min-h-full max-w-md mx-auto bg-white shadow-xl ${
         wizard ? "overflow-hidden" : ""
       }`}
     >

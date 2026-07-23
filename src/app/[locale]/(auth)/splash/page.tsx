@@ -2,6 +2,7 @@
 
 import { useRouter } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
+import LogoSpinner from "@/components/ui/LogoSpinner";
 
 export default function SplashPage() {
   const router = useRouter();
@@ -25,12 +26,7 @@ export default function SplashPage() {
     >
       {phase === 1 ? (
         /* Splash 1 — black + circular logo */
-        <img
-          src="/images/Guardians Logo-logo.png"
-          alt="Guardians"
-          className="w-[193px] object-contain animate-spin"
-          style={{ filter: "brightness(0) invert(1)", animationDuration: "4s" }}
-        />
+        <LogoSpinner inverted />
       ) : (
         /* Splash 2 — white + wordmark */
         <div>
