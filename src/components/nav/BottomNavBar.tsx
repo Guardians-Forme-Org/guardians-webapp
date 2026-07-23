@@ -36,7 +36,7 @@ export default function BottomNavBar({ avatarUrl, isAuthenticated = true }: Prop
                   sessionStorage.setItem("guardians_return_to", "/profile");
                   router.push("/");
                 }}
-                className="flex flex-col items-center gap-1 py-3 px-6 min-w-15"
+                className="relative flex flex-col items-center gap-1 py-3 px-6 min-w-15"
               >
                 <User size={22} strokeWidth={1.8} className="text-text-muted" />
                 <span className="text-[10px] font-medium text-text-muted">{label}</span>
@@ -48,22 +48,25 @@ export default function BottomNavBar({ avatarUrl, isAuthenticated = true }: Prop
             <Link
               key={href}
               href={href}
-              className="flex flex-col items-center gap-1 py-3 px-6 min-w-15"
+              className="relative flex flex-col items-center gap-1 py-3 px-6 min-w-15"
             >
+              {active && (
+                <span className="absolute top-0 h-0.5 w-8 rounded-full bg-gotf-green" />
+              )}
               {isProfile ? (
                 <Avatar
                   src={avatarUrl}
                   alt={t("profileAlt")}
-                  className={`w-[22px] h-[22px] rounded-full ${active ? "ring-2 ring-gotf-yellow" : "ring-1 ring-border"}`}
+                  className={`w-[22px] h-[22px] rounded-full ${active ? "ring-2 ring-gotf-green" : "ring-1 ring-border"}`}
                 />
               ) : Icon ? (
                 <Icon
                   size={22}
                   strokeWidth={active ? 2.5 : 1.8}
-                  className={active ? "text-text-primary" : "text-text-muted"}
+                  className={active ? "text-gotf-green" : "text-text-muted"}
                 />
               ) : null}
-              <span className={`text-[10px] font-medium ${active ? "text-text-primary" : "text-text-muted"}`}>
+              <span className={`text-[10px] font-medium ${active ? "text-gotf-green" : "text-text-muted"}`}>
                 {label}
               </span>
             </Link>
