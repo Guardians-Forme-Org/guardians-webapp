@@ -58,8 +58,9 @@ const AREA_UNITS: LogFormData["areaUnit"][] = ["m²", "ha", "km²", "acres"];
 
 function activityToForm(activity: ApiRecentActivity): LogFormData {
   // dataEnvelope, when present, is the more complete echo of what was
-  // submitted — prefer it over the legacy `data` bag
-  const data = activity.dataEnvelope ?? activity.data;
+  // submitted — merge per-field so a dataEnvelope missing a given key (still
+  // being rolled out BE-side) falls back to the legacy `data` bag
+  const data = mergeActivityData(activity);
   const m = data.measurement;
   const siUnit = (m?.siUnit ?? "").toUpperCase();
   const measurementType =
@@ -102,6 +103,13 @@ function valueUnitOf(v: { unit?: string; unitOfMeasure?: string }): string | und
   return v.unit ?? v.unitOfMeasure;
 }
 
+// dataEnvelope is being rolled out BE-side field by field — merge it over
+// `data` rather than picking one bag wholesale, so fields still missing from
+// dataEnvelope (e.g. mediaFiles) keep falling back to `data`.
+function mergeActivityData(activity: ApiRecentActivity): ApiRecentActivity["data"] {
+  return { ...activity.data, ...activity.dataEnvelope };
+}
+
 function activityToDynamic(
   activity: ApiRecentActivity,
   vhFieldName: string,
@@ -110,8 +118,9 @@ function activityToDynamic(
 ): DynamicValues {
   const result: DynamicValues = {};
   // dataEnvelope, when present, is the more complete echo of what was
-  // submitted — prefer it over the legacy `data` bag
-  const data = activity.dataEnvelope ?? activity.data;
+  // submitted — merge per-field so a dataEnvelope missing a given key (still
+  // being rolled out BE-side) falls back to the legacy `data` bag
+  const data = mergeActivityData(activity);
   const fields = stepForm ?? [];
 
   // Generic reverse of buildDynamicPayload: captured fields were merged into
@@ -215,11 +224,23 @@ function activityToDynamic(
     }
   }
 
-  // First uploaded media file → the IMAGE field (as a URL string)
-  if (data.mediaFiles?.length) {
+  // First uploaded media file → the IMAGE field (as a URL string). BE has
+  // used both "mediaFiles" (array) and "mediaFile" (singular) — check both.
+  const mediaFileSingle = data.mediaFile as
+    | { url?: string }
+    | { url?: string }[]
+    | undefined;
+  const firstMediaFile = data.mediaFiles?.length
+    ? data.mediaFiles[0]
+    : Array.isArray(mediaFileSingle)
+      ? mediaFileSingle.length
+        ? mediaFileSingle[0]
+        : undefined
+      : mediaFileSingle;
+  if (firstMediaFile?.url) {
     const imgField = fields.find((f) => f.type === "IMAGE");
     if (imgField && result[imgField.name] === undefined) {
-      result[imgField.name] = data.mediaFiles[0].url;
+      result[imgField.name] = firstMediaFile.url;
     }
   }
 
