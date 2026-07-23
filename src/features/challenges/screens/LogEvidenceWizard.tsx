@@ -164,12 +164,16 @@ function activityToDynamic(
   }
 
   // Re-measured registered point (setup-update steps): data.anchorPoint +
-  // data.measurement feed the SELECT "locations" entry. A type-less field is
-  // the CH-008A/B shape — deriveWizardConfig adopts it under the name
-  // "locations", so mirror that key here.
+  // data.measurement feed the SELECT "locations" (or "anchorPoint" — CH-001's
+  // BASELINE_OBSERVATION shape) entry. A type-less field is the CH-008A/B
+  // shape — deriveWizardConfig adopts it under the name "locations", so
+  // mirror that key here.
   const pointsField =
     fields.find(
-      (f) => f.type === "SELECT" && f.name.toLowerCase() === "locations",
+      (f) =>
+        f.type === "SELECT" &&
+        (f.name.toLowerCase() === "locations" ||
+          normalizeFieldName(f.name) === "ANCHORPOINT"),
     ) ?? (fields.some((f) => !f.type) ? { name: "locations" } : undefined);
   if (pointsField && (data.anchorPoint || data.measurement)) {
     result[pointsField.name] = {

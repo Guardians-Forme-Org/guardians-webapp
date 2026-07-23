@@ -95,13 +95,19 @@ export function deriveWizardConfig(
 ): DerivedWizardConfig {
   const sorted = [...fields].sort((a, b) => a.displayOrder - b.displayOrder);
 
-  // A SELECT named "locations" is the BE's reference to the points registered
-  // during the setup step. When the challenge carries those, the field becomes
-  // an update-values screen (fixed set — no adding or removing points).
+  // A SELECT named "locations" (or "anchorPoint" — CH-001's BASELINE_OBSERVATION
+  // shape) is the BE's reference to the points registered during the setup
+  // step. When the challenge carries those, the field becomes an
+  // update-values screen (fixed set — no adding or removing points).
   const anchorPoints = setupData?.anchorPoints ?? [];
   let selectionOnly = false;
   let pointsField = anchorPoints.length
-    ? sorted.find((f) => f.type === "SELECT" && f.name.toLowerCase() === "locations")
+    ? sorted.find(
+        (f) =>
+          f.type === "SELECT" &&
+          (f.name.toLowerCase() === "locations" ||
+            normalizeFieldName(f.name) === "ANCHORPOINT"),
+      )
     : undefined;
 
   // Fallback (CH-008A/B): the BE ships the anchor-points reference as a
