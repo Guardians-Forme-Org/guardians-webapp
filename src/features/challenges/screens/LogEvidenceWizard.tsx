@@ -758,8 +758,12 @@ export default function LogEvidenceWizard({
     if (measurement && description) measurement.description = description;
 
     // Also send every captured field under its raw name (original values,
-    // pre-conversion). The API ignores these today but this preserves the
-    // data for when it starts storing them.
+    // pre-conversion). Most of these are ignored by the API today, but
+    // data.sealedOrRemovedArea and data.areaGreened are typed Measurement
+    // fields on the BE (models.Data.SealedOrRemovedArea/AreadGreened) —
+    // sending {value, unit} leaves their unitOfMeasure empty since "unit"
+    // doesn't match the struct's json tag.
+    const AREA_MEASUREMENT_NAMES = new Set(["SEALEDORREMOVEDAREA", "AREAGREENED"]);
     const rawFields: Record<string, unknown> = {};
     for (const field of sorted) {
       if (
@@ -775,10 +779,16 @@ export default function LogEvidenceWizard({
         const unit =
           (dynamicValues[`${field.name}__unit`] as string) ??
           field.unitOfMeasureOptions[0].value;
-        rawFields[field.name] = {
-          value: parseFloat(dynamicValues[field.name] as string) || 0,
-          unit,
-        };
+        const value = parseFloat(dynamicValues[field.name] as string) || 0;
+        if (AREA_MEASUREMENT_NAMES.has(normalizeFieldName(field.name))) {
+          rawFields[field.name] = {
+            value: value * (areaToSqm[unit] ?? 1),
+            unitofMeasure: "m²",
+            siUnit: "AREA",
+          };
+        } else {
+          rawFields[field.name] = { value, unit };
+        }
       } else {
         rawFields[field.name] = dynamicValues[field.name];
       }
