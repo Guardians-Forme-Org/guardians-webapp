@@ -127,13 +127,39 @@ function activityToDynamic(
   // data under their raw template field names
   for (const field of fields) {
     if (field.name === vhFieldName || field.name === contribFieldName) continue;
+    // IMAGE fields are hydrated below from data.mediaFile(s) — when a
+    // template names its IMAGE field "mediaFile" (CH-015), data.mediaFile is
+    // the raw MediaFile object, not a URL string, and would otherwise
+    // clobber the field before the dedicated logic below can set it
+    if (field.type === "IMAGE") continue;
     const raw = data[field.name];
     if (raw === undefined || raw === null || raw === "") continue;
 
     if (field.type === "GROUP" && Array.isArray(raw)) {
+      // A GROUP subfield holding the outcome measurement (CH-015's
+      // sealedOrRemovedArea/areaGreened/treePlanted) is sent as one flat
+      // Measurement object per entry ({value, unitOfMeasure, siUnit, ...})
+      // rather than nested under the subfield's own name — remap it onto
+      // the GROUP's numeric subfield so GroupEntryCard can find it
+      const numSub = field.fields?.find(
+        (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+      );
       result[field.name] = (raw as Record<string, unknown>[]).map((entry) => {
         const out: Record<string, unknown> = {};
+        const isFlatMeasurement =
+          numSub && numSub.name !== "value" && isValueUnit(entry);
+        if (isFlatMeasurement && numSub) {
+          out[numSub.name] = String((entry as { value: number }).value);
+          out[`${numSub.name}__unit`] = valueUnitOf(
+            entry as { unit?: string; unitOfMeasure?: string },
+          );
+        }
         for (const [k, v] of Object.entries(entry)) {
+          if (
+            isFlatMeasurement &&
+            (k === "value" || k === "unitOfMeasure" || k === "unit" || k === "siUnit")
+          )
+            continue;
           if (isValueUnit(v)) {
             out[k] = String(v.value);
             out[`${k}__unit`] = valueUnitOf(v);
