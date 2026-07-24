@@ -32,6 +32,7 @@ export type ApiRecentActivity = {
   id: string;
   circleId: string;
   challengeCode: string;
+  activity?: string;
   thingId: string;
   thingUUID: string;
   submittedBy: string;
