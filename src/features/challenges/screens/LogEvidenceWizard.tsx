@@ -586,7 +586,7 @@ export default function LogEvidenceWizard({
     const volunteerHours = {
       value: parseFloat(form.volunteerHours) || 0,
       unitOfMeasure: "hours",
-      SiUnit: "TIME",
+      siUnit: "TIME",
     };
     const data = {
       measurement: {
@@ -759,11 +759,12 @@ export default function LogEvidenceWizard({
 
     // Also send every captured field under its raw name (original values,
     // pre-conversion). Most of these are ignored by the API today, but
-    // data.sealedOrRemovedArea and data.areaGreened are typed Measurement
-    // fields on the BE (models.Data.SealedOrRemovedArea/AreadGreened) —
-    // sending {value, unit} leaves their unitOfMeasure empty since "unit"
-    // doesn't match the struct's json tag.
-    const AREA_MEASUREMENT_NAMES = new Set(["SEALEDORREMOVEDAREA", "AREAGREENED"]);
+    // data.sealedOrRemovedArea/areaGreened/treePlanted are `any`-typed on
+    // the BE (models.Data), so nothing normalizes their casing or shape —
+    // each entry must already look like a Measurement (value, unitOfMeasure,
+    // siUnit, optional speciesUsed) or the BE never learns the unit/impact.
+    const AREA_GROUP_NAMES = new Set(["SEALEDORREMOVEDAREA", "AREAGREENED"]);
+    const COUNT_GROUP_NAMES = new Set(["TREEPLANTED"]);
     const rawFields: Record<string, unknown> = {};
     for (const field of sorted) {
       if (
@@ -772,6 +773,41 @@ export default function LogEvidenceWizard({
         !hasValue(field.name)
       )
         continue;
+      const normName = normalizeFieldName(field.name);
+      const isAreaGroup = AREA_GROUP_NAMES.has(normName);
+      const isCountGroup = COUNT_GROUP_NAMES.has(normName);
+      if (field.type === "GROUP" && (isAreaGroup || isCountGroup)) {
+        const numberSub = field.fields?.find(
+          (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+        );
+        const speciesSub = field.fields?.find(
+          (f) => normalizeFieldName(f.name) === "SPECIESUSED",
+        );
+        const rawEntries = Array.isArray(dynamicValues[field.name])
+          ? (dynamicValues[field.name] as Record<string, unknown>[])
+          : [];
+        const entries = rawEntries
+          .map((entry) => {
+            if (!numberSub) return undefined;
+            const raw = entry[numberSub.name];
+            if (raw === undefined || raw === null || raw === "")
+              return undefined;
+            const unit =
+              (entry[`${numberSub.name}__unit`] as string) ??
+              numberSub.unitOfMeasureOptions?.[0]?.value ??
+              (isAreaGroup ? "m²" : "count");
+            const species = speciesSub ? entry[speciesSub.name] : undefined;
+            return {
+              value: parseFloat(String(raw)) || 0,
+              unitOfMeasure: unit,
+              siUnit: isAreaGroup ? "AREA" : "COUNT",
+              ...(species ? { speciesUsed: species } : {}),
+            };
+          })
+          .filter((e) => e !== undefined);
+        if (entries.length) rawFields[field.name] = entries;
+        continue;
+      }
       if (
         (field.type === "NUMBER" || field.type === "NUMERIC") &&
         field.unitOfMeasureOptions?.length
@@ -779,16 +815,10 @@ export default function LogEvidenceWizard({
         const unit =
           (dynamicValues[`${field.name}__unit`] as string) ??
           field.unitOfMeasureOptions[0].value;
-        const value = parseFloat(dynamicValues[field.name] as string) || 0;
-        if (AREA_MEASUREMENT_NAMES.has(normalizeFieldName(field.name))) {
-          rawFields[field.name] = {
-            value: value * (areaToSqm[unit] ?? 1),
-            unitofMeasure: "m²",
-            siUnit: "AREA",
-          };
-        } else {
-          rawFields[field.name] = { value, unit };
-        }
+        rawFields[field.name] = {
+          value: parseFloat(dynamicValues[field.name] as string) || 0,
+          unit,
+        };
       } else {
         rawFields[field.name] = dynamicValues[field.name];
       }
@@ -803,7 +833,7 @@ export default function LogEvidenceWizard({
     const volunteerHours = {
       value: vhValue,
       unitOfMeasure: vhUnit === "H" ? "hours" : vhUnit.toLowerCase(),
-      SiUnit: "TIME",
+      siUnit: "TIME",
     };
     const data = {
       ...rawFields,
@@ -1339,7 +1369,6 @@ export default function LogEvidenceWizard({
     const volunteerHours = {
       value: vhValue,
       unitOfMeasure: unitLabel,
-      SiUnit: "TIME",
       siUnit: "TIME",
     };
 

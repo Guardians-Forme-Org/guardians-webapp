@@ -102,7 +102,7 @@ type SubmitEvidencePayload = {
   thingUUID: string;
   submittedBy: string;
   approvalRequired: boolean;
-  volunteerHours: { value: number; unitOfMeasure: string; SiUnit: string };
+  volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
   contributors: string[];
   data: {
     measurement?: { value: number; unitofMeasure: string; siUnit: string; description?: string };
