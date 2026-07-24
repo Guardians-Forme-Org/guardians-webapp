@@ -136,13 +136,16 @@ function activityToDynamic(
     if (raw === undefined || raw === null || raw === "") continue;
 
     if (field.type === "GROUP" && Array.isArray(raw)) {
-      // A GROUP subfield holding the outcome measurement (CH-015's
-      // sealedOrRemovedArea/areaGreened/treePlanted) is sent as one flat
-      // Measurement object per entry ({value, unitOfMeasure, siUnit, ...})
-      // rather than nested under the subfield's own name — remap it onto
-      // the GROUP's numeric subfield so GroupEntryCard can find it
+      // Legacy records (pre the multi-measurement-per-group template) stored
+      // a GROUP entry's outcome measurement as one flat Measurement object
+      // ({value, unitOfMeasure, siUnit, ...}) rather than nested under a
+      // subfield's own name — remap it onto the group's (first) numeric
+      // subfield so GroupEntryCard can still find it
       const numSub = field.fields?.find(
         (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+      );
+      const imageSubNames = new Set(
+        (field.fields ?? []).filter((f) => f.type === "IMAGE").map((f) => f.name),
       );
       result[field.name] = (raw as Record<string, unknown>[]).map((entry) => {
         const out: Record<string, unknown> = {};
@@ -160,6 +163,13 @@ function activityToDynamic(
             (k === "value" || k === "unitOfMeasure" || k === "unit" || k === "siUnit")
           )
             continue;
+          // A GROUP-nested IMAGE subfield's value (uploaded media) arrives
+          // as a MediaFile object — pull out the URL the same way the
+          // top-level mediaFile is handled below
+          if (imageSubNames.has(k) && v && typeof v === "object" && "url" in v) {
+            out[k] = (v as { url?: string }).url ?? "";
+            continue;
+          }
           if (isValueUnit(v)) {
             out[k] = String(v.value);
             out[`${k}__unit`] = valueUnitOf(v);
@@ -785,13 +795,20 @@ export default function LogEvidenceWizard({
 
     // Also send every captured field under its raw name (original values,
     // pre-conversion). Most of these are ignored by the API today, but
-    // data.sealedOrRemovedArea/areaGreened/treePlanted are `any`-typed on
+    // GROUP fields (CH-015's greeningArea/plantingArea) are `any`-typed on
     // the BE (models.Data), so nothing normalizes their casing or shape —
-    // each entry must already look like a Measurement (value, unitOfMeasure,
-    // siUnit, optional speciesUsed) or the BE never learns the unit/impact.
-    const AREA_GROUP_NAMES = new Set(["SEALEDORREMOVEDAREA", "AREAGREENED"]);
-    const COUNT_GROUP_NAMES = new Set(["TREEPLANTED"]);
+    // each numeric subfield must already look like a Measurement (value,
+    // unitOfMeasure, siUnit) or the BE never learns the unit/impact. A group
+    // can hold more than one numeric subfield (e.g. greeningArea has both
+    // sealedOrRemovedArea and areaGreened), so each is shaped under its own
+    // subfield name rather than collapsed into one flat entry.
+    const unitToSiUnit: Record<string, string> = { "m²": "AREA", COUNT: "COUNT" };
     const rawFields: Record<string, unknown> = {};
+    // GROUP subfields of type IMAGE (CH-015 nests each group's photo inside
+    // it, rather than a single top-level IMAGE field) — collected here so
+    // the BE's single-file submission still gets one, and any extra isn't
+    // silently dropped
+    const groupMediaFiles: File[] = [];
     for (const field of sorted) {
       if (
         knownNames.has(field.name) ||
@@ -799,38 +816,42 @@ export default function LogEvidenceWizard({
         !hasValue(field.name)
       )
         continue;
-      const normName = normalizeFieldName(field.name);
-      const isAreaGroup = AREA_GROUP_NAMES.has(normName);
-      const isCountGroup = COUNT_GROUP_NAMES.has(normName);
-      if (field.type === "GROUP" && (isAreaGroup || isCountGroup)) {
-        const numberSub = field.fields?.find(
-          (f) => f.type === "NUMBER" || f.type === "NUMERIC",
-        );
-        const speciesSub = field.fields?.find(
-          (f) => normalizeFieldName(f.name) === "SPECIESUSED",
+      if (field.type === "GROUP") {
+        const numberSubNames = new Set(
+          (field.fields ?? [])
+            .filter((f) => f.type === "NUMBER" || f.type === "NUMERIC")
+            .map((f) => f.name),
         );
         const rawEntries = Array.isArray(dynamicValues[field.name])
           ? (dynamicValues[field.name] as Record<string, unknown>[])
           : [];
         const entries = rawEntries
           .map((entry) => {
-            if (!numberSub) return undefined;
-            const raw = entry[numberSub.name];
-            if (raw === undefined || raw === null || raw === "")
-              return undefined;
-            const unit =
-              (entry[`${numberSub.name}__unit`] as string) ??
-              numberSub.unitOfMeasureOptions?.[0]?.value ??
-              (isAreaGroup ? "m²" : "count");
-            const species = speciesSub ? entry[speciesSub.name] : undefined;
-            return {
-              value: parseFloat(String(raw)) || 0,
-              unitOfMeasure: unit,
-              siUnit: isAreaGroup ? "AREA" : "COUNT",
-              ...(species ? { speciesUsed: species } : {}),
-            };
+            const out: Record<string, unknown> = {};
+            for (const sub of field.fields ?? []) {
+              const sv = entry[sub.name];
+              if (sub.type === "IMAGE") {
+                if (sv instanceof File) groupMediaFiles.push(sv);
+                continue;
+              }
+              if (sv === undefined || sv === null || sv === "") continue;
+              if (numberSubNames.has(sub.name)) {
+                const unit =
+                  (entry[`${sub.name}__unit`] as string) ??
+                  sub.unitOfMeasureOptions?.[0]?.value ??
+                  "";
+                out[sub.name] = {
+                  value: parseFloat(String(sv)) || 0,
+                  unitOfMeasure: unit,
+                  siUnit: unitToSiUnit[unit] ?? unit,
+                };
+              } else {
+                out[sub.name] = sv;
+              }
+            }
+            return out;
           })
-          .filter((e) => e !== undefined);
+          .filter((entry) => Object.keys(entry).length > 0);
         if (entries.length) rawFields[field.name] = entries;
         continue;
       }
@@ -850,11 +871,19 @@ export default function LogEvidenceWizard({
       }
     }
 
-    // First IMAGE field becomes the media file
-    const imageField = stepForm?.find((f) => f.type === "IMAGE");
-    const mediaFile = imageField
-      ? (dynamicValues[imageField.name] as File | undefined)
+    // A top-level IMAGE field (older templates) or a GROUP-nested one
+    // (CH-015's current template) can supply the media file — the BE only
+    // accepts one per submission today, so send the first found that way;
+    // any extra is stashed under data.mediaFiles (no uploaded URL yet, but
+    // at least the filename/type isn't silently lost)
+    const topLevelImageField = stepForm?.find((f) => f.type === "IMAGE");
+    const topLevelMediaFile = topLevelImageField
+      ? (dynamicValues[topLevelImageField.name] as File | undefined)
       : undefined;
+    const allMediaFiles = topLevelMediaFile
+      ? [topLevelMediaFile, ...groupMediaFiles]
+      : groupMediaFiles;
+    const [mediaFile, ...extraMediaFiles] = allMediaFiles;
 
     const volunteerHours = {
       value: vhValue,
@@ -864,6 +893,14 @@ export default function LogEvidenceWizard({
     const data = {
       ...rawFields,
       ...(measurement ? { measurement } : {}),
+      ...(extraMediaFiles.length
+        ? {
+            mediaFiles: extraMediaFiles.map((f) => ({
+              type: f.type,
+              description: f.name,
+            })),
+          }
+        : {}),
       description,
     };
     return {
