@@ -1517,17 +1517,17 @@ export default function LogEvidenceWizard({
     setSubmitted(true);
   };
 
-  const submit = () => {
+  // Picks the right payload builder for the current step and how it should
+  // be sent — the single source of truth for both the actual submit() and
+  // the review-screen payload preview below, so they can never drift apart.
+  const resolveSubmission = (): {
+    payload: unknown;
+    mediaFile?: File;
+    transport: "registration" | "evidence" | "evidence-multipart" | "update";
+  } => {
     if (!user) throw new Error("Not authenticated");
     if (!challenge) throw new Error("Challenge not loaded");
     if (!stepMeta) throw new Error("Step not found in challenge");
-    // Re-entry guard: a click can land before the pending state disables the button
-    if (
-      submitRegistration.isPending ||
-      submitEvidence.isPending ||
-      updateEvidence.isPending
-    )
-      return;
 
     // ── Dynamic path ───────────────────────────────────────────────────────
     if (isDerived) {
@@ -1549,18 +1549,7 @@ export default function LogEvidenceWizard({
         stepMeta.stepType === "REGISTRATION"
       ) {
         const { payload, mediaFile } = buildAnchorSetupPayload();
-        submitRegistration.mutate(
-          {
-            challengeCode: challenge.challengeCode,
-            challengeId: challenge.challengeId,
-            stepId: stepMeta.stepId,
-            userId: user.id,
-            payload,
-            mediaFile,
-          },
-          { onSuccess: () => onSuccess() },
-        );
-        return;
+        return { payload, mediaFile, transport: "registration" };
       }
 
       // CH-002 step 1 registers the observation point via /challengeSetup
@@ -1570,18 +1559,7 @@ export default function LogEvidenceWizard({
         stepMeta.stepType === "REGISTRATION"
       ) {
         const { payload, mediaFile } = buildCH002SetupPayload();
-        submitRegistration.mutate(
-          {
-            challengeCode: challenge.challengeCode,
-            challengeId: challenge.challengeId,
-            stepId: stepMeta.stepId,
-            userId: user.id,
-            payload,
-            mediaFile,
-          },
-          { onSuccess: () => onSuccess() },
-        );
-        return;
+        return { payload, mediaFile, transport: "registration" };
       }
 
       // Every other REGISTRATION step also submits via /challengeSetup —
@@ -1595,36 +1573,13 @@ export default function LogEvidenceWizard({
       ) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { payload, mediaFile } = buildDynamicPayload() as any;
-        submitRegistration.mutate(
-          {
-            challengeCode: challenge.challengeCode,
-            challengeId: challenge.challengeId,
-            stepId: stepMeta.stepId,
-            userId: user.id,
-            payload,
-            mediaFile,
-          },
-          { onSuccess: () => onSuccess() },
-        );
-        return;
+        return { payload, mediaFile, transport: "registration" };
       }
 
       // Setup-update steps resend the setup data shape as multipart
       if (setupUpdateStep) {
         const { payload, mediaFile } = buildSetupUpdatePayload(setupUpdateStep);
-        submitEvidence.mutate(
-          {
-            challengeCode: challenge.challengeCode,
-            challengeId: challenge.challengeId,
-            stepId: stepMeta.stepId,
-            userId: user.id,
-            payload,
-            mediaFile,
-            multipart: true,
-          },
-          { onSuccess },
-        );
-        return;
+        return { payload, mediaFile, transport: "evidence-multipart" };
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1646,23 +1601,44 @@ export default function LogEvidenceWizard({
         "CH-015",
       ];
       const asMultipart = MULTIPART_CODES.includes(challenge.challengeCode);
-      submitEvidence.mutate(
-        {
-          challengeCode: challenge.challengeCode,
-          challengeId: challenge.challengeId,
-          stepId: stepMeta.stepId,
-          userId: user.id,
-          payload,
-          ...(asMultipart ? { multipart: true, mediaFile } : {}),
-        },
-        { onSuccess },
-      );
-      return;
+      return {
+        payload,
+        mediaFile,
+        transport: asMultipart ? "evidence-multipart" : "evidence",
+      };
     }
 
     // ── Static path ────────────────────────────────────────────────────────
     if (isRegistrationStep) {
-      const payload = buildRegistrationPayload();
+      return {
+        payload: buildRegistrationPayload(),
+        mediaFile: form.evidenceFiles[0],
+        transport: "registration",
+      };
+    }
+
+    return {
+      payload: buildPayload(),
+      transport: viewId && !isViewMode ? "update" : "evidence",
+    };
+  };
+
+  const submit = () => {
+    if (!user) throw new Error("Not authenticated");
+    if (!challenge) throw new Error("Challenge not loaded");
+    if (!stepMeta) throw new Error("Step not found in challenge");
+    // Re-entry guard: a click can land before the pending state disables the button
+    if (
+      submitRegistration.isPending ||
+      submitEvidence.isPending ||
+      updateEvidence.isPending
+    )
+      return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { payload, mediaFile, transport } = resolveSubmission() as any;
+
+    if (transport === "registration") {
       submitRegistration.mutate(
         {
           challengeCode: challenge.challengeCode,
@@ -1670,19 +1646,17 @@ export default function LogEvidenceWizard({
           stepId: stepMeta.stepId,
           userId: user.id,
           payload,
-          mediaFile: form.evidenceFiles[0],
+          mediaFile,
         },
         { onSuccess: () => onSuccess() },
       );
       return;
     }
 
-    const payload = buildPayload();
-
-    if (viewId && !isViewMode) {
+    if (transport === "update") {
       updateEvidence.mutate(
         {
-          evidenceId: viewId,
+          evidenceId: viewId!,
           challengeId: challenge.challengeId,
           stepId: stepMeta.stepId,
           userId: user.id,
@@ -1695,19 +1669,40 @@ export default function LogEvidenceWizard({
           },
         },
       );
-    } else {
-      submitEvidence.mutate(
-        {
-          challengeCode: challenge.challengeCode,
-          challengeId: challenge.challengeId,
-          stepId: stepMeta.stepId,
-          userId: user.id,
-          payload,
-        },
-        { onSuccess },
-      );
+      return;
     }
+
+    submitEvidence.mutate(
+      {
+        challengeCode: challenge.challengeCode,
+        challengeId: challenge.challengeId,
+        stepId: stepMeta.stepId,
+        userId: user.id,
+        payload,
+        ...(transport === "evidence-multipart" ? { multipart: true, mediaFile } : {}),
+      },
+      { onSuccess },
+    );
   };
+
+  // Debug aid: log the payload that would be submitted as soon as the
+  // review screen is reached, so it can be inspected before clicking
+  // upload. Reuses the exact same builder selection as submit() via
+  // resolveSubmission() — never mutates, just computes and logs.
+  useEffect(() => {
+    if (currentStep?.kind !== "review" || !challenge || !stepMeta || !user)
+      return;
+    try {
+      const { payload } = resolveSubmission();
+      // eslint-disable-next-line no-console
+      console.log("[LogEvidenceWizard] payload preview (review screen):", payload);
+    } catch (err) {
+      // Required fields not filled in yet — nothing meaningful to preview
+      // eslint-disable-next-line no-console
+      console.log("[LogEvidenceWizard] payload preview unavailable:", err);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep?.kind, dynamicValues, form]);
 
   // ── Error ──────────────────────────────────────────────────────────────────
   const submitError = submitRegistration.isError
