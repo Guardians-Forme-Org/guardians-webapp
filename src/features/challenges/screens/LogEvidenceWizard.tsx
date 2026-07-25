@@ -54,6 +54,26 @@ import { initForm, type LogFormData } from "../wizard/types";
 
 const STORAGE_KEY = (stepId: string) => `log-evidence-draft-${stepId}`;
 
+// File objects aren't JSON-serializable — JSON.stringify silently turns one
+// into "{}" (Files have no own enumerable properties). Saved verbatim inside
+// a GROUP entry (e.g. an anchor point's photo subfield), that corrupts the
+// draft: on restore, "{}" is a truthy value that's neither a File nor a URL
+// string, and ImageField's URL.createObjectURL(value) throws on it. Strip
+// Files recursively before persisting so a draft can never carry one.
+function stripFiles(value: unknown): unknown {
+  if (value instanceof File) return undefined;
+  if (Array.isArray(value)) return value.map(stripFiles);
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      const stripped = stripFiles(v);
+      if (stripped !== undefined) out[k] = stripped;
+    }
+    return out;
+  }
+  return value;
+}
+
 const AREA_UNITS: LogFormData["areaUnit"][] = ["m²", "ha", "km²", "acres"];
 
 function activityToForm(activity: ApiRecentActivity): LogFormData {
@@ -507,11 +527,12 @@ export default function LogEvidenceWizard({
 
   useEffect(() => {
     if (viewId || !isDerived) return;
-    // Exclude File values (not serializable)
+    // Exclude File values (not serializable) — including ones nested inside
+    // a GROUP entry's array (e.g. an anchor point's photo subfield)
     const serializable: DynamicValues = {};
     for (const [k, v] of Object.entries(dynamicValues)) {
       if (v instanceof File) continue;
-      serializable[k] = v;
+      serializable[k] = stripFiles(v);
     }
     localStorage.setItem(
       STORAGE_KEY(stepId),

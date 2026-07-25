@@ -80,7 +80,10 @@ function ImageField({
           onSelect(processed);
         }}
       />
-      {value ? (
+      {/* A corrupted draft (an old File value JSON.stringify'd away to "{}")
+          can land here as neither a File nor a URL string — treat that the
+          same as no value instead of letting createObjectURL throw */}
+      {value && (typeof value === "string" || value instanceof File) ? (
         <div className="relative w-full h-44 rounded-[8px] overflow-hidden border border-[rgba(26,26,24,0.14)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
