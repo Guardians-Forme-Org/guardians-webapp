@@ -1166,9 +1166,56 @@ export default function LogEvidenceWizard({
       ? new Date(dateRaw).toISOString()
       : new Date().toISOString();
 
+    // The "anchorPoint" GROUP (addable) holds one entry per registered
+    // point — name/location/direction/framing note plus its own baseline
+    // photo. Mirrors buildAnchorSetupPayload's shaping: name/location
+    // subfields are consumed directly, everything else (metaData, notes)
+    // passes through shaped under its own name onto the AnchorPoint struct.
+    const groupField = stepForm?.find((f) => f.type === "GROUP");
+    const subFields = groupField?.fields ?? [];
+    const nameSub = subFields.find((f) => f.type === "TEXT");
+    const locSub = subFields.find((f) => f.type === "LOCATION");
+    const groupEntries =
+      groupField && Array.isArray(dynamicValues[groupField.name])
+        ? (dynamicValues[groupField.name] as Record<string, unknown>[])
+        : [];
+    const groupMediaFiles: File[] = [];
+    const anchorPoints: ChallengeSetupAnchorPoint[] = groupEntries
+      .map((entry) => {
+        const point: ChallengeSetupAnchorPoint = {
+          name: nameSub ? ((entry[nameSub.name] as string) ?? "") : "",
+        };
+        const entryLocation = locSub
+          ? (entry[locSub.name] as ChallengeSetupLocation | undefined)
+          : undefined;
+        if (entryLocation) point.location = entryLocation;
+        for (const sub of subFields) {
+          if (sub === nameSub || sub === locSub) continue;
+          const sv = entry[sub.name];
+          if (sub.type === "IMAGE") {
+            if (sv instanceof File) groupMediaFiles.push(sv);
+            continue;
+          }
+          if (sv === undefined || sv === null || sv === "") continue;
+          const subUnit =
+            (entry[`${sub.name}__unit`] as string) ??
+            sub.unitOfMeasureOptions?.[0]?.value;
+          const shaped = shapeFieldValue(sub, sv, subUnit);
+          if (shaped !== undefined)
+            (point as Record<string, unknown>)[sub.name] = shaped;
+        }
+        return point;
+      })
+      .filter((p) => p.name || p.location);
+
+    // Older templates put the baseline image in a top-level IMAGE field;
+    // the current one nests it inside each anchor point entry instead —
+    // only one file can travel per submission today, so send the first
+    // found either way.
     const imageField = stepForm?.find((f) => f.type === "IMAGE");
     const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
-    const mediaFile = imageValue instanceof File ? imageValue : undefined;
+    const topLevelMediaFile = imageValue instanceof File ? imageValue : undefined;
+    const mediaFile = topLevelMediaFile ?? groupMediaFiles[0];
 
     const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
     const data = {
@@ -1176,7 +1223,7 @@ export default function LogEvidenceWizard({
       capturedAt,
       ...(weatherCondition ? { weatherCondition } : {}),
       ...(location ? { location } : {}),
-      anchorPoints: [],
+      anchorPoints,
     };
     const payload: CH001SetupPayload = {
       stepId: stepMeta.stepId,
