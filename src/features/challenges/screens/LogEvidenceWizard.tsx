@@ -136,33 +136,54 @@ function activityToDynamic(
     if (raw === undefined || raw === null || raw === "") continue;
 
     if (field.type === "GROUP" && Array.isArray(raw)) {
-      // Legacy records (pre the multi-measurement-per-group template) stored
-      // a GROUP entry's outcome measurement as one flat Measurement object
-      // ({value, unitOfMeasure, siUnit, ...}) rather than nested under a
-      // subfield's own name — remap it onto the group's (first) numeric
-      // subfield so GroupEntryCard can still find it
-      const numSub = field.fields?.find(
+      const rawArr = raw as Record<string, unknown>[];
+      const numSubs = (field.fields ?? []).filter(
         (f) => f.type === "NUMBER" || f.type === "NUMERIC",
       );
       const imageSubNames = new Set(
         (field.fields ?? []).filter((f) => f.type === "IMAGE").map((f) => f.name),
       );
-      result[field.name] = (raw as Record<string, unknown>[]).map((entry) => {
-        const out: Record<string, unknown> = {};
-        const isFlatMeasurement =
-          numSub && numSub.name !== "value" && isValueUnit(entry);
-        if (isFlatMeasurement && numSub) {
-          out[numSub.name] = String((entry as { value: number }).value);
-          out[`${numSub.name}__unit`] = valueUnitOf(
-            entry as { unit?: string; unitOfMeasure?: string },
-          );
+
+      // Current shape: each numeric subfield is its own flat Measurement
+      // entry in the array ({value, unitOfMeasure, siUnit, speciesUsed,
+      // description}) — models.Data.GreeningArea/PlantingArea are
+      // []Measurement, not an object keyed by subfield name. `description`
+      // says which subfield the entry belongs to (older records, from
+      // before that tag existed, fall back to the group's first numeric
+      // subfield). Merge them all back into one GroupEntryCard entry.
+      const isFlatMeasurementArray =
+        numSubs.length > 0 && rawArr.length > 0 && rawArr.every((e) => isValueUnit(e));
+      if (isFlatMeasurementArray) {
+        const merged: Record<string, unknown> = {};
+        for (const entry of rawArr as {
+          value: number;
+          unit?: string;
+          unitOfMeasure?: string;
+          description?: string;
+          speciesUsed?: string;
+        }[]) {
+          const sub =
+            numSubs.find((s) => s.name === entry.description) ?? numSubs[0];
+          if (sub) {
+            merged[sub.name] = String(entry.value);
+            merged[`${sub.name}__unit`] = valueUnitOf(entry);
+          }
+          if (entry.speciesUsed !== undefined) {
+            const speciesSub = (field.fields ?? []).find(
+              (f) => normalizeFieldName(f.name) === "SPECIESUSED",
+            );
+            if (speciesSub) merged[speciesSub.name] = entry.speciesUsed;
+          }
         }
+        result[field.name] = [merged];
+        continue;
+      }
+
+      // Legacy/generic shape: array of GROUP entries already keyed by
+      // subfield name (e.g. anchor-point-style groups)
+      result[field.name] = rawArr.map((entry) => {
+        const out: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(entry)) {
-          if (
-            isFlatMeasurement &&
-            (k === "value" || k === "unitOfMeasure" || k === "unit" || k === "siUnit")
-          )
-            continue;
           // A GROUP-nested IMAGE subfield's value (uploaded media) arrives
           // as a MediaFile object — pull out the URL the same way the
           // top-level mediaFile is handled below
@@ -266,21 +287,41 @@ function activityToDynamic(
 
   // First uploaded media file → the IMAGE field (as a URL string). BE has
   // used both "mediaFiles" (array) and "mediaFile" (singular) — check both.
+  // data.mediaFiles can contain URL-less placeholders (extra photos the FE
+  // couldn't upload — see buildCH015Payload) ahead of the real one, so find
+  // the first entry that actually has a url rather than assuming index 0.
   const mediaFileSingle = data.mediaFile as
     | { url?: string }
     | { url?: string }[]
     | undefined;
-  const firstMediaFile = data.mediaFiles?.length
-    ? data.mediaFiles[0]
-    : Array.isArray(mediaFileSingle)
-      ? mediaFileSingle.length
-        ? mediaFileSingle[0]
-        : undefined
-      : mediaFileSingle;
+  const firstMediaFile = data.mediaFiles?.find((m) => m.url)
+    ?? (Array.isArray(mediaFileSingle)
+      ? mediaFileSingle.find((m) => m.url)
+      : mediaFileSingle);
   if (firstMediaFile?.url) {
+    // Prefer a top-level IMAGE field; older templates have one. CH-015's
+    // current template nests each photo inside a GROUP instead — fall back
+    // to the first GROUP with an IMAGE subfield so the photo shows *somewhere*
+    // (the BE only tracks one url per submission today, so which group it
+    // truly came from can't be recovered)
     const imgField = fields.find((f) => f.type === "IMAGE");
     if (imgField && result[imgField.name] === undefined) {
       result[imgField.name] = firstMediaFile.url;
+    } else if (!imgField) {
+      const groupWithImage = fields.find(
+        (f) => f.type === "GROUP" && f.fields?.some((s) => s.type === "IMAGE"),
+      );
+      const imageSub = groupWithImage?.fields?.find((s) => s.type === "IMAGE");
+      if (groupWithImage && imageSub) {
+        const existing = Array.isArray(result[groupWithImage.name])
+          ? (result[groupWithImage.name] as Record<string, unknown>[])
+          : [{}];
+        const [first, ...rest] = existing;
+        result[groupWithImage.name] = [
+          { ...first, [imageSub.name]: firstMediaFile.url },
+          ...rest,
+        ];
+      }
     }
   }
 
@@ -795,13 +836,13 @@ export default function LogEvidenceWizard({
 
     // Also send every captured field under its raw name (original values,
     // pre-conversion). Most of these are ignored by the API today, but
-    // GROUP fields (CH-015's greeningArea/plantingArea) are `any`-typed on
-    // the BE (models.Data), so nothing normalizes their casing or shape —
-    // each numeric subfield must already look like a Measurement (value,
-    // unitOfMeasure, siUnit) or the BE never learns the unit/impact. A group
+    // data.greeningArea/plantingArea are []Measurement on the BE
+    // (models.Data) — a flat {value, unitOfMeasure, siUnit, speciesUsed,
+    // description} struct, not an object keyed by subfield name. A group
     // can hold more than one numeric subfield (e.g. greeningArea has both
-    // sealedOrRemovedArea and areaGreened), so each is shaped under its own
-    // subfield name rather than collapsed into one flat entry.
+    // sealedOrRemovedArea and areaGreened), so each becomes its OWN flat
+    // Measurement entry in the array, tagged via `description` with the
+    // subfield name so the two can still be told apart on view/edit.
     const unitToSiUnit: Record<string, string> = { "m²": "AREA", COUNT: "COUNT" };
     const rawFields: Record<string, unknown> = {};
     // GROUP subfields of type IMAGE (CH-015 nests each group's photo inside
@@ -817,42 +858,41 @@ export default function LogEvidenceWizard({
       )
         continue;
       if (field.type === "GROUP") {
-        const numberSubNames = new Set(
-          (field.fields ?? [])
-            .filter((f) => f.type === "NUMBER" || f.type === "NUMERIC")
-            .map((f) => f.name),
+        const numberSubs = (field.fields ?? []).filter(
+          (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+        );
+        const speciesSub = (field.fields ?? []).find(
+          (f) => normalizeFieldName(f.name) === "SPECIESUSED",
         );
         const rawEntries = Array.isArray(dynamicValues[field.name])
           ? (dynamicValues[field.name] as Record<string, unknown>[])
           : [];
-        const entries = rawEntries
-          .map((entry) => {
-            const out: Record<string, unknown> = {};
-            for (const sub of field.fields ?? []) {
+        const measurements: Record<string, unknown>[] = [];
+        for (const entry of rawEntries) {
+          const species = speciesSub ? entry[speciesSub.name] : undefined;
+          for (const sub of field.fields ?? []) {
+            if (sub.type === "IMAGE") {
               const sv = entry[sub.name];
-              if (sub.type === "IMAGE") {
-                if (sv instanceof File) groupMediaFiles.push(sv);
-                continue;
-              }
-              if (sv === undefined || sv === null || sv === "") continue;
-              if (numberSubNames.has(sub.name)) {
-                const unit =
-                  (entry[`${sub.name}__unit`] as string) ??
-                  sub.unitOfMeasureOptions?.[0]?.value ??
-                  "";
-                out[sub.name] = {
-                  value: parseFloat(String(sv)) || 0,
-                  unitOfMeasure: unit,
-                  siUnit: unitToSiUnit[unit] ?? unit,
-                };
-              } else {
-                out[sub.name] = sv;
-              }
+              if (sv instanceof File) groupMediaFiles.push(sv);
+              continue;
             }
-            return out;
-          })
-          .filter((entry) => Object.keys(entry).length > 0);
-        if (entries.length) rawFields[field.name] = entries;
+            if (!numberSubs.includes(sub)) continue;
+            const sv = entry[sub.name];
+            if (sv === undefined || sv === null || sv === "") continue;
+            const unit =
+              (entry[`${sub.name}__unit`] as string) ??
+              sub.unitOfMeasureOptions?.[0]?.value ??
+              "";
+            measurements.push({
+              value: parseFloat(String(sv)) || 0,
+              unitOfMeasure: unit,
+              siUnit: unitToSiUnit[unit] ?? unit,
+              description: sub.name,
+              ...(species ? { speciesUsed: species } : {}),
+            });
+          }
+        }
+        if (measurements.length) rawFields[field.name] = measurements;
         continue;
       }
       if (
