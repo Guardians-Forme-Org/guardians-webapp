@@ -1021,6 +1021,11 @@ export default function LogEvidenceWizard({
         ? (dynamicValues[groupField.name] as Record<string, unknown>[])
         : [];
 
+    // A GROUP subfield of type IMAGE (CH-008A's referenceImage, CH-008C's
+    // installationPhoto, CH-010's mediaFile) isn't a top-level field —
+    // collected here so a File nested inside an entry still becomes the
+    // submission's multipart mediaFile instead of being silently dropped
+    const groupMediaFiles: File[] = [];
     const anchorPoints: ChallengeSetupAnchorPoint[] = entries
       .map((entry) => {
         const point: ChallengeSetupAnchorPoint = {
@@ -1054,8 +1059,11 @@ export default function LogEvidenceWizard({
         for (const sub of subFields) {
           if (sub === nameSub || sub === locSub || sub === tempSub) continue;
           const sv = entry[sub.name];
-          if (sv === undefined || sv === null || sv === "" || sv instanceof File)
+          if (sv instanceof File) {
+            if (sub.type === "IMAGE") groupMediaFiles.push(sv);
             continue;
+          }
+          if (sv === undefined || sv === null || sv === "") continue;
           const subUnit =
             (entry[`${sub.name}__unit`] as string) ??
             sub.unitOfMeasureOptions?.[0]?.value;
@@ -1087,10 +1095,14 @@ export default function LogEvidenceWizard({
         ? String(weatherRaw)
         : undefined;
 
+    // A top-level IMAGE field (CH-001's mediaFile) or a GROUP-nested one
+    // (CH-008A/C, CH-010) can supply the media file — only one can travel
+    // per submission today, so send the first found either way.
     const imageField = stepForm?.find((f) => f.type === "IMAGE");
-    const mediaFile = imageField
+    const topLevelMediaFile = imageField
       ? (dynamicValues[imageField.name] as File | undefined)
       : undefined;
+    const mediaFile = topLevelMediaFile ?? groupMediaFiles[0];
 
     // Fields not consumed above (CH-008: SOURCE_TYPE, DATE_REGISTERED,
     // NETWORK_HOUSEHOLD_COUNT, PRIORITY_LIST_EXISTS, …) pass through under
