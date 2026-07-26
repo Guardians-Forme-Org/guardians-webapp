@@ -155,8 +155,14 @@ function activityToDynamic(
     const raw = data[field.name];
     if (raw === undefined || raw === null || raw === "") continue;
 
-    if (field.type === "GROUP" && Array.isArray(raw)) {
-      const rawArr = raw as Record<string, unknown>[];
+    if (field.type === "GROUP" && (Array.isArray(raw) || typeof raw === "object")) {
+      // An unadopted/singular GROUP (e.g. CH-007's anchorPoint, sent as
+      // entries[0] rather than an array — see buildDynamicPayload) is
+      // echoed back as one plain object, not an array. GroupField/
+      // GroupEntryCard always expect an array, so normalize it to one.
+      const rawArr = Array.isArray(raw)
+        ? (raw as Record<string, unknown>[])
+        : [raw as Record<string, unknown>];
       const numSubs = (field.fields ?? []).filter(
         (f) => f.type === "NUMBER" || f.type === "NUMERIC",
       );
@@ -1432,6 +1438,11 @@ export default function LogEvidenceWizard({
     };
 
     const rawFields: Record<string, unknown> = {};
+    // GROUP subfields of type IMAGE (e.g. CH-007's anchorPoint.mediaFile)
+    // aren't a top-level field — collected here so a File nested inside a
+    // GROUP entry still becomes the submission's multipart mediaFile instead
+    // of being silently dropped
+    const groupMediaFiles: File[] = [];
     for (const field of stepForm ?? []) {
       if (knownNames.has(field.name)) continue;
       if (field.type === "IMAGE") continue;
@@ -1448,7 +1459,10 @@ export default function LogEvidenceWizard({
             for (const sub of field.fields ?? []) {
               const sv = entry[sub.name];
               if (sv === undefined || sv === null || sv === "") continue;
-              if (sv instanceof File) continue;
+              if (sv instanceof File) {
+                if (sub.type === "IMAGE") groupMediaFiles.push(sv);
+                continue;
+              }
               const subUnit =
                 (entry[`${sub.name}__unit`] as string) ??
                 sub.unitOfMeasureOptions?.[0]?.value;
@@ -1529,12 +1543,15 @@ export default function LogEvidenceWizard({
 
     // First IMAGE (or FILE) field becomes the media file. In view/edit mode
     // the value can be the already-uploaded URL string — only a fresh File is
-    // sendable.
+    // sendable. Some templates (CH-007) nest the image inside a GROUP entry
+    // instead of a top-level field — fall back to the first one found there.
     const imageField =
       stepForm?.find((f) => f.type === "IMAGE") ??
       stepForm?.find((f) => f.type === "FILE");
     const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
-    const mediaFile = imageValue instanceof File ? imageValue : undefined;
+    const mediaFile =
+      (imageValue instanceof File ? imageValue : undefined) ??
+      groupMediaFiles[0];
 
     const unitLabel = vhUnit === "H" ? "hours" : vhUnit.toLowerCase();
     const volunteerHours = {
