@@ -1635,6 +1635,7 @@ export default function LogEvidenceWizard({
       if (
         [
           "CH-001",
+          "CH-007",
           "CH-008A",
           "CH-008B",
           "CH-008C",
