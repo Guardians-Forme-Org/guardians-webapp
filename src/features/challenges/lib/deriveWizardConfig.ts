@@ -183,9 +183,23 @@ export function deriveWizardConfig(
     [pointsField?.name, flagField?.name].filter((n): n is string => !!n),
   );
 
+  // Solo fields (LOCATION/LOCATION_LIST/IMAGE/GROUP) each still get their
+  // own screen, but interleaved with batched runs in the template's own
+  // displayOrder — a solo field mid-form no longer jumps ahead of earlier
+  // batchable ones (e.g. CH-004's optional trailing receipt IMAGE used to
+  // render before its preceding measurement/description fields)
   const knownNameFields: ApiTemplateFormField[] = [];
-  const soloFields: ApiTemplateFormField[] = [];
-  const batchableFields: ApiTemplateFormField[] = [];
+  const screenGroups: (
+    | { kind: "solo"; field: ApiTemplateFormField }
+    | { kind: "batch"; fields: ApiTemplateFormField[] }
+  )[] = [];
+  let currentBatch: ApiTemplateFormField[] = [];
+  const flushBatch = () => {
+    for (let i = 0; i < currentBatch.length; i += DYNAMIC_BATCH_SIZE) {
+      screenGroups.push({ kind: "batch", fields: currentBatch.slice(i, i + DYNAMIC_BATCH_SIZE) });
+    }
+    currentBatch = [];
+  };
 
   for (const field of sorted) {
     if (setupUpdateNames.has(field.name)) {
@@ -193,11 +207,13 @@ export function deriveWizardConfig(
     } else if (VOLUNTEER_HOURS_NAMES.has(normalizeFieldName(field.name)) || CONTRIBUTORS_NAMES.has(normalizeFieldName(field.name)) || COMPLETION_NAMES.has(normalizeFieldName(field.name))) {
       knownNameFields.push(field);
     } else if (SOLO_TYPES.has(field.type)) {
-      soloFields.push(field);
+      flushBatch();
+      screenGroups.push({ kind: "solo", field });
     } else {
-      batchableFields.push(field);
+      currentBatch.push(field);
     }
   }
+  flushBatch();
 
   const steps: DerivedStep[] = [];
   const fieldToStepIndex: Record<string, number> = {};
@@ -219,25 +235,23 @@ export function deriveWizardConfig(
     });
   }
 
-  // 1. Heavy solo fields — each gets its own screen
-  for (const field of soloFields) {
-    push({ kind: "dynamic", fields: [field] });
+  // 1. Solo and batched fields, in the template's own displayOrder
+  for (const group of screenGroups) {
+    push({
+      kind: "dynamic",
+      fields: group.kind === "solo" ? [group.field] : group.fields,
+    });
   }
 
-  // 2. Simple fields — batched
-  for (let i = 0; i < batchableFields.length; i += DYNAMIC_BATCH_SIZE) {
-    push({ kind: "dynamic", fields: batchableFields.slice(i, i + DYNAMIC_BATCH_SIZE) });
-  }
-
-  // 3. Volunteer hours
+  // 2. Volunteer hours
   const vhField = knownNameFields.find((f) => VOLUNTEER_HOURS_NAMES.has(normalizeFieldName(f.name)));
   if (vhField) push({ kind: "volunteer-hours", fields: [vhField] });
 
-  // 4. Contributors
+  // 3. Contributors
   const contribField = knownNameFields.find((f) => CONTRIBUTORS_NAMES.has(normalizeFieldName(f.name)));
   if (contribField) push({ kind: "contributors", fields: [contribField] });
 
-  // 5. Completion confirmation
+  // 4. Completion confirmation
   const completionField = knownNameFields.find((f) => COMPLETION_NAMES.has(normalizeFieldName(f.name)));
   if (completionField) push({ kind: "mark-complete", fields: [completionField] });
 
