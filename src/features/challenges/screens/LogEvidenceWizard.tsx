@@ -1916,7 +1916,21 @@ export default function LogEvidenceWizard({
             }
 
             if (ds.kind === "mark-complete") {
-              return <MarkCompleteStep onSubmit={submit} isPending={isPending} />;
+              const completionField = ds.fields[0];
+              return (
+                <MarkCompleteStep
+                  field={completionField}
+                  checked={!!dynamicValues[completionField.name]}
+                  onToggle={() =>
+                    updateDynamic(
+                      completionField.name,
+                      !dynamicValues[completionField.name],
+                    )
+                  }
+                  onSubmit={submit}
+                  isPending={isPending}
+                />
+              );
             }
 
             if (ds.kind === "review") {
