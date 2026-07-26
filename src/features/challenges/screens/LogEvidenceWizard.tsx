@@ -1980,7 +1980,7 @@ export default function LogEvidenceWizard({
                             derivedConfig.fieldToStepIndex[
                               setupUpdateStep.fields[0].name
                             ] ?? 1,
-                          rows: (() => {
+                          ...(() => {
                             const entry = dynamicValues[
                               setupUpdateStep.fields[0].name
                             ] as SetupUpdateEntry | undefined;
@@ -1989,23 +1989,42 @@ export default function LogEvidenceWizard({
                             ).find((p) => p.name === entry?.selected);
                             if (!point) {
                               // Older submissions carry only the measurement
-                              if (!entry?.measurement) return [];
+                              if (!entry?.measurement)
+                                return { entryTitle: "", rows: [] };
                               const unit =
                                 setupUpdateStep.anchorPoints?.[0]?.measurement
                                   ?.unitOfMeasure ?? "";
-                              return [`${entry.measurement} ${unit}`.trim()];
+                              return {
+                                entryTitle: entry.selected ?? "",
+                                rows: [
+                                  {
+                                    label: t("measurementSection"),
+                                    value: `${entry.measurement} ${unit}`.trim(),
+                                  },
+                                ],
+                              };
                             }
-                            return [
-                              [
-                                point.name,
-                                point.location?.formattedAddress,
-                                entry?.measurement
-                                  ? `${entry.measurement} ${point.measurement?.unitOfMeasure ?? ""}`.trim()
-                                  : null,
-                              ]
-                                .filter(Boolean)
-                                .join(" · "),
-                            ];
+                            return {
+                              entryTitle: point.name,
+                              rows: [
+                                ...(point.location?.formattedAddress
+                                  ? [
+                                      {
+                                        label: t("locationLabel"),
+                                        value: point.location.formattedAddress,
+                                      },
+                                    ]
+                                  : []),
+                                ...(entry?.measurement
+                                  ? [
+                                      {
+                                        label: t("measurementSection"),
+                                        value: `${entry.measurement} ${point.measurement?.unitOfMeasure ?? ""}`.trim(),
+                                      },
+                                    ]
+                                  : []),
+                              ],
+                            };
                           })(),
                         }
                       : undefined,

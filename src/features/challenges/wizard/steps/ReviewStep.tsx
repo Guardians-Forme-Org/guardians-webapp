@@ -49,8 +49,15 @@ export type DynamicReviewConfig = {
   fields: ApiTemplateFormField[];
   values: DynamicValues;
   fieldToStepIndex: Record<string, number>;
-  // Setup-registered points re-measured this step — pre-formatted display rows
-  setupUpdate?: { label: string; stepIndex: number; rows: string[] };
+  // Setup-registered point re-measured this step — rendered as a single
+  // group-entry card (title + labeled rows), matching how other registered
+  // points are shown elsewhere in this screen
+  setupUpdate?: {
+    label: string;
+    stepIndex: number;
+    entryTitle: string;
+    rows: { label: string; value: string }[];
+  };
 };
 
 type Props = {
@@ -226,6 +233,29 @@ function GroupEntryCard({
   );
 }
 
+// Same card look as GroupEntryCard, for callers that already have a plain
+// title + labeled rows rather than an ApiTemplateFormField/entry pair (the
+// setup-update re-measure summary)
+function SimpleEntryCard({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: { label: string; value: string }[];
+}) {
+  return (
+    <div className="border border-[rgba(26,26,24,0.14)] rounded-[12px] p-4 flex flex-col gap-3">
+      <p className="text-sm font-semibold text-text-primary">{title}</p>
+      {rows.map((row) => (
+        <div key={row.label} className="flex flex-col gap-0.5">
+          <p className="text-xs text-text-muted">{row.label}</p>
+          <p className="text-base text-text-primary">{row.value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ReadOnlyToggle({ checked }: { checked: boolean }) {
   return (
     <div
@@ -298,7 +328,7 @@ export default function ReviewStep({
       </div>
 
       <div className={`flex flex-col gap-6 px-5 ${readOnly ? "pb-safe-nav" : ""}`}>
-        {/* ── Setup-update rows (points registered during setup) ─────────── */}
+        {/* ── Setup-update entry (point registered during setup) ──────────── */}
         {dynamicConfig?.setupUpdate && dynamicConfig.setupUpdate.rows.length > 0 && (
           <ReviewSection
             label={dynamicConfig.setupUpdate.label}
@@ -306,11 +336,10 @@ export default function ReviewStep({
             onEdit={onGoToStep}
             showEdit={showEdit}
           >
-            <div className="flex flex-col gap-2">
-              {dynamicConfig.setupUpdate.rows.map((line, i) => (
-                <ReadOnlyField key={i} label="" value={line} multiline />
-              ))}
-            </div>
+            <SimpleEntryCard
+              title={dynamicConfig.setupUpdate.entryTitle}
+              rows={dynamicConfig.setupUpdate.rows}
+            />
           </ReviewSection>
         )}
 
