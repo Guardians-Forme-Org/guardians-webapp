@@ -1917,6 +1917,11 @@ export default function LogEvidenceWizard({
 
             if (ds.kind === "mark-complete") {
               const completionField = ds.fields[0];
+              // CH-008B: the switch logs whether the installation is done,
+              // it is not a precondition for logging today's volunteer
+              // hours — so it should not block the button, and the button
+              // reads "Continue" rather than "Mark Complete".
+              const isCH008B = challenge?.challengeCode === "CH-008B";
               return (
                 <MarkCompleteStep
                   field={completionField}
@@ -1929,6 +1934,8 @@ export default function LogEvidenceWizard({
                   }
                   onSubmit={submit}
                   isPending={isPending}
+                  blockOnToggle={!isCH008B}
+                  buttonLabel={isCH008B ? tCommon("continue") : undefined}
                 />
               );
             }

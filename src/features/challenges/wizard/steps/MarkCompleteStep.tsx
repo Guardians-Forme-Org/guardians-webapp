@@ -10,6 +10,8 @@ export default function MarkCompleteStep({
   onToggle,
   onSubmit,
   isPending,
+  blockOnToggle = true,
+  buttonLabel,
 }: {
   // The completion flag field from the BE form config, if this step has one
   field?: ApiTemplateFormField;
@@ -17,9 +19,13 @@ export default function MarkCompleteStep({
   onToggle?: () => void;
   onSubmit: () => void;
   isPending?: boolean;
+  // When false, the toggle is logged but does not gate the button (e.g.
+  // CH-008B: the switch just records completion, it isn't a precondition)
+  blockOnToggle?: boolean;
+  buttonLabel?: string;
 }) {
   const t = useTranslations("challenges");
-  const blocked = !!field?.required && !checked;
+  const blocked = blockOnToggle && !!field?.required && !checked;
 
   return (
     <>
@@ -39,7 +45,7 @@ export default function MarkCompleteStep({
       )}
       <div className="flex-1" />
       <SaveButton
-        label={isPending ? t("saving") : t("markComplete")}
+        label={isPending ? t("saving") : (buttonLabel ?? t("markComplete"))}
         onClick={onSubmit}
         disabled={isPending || blocked}
       />
