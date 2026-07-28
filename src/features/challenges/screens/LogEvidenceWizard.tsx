@@ -1684,9 +1684,9 @@ export default function LogEvidenceWizard({
       const { payload, mediaFile } = buildDynamicPayload() as any;
       // These endpoints parse multipart only (metadata part + optional
       // mediaFile — see guardians-api GetMetadataFromForm/FormValue +
-      // GetFileFromForm). CH-001 keeps the JSON body its handler accepts
-      // (do not widen).
+      // GetFileFromForm).
       const MULTIPART_CODES = [
+        "CH-001",
         "CH-002",
         "CH-004",
         "CH-008A",
