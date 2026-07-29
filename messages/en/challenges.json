@@ -24,6 +24,7 @@
   "saving": "Saving…",
   "failedRetry": "Failed. Please try again.",
   "stepNotFound": "Step not found.",
+  "setupRequiredFirst": "Complete the setup step before starting this one.",
   "startChallenge": "Start a Challenge",
   "searchTemplates": "Find challenge templates",
   "noTemplates": "No templates available",

@@ -65,6 +65,14 @@ export default function StepScreen({ challengeId, stepId }: Props) {
     (templateStepForm?.length ?? 0) > 0
   );
 
+  // Every step after setup re-measures or builds on the data the BE writes
+  // into submittedSetupDetail once setup is submitted — block them until
+  // that exists so users can't skip straight to later steps. Setup is
+  // whichever step sits first in challengeSteps — its actual position in
+  // the array, not a stepNumber/stepType field that may not be trustworthy.
+  const isSetupStep = challenge?.challengeSteps?.[0]?.stepId === stepId;
+  const setupRequired = !isSetupStep && !challenge?.submittedSetupDetail;
+
   const { percent: progress } = challenge ? calcChallengeProgress(challenge) : { percent: 0 };
   const fUser = users.find((u) => u.id === (f?.id ?? f?.userId));
   const fAvatar = f?.avatarUrl || fUser?.user_metadata?.avatarUrl;
@@ -188,7 +196,16 @@ export default function StepScreen({ challengeId, stepId }: Props) {
               userId={user?.id}
             />
 
-            {canSubmit && isActionable && (
+            {canSubmit && isActionable && setupRequired && (
+              <div className="flex flex-col gap-2.5">
+                <div className="w-full h-12 bg-[#e0e0e0] text-[#8f8f8c] text-base font-semibold rounded-full flex items-center justify-center cursor-not-allowed">
+                  {t("uploadEvidence")}
+                </div>
+                <p className="text-sm text-[#8f8f8c] text-center">{t("setupRequiredFirst")}</p>
+              </div>
+            )}
+
+            {canSubmit && isActionable && !setupRequired && (
               <div className="flex flex-col gap-2.5">
                 <Link
                   href={`/challenges/${challengeId}/steps/${stepId}/log`}

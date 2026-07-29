@@ -24,6 +24,7 @@
   "saving": "Mentés…",
   "failedRetry": "Sikertelen. Kérjük, próbáld újra.",
   "stepNotFound": "A lépés nem található.",
+  "setupRequiredFirst": "Fejezd be a beállítási lépést, mielőtt ezt elkezdenéd.",
   "startChallenge": "Kihívás indítása",
   "searchTemplates": "Kihívás sablonok keresése",
   "noTemplates": "Nincs elérhető sablon",

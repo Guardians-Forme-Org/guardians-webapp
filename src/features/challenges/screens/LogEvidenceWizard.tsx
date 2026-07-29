@@ -581,6 +581,19 @@ export default function LogEvidenceWizard({
     }
   }, [challenge, canEdit, viewId, challengeId, router]);
 
+  // Every step after setup re-measures or builds on submittedSetupDetail —
+  // block direct-URL access to the wizard for later steps until setup has
+  // actually been submitted. Setup is whichever step sits first in
+  // challengeSteps (array position, not a stepNumber/stepType field).
+  const isSetupStep = challenge?.challengeSteps?.[0]?.stepId === stepId;
+  const setupRequired = !isSetupStep && !challenge?.submittedSetupDetail;
+
+  useEffect(() => {
+    if (challenge && !viewId && setupRequired) {
+      router.replace(`/challenges/${challengeId}/steps/${stepId}`);
+    }
+  }, [challenge, viewId, setupRequired, challengeId, stepId, router]);
+
   // ── Navigation ─────────────────────────────────────────────────────────────
   const update = (key: keyof LogFormData, value: unknown) =>
     setForm((f) => ({ ...f, [key]: value }));
