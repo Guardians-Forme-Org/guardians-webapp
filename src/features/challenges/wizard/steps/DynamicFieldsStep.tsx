@@ -10,6 +10,28 @@ import type { ApiTemplateFormField } from "@/lib/types/challenges";
 
 export type DynamicValues = Record<string, unknown>;
 
+// A required field counts as filled once it has a real value — MULTISELECT
+// needs a non-empty array, addable inputs need at least one non-blank
+// entry, and GROUP needs at least one entry whose own required subfields
+// are all filled. TOGGLE/BOOLEAN are always "filled" — false is a valid
+// answer, not missing data.
+function isFieldFilled(field: ApiTemplateFormField, value: unknown): boolean {
+  if (field.type === "TOGGLE" || field.type === "BOOLEAN") return true;
+  if (field.type === "MULTISELECT") return Array.isArray(value) && value.length > 0;
+  if (field.type === "GROUP") {
+    const entries = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
+    if (!entries.length) return false;
+    return entries.every((entry) =>
+      (field.fields ?? []).every((sub) => !sub.required || isFieldFilled(sub, entry[sub.name])),
+    );
+  }
+  if (field.addableInput) {
+    const arr = Array.isArray(value) ? value : [];
+    return arr.some((v) => v !== undefined && v !== null && v !== "");
+  }
+  return value !== undefined && value !== null && value !== "";
+}
+
 type Props = {
   fields: ApiTemplateFormField[];
   values: DynamicValues;
@@ -530,6 +552,15 @@ function GroupField({
 }
 
 export default function DynamicFieldsStep({ fields, values, update, onNext, nextLabel, disabledFields, disabledHint }: Props) {
+  // Fields greyed out by a mutually exclusive field don't block Next —
+  // they're not the ones the user is meant to fill in right now.
+  const missingRequired = fields.some(
+    (field) =>
+      field.required &&
+      !(disabledFields?.has(field.name) ?? false) &&
+      !isFieldFilled(field, values[field.name]),
+  );
+
   return (
     <>
       <div className="flex flex-col gap-5 px-5 mt-7 flex-1">
@@ -553,7 +584,7 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
         })}
       </div>
 
-      <SaveButton label={nextLabel} onClick={onNext} />
+      <SaveButton label={nextLabel} onClick={onNext} disabled={missingRequired} />
     </>
   );
 }
