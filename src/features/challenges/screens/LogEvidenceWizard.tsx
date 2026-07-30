@@ -432,10 +432,13 @@ export default function LogEvidenceWizard({
       ? setupDetail.data
       : undefined;
 
+  const anchorPointTracking =
+    stepMeta?.anchorPointTracking ?? templateStep?.anchorPointTracking;
+
   const derivedConfig: DerivedWizardConfig | null = useMemo(() => {
     if (!isDerived || !stepForm) return null;
-    return deriveWizardConfig(stepForm, setupData, stepMeta?.stepType);
-  }, [isDerived, stepForm, setupData, stepMeta?.stepType]);
+    return deriveWizardConfig(stepForm, setupData, stepMeta?.stepType, anchorPointTracking);
+  }, [isDerived, stepForm, setupData, stepMeta?.stepType, anchorPointTracking]);
 
   const setupUpdateStep = useMemo(
     () => derivedConfig?.steps.find((s) => s.kind === "setup-update"),

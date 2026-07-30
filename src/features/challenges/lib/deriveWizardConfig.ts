@@ -86,14 +86,56 @@ const usableLeaves = (group: ApiTemplateFormField) =>
     )
     .sort((a, b) => a.displayOrder - b.displayOrder);
 
+// BE sometimes ships the anchor-point reference as a typeless wrapper
+// instead of a properly-typed GROUP field — either
+//   { anchorPoint: { name, location, fields: [...] }, displayOrder }
+//   (CH-001 BASELINE_OBSERVATION, CH-008A WATER_LEVEL_OBSERVATION), or
+//   { name: "anchorPoint", fields: [...] } with no "type"
+//   (CH-004's composting log — reuses the "anchorPoint" key purely for BE
+//   payload shaping, unrelated to point selection)
+// Pull out the nested fields either way so callers can decide how to use
+// them; returns null for an already-typed field (nothing to unwrap).
+function unwrapAnchorFields(f: ApiTemplateFormField): ApiTemplateFormField[] | null {
+  if (f.type) return null;
+  return f.anchorPoint?.fields ?? f.fields ?? null;
+}
+
 export function deriveWizardConfig(
   fields: ApiTemplateFormField[],
   setupData?: SetupUpdateSource,
   // Template stepType of the step being derived (EXECUTION, COMPLETION, …) —
   // gates whether a placeholder's nested per-anchor fields are promoted
   stepType?: string,
+  // Step-level flag: this step's fields are per-registered-anchor-point
+  // data entry (select a point, then log against it) — see
+  // unwrapAnchorFields for the two wrapper shapes this affects
+  anchorPointTracking?: boolean,
 ): DerivedWizardConfig {
-  const sorted = [...fields].sort((a, b) => a.displayOrder - b.displayOrder);
+  // Normalize typeless anchor-point wrappers before anything else touches
+  // `fields` — tracking steps become a standard non-addable GROUP so the
+  // existing reference-GROUP handling below applies uniformly; non-tracking
+  // steps (e.g. CH-004) just get their nested fields spliced in flat, since
+  // the wrapper there is BE payload shaping, not a point-selection screen.
+  const normalized = fields.flatMap((f) => {
+    const nested = unwrapAnchorFields(f);
+    if (!nested) return [f];
+    if (anchorPointTracking) {
+      return [
+        {
+          name: "anchorPoint",
+          type: "GROUP" as const,
+          label: f.label || f.anchorPoint?.label || "Anchor Point",
+          required: false,
+          displayOrder: f.displayOrder,
+          addableInput: false,
+          fields: nested,
+        },
+      ];
+    }
+    return nested;
+  });
+
+  const sorted = [...normalized].sort((a, b) => a.displayOrder - b.displayOrder);
 
   // A SELECT named "locations" (or "anchorPoint" — CH-001's BASELINE_OBSERVATION
   // shape) is the BE's reference to the points registered during the setup

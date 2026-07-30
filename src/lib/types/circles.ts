@@ -203,6 +203,11 @@ export type ApiCircleChallenge = {
     activity?: string;
     isCompleted: boolean;
     form?: import("@/lib/types/challenges").ApiTemplateFormField[] | null;
+    // True when this step's fields are per-registered-anchor-point data
+    // entry (select a point from setup, then log against it) rather than a
+    // one-off submission that merely reuses the "anchorPoint" field name
+    // for BE payload shaping (e.g. CH-004's composting log)
+    anchorPointTracking?: boolean;
   }> | null;
   submittedSetupDetail?: import("@/lib/types/challenges").ApiSubmittedSetupDetail | null;
   template?: {

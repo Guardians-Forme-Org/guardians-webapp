@@ -29,6 +29,14 @@ export type ApiTemplateFormField = {
   addableInput?: boolean;
   // GROUP only: the sub-form rendered for each entry
   fields?: ApiTemplateFormField[];
+  // BE sometimes ships the anchor-point reference wrapped under this key
+  // instead of as a properly-typed field (CH-001/CH-008A/CH-004 EXECUTION
+  // steps) — see deriveWizardConfig's wrapper normalization
+  anchorPoint?: {
+    name?: string;
+    label?: string;
+    fields?: ApiTemplateFormField[];
+  };
 };
 
 export type ApiTemplateStep = {
@@ -41,6 +49,8 @@ export type ApiTemplateStep = {
   activity?: string;
   isCompleted?: boolean;
   form?: ApiTemplateFormField[];
+  // See ApiCircleChallenge.challengeSteps[].anchorPointTracking
+  anchorPointTracking?: boolean;
 };
 
 export type ApiTemplateEquipment = {
