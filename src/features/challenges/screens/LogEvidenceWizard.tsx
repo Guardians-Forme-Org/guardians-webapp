@@ -28,6 +28,8 @@ import {
   ANCHOR_POINT_DATA_NAMES,
   COMPLETION_NAMES,
   deriveWizardConfig,
+  findAnchorLeaves,
+  findAnchorReference,
   normalizeFieldName,
   shapeFieldValue,
   toDataKey,
@@ -248,22 +250,42 @@ function activityToDynamic(
 
   // Re-measured registered point (setup-update steps): data.anchorPoint +
   // data.measurement feed the SELECT "locations" (or "anchorPoint" — CH-001's
-  // BASELINE_OBSERVATION shape) entry. A type-less field is the CH-008A/B
-  // shape — deriveWizardConfig adopts it under the name "locations", so
-  // mirror that key here.
+  // BASELINE_OBSERVATION shape) entry. A type-less field, or a typed GROUP
+  // with no direct usable leaves (CH-007: only its identity subfield), is
+  // the same "reference" shape — deriveWizardConfig adopts it under the
+  // name "locations", so mirror that key here. Its nested fields — found
+  // via findAnchorLeaves, wherever they actually live — render inline per
+  // point; echo their prior values back by name so re-opening a submission
+  // shows what was entered.
+  const refField = findAnchorReference(fields);
+  const nestedDetailFields = refField ? findAnchorLeaves(refField) : [];
+  const primaryFieldName = nestedDetailFields.find(
+    (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+  )?.name;
   const pointsField =
     fields.find(
       (f) =>
         f.type === "SELECT" &&
         (f.name.toLowerCase() === "locations" ||
           normalizeFieldName(f.name) === "ANCHORPOINT"),
-    ) ?? (fields.some((f) => !f.type) ? { name: "locations" } : undefined);
+    ) ?? (refField ? { name: "locations" } : undefined);
   if (pointsField && (data.anchorPoint || data.measurement)) {
+    const anchorPointData = data.anchorPoint as Record<string, unknown> | undefined;
     result[pointsField.name] = {
       selected: data.anchorPoint?.name ?? "",
-      measurement: data.measurement?.value != null ? String(data.measurement.value) : "",
       higherRiskFlag: data.anchorPoint?.higherRiskFlag ?? false,
-    };
+      values: {
+        ...(primaryFieldName && data.measurement?.value != null
+          ? { [primaryFieldName]: String(data.measurement.value) }
+          : {}),
+        ...Object.fromEntries(
+          nestedDetailFields
+            .filter((f) => f.name !== primaryFieldName && f.type !== "IMAGE")
+            .map((f) => [f.name, anchorPointData?.[f.name] ?? data[f.name]])
+            .filter(([, v]) => v !== undefined && v !== null && v !== ""),
+        ),
+      },
+    } satisfies SetupUpdateEntry;
   } else if (data.measurement) {
     // data.measurement belongs to the first free numeric field, or the
     // legacy MEASUREMENT name when the template has none
@@ -1327,25 +1349,24 @@ export default function LogEvidenceWizard({
       higherRiskFlag: entry?.higherRiskFlag ?? point.higherRiskFlag ?? false,
     };
 
-    const weatherField = stepForm?.find((f) => f.name.toUpperCase().includes("WEATHER"));
-    const weatherRaw = weatherField
-      ? dynamicValues[weatherField.name]
-      : undefined;
-    const weatherCondition =
-      weatherRaw !== undefined && weatherRaw !== null && weatherRaw !== ""
-        ? String(weatherRaw)
-        : undefined;
-
-    // Anchor-detail fields (promoted out of the reference GROUP) and template
-    // fields not consumed above pass through shaped to the BE structs.
-    // AnchorPoint-struct names nest under data.anchorPoint, the rest sit on
-    // data; the first IMAGE among them becomes the multipart mediaFile.
-    const detailFields = derivedConfig?.anchorDetailFields ?? [];
+    // Inline per-point fields (CH-001/CH-008A wrapper shape) live in
+    // entry.values; the older promoted-screen fields (CH-008B/CH-002/CH-010)
+    // live in the shared dynamicValues bag. The first NUMBER field among the
+    // inline ones (if any) is the point's generic reading — BE has one
+    // Measurement slot per point regardless of what the template calls it
+    // (temperature, water level, …) — so it's read separately below rather
+    // than through the generic name-keyed loop.
+    const inlineDetailFields = setupStep.detailFields ?? [];
+    const primaryField = inlineDetailFields.find(
+      (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+    );
+    const promotedDetailFields = derivedConfig?.anchorDetailFields ?? [];
+    const detailFields = [...inlineDetailFields, ...promotedDetailFields];
     const detailNames = new Set(detailFields.map((f) => f.name));
     const consumed = new Set(
       [
         setupStep.fields.map((f) => f.name),
-        weatherField?.name,
+        primaryField?.name,
         vhFieldName,
         contribFieldName,
       ]
@@ -1357,14 +1378,17 @@ export default function LogEvidenceWizard({
     for (const field of [...detailFields, ...(stepForm ?? [])]) {
       if (!field.name || consumed.has(field.name)) continue;
       if (!detailNames.has(field.name) && field.type === "GROUP") continue;
-      const val = dynamicValues[field.name];
+      // Inline per-point fields (and their __unit companions) live in
+      // entry.values; everything else in the shared dynamicValues bag
+      const bag = inlineDetailFields.includes(field) ? entry?.values : dynamicValues;
+      const val = bag?.[field.name];
       if (val === undefined || val === null || val === "") continue;
       if (field.type === "IMAGE" || val instanceof File) {
         if (!detailImage && val instanceof File) detailImage = val;
         continue;
       }
       const unit =
-        (dynamicValues[`${field.name}__unit`] as string) ??
+        (bag?.[`${field.name}__unit`] as string) ??
         field.unitOfMeasureOptions?.[0]?.value;
       const shaped = shapeFieldValue(field, val, unit);
       if (shaped === undefined) continue;
@@ -1398,11 +1422,11 @@ export default function LogEvidenceWizard({
       capturedAt: new Date().toISOString(),
       // Selection-only steps (CH-008B/C, CH-010) log no new reading — the
       // hours/detail screens carry the data
-      ...(setupStep.selectionOnly
+      ...(setupStep.selectionOnly || !primaryField
         ? {}
         : {
             measurement: {
-              value: parseFloat(entry?.measurement ?? "") || 0,
+              value: parseFloat((entry?.values?.[primaryField.name] as string) ?? "") || 0,
               // °C is CH-001's temperature default; other codes (CH-008A
               // water levels) inherit the unit stored on the registered point
               unitOfMeasure:
@@ -1411,7 +1435,6 @@ export default function LogEvidenceWizard({
             },
           }),
       volunteerHours,
-      ...(weatherCondition ? { weatherCondition } : {}),
     };
     const payload: SetupUpdateEvidencePayload = {
       stepId: stepMeta.stepId,
@@ -1897,6 +1920,7 @@ export default function LogEvidenceWizard({
                 <SetupUpdateStep
                   pointsField={ds.fields[0]}
                   flagField={ds.fields[1]}
+                  detailFields={ds.detailFields}
                   anchorPoints={ds.anchorPoints ?? []}
                   values={dynamicValues}
                   update={updateDynamic}
@@ -2010,22 +2034,27 @@ export default function LogEvidenceWizard({
                             const point = (
                               setupUpdateStep.anchorPoints ?? []
                             ).find((p) => p.name === entry?.selected);
+                            const detailFields = setupUpdateStep.detailFields ?? [];
+                            const primaryField = detailFields.find(
+                              (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+                            );
+                            // One row per detail field with a value — not just
+                            // the primary reading, since a wrapper can carry
+                            // several (weather, photo, date, …)
+                            const detailRows = detailFields.flatMap((f) => {
+                              const val = entry?.values?.[f.name];
+                              if (val === undefined || val === null || val === "") return [];
+                              if (f.type === "IMAGE") return [];
+                              const displayValue =
+                                f === primaryField
+                                  ? `${val} ${point?.measurement?.unitOfMeasure ?? f.unitOfMeasureOptions?.[0]?.value ?? ""}`.trim()
+                                  : String(val);
+                              return [{ label: f.label, value: displayValue }];
+                            });
                             if (!point) {
-                              // Older submissions carry only the measurement
-                              if (!entry?.measurement)
+                              if (!detailRows.length)
                                 return { entryTitle: "", rows: [] };
-                              const unit =
-                                setupUpdateStep.anchorPoints?.[0]?.measurement
-                                  ?.unitOfMeasure ?? "";
-                              return {
-                                entryTitle: entry.selected ?? "",
-                                rows: [
-                                  {
-                                    label: t("measurementSection"),
-                                    value: `${entry.measurement} ${unit}`.trim(),
-                                  },
-                                ],
-                              };
+                              return { entryTitle: entry?.selected ?? "", rows: detailRows };
                             }
                             return {
                               entryTitle: point.name,
@@ -2038,14 +2067,7 @@ export default function LogEvidenceWizard({
                                       },
                                     ]
                                   : []),
-                                ...(entry?.measurement
-                                  ? [
-                                      {
-                                        label: t("measurementSection"),
-                                        value: `${entry.measurement} ${point.measurement?.unitOfMeasure ?? ""}`.trim(),
-                                      },
-                                    ]
-                                  : []),
+                                ...detailRows,
                               ],
                             };
                           })(),

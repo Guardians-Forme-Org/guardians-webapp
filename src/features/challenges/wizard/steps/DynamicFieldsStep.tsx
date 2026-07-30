@@ -70,19 +70,21 @@ function ImageField({
   value,
   onSelect,
   onClear,
+  compact,
 }: {
   field: ApiTemplateFormField;
   // string = already-uploaded media URL (editing an existing submission)
   value: File | string | null;
   onSelect: (f: File) => void;
   onClear: () => void;
+  compact?: boolean;
 }) {
   const t = useTranslations("challenges");
   const ref = useRef<HTMLInputElement>(null);
   const [sizeError, setSizeError] = useState<string | null>(null);
 
   return (
-    <FieldGroup label={field.label} required={field.required}>
+    <FieldGroup label={field.label} required={field.required} compact={compact}>
       <input
         ref={ref}
         type="file"
@@ -141,9 +143,10 @@ function ImageField({
   );
 }
 
-// Renders a single form field. Used for top-level fields and for the
-// sub-fields inside GROUP entries (which bind into the entry object).
-function FieldControl({
+// Renders a single form field. Used for top-level fields, for the
+// sub-fields inside GROUP entries (which bind into the entry object), and
+// by SetupUpdateStep for the per-point fields inside a selected anchor card.
+export function FieldControl({
   field,
   value,
   unitValue,
@@ -151,6 +154,7 @@ function FieldControl({
   onUnitChange,
   disabled = false,
   disabledHint,
+  compact,
 }: {
   field: ApiTemplateFormField;
   value: unknown;
@@ -159,6 +163,8 @@ function FieldControl({
   onUnitChange: (unit: string) => void;
   disabled?: boolean;
   disabledHint?: string;
+  // Smaller field labels — for rendering inside a card (setup-update)
+  compact?: boolean;
 }) {
   const t = useTranslations("challenges");
   const activeUnit = unitValue ?? field.unitOfMeasureOptions?.[0]?.value;
@@ -178,7 +184,7 @@ function FieldControl({
   // ── SELECT ──────────────────────────────────────────────────────────
   if (field.type === "SELECT") {
     return (
-      <FieldGroup label={field.label} required={field.required}>
+      <FieldGroup label={field.label} required={field.required} compact={compact}>
         <div className="flex flex-col gap-2">
           {(field.options ?? []).length === 0 ? (
             <p className="text-sm text-text-muted py-2 px-1">{t("noOptionsAvailable")}</p>
@@ -207,7 +213,7 @@ function FieldControl({
   if (field.type === "MULTISELECT") {
     const selected = (value as string[]) ?? [];
     return (
-      <FieldGroup label={field.label} required={field.required}>
+      <FieldGroup label={field.label} required={field.required} compact={compact}>
         <div className="flex flex-col gap-2">
           {(field.options ?? []).map((opt) => {
             const isChecked = selected.includes(opt.value);
@@ -287,7 +293,7 @@ function FieldControl({
           ? [value as string]
           : [""];
       return (
-        <FieldGroup label={field.label} required={field.required}>
+        <FieldGroup label={field.label} required={field.required} compact={compact}>
           <div className="flex flex-col gap-2">
             {entries.map((entry, i) => (
               <div key={i} className="flex items-center gap-2">
@@ -324,7 +330,7 @@ function FieldControl({
     }
 
     return (
-      <FieldGroup label={field.label} required={field.required}>
+      <FieldGroup label={field.label} required={field.required} compact={compact}>
         {numberInput((value as string) ?? "", (v) => onChange(v))}
         {disabled && disabledHint && (
           <p className="text-xs text-text-muted mt-1.5">{disabledHint}</p>
@@ -336,7 +342,7 @@ function FieldControl({
   // ── DATE ────────────────────────────────────────────────────────────
   if (field.type === "DATE") {
     return (
-      <FieldGroup label={field.label} required={field.required}>
+      <FieldGroup label={field.label} required={field.required} compact={compact}>
         <div className="w-full overflow-hidden">
           <input
             type="date"
@@ -352,7 +358,7 @@ function FieldControl({
   // ── TEXTAREA ────────────────────────────────────────────────────────
   if (field.type === "TEXTAREA") {
     return (
-      <FieldGroup label={field.label} required={field.required}>
+      <FieldGroup label={field.label} required={field.required} compact={compact}>
         <textarea
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
@@ -368,7 +374,7 @@ function FieldControl({
   if (field.type === "LOCATION") {
     const loc = value as LocationResult | null | undefined;
     return (
-      <FieldGroup label={field.label} required={field.required}>
+      <FieldGroup label={field.label} required={field.required} compact={compact}>
         <LocationPicker
           defaultValue={loc?.formattedAddress}
           onSelect={(l) => onChange(l)}
@@ -388,6 +394,7 @@ function FieldControl({
         value={(value as File | string | null) ?? null}
         onSelect={(f) => onChange(f)}
         onClear={() => onChange(null)}
+        compact={compact}
       />
     );
   }
@@ -395,7 +402,7 @@ function FieldControl({
   // ── LOCATION_LIST (not yet supported) ────────────────────────────────
   if (field.type === "LOCATION_LIST") {
     return (
-      <FieldGroup label={field.label} required={field.required}>
+      <FieldGroup label={field.label} required={field.required} compact={compact}>
         <p className="text-sm text-text-muted py-2 px-1">{t("locationListComingSoon")}</p>
       </FieldGroup>
     );
@@ -403,7 +410,7 @@ function FieldControl({
 
   // ── TEXT (default) ──────────────────────────────────────────────────
   return (
-    <FieldGroup label={field.label} required={field.required}>
+    <FieldGroup label={field.label} required={field.required} compact={compact}>
       <input
         type="text"
         value={(value as string) ?? ""}
@@ -420,10 +427,12 @@ function GroupField({
   field,
   value,
   update,
+  compact,
 }: {
   field: ApiTemplateFormField;
   value: unknown;
   update: (name: string, value: unknown) => void;
+  compact?: boolean;
 }) {
   const t = useTranslations("challenges");
   // Entries loaded with existing data (viewing/editing a submitted activity)
@@ -487,7 +496,7 @@ function GroupField({
   };
 
   return (
-    <FieldGroup label={field.label} required={field.required}>
+    <FieldGroup label={field.label} required={field.required} compact={compact}>
       <div className="flex flex-col gap-3">
         {entries.map((entry, i) => {
           const isExpanded = expanded.has(i);

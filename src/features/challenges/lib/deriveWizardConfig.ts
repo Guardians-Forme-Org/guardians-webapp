@@ -16,6 +16,12 @@ export type DerivedStep = {
   // setup-update only: pick a point, no new reading (per-point data, if any,
   // is collected by the promoted anchor-detail screens that follow)
   selectionOnly?: boolean;
+  // setup-update only: the anchor reference's real per-visit fields,
+  // wherever they're nested (CH-001/CH-008A's typeless wrapper, CH-007's
+  // identity-field container) — rendered inline in the selected point's
+  // card, not as separate screens, since the whole step is "pick a point,
+  // log this reading against it"
+  detailFields?: ApiTemplateFormField[];
 };
 
 // Setup-step data carried by the challenge (submittedSetupDetail.data) —
@@ -72,11 +78,13 @@ export const ANCHOR_POINT_DATA_NAMES = new Set([
   "ORIENTATION",
   "NOTES",
   "HIGHERRISKFLAG",
+  "DATECAPTURED",
+  "VULNERABLEFLAG",
 ]);
 
 // Usable data-entry subfields of a GROUP: typed, not a nested GROUP, and not
 // the registered point's identity
-const usableLeaves = (group: ApiTemplateFormField) =>
+export const usableLeaves = (group: ApiTemplateFormField) =>
   (group.fields ?? [])
     .filter(
       (f) =>
@@ -100,6 +108,46 @@ function unwrapAnchorFields(f: ApiTemplateFormField): ApiTemplateFormField[] | n
   return f.anchorPoint?.fields ?? f.fields ?? null;
 }
 
+// The real per-visit data fields under an anchor reference can be nested at
+// any depth, in a container of any (or no) declared type — CH-001/CH-008A
+// wrap them in a typeless field, CH-008B nests a proper GROUP inside a
+// GROUP, CH-007 nests them inside a plain TEXT field ("anchorPointName")
+// that's everywhere else treated as the point's identity. Rather than a
+// branch per shape: a field with its own nested fields is a container to
+// descend into, whatever its own type is; a field with none is a real leaf,
+// unless it's the point's identity (never re-entered, see
+// ANCHOR_IDENTITY_NAMES) or has no type and nothing nested (nothing usable).
+export function findAnchorLeaves(container: ApiTemplateFormField): ApiTemplateFormField[] {
+  const subFields = container.fields ?? container.anchorPoint?.fields ?? [];
+  return subFields
+    .flatMap((f) => {
+      const nested = f.fields ?? f.anchorPoint?.fields;
+      if (nested?.length) return findAnchorLeaves(f);
+      if (ANCHOR_IDENTITY_NAMES.has(normalizeFieldName(f.name))) return [];
+      if (!f.type) return [];
+      return [f];
+    })
+    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+}
+
+// The anchor reference in a step's form, whatever shape the BE shipped it
+// in: a typeless wrapper (CH-001/CH-008A), or a non-addable GROUP named
+// "anchorPoint" whose only direct subfields are identity (CH-007). A GROUP
+// with real direct leaves is NOT a reference — it's per-anchor data entry
+// (CH-008B) and is handled by the promote-to-screens branch instead.
+export function findAnchorReference(
+  fields: ApiTemplateFormField[],
+): ApiTemplateFormField | undefined {
+  return fields.find(
+    (f) =>
+      !f.type ||
+      (f.type === "GROUP" &&
+        !f.addableInput &&
+        normalizeFieldName(f.name) === "ANCHORPOINT" &&
+        usableLeaves(f).length === 0),
+  );
+}
+
 export function deriveWizardConfig(
   fields: ApiTemplateFormField[],
   setupData?: SetupUpdateSource,
@@ -111,31 +159,16 @@ export function deriveWizardConfig(
   // unwrapAnchorFields for the two wrapper shapes this affects
   anchorPointTracking?: boolean,
 ): DerivedWizardConfig {
-  // Normalize typeless anchor-point wrappers before anything else touches
-  // `fields` — tracking steps become a standard non-addable GROUP so the
-  // existing reference-GROUP handling below applies uniformly; non-tracking
-  // steps (e.g. CH-004) just get their nested fields spliced in flat, since
-  // the wrapper there is BE payload shaping, not a point-selection screen.
-  const normalized = fields.flatMap((f) => {
-    const nested = unwrapAnchorFields(f);
-    if (!nested) return [f];
-    if (anchorPointTracking) {
-      return [
-        {
-          name: "anchorPoint",
-          type: "GROUP" as const,
-          label: f.label || f.anchorPoint?.label || "Anchor Point",
-          required: false,
-          displayOrder: f.displayOrder,
-          addableInput: false,
-          fields: nested,
-        },
-      ];
-    }
-    return nested;
-  });
+  // Non-tracking steps (e.g. CH-004) reuse the "anchorPoint" wrapper purely
+  // for BE payload shaping, unrelated to point selection — splice its
+  // nested fields in flat so they render (and submit) like any other field.
+  // Tracking steps are handled below, once anchorPoints is known, so their
+  // nested fields render inline per selected point instead.
+  const preNormalized = anchorPointTracking
+    ? fields
+    : fields.flatMap((f) => unwrapAnchorFields(f) ?? [f]);
 
-  const sorted = [...normalized].sort((a, b) => a.displayOrder - b.displayOrder);
+  const sorted = [...preNormalized].sort((a, b) => a.displayOrder - b.displayOrder);
 
   // A SELECT named "locations" (or "anchorPoint" — CH-001's BASELINE_OBSERVATION
   // shape) is the BE's reference to the points registered during the setup
@@ -152,11 +185,37 @@ export function deriveWizardConfig(
       )
     : undefined;
 
-  // Fallback (CH-008A/B): the BE ships the anchor-points reference as a
-  // degenerate field — all-blank (CH-008A) or named but type-less (CH-008B's
-  // ANCHOR_POINT_NAME). When registered points exist, adopt it as the points
-  // field so the step still renders the CH-001-style update screen. Adopted
-  // under the name "locations" so payload/view-mode keys stay consistent.
+  // A tracking, non-completion step (CH-001, CH-008A, CH-007) whose
+  // reference is either the typeless wrapper, or a typed GROUP with no
+  // *direct* usable leaves of its own (CH-007's anchorPoint → only
+  // anchorPointName, which is identity — the real fields are one level
+  // further in): adopt as the points field, and its fields — found via
+  // findAnchorLeaves, wherever they actually live — render inline in the
+  // selected point's card (SetupUpdateStep), not as separate screens. A
+  // GROUP that already has real direct leaves (CH-008B EXECUTION:
+  // capacity/confirm/installationDate/mediaFile) is left to the existing
+  // reference-GROUP branch below, unchanged.
+  let wrapperDetailFields: ApiTemplateFormField[] | undefined;
+  if (!pointsField && anchorPointTracking && stepType !== "COMPLETION") {
+    const ref = findAnchorReference(sorted);
+    if (ref) {
+      wrapperDetailFields = findAnchorLeaves(ref);
+      pointsField = {
+        name: "locations",
+        type: "SELECT",
+        label: ref.label || ref.anchorPoint?.label || "Observation Points",
+        required: false,
+        displayOrder: ref.displayOrder,
+      };
+      sorted[sorted.indexOf(ref)] = pointsField;
+    }
+  }
+
+  // Fallback (CH-008B's ANCHOR_POINT_NAME): the BE ships the anchor-points
+  // reference as a degenerate, all-blank, named-but-type-less field. When
+  // registered points exist, adopt it as the points field so the step still
+  // renders the CH-001-style update screen. Adopted under the name
+  // "locations" so payload/view-mode keys stay consistent.
   if (!pointsField && anchorPoints.length) {
     const degenerate = sorted.find((f) => !f.type);
     if (degenerate) {
@@ -274,6 +333,7 @@ export function deriveWizardConfig(
       fields: flagField ? [pointsField, flagField] : [pointsField],
       anchorPoints,
       ...(selectionOnly ? { selectionOnly } : {}),
+      ...(wrapperDetailFields ? { detailFields: wrapperDetailFields } : {}),
     });
   }
 

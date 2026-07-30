@@ -70,18 +70,24 @@ export function FieldGroup({
   label,
   hint,
   required,
+  compact,
   children,
 }: {
   label: string;
   hint?: string;
   required?: boolean;
+  // Smaller label for fields rendered inside a card (e.g. the per-point
+  // fields on the setup-update screen)
+  compact?: boolean;
   children: React.ReactNode;
 }) {
   const t = useTranslations("challenges");
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1.5">
-        <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+        <label
+          className={`${compact ? "text-sm" : "text-base"} font-medium text-text-primary tracking-[0.16px]`}
+        >
           {label}
         </label>
         {required && <div className="size-1.5 rounded-full bg-[#d85a30] shrink-0" />}
