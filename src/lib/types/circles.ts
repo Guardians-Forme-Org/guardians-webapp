@@ -208,6 +208,9 @@ export type ApiCircleChallenge = {
     // one-off submission that merely reuses the "anchorPoint" field name
     // for BE payload shaping (e.g. CH-004's composting log)
     anchorPointTracking?: boolean;
+    // BE core/models/template.go Step.Required / Step.CanComplete (added 2026-07-30)
+    required?: boolean;
+    canComplete?: boolean;
   }> | null;
   submittedSetupDetail?: import("@/lib/types/challenges").ApiSubmittedSetupDetail | null;
   template?: {

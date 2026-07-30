@@ -25,6 +25,7 @@
   "failedRetry": "Sikertelen. Kérjük, próbáld újra.",
   "stepNotFound": "A lépés nem található.",
   "setupRequiredFirst": "Fejezd be a beállítási lépést, mielőtt ezt elkezdenéd.",
+  "cannotCompleteYet": "Ez a lépés még nem jelölhető befejezettként.",
   "startChallenge": "Kihívás indítása",
   "searchTemplates": "Kihívás sablonok keresése",
   "noTemplates": "Nincs elérhető sablon",

@@ -355,6 +355,22 @@ export function FieldControl({
     );
   }
 
+  // ── TIME ────────────────────────────────────────────────────────────
+  if (field.type === "TIME") {
+    return (
+      <FieldGroup label={field.label} required={field.required} compact={compact}>
+        <div className="w-full overflow-hidden">
+          <input
+            type="time"
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full max-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
+          />
+        </div>
+      </FieldGroup>
+    );
+  }
+
   // ── TEXTAREA ────────────────────────────────────────────────────────
   if (field.type === "TEXTAREA") {
     return (

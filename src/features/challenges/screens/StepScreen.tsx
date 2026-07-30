@@ -20,6 +20,7 @@ import Avatar from "@/components/ui/Avatar";
 import JoinConversationButton from "@/components/ui/JoinConversationButton";
 import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
 import { useTranslations } from "next-intl";
+import appConfig from "../../../../config.json";
 
 type Props = { challengeId: string; stepId: string };
 
@@ -72,6 +73,14 @@ export default function StepScreen({ challengeId, stepId }: Props) {
   // the array, not a stepNumber/stepType field that may not be trustworthy.
   const isSetupStep = challenge?.challengeSteps?.[0]?.stepId === stepId;
   const setupRequired = !isSetupStep && !challenge?.submittedSetupDetail;
+
+  // BE-provided gate (core/models/template.go Step.CanComplete) — only block
+  // when explicitly false; undefined means older challenge instances that
+  // predate this field, which should keep today's behavior (allowed). Kept
+  // off in config.json (canCompleteGateEnabled) until BE confirms whether
+  // template steps or challengeSteps carry this field at runtime — flip on
+  // once confirmed.
+  const canCompleteStep = !appConfig.canCompleteGateEnabled || step?.canComplete !== false;
 
   const { percent: progress } = challenge ? calcChallengeProgress(challenge) : { percent: 0 };
   const fUser = users.find((u) => u.id === (f?.id ?? f?.userId));
@@ -256,13 +265,20 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                       {t("cancel")}
                     </button>
                   </div>
-                ) : (
+                ) : canCompleteStep ? (
                   <button
                     onClick={() => setConfirming(true)}
                     className="w-full h-12 border border-[#1a1a1a] text-[#1a1a1a] text-base font-semibold rounded-full flex items-center justify-center"
                   >
                     {t("markComplete")}
                   </button>
+                ) : (
+                  <div className="flex flex-col gap-2.5">
+                    <div className="w-full h-12 bg-[#e0e0e0] text-[#8f8f8c] text-base font-semibold rounded-full flex items-center justify-center cursor-not-allowed">
+                      {t("markComplete")}
+                    </div>
+                    <p className="text-sm text-[#8f8f8c] text-center">{t("cannotCompleteYet")}</p>
+                  </div>
                 )}
               </div>
             )}

@@ -80,6 +80,7 @@ export const ANCHOR_POINT_DATA_NAMES = new Set([
   "HIGHERRISKFLAG",
   "DATECAPTURED",
   "VULNERABLEFLAG",
+  "HABITATTYPE",
 ]);
 
 // Usable data-entry subfields of a GROUP: typed, not a nested GROUP, and not
@@ -159,6 +160,11 @@ export function deriveWizardConfig(
   // unwrapAnchorFields for the two wrapper shapes this affects
   anchorPointTracking?: boolean,
 ): DerivedWizardConfig {
+  // BE casing is inconsistent per template (CH-001 steps 2-3 UPPERCASE,
+  // step 1 lowercase; CH-012 "execution", CH-013 "registration" lowercase)
+  // — normalize once so the COMPLETION gates below match regardless
+  const normStepType = normalizeFieldName(stepType);
+
   // Non-tracking steps (e.g. CH-004) reuse the "anchorPoint" wrapper purely
   // for BE payload shaping, unrelated to point selection — splice its
   // nested fields in flat so they render (and submit) like any other field.
@@ -196,7 +202,7 @@ export function deriveWizardConfig(
   // capacity/confirm/installationDate/mediaFile) is left to the existing
   // reference-GROUP branch below, unchanged.
   let wrapperDetailFields: ApiTemplateFormField[] | undefined;
-  if (!pointsField && anchorPointTracking && stepType !== "COMPLETION") {
+  if (!pointsField && anchorPointTracking && normStepType !== "COMPLETION") {
     const ref = findAnchorReference(sorted);
     if (ref) {
       wrapperDetailFields = findAnchorLeaves(ref);
@@ -264,7 +270,7 @@ export function deriveWizardConfig(
         sorted[sorted.indexOf(refGroup)] = pointsField;
 
         anchorDetailFields.push(...directLeaves);
-        if (stepType === "COMPLETION") {
+        if (normStepType === "COMPLETION") {
           for (const sub of (refGroup.fields ?? []).filter(
             (f) => f.type === "GROUP",
           )) {
@@ -410,6 +416,9 @@ export function toDataKey(name: string, val: unknown): string {
   // CH-009: registration's addable "address" persists as data.addresses;
   // the monitoring step's single "address" as data.location
   if (norm === "ADDRESS") return Array.isArray(val) ? "addresses" : "location";
+  // CH-001 step 1's top-level LOCATION field was renamed location -> region
+  // (BE commit a6b7649); the Go Data struct's json tag is still "location"
+  if (norm === "REGION") return "location";
   // BE tag is singular
   if (norm === "COMMUNICATIONCHANNELS") return "communicationChannel";
   return name;

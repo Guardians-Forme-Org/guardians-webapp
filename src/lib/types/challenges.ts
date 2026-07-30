@@ -51,6 +51,9 @@ export type ApiTemplateStep = {
   form?: ApiTemplateFormField[];
   // See ApiCircleChallenge.challengeSteps[].anchorPointTracking
   anchorPointTracking?: boolean;
+  // BE core/models/template.go Step.Required / Step.CanComplete (added 2026-07-30)
+  required?: boolean;
+  canComplete?: boolean;
 };
 
 export type ApiTemplateEquipment = {

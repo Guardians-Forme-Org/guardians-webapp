@@ -478,7 +478,11 @@ export default function LogEvidenceWizard({
     ? !!derivedConfig?.steps.some((s) => s.kind === "mark-complete")
     : !!staticConfig?.wizardSteps.some((s) => s.type === "mark-complete");
 
-  const isRegistrationStep = stepId === "SETUP_AND_REGISTRATION";
+  // BE stepId/stepType casing is migrating (SETUP_AND_REGISTRATION →
+  // setupAndRegistration, REGISTRATION → registration, per-template) —
+  // normalize before comparing, everywhere
+  const isRegistrationStep =
+    normalizeFieldName(stepId) === "SETUPANDREGISTRATION";
 
   // ── Step position ──────────────────────────────────────────────────────────
   // Use FE config length for initial mount (synchronous); correct via effect
@@ -1683,7 +1687,7 @@ export default function LogEvidenceWizard({
           "CH-010A",
           "CH-010B",
         ].includes(challenge.challengeCode) &&
-        stepMeta.stepType === "REGISTRATION"
+        normalizeFieldName(stepMeta.stepType) === "REGISTRATION"
       ) {
         const { payload, mediaFile } = buildAnchorSetupPayload();
         return { payload, mediaFile, transport: "registration" };
@@ -1693,7 +1697,7 @@ export default function LogEvidenceWizard({
       // (its registration stepId differs from CH-001's SETUP_AND_REGISTRATION)
       if (
         challenge.challengeCode === "CH-002" &&
-        stepMeta.stepType === "REGISTRATION"
+        normalizeFieldName(stepMeta.stepType) === "REGISTRATION"
       ) {
         const { payload, mediaFile } = buildCH002SetupPayload();
         return { payload, mediaFile, transport: "registration" };
@@ -1705,7 +1709,7 @@ export default function LogEvidenceWizard({
       // shared /challengeSetup route (see MULTIPART_CODES note below —
       // both are multipart, just not via /challengeSetup)
       if (
-        stepMeta.stepType === "REGISTRATION" &&
+        normalizeFieldName(stepMeta.stepType) === "REGISTRATION" &&
         !["CH-004", "CH-015"].includes(challenge.challengeCode)
       ) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

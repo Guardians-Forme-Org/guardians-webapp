@@ -1,3 +1,5 @@
+import appConfig from "../../config.json";
+
 export function isCrimeIncidentImpact(item: {
   siUnit?: string;
   impactType?: string;
@@ -92,13 +94,18 @@ export function formatImpactDisplayValue(displayName: string): string {
 export function calcChallengeProgress(challenge: {
   steps: number;
   currentStep: number;
-  challengeSteps?: Array<{ isCompleted: boolean }> | null;
+  challengeSteps?: Array<{ isCompleted: boolean; required?: boolean }> | null;
 }): { percent: number; completedCount: number } {
   const steps = challenge.challengeSteps;
-  const total = steps?.length ? steps.length : challenge.steps;
+  // Toggle in config.json — flip off if required-only progress needs to be
+  // compared against the old all-steps behavior.
+  const hasRequiredSteps =
+    appConfig.progressRequiredStepsOnly && !!steps?.some((s) => s.required === true);
+  const countedSteps = hasRequiredSteps ? steps!.filter((s) => s.required === true) : steps;
+  const total = countedSteps?.length ? countedSteps.length : challenge.steps;
   if (total <= 0) return { percent: 0, completedCount: 0 };
-  const completedCount = steps?.length
-    ? steps.filter((s) => s.isCompleted).length
+  const completedCount = countedSteps?.length
+    ? countedSteps.filter((s) => s.isCompleted).length
     : challenge.currentStep;
   return {
     percent: Math.min(100, Math.round((completedCount / total) * 100)),

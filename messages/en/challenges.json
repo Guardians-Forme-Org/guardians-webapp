@@ -25,6 +25,7 @@
   "failedRetry": "Failed. Please try again.",
   "stepNotFound": "Step not found.",
   "setupRequiredFirst": "Complete the setup step before starting this one.",
+  "cannotCompleteYet": "This step can't be marked complete yet.",
   "startChallenge": "Start a Challenge",
   "searchTemplates": "Find challenge templates",
   "noTemplates": "No templates available",
