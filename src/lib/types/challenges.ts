@@ -13,7 +13,8 @@ export type ApiTemplateFormFieldType =
   | "BOOLEAN"
   | "SELECT"
   | "MULTISELECT"
-  | "GROUP";
+  | "GROUP"
+  | "ITEM"; //Same as GROUP
 
 export type ApiTemplateFormField = {
   name: string;
@@ -27,7 +28,7 @@ export type ApiTemplateFormField = {
   // User can append multiple entries for this field — the value becomes an
   // array of whatever the base input type produces (strings, objects, …)
   addableInput?: boolean;
-  // GROUP only: the sub-form rendered for each entry
+  // GROUP/ITEM only: the sub-form rendered for each entry
   fields?: ApiTemplateFormField[];
   // BE sometimes ships the anchor-point reference wrapped under this key
   // instead of as a properly-typed field (CH-001/CH-008A/CH-004 EXECUTION

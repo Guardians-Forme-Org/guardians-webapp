@@ -18,7 +18,7 @@ export type DynamicValues = Record<string, unknown>;
 function isFieldFilled(field: ApiTemplateFormField, value: unknown): boolean {
   if (field.type === "TOGGLE" || field.type === "BOOLEAN") return true;
   if (field.type === "MULTISELECT") return Array.isArray(value) && value.length > 0;
-  if (field.type === "GROUP") {
+  if (field.type === "GROUP" || field.type === "ITEM") {
     const entries = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
     if (!entries.length) return false;
     return entries.every((entry) =>
@@ -590,7 +590,7 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
     <>
       <div className="flex flex-col gap-5 px-5 mt-7 flex-1">
         {fields.map((field) => {
-          if (field.type === "GROUP") {
+          if (field.type === "GROUP" || field.type === "ITEM") {
             return <GroupField key={field.name} field={field} value={values[field.name]} update={update} />;
           }
 

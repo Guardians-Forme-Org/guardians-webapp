@@ -58,7 +58,7 @@ export const COMPLETION_NAMES = new Set([
 ]);
 
 // Fields that are heavy UI (need their own wizard screen)
-const SOLO_TYPES = new Set(["LOCATION", "LOCATION_LIST", "IMAGE", "GROUP"]);
+const SOLO_TYPES = new Set(["LOCATION", "LOCATION_LIST", "IMAGE", "GROUP", "ITEM"]);
 
 const DYNAMIC_BATCH_SIZE = 4;
 
@@ -100,6 +100,7 @@ export const usableLeaves = (group: ApiTemplateFormField) =>
       (f) =>
         !!f.type &&
         f.type !== "GROUP" &&
+        f.type !== "ITEM" &&
         !ANCHOR_IDENTITY_NAMES.has(normalizeFieldName(f.name)),
     )
     .sort((a, b) => a.displayOrder - b.displayOrder);

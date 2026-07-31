@@ -159,7 +159,10 @@ function activityToDynamic(
     const raw = data[field.name];
     if (raw === undefined || raw === null || raw === "") continue;
 
-    if (field.type === "GROUP" && (Array.isArray(raw) || typeof raw === "object")) {
+    if (
+      (field.type === "GROUP" || field.type === "ITEM") &&
+      (Array.isArray(raw) || typeof raw === "object")
+    ) {
       // An unadopted/singular GROUP (e.g. CH-007's anchorPoint, sent as
       // entries[0] rather than an array — see buildDynamicPayload) is
       // echoed back as one plain object, not an array. GroupField/
@@ -1555,8 +1558,8 @@ export default function LogEvidenceWizard({
       const val = dynamicValues[field.name];
       if (val === undefined || val === null || val === "") continue;
 
-      // GROUP fields hold an array of sub-form entry objects
-      if (field.type === "GROUP") {
+      // GROUP/ITEM fields hold an array of sub-form entry objects
+      if (field.type === "GROUP" || field.type === "ITEM") {
         const entries = (
           Array.isArray(val) ? (val as Record<string, unknown>[]) : []
         )

@@ -381,8 +381,8 @@ export default function ReviewStep({
                 normalizeFieldName(field.name) === "CONTRIBUTORS" ||
                 normalizeFieldName(field.name) === "CONTRIBUTORSLIST";
 
-              // GROUP: one card per entry, every filled sub-field labeled
-              if (field.type === "GROUP") {
+              // GROUP/ITEM: one card per entry, every filled sub-field labeled
+              if (field.type === "GROUP" || field.type === "ITEM") {
                 const entries = (
                   Array.isArray(value) ? (value as Record<string, unknown>[]) : []
                 ).filter((entry) =>
