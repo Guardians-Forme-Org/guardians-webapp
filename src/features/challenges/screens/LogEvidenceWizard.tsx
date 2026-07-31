@@ -307,21 +307,50 @@ function activityToDynamic(
     result[descField?.name ?? "ACTIVITY_DESCRIPTION"] = data.description;
   }
 
-  // Registered anchor points (setup steps) → the GROUP field's entries
+  // Registered anchor points (setup steps) → the GROUP field's entries.
+  // Every subfield — whatever its type, TOGGLE/SELECT/IMAGE/NUMBER — is read
+  // back by its own name off the point, same as buildAnchorSetupPayload
+  // submits it, instead of being silently dropped for not being one of a
+  // fixed few types. A NUMBER subfield with nothing under its own name
+  // falls back to the shared p.measurement slot only when it's the sole
+  // NUMBER subfield — older submissions stored a dedicated-slot field like
+  // capacity there before that had its own key; new ones use their own key
+  // directly and never hit the fallback.
   if (data.anchorPoints?.length) {
     const groupField = fields.find((f) => f.type === "GROUP");
     if (groupField && result[groupField.name] === undefined) {
       const subs = groupField.fields ?? [];
       const nameSub = subs.find((f) => f.type === "TEXT");
       const locSub = subs.find((f) => f.type === "LOCATION");
-      const numSub = subs.find((f) => f.type === "NUMBER" || f.type === "NUMERIC");
+      const numberSubs = subs.filter((f) => f.type === "NUMBER" || f.type === "NUMERIC");
       result[groupField.name] = data.anchorPoints.map((p) => {
         const entry: Record<string, unknown> = {};
         if (nameSub) entry[nameSub.name] = p.name;
         if (locSub && p.location) entry[locSub.name] = p.location;
-        if (numSub && p.measurement) {
-          entry[numSub.name] = String(p.measurement.value);
-          entry[`${numSub.name}__unit`] = p.measurement.unitOfMeasure;
+        for (const sub of subs) {
+          if (sub === nameSub || sub === locSub) continue;
+          const isNumberSub = sub.type === "NUMBER" || sub.type === "NUMERIC";
+          let raw = (p as unknown as Record<string, unknown>)[sub.name];
+          if (
+            (raw === undefined || raw === null || raw === "") &&
+            isNumberSub &&
+            numberSubs.length === 1 &&
+            p.measurement
+          ) {
+            raw = p.measurement;
+          }
+          if (raw === undefined || raw === null || raw === "") continue;
+          if (sub.type === "IMAGE") {
+            const url = (raw as { url?: string } | undefined)?.url;
+            if (url) entry[sub.name] = url;
+            continue;
+          }
+          if (isNumberSub && isValueUnit(raw)) {
+            entry[sub.name] = String(raw.value);
+            entry[`${sub.name}__unit`] = valueUnitOf(raw);
+            continue;
+          }
+          entry[sub.name] = raw;
         }
         return entry;
       });
@@ -1057,9 +1086,18 @@ export default function LogEvidenceWizard({
     const subFields = groupField?.fields ?? [];
     const nameSub = subFields.find((f) => f.type === "TEXT");
     const locSub = subFields.find((f) => f.type === "LOCATION");
-    const tempSub = subFields.find(
+    // Only a single NUMBER subfield with no dedicated Go struct slot of its
+    // own (CH-001's temperature) is the point's one generic reading —
+    // capacity/waterLevelReading have their own slot, so they pass through
+    // the generic subfield loop below under their own name instead.
+    const numberSubFields = subFields.filter(
       (f) => f.type === "NUMBER" || f.type === "NUMERIC",
     );
+    const tempSub =
+      numberSubFields.length === 1 &&
+      !DEDICATED_MEASUREMENT_NAMES.has(normalizeFieldName(numberSubFields[0].name))
+        ? numberSubFields[0]
+        : undefined;
 
     const entries =
       groupField && Array.isArray(dynamicValues[groupField.name])
