@@ -45,6 +45,13 @@ function ContributorsList({ ids, users }: { ids: string[]; users?: UserLike[] })
   );
 }
 
+// A row is either a labeled text value, or a captured photo (File
+// pre-upload, URL string once submitted) — mirrors GroupEntryCard's IMAGE
+// handling so a point's photo shows the same way other galleries do
+export type SetupUpdateRow =
+  | { label: string; value: string }
+  | { label: string; image: File | string };
+
 export type DynamicReviewConfig = {
   fields: ApiTemplateFormField[];
   values: DynamicValues;
@@ -56,7 +63,7 @@ export type DynamicReviewConfig = {
     label: string;
     stepIndex: number;
     entryTitle: string;
-    rows: { label: string; value: string }[];
+    rows: SetupUpdateRow[];
   };
 };
 
@@ -241,17 +248,34 @@ function SimpleEntryCard({
   rows,
 }: {
   title: string;
-  rows: { label: string; value: string }[];
+  rows: SetupUpdateRow[];
 }) {
   return (
     <div className="border border-[rgba(26,26,24,0.14)] rounded-[12px] p-4 flex flex-col gap-3">
       <p className="text-sm font-semibold text-text-primary">{title}</p>
-      {rows.map((row) => (
-        <div key={row.label} className="flex flex-col gap-0.5">
-          <p className="text-xs text-text-muted">{row.label}</p>
-          <p className="text-base text-text-primary">{row.value}</p>
-        </div>
-      ))}
+      {rows.map((row) =>
+        "image" in row ? (
+          <div key={row.label} className="flex flex-col gap-1">
+            <p className="text-xs text-text-muted">{row.label}</p>
+            {row.image instanceof File ? (
+              <div className="h-32 rounded-[8px] overflow-hidden border border-[rgba(26,26,24,0.14)] flex items-center justify-center bg-[#f5f5f5]">
+                <FileThumb file={row.image} />
+              </div>
+            ) : (
+              <img
+                src={row.image}
+                alt=""
+                className="w-full h-32 object-cover rounded-[8px] border border-[rgba(26,26,24,0.14)]"
+              />
+            )}
+          </div>
+        ) : (
+          <div key={row.label} className="flex flex-col gap-0.5">
+            <p className="text-xs text-text-muted">{row.label}</p>
+            <p className="text-base text-text-primary">{row.value}</p>
+          </div>
+        ),
+      )}
     </div>
   );
 }

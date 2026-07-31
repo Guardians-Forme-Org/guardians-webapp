@@ -47,7 +47,7 @@ import MarkCompleteStep from "../wizard/steps/MarkCompleteStep";
 import MeasurementStep from "../wizard/steps/MeasurementStep";
 import MetricsStep from "../wizard/steps/MetricsStep";
 import RegionStep from "../wizard/steps/RegionStep";
-import ReviewStep from "../wizard/steps/ReviewStep";
+import ReviewStep, { type SetupUpdateRow } from "../wizard/steps/ReviewStep";
 import SetupUpdateStep, { type SetupUpdateEntry } from "../wizard/steps/SetupUpdateStep";
 import SiteConditionStep from "../wizard/steps/SiteConditionStep";
 import SiteDetailsStep from "../wizard/steps/SiteDetailsStep";
@@ -2047,16 +2047,20 @@ export default function LogEvidenceWizard({
                             // One row per detail field with a value — not just
                             // the primary reading, since a wrapper can carry
                             // several (weather, photo, date, …)
-                            const detailRows = detailFields.flatMap((f) => {
-                              const val = entry?.values?.[f.name];
-                              if (val === undefined || val === null || val === "") return [];
-                              if (f.type === "IMAGE") return [];
-                              const displayValue =
-                                f === primaryField
-                                  ? `${val} ${point?.measurement?.unitOfMeasure ?? f.unitOfMeasureOptions?.[0]?.value ?? ""}`.trim()
-                                  : String(val);
-                              return [{ label: f.label, value: displayValue }];
-                            });
+                            const detailRows = detailFields.flatMap(
+                              (f): SetupUpdateRow[] => {
+                                const val = entry?.values?.[f.name];
+                                if (val === undefined || val === null || val === "") return [];
+                                if (f.type === "IMAGE") {
+                                  return [{ label: f.label, image: val as File | string }];
+                                }
+                                const displayValue =
+                                  f === primaryField
+                                    ? `${val} ${point?.measurement?.unitOfMeasure ?? f.unitOfMeasureOptions?.[0]?.value ?? ""}`.trim()
+                                    : String(val);
+                                return [{ label: f.label, value: displayValue }];
+                              },
+                            );
                             if (!point) {
                               if (!detailRows.length)
                                 return { entryTitle: "", rows: [] };
