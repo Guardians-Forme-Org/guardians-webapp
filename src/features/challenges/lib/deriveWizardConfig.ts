@@ -83,6 +83,15 @@ export const ANCHOR_POINT_DATA_NAMES = new Set([
   "HABITATTYPE",
 ]);
 
+// Field names that always have their own dedicated slot in the Go Data/
+// AnchorPoint struct (e.g. Capacity Measurement `json:"capacity"`) — never
+// eligible for the generic single-reading treatment (data.measurement),
+// even when they're the only NUMBER field on the point (CH-008B
+// EXECUTION/COMPLETION: capacity is not a stand-in "new reading", it's its
+// own report field, same as litresCollected on the TRACKING step; CH-008A
+// EXECUTION: waterLevelReading has the same dedicated-field shape).
+export const DEDICATED_MEASUREMENT_NAMES = new Set(["CAPACITY", "WATERLEVELREADING"]);
+
 // Usable data-entry subfields of a GROUP: typed, not a nested GROUP, and not
 // the registered point's identity
 export const usableLeaves = (group: ApiTemplateFormField) =>

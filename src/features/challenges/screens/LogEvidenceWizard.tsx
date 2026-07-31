@@ -27,6 +27,7 @@ import type { DerivedStep, DerivedWizardConfig } from "../lib/deriveWizardConfig
 import {
   ANCHOR_POINT_DATA_NAMES,
   COMPLETION_NAMES,
+  DEDICATED_MEASUREMENT_NAMES,
   deriveWizardConfig,
   findAnchorLeaves,
   findAnchorReference,
@@ -1372,7 +1373,10 @@ export default function LogEvidenceWizard({
       (f) => f.type === "NUMBER" || f.type === "NUMERIC",
     );
     const primaryField =
-      inlineNumberFields.length === 1 ? inlineNumberFields[0] : undefined;
+      inlineNumberFields.length === 1 &&
+      !DEDICATED_MEASUREMENT_NAMES.has(normalizeFieldName(inlineNumberFields[0].name))
+        ? inlineNumberFields[0]
+        : undefined;
     const promotedDetailFields = derivedConfig?.anchorDetailFields ?? [];
     const detailFields = [...inlineDetailFields, ...promotedDetailFields];
     const detailNames = new Set(detailFields.map((f) => f.name));
@@ -1814,6 +1818,7 @@ export default function LogEvidenceWizard({
         },
         {
           onSuccess: (data) => {
+            localStorage.removeItem(STORAGE_KEY(stepId));
             setImpactMessage(data?.impactSummary?.impact?.summary ?? null);
             setSubmitted(true);
           },
@@ -2056,7 +2061,12 @@ export default function LogEvidenceWizard({
                               (f) => f.type === "NUMBER" || f.type === "NUMERIC",
                             );
                             const primaryField =
-                              numberFields.length === 1 ? numberFields[0] : undefined;
+                              numberFields.length === 1 &&
+                              !DEDICATED_MEASUREMENT_NAMES.has(
+                                normalizeFieldName(numberFields[0].name),
+                              )
+                                ? numberFields[0]
+                                : undefined;
                             // One row per detail field with a value — not just
                             // the primary reading, since a wrapper can carry
                             // several (weather, photo, date, …)

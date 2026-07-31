@@ -5,6 +5,7 @@ import type { ApiTemplateFormField, ChallengeSetupAnchorPoint } from "@/lib/type
 import { FieldGroup, SaveButton, ToggleCard } from "../shared";
 import appConfig from "../../../../../config.json";
 import { FieldControl, type DynamicValues } from "./DynamicFieldsStep";
+import { DEDICATED_MEASUREMENT_NAMES, normalizeFieldName } from "../../lib/deriveWizardConfig";
 
 // Compact (smaller) labels for the per-point fields inside a selected
 // anchor card — flip config.json's compactDetailFields to false to compare
@@ -78,7 +79,11 @@ export default function SetupUpdateStep({
   // field has its own dedicated slot in the Go Data struct, so none of them
   // get the generic "New reading" treatment.
   const numberFields = detailFields.filter((f) => f.type === "NUMBER" || f.type === "NUMERIC");
-  const primaryField = numberFields.length === 1 ? numberFields[0] : undefined;
+  const primaryField =
+    numberFields.length === 1 &&
+    !DEDICATED_MEASUREMENT_NAMES.has(normalizeFieldName(numberFields[0].name))
+      ? numberFields[0]
+      : undefined;
   const otherFields = detailFields.filter((f) => f !== primaryField);
 
   const selectPoint = (point: ChallengeSetupAnchorPoint) => {
