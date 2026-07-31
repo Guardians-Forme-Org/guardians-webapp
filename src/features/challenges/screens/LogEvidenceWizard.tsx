@@ -1357,15 +1357,22 @@ export default function LogEvidenceWizard({
 
     // Inline per-point fields (CH-001/CH-008A wrapper shape) live in
     // entry.values; the older promoted-screen fields (CH-008B/CH-002/CH-010)
-    // live in the shared dynamicValues bag. The first NUMBER field among the
-    // inline ones (if any) is the point's generic reading — BE has one
-    // Measurement slot per point regardless of what the template calls it
-    // (temperature, water level, …) — so it's read separately below rather
-    // than through the generic name-keyed loop.
+    // live in the shared dynamicValues bag. A single NUMBER field among the
+    // inline ones is the point's one generic reading — BE has one
+    // Measurement slot per point for templates with no dedicated field of
+    // their own (temperature, water level, …) — so it's read separately
+    // below (data.measurement) rather than through the name-keyed loop.
+    // Several NUMBER fields (CH-008B's litres collected/distributed,
+    // households, …) means a structured report instead: each field has its
+    // own dedicated slot in the Go Data struct, so none of them are treated
+    // as the generic reading — all go through the name-keyed loop by their
+    // own field name.
     const inlineDetailFields = setupStep.detailFields ?? [];
-    const primaryField = inlineDetailFields.find(
+    const inlineNumberFields = inlineDetailFields.filter(
       (f) => f.type === "NUMBER" || f.type === "NUMERIC",
     );
+    const primaryField =
+      inlineNumberFields.length === 1 ? inlineNumberFields[0] : undefined;
     const promotedDetailFields = derivedConfig?.anchorDetailFields ?? [];
     const detailFields = [...inlineDetailFields, ...promotedDetailFields];
     const detailNames = new Set(detailFields.map((f) => f.name));
@@ -2041,9 +2048,15 @@ export default function LogEvidenceWizard({
                               setupUpdateStep.anchorPoints ?? []
                             ).find((p) => p.name === entry?.selected);
                             const detailFields = setupUpdateStep.detailFields ?? [];
-                            const primaryField = detailFields.find(
+                            // See buildSetupUpdatePayload: a single NUMBER
+                            // field is the point's one generic reading;
+                            // several means a structured report where every
+                            // field keeps its own label instead.
+                            const numberFields = detailFields.filter(
                               (f) => f.type === "NUMBER" || f.type === "NUMERIC",
                             );
+                            const primaryField =
+                              numberFields.length === 1 ? numberFields[0] : undefined;
                             // One row per detail field with a value — not just
                             // the primary reading, since a wrapper can carry
                             // several (weather, photo, date, …)
@@ -2054,9 +2067,15 @@ export default function LogEvidenceWizard({
                                 if (f.type === "IMAGE") {
                                   return [{ label: f.label, image: val as File | string }];
                                 }
-                                const displayValue =
+                                const unit =
                                   f === primaryField
-                                    ? `${val} ${point?.measurement?.unitOfMeasure ?? f.unitOfMeasureOptions?.[0]?.value ?? ""}`.trim()
+                                    ? (point?.measurement?.unitOfMeasure ??
+                                      f.unitOfMeasureOptions?.[0]?.value)
+                                    : ((entry?.values?.[`${f.name}__unit`] as string | undefined) ??
+                                      f.unitOfMeasureOptions?.[0]?.value);
+                                const displayValue =
+                                  f.type === "NUMBER" || f.type === "NUMERIC"
+                                    ? `${val} ${unit ?? ""}`.trim()
                                     : String(val);
                                 return [{ label: f.label, value: displayValue }];
                               },

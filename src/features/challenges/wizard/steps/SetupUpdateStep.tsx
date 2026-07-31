@@ -70,7 +70,15 @@ export default function SetupUpdateStep({
 
   const entry = values[pointsField.name] as SetupUpdateEntry | undefined;
 
-  const primaryField = detailFields.find((f) => f.type === "NUMBER" || f.type === "NUMERIC");
+  // A single NUMBER field is the point's one generic reading (BE has one
+  // Measurement slot per point for templates with no dedicated field of
+  // their own — CH-001's temperature, CH-008A's water level). A step with
+  // several NUMBER fields (CH-008B's litres collected/distributed,
+  // households, …) is a structured report, not a single reading — each
+  // field has its own dedicated slot in the Go Data struct, so none of them
+  // get the generic "New reading" treatment.
+  const numberFields = detailFields.filter((f) => f.type === "NUMBER" || f.type === "NUMERIC");
+  const primaryField = numberFields.length === 1 ? numberFields[0] : undefined;
   const otherFields = detailFields.filter((f) => f !== primaryField);
 
   const selectPoint = (point: ChallengeSetupAnchorPoint) => {
