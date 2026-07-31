@@ -7,6 +7,7 @@ import type {
   TemplatesListResponse,
 } from "@/lib/types/challenges";
 import type { ApiCircleChallenge } from "@/lib/types/circles";
+import { normalizeFieldName } from "@/features/challenges/lib/deriveWizardConfig";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useTemplates() {
@@ -154,9 +155,11 @@ export function useSubmitEvidence() {
       // The merged CH-010 template has no /submitCH010 route yet: its SETUP
       // (installation) step uses the old CH-010B route, everything else the
       // old CH-010A route — both handlers are identical generic inserts.
+      // stepId casing has flipped between BE pulls (was "SETUP", now
+      // "setup") — normalize so routing doesn't silently break again.
       const routeCode =
         challengeCode === "CH-010"
-          ? stepId === "SETUP"
+          ? normalizeFieldName(stepId) === "SETUP"
             ? "CH-010B"
             : "CH-010A"
           : challengeCode;

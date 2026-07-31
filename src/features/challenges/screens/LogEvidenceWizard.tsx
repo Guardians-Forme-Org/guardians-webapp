@@ -137,6 +137,7 @@ function activityToDynamic(
   vhFieldName: string,
   contribFieldName: string,
   stepForm?: import("@/lib/types/challenges").ApiTemplateFormField[] | null,
+  anchorPointTracking?: boolean,
 ): DynamicValues {
   const result: DynamicValues = {};
   // dataEnvelope, when present, is the more complete echo of what was
@@ -257,7 +258,7 @@ function activityToDynamic(
   // via findAnchorLeaves, wherever they actually live — render inline per
   // point; echo their prior values back by name so re-opening a submission
   // shows what was entered.
-  const refField = findAnchorReference(fields);
+  const refField = findAnchorReference(fields, anchorPointTracking);
   const nestedDetailFields = refField ? findAnchorLeaves(refField) : [];
   const primaryFieldName = nestedDetailFields.find(
     (f) => f.type === "NUMBER" || f.type === "NUMERIC",
@@ -669,10 +670,11 @@ export default function LogEvidenceWizard({
           vhFieldName,
           contribFieldName,
           stepForm,
+          anchorPointTracking,
         ),
       );
     }
-  }, [viewActivity, isDerived, vhFieldName, contribFieldName, stepForm]);
+  }, [viewActivity, isDerived, vhFieldName, contribFieldName, stepForm, anchorPointTracking]);
 
   const bridgeForm: LogFormData = useMemo(
     () => ({

@@ -132,20 +132,27 @@ export function findAnchorLeaves(container: ApiTemplateFormField): ApiTemplateFo
 }
 
 // The anchor reference in a step's form, whatever shape the BE shipped it
-// in: a typeless wrapper (CH-001/CH-008A), or a non-addable GROUP named
-// "anchorPoint" whose only direct subfields are identity (CH-007). A GROUP
-// with real direct leaves is NOT a reference — it's per-anchor data entry
-// (CH-008B) and is handled by the promote-to-screens branch instead.
+// in: a typeless wrapper (CH-008A), a non-addable GROUP named "anchorPoint"
+// (or "anchorPointName" — CH-001's flattened shape) whose only direct
+// subfields are identity (CH-007), OR — on a step flagged
+// anchorPointTracking (select a point, log this reading against it) — a
+// non-addable GROUP whose direct subfields ARE the real per-visit data
+// (CH-001/CH-002/CH-008B: temperature/capacity/etc. live right on it, not
+// nested under an identity-only wrapper). Off-tracking steps still require
+// zero direct leaves, so a data-bearing GROUP outside a tracking step (e.g.
+// CH-010's SETUP/OUTREACH) is left to the promote-to-screens branch instead.
 export function findAnchorReference(
   fields: ApiTemplateFormField[],
+  anchorPointTracking?: boolean,
 ): ApiTemplateFormField | undefined {
   return fields.find(
     (f) =>
       !f.type ||
       (f.type === "GROUP" &&
         !f.addableInput &&
-        normalizeFieldName(f.name) === "ANCHORPOINT" &&
-        usableLeaves(f).length === 0),
+        (normalizeFieldName(f.name) === "ANCHORPOINT" ||
+          normalizeFieldName(f.name) === "ANCHORPOINTNAME") &&
+        (usableLeaves(f).length === 0 || anchorPointTracking === true)),
   );
 }
 
@@ -191,19 +198,18 @@ export function deriveWizardConfig(
       )
     : undefined;
 
-  // A tracking, non-completion step (CH-001, CH-008A, CH-007) whose
-  // reference is either the typeless wrapper, or a typed GROUP with no
-  // *direct* usable leaves of its own (CH-007's anchorPoint → only
-  // anchorPointName, which is identity — the real fields are one level
-  // further in): adopt as the points field, and its fields — found via
-  // findAnchorLeaves, wherever they actually live — render inline in the
-  // selected point's card (SetupUpdateStep), not as separate screens. A
-  // GROUP that already has real direct leaves (CH-008B EXECUTION:
-  // capacity/confirm/installationDate/mediaFile) is left to the existing
-  // reference-GROUP branch below, unchanged.
+  // A tracking, non-completion step (CH-001, CH-002, CH-007, CH-008B) whose
+  // reference is either the typeless wrapper, a typed GROUP with no *direct*
+  // usable leaves of its own (CH-007's anchorPoint → only anchorPointName,
+  // which is identity — the real fields are one level further in), or —
+  // because the step is anchorPointTracking — a typed GROUP whose direct
+  // leaves ARE the real per-visit data (CH-001/CH-002/CH-008B): adopt as the
+  // points field, and its fields — found via findAnchorLeaves, wherever they
+  // actually live — render inline in the selected point's card
+  // (SetupUpdateStep), not as separate screens.
   let wrapperDetailFields: ApiTemplateFormField[] | undefined;
   if (!pointsField && anchorPointTracking && normStepType !== "COMPLETION") {
-    const ref = findAnchorReference(sorted);
+    const ref = findAnchorReference(sorted, anchorPointTracking);
     if (ref) {
       wrapperDetailFields = findAnchorLeaves(ref);
       pointsField = {
@@ -235,18 +241,19 @@ export function deriveWizardConfig(
     }
   }
 
-  // Newer templates (CH-008B/C EXECUTION+COMPLETION, CH-010 SETUP/OUTREACH)
-  // ship the reference as a non-addable GROUP named "anchorPoint": select one
-  // of the registered points. Its shape varies —
+  // Non-tracking templates (CH-010 SETUP/OUTREACH) ship the reference as a
+  // non-addable GROUP named "anchorPoint": select one of the registered
+  // points. Its shape varies —
   //   • no usable leaves (empty / nested placeholder GROUP / location only):
   //     pure reference, adopt even before any points exist so the placeholder
   //     never renders as a form
   //   • usable leaves (CH-010 SETUP: shadeType, setupDate, …): per-anchor data
   //     entry — adopt only when registered points exist, and promote the
   //     leaves to regular dynamic fields
-  // A placeholder's *nested* GROUP ("anchorPointA") carries the intended
-  // per-anchor fields; promote those only on COMPLETION steps — during
-  // EXECUTION the flow is select-point + log hours (per Tshaks).
+  // A placeholder's *nested* GROUP carries the intended per-anchor fields;
+  // promote those only on COMPLETION steps. Tracking steps (CH-001/CH-002/
+  // CH-008B) never reach this branch — the findAnchorReference branch above
+  // already claims them and renders their fields inline instead.
   const anchorDetailFields: ApiTemplateFormField[] = [];
   if (!pointsField) {
     const refGroup = sorted.find(
