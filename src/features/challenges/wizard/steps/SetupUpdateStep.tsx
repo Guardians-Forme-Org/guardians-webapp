@@ -86,6 +86,24 @@ export default function SetupUpdateStep({
       : undefined;
   const otherFields = detailFields.filter((f) => f !== primaryField);
 
+  // "Last reading" context for a NUMBER field: the primary field's prior
+  // value lives on point.measurement (the generic slot); a dedicated field
+  // (capacity, waterLevelReading, litresCollected, …) would carry its own
+  // prior value under its own name on the point, same as it's submitted —
+  // read generically so this picks up whatever the BE returns per field,
+  // without a hardcoded list here. Renders nothing if the BE doesn't (yet)
+  // echo that field back on the point.
+  const lastReadingFor = (
+    point: ChallengeSetupAnchorPoint,
+    field: ApiTemplateFormField,
+  ): { value: number; unitOfMeasure: string } | undefined => {
+    if (field === primaryField) return point.measurement;
+    const raw = (point as unknown as Record<string, unknown>)[field.name];
+    return raw && typeof raw === "object" && "value" in raw
+      ? (raw as { value: number; unitOfMeasure: string })
+      : undefined;
+  };
+
   const selectPoint = (point: ChallengeSetupAnchorPoint) => {
     if (entry?.selected === point.name) return;
     update(pointsField.name, {
@@ -176,17 +194,31 @@ export default function SetupUpdateStep({
                         </div>
                       )}
 
-                      {otherFields.map((field) => (
-                        <FieldControl
-                          key={field.name}
-                          field={field}
-                          value={entry?.values?.[field.name]}
-                          unitValue={entry?.values?.[`${field.name}__unit`] as string | undefined}
-                          onChange={(v) => patchValue(field.name, v)}
-                          onUnitChange={(u) => patchValue(`${field.name}__unit`, u)}
-                          compact={COMPACT_DETAIL_FIELDS}
-                        />
-                      ))}
+                      {otherFields.map((field) => {
+                        const isNumber = field.type === "NUMBER" || field.type === "NUMERIC";
+                        const lastValue = isNumber ? lastReadingFor(point, field) : undefined;
+                        return (
+                          <div key={field.name} className="flex flex-col gap-1.5">
+                            <FieldControl
+                              field={field}
+                              value={entry?.values?.[field.name]}
+                              unitValue={
+                                entry?.values?.[`${field.name}__unit`] as string | undefined
+                              }
+                              onChange={(v) => patchValue(field.name, v)}
+                              onUnitChange={(u) => patchValue(`${field.name}__unit`, u)}
+                              compact={COMPACT_DETAIL_FIELDS}
+                            />
+                            {lastValue && (
+                              <p className="text-xs text-text-muted">
+                                {t("lastReading", {
+                                  value: `${lastValue.value} ${lastValue.unitOfMeasure}`,
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
 
                       {flagField && (
                         <ToggleCard
