@@ -1,6 +1,7 @@
 export type ApiTemplateFormFieldType =
   | "TEXT"
   | "TEXTAREA"
+  | "LIST" // free-text list, e.g. CH-012's contributors/leadFacilitator
   | "NUMBER"
   | "NUMERIC"
   | "DATE"

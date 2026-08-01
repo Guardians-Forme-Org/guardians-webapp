@@ -328,7 +328,16 @@ export function deriveWizardConfig(
   for (const field of sorted) {
     if (setupUpdateNames.has(field.name)) {
       continue;
-    } else if (VOLUNTEER_HOURS_NAMES.has(normalizeFieldName(field.name)) || CONTRIBUTORS_NAMES.has(normalizeFieldName(field.name)) || COMPLETION_NAMES.has(normalizeFieldName(field.name))) {
+    } else if (
+      VOLUNTEER_HOURS_NAMES.has(normalizeFieldName(field.name)) ||
+      // The dedicated contributors step is a platform-user picker (an array
+      // of user IDs) — only a MULTISELECT "contributors" field means that.
+      // CH-012 also names a field "contributors", but it's a free-text LIST
+      // of names (may include non-platform people), so it must fall through
+      // to the generic dynamic renderer instead of hijacking the picker.
+      (CONTRIBUTORS_NAMES.has(normalizeFieldName(field.name)) && field.type === "MULTISELECT") ||
+      COMPLETION_NAMES.has(normalizeFieldName(field.name))
+    ) {
       knownNameFields.push(field);
     } else if (SOLO_TYPES.has(field.type)) {
       flushBatch();

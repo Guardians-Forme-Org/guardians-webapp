@@ -130,6 +130,7 @@ function formatDynamicValue(
   switch (field.type) {
     case "TEXT":
     case "TEXTAREA":
+    case "LIST":
       return value as string;
     case "NUMBER":
     case "NUMERIC": {

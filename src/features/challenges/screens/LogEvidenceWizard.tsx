@@ -1786,6 +1786,7 @@ export default function LogEvidenceWizard({
         "CH-001",
         "CH-002",
         "CH-004",
+        "CH-007",
         "CH-008A",
         "CH-008B",
         "CH-008C",
@@ -1793,7 +1794,15 @@ export default function LogEvidenceWizard({
         "CH-010",
         "CH-010A",
         "CH-010B",
+        "CH-011",
+        "CH-012",
+        "CH-013",
+        "CH-014",
         "CH-015",
+        "CH-016",
+        "CH-017",
+        "CH-018",
+        "CH-019",
       ];
       const asMultipart = MULTIPART_CODES.includes(challenge.challengeCode);
       return {

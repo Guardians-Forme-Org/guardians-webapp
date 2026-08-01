@@ -372,7 +372,7 @@ export function FieldControl({
   }
 
   // ── TEXTAREA ────────────────────────────────────────────────────────
-  if (field.type === "TEXTAREA") {
+  if (field.type === "TEXTAREA" || field.type === "LIST") {
     return (
       <FieldGroup label={field.label} required={field.required} compact={compact}>
         <textarea
