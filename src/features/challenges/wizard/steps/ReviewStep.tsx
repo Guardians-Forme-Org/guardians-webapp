@@ -203,6 +203,33 @@ function GroupEntryCard({
       {subs.map((sub) => {
         if (sub === nameSub) return null;
         const sv = entry[sub.name];
+
+        if (sub.type === "GROUP" || sub.type === "ITEM") {
+          const nestedEntries = (
+            Array.isArray(sv) ? (sv as Record<string, unknown>[]) : []
+          ).filter((nestedEntry) =>
+            (sub.fields ?? []).some((nestedSub) => {
+              const nsv = nestedEntry[nestedSub.name];
+              return nsv !== undefined && nsv !== null && nsv !== "";
+            }),
+          );
+          if (!nestedEntries.length) return null;
+          return (
+            <div key={sub.name} className="flex flex-col gap-2">
+              <p className="text-xs text-text-muted">{sub.label}</p>
+              {nestedEntries.map((nestedEntry, ni) => (
+                <GroupEntryCard
+                  key={ni}
+                  field={sub}
+                  entry={nestedEntry}
+                  index={ni}
+                  users={users}
+                />
+              ))}
+            </div>
+          );
+        }
+
         if (sv === undefined || sv === null || sv === "") return null;
 
         if (sub.type === "IMAGE") {
