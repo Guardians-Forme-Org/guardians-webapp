@@ -551,16 +551,26 @@ function GroupField({
               </div>
               {isExpanded && (
                 <div className="px-4 pb-4 flex flex-col gap-5">
-                  {subFields.map((sub) => (
-                    <FieldControl
-                      key={sub.name}
-                      field={sub}
-                      value={entry[sub.name]}
-                      unitValue={entry[`${sub.name}__unit`] as string | undefined}
-                      onChange={(v) => setEntry(i, { [sub.name]: v })}
-                      onUnitChange={(u) => setEntry(i, { [`${sub.name}__unit`]: u })}
-                    />
-                  ))}
+                  {subFields.map((sub) =>
+                    sub.type === "GROUP" || sub.type === "ITEM" ? (
+                      <GroupField
+                        key={sub.name}
+                        field={sub}
+                        value={entry[sub.name]}
+                        update={(name, v) => setEntry(i, { [name]: v })}
+                        compact
+                      />
+                    ) : (
+                      <FieldControl
+                        key={sub.name}
+                        field={sub}
+                        value={entry[sub.name]}
+                        unitValue={entry[`${sub.name}__unit`] as string | undefined}
+                        onChange={(v) => setEntry(i, { [sub.name]: v })}
+                        onUnitChange={(u) => setEntry(i, { [`${sub.name}__unit`]: u })}
+                      />
+                    ),
+                  )}
                 </div>
               )}
             </div>
