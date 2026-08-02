@@ -1582,12 +1582,20 @@ export default function LogEvidenceWizard({
           })
           .filter((entry) => Object.keys(entry).length > 0);
         if (entries.length) {
-          // Data.AnchorPoint is a single struct, not an array — an unadopted
-          // anchorPoint GROUP (nothing registered yet) sends its one entry
-          rawFields[field.name] =
-            normalizeFieldName(field.name) === "ANCHORPOINT"
-              ? entries[0]
-              : entries;
+          if (normalizeFieldName(field.name) === "ANCHORPOINT") {
+            // Every anchor-point challenge sends Data.AnchorPoints as an
+            // array, even for a single registered point — matching
+            // buildAnchorSetupPayload's shape. CH-004 is the sole legacy
+            // exception: its dedicated /submitCH004 handler predates that
+            // convention and still expects one Data.AnchorPoint struct.
+            if (challenge.challengeCode === "CH-004") {
+              rawFields[field.name] = entries[0];
+            } else {
+              rawFields["anchorPoints"] = entries;
+            }
+          } else {
+            rawFields[field.name] = entries;
+          }
         }
         continue;
       }
@@ -1598,6 +1606,20 @@ export default function LogEvidenceWizard({
       const unit =
         (dynamicValues[`${field.name}__unit`] as string) ??
         field.unitOfMeasureOptions?.[0]?.value;
+
+      // A plain, non-addable LOCATION field named "anchorPoint" (CH-014/
+      // CH-017's single-region registration) still submits as a one-entry
+      // Data.AnchorPoints array — never a bare object — matching the GROUP
+      // case above.
+      if (
+        field.type === "LOCATION" &&
+        !field.addableInput &&
+        normalizeFieldName(field.name) === "ANCHORPOINT"
+      ) {
+        const shaped = shapeFieldValue(field, val, unit);
+        if (shaped !== undefined) rawFields["anchorPoints"] = [shaped];
+        continue;
+      }
 
       // Addable fields hold an array of entries — send one item per entry
       if (field.addableInput && Array.isArray(val)) {

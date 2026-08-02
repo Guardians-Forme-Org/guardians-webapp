@@ -442,6 +442,13 @@ export function toDataKey(name: string, val: unknown): string {
   // CH-009: registration's addable "address" persists as data.addresses;
   // the monitoring step's single "address" as data.location
   if (norm === "ADDRESS") return Array.isArray(val) ? "addresses" : "location";
+  // Data.AnchorPoints is always an array on the BE — an addable LOCATION
+  // named "anchorPoint" (CH-013) already builds one, just under the
+  // singular key; only the key needs renaming here (GROUP-typed
+  // anchorPoint and the plain single-LOCATION case are handled directly
+  // in LogEvidenceWizard's buildDynamicPayload, which never reaches this
+  // function for those fields).
+  if (norm === "ANCHORPOINT") return "anchorPoints";
   // CH-001 step 1's top-level LOCATION field was renamed location -> region
   // (BE commit a6b7649); the Go Data struct's json tag is still "location"
   if (norm === "REGION") return "location";
