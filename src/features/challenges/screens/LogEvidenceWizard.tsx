@@ -20,6 +20,7 @@ import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle } from "@/lib/permissions";
 import { computeChallengeRoles } from "@/lib/roles";
 import type { ApiRecentActivity } from "@/lib/types/circles";
+import type { ApiTemplateFormField } from "@/lib/types/challenges";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -32,6 +33,7 @@ import {
   findAnchorLeaves,
   findAnchorReference,
   normalizeFieldName,
+  preNormalizeAnchorFields,
   shapeFieldValue,
   toDataKey,
 } from "../lib/deriveWizardConfig";
@@ -1521,9 +1523,16 @@ export default function LogEvidenceWizard({
     const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
     const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
 
+    // Same flattening deriveWizardConfig applies for rendering (unwraps the
+    // typeless wrapper / splices a LOCATION-with-nested-fields, e.g. CH-016's
+    // "Choose site location") — collection must agree with what was
+    // actually rendered, or spliced-in fields (species, mediaFile, …) would
+    // be silently dropped here even though the user filled them in.
+    const normalizedStepForm = preNormalizeAnchorFields(stepForm ?? [], anchorPointTracking);
+
     // The mark-complete screen consumes the completion flag field — matched
     // by normalized name (CONFIRM_COMPLETION, confirm, completed, …)
-    const completionField = (stepForm ?? []).find((f) =>
+    const completionField = normalizedStepForm.find((f) =>
       COMPLETION_NAMES.has(normalizeFieldName(f.name)),
     );
     const knownNames = new Set(
@@ -1558,34 +1567,49 @@ export default function LogEvidenceWizard({
     // GROUP entry still becomes the submission's multipart mediaFile instead
     // of being silently dropped
     const groupMediaFiles: File[] = [];
-    for (const field of stepForm ?? []) {
+    for (const field of normalizedStepForm) {
       if (knownNames.has(field.name)) continue;
       if (field.type === "IMAGE") continue;
       const val = dynamicValues[field.name];
       if (val === undefined || val === null || val === "") continue;
 
-      // GROUP/ITEM fields hold an array of sub-form entry objects
+      // GROUP/ITEM fields hold an array of sub-form entry objects. A
+      // sub-field can itself be a GROUP/ITEM (CH-011's species inside
+      // anchorPoint, CH-019's trees, CH-008B's anchorPointA) — shapeEntry
+      // recurses so a nested leaf (e.g. species.quantity, a NUMBER) still
+      // gets BE-typed instead of riding through as raw form-state string.
       if (field.type === "GROUP" || field.type === "ITEM") {
+        const shapeEntry = (
+          subFields: ApiTemplateFormField[],
+          entry: Record<string, unknown>,
+        ): Record<string, unknown> => {
+          const out: Record<string, unknown> = {};
+          for (const sub of subFields) {
+            const sv = entry[sub.name];
+            if (sv === undefined || sv === null || sv === "") continue;
+            if (sv instanceof File) {
+              if (sub.type === "IMAGE") groupMediaFiles.push(sv);
+              continue;
+            }
+            if (sub.type === "GROUP" || sub.type === "ITEM") {
+              const nested = (Array.isArray(sv) ? (sv as Record<string, unknown>[]) : [])
+                .map((nestedEntry) => shapeEntry(sub.fields ?? [], nestedEntry))
+                .filter((nestedEntry) => Object.keys(nestedEntry).length > 0);
+              if (nested.length) out[sub.name] = nested;
+              continue;
+            }
+            const subUnit =
+              (entry[`${sub.name}__unit`] as string) ??
+              sub.unitOfMeasureOptions?.[0]?.value;
+            const shaped = shapeFieldValue(sub, sv, subUnit);
+            if (shaped !== undefined) out[sub.name] = shaped;
+          }
+          return out;
+        };
         const entries = (
           Array.isArray(val) ? (val as Record<string, unknown>[]) : []
         )
-          .map((entry) => {
-            const out: Record<string, unknown> = {};
-            for (const sub of field.fields ?? []) {
-              const sv = entry[sub.name];
-              if (sv === undefined || sv === null || sv === "") continue;
-              if (sv instanceof File) {
-                if (sub.type === "IMAGE") groupMediaFiles.push(sv);
-                continue;
-              }
-              const subUnit =
-                (entry[`${sub.name}__unit`] as string) ??
-                sub.unitOfMeasureOptions?.[0]?.value;
-              const shaped = shapeFieldValue(sub, sv, subUnit);
-              if (shaped !== undefined) out[sub.name] = shaped;
-            }
-            return out;
-          })
+          .map((entry) => shapeEntry(field.fields ?? [], entry))
           .filter((entry) => Object.keys(entry).length > 0);
         if (entries.length) {
           if (
@@ -1693,8 +1717,8 @@ export default function LogEvidenceWizard({
     // sendable. Some templates (CH-007) nest the image inside a GROUP entry
     // instead of a top-level field — fall back to the first one found there.
     const imageField =
-      stepForm?.find((f) => f.type === "IMAGE") ??
-      stepForm?.find((f) => f.type === "FILE");
+      normalizedStepForm.find((f) => f.type === "IMAGE") ??
+      normalizedStepForm.find((f) => f.type === "FILE");
     const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
     const mediaFile =
       (imageValue instanceof File ? imageValue : undefined) ??

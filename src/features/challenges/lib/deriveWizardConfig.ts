@@ -119,6 +119,32 @@ function unwrapAnchorFields(f: ApiTemplateFormField): ApiTemplateFormField[] | n
   return f.anchorPoint?.fields ?? f.fields ?? null;
 }
 
+// Flattens the two "wrapper reused for shaping, not point selection" shapes
+// into ordinary top-level fields — the typeless wrapper (unwrapAnchorFields)
+// and a typed LOCATION field carrying nested fields (CH-016's "Choose site
+// location": a real value to capture AND a data container, so it's kept —
+// stripped of `fields` so it renders as a plain location picker — with its
+// nested fields spliced in alongside it, rather than losing them the way a
+// FieldControl LOCATION render otherwise would). No-op on a tracking step,
+// where the wrapper/reference is handled later once anchorPoints is known.
+// Exported so buildDynamicPayload can apply the identical transform to the
+// raw stepForm before collecting values — otherwise rendering and payload
+// collection would disagree on which fields exist.
+export function preNormalizeAnchorFields(
+  fields: ApiTemplateFormField[],
+  anchorPointTracking?: boolean,
+): ApiTemplateFormField[] {
+  if (anchorPointTracking) return fields;
+  return fields.flatMap((f) => {
+    const unwrapped = unwrapAnchorFields(f);
+    if (unwrapped) return unwrapped;
+    if (f.type === "LOCATION" && f.fields?.length) {
+      return [{ ...f, fields: undefined }, ...f.fields];
+    }
+    return [f];
+  });
+}
+
 // The real per-visit data fields under an anchor reference can be nested at
 // any depth, in a container of any (or no) declared type — CH-001/CH-008A
 // wrap them in a typeless field, CH-008B nests a proper GROUP inside a
@@ -162,7 +188,19 @@ export function findAnchorReference(
         !f.addableInput &&
         (normalizeFieldName(f.name) === "ANCHORPOINT" ||
           normalizeFieldName(f.name) === "ANCHORPOINTNAME") &&
-        (usableLeaves(f).length === 0 || anchorPointTracking === true)),
+        (usableLeaves(f).length === 0 || anchorPointTracking === true)) ||
+      // CH-009's heatwaveMonitoring ships its tracking reference as a typed
+      // LOCATION carrying nested per-visit fields (visitDate, checkinCount,
+      // …) instead of a GROUP — same shape as the GROUP tracking case, just
+      // a different container type. Only matches on a tracking step: an
+      // untracked LOCATION+nested-fields field (CH-016's firstPlanting) is a
+      // different idiom (a fresh per-submission location, not a point
+      // picker) and must not be swallowed here.
+      (f.type === "LOCATION" &&
+        !f.addableInput &&
+        anchorPointTracking === true &&
+        normalizeFieldName(f.name) === "ANCHORPOINT" &&
+        (f.fields?.length ?? 0) > 0),
   );
 }
 
@@ -187,9 +225,7 @@ export function deriveWizardConfig(
   // nested fields in flat so they render (and submit) like any other field.
   // Tracking steps are handled below, once anchorPoints is known, so their
   // nested fields render inline per selected point instead.
-  const preNormalized = anchorPointTracking
-    ? fields
-    : fields.flatMap((f) => unwrapAnchorFields(f) ?? [f]);
+  const preNormalized = preNormalizeAnchorFields(fields, anchorPointTracking);
 
   const sorted = [...preNormalized].sort((a, b) => a.displayOrder - b.displayOrder);
 
