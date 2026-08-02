@@ -1546,6 +1546,12 @@ export default function LogEvidenceWizard({
       HECTARES: "AREA",
     };
 
+    // Multiple anchor points are only ever registered at once on the
+    // registration step — later steps select one already-registered point
+    // and log a single reading against it (per Tshaks, BE 2026-08-02), so
+    // the anchorPoints-array shaping below only applies here.
+    const isRegistrationStep = normalizeFieldName(stepMeta.stepType) === "REGISTRATION";
+
     const rawFields: Record<string, unknown> = {};
     // GROUP subfields of type IMAGE (e.g. CH-007's anchorPoint.mediaFile)
     // aren't a top-level field — collected here so a File nested inside a
@@ -1582,17 +1588,22 @@ export default function LogEvidenceWizard({
           })
           .filter((entry) => Object.keys(entry).length > 0);
         if (entries.length) {
-          if (normalizeFieldName(field.name) === "ANCHORPOINT") {
-            // Every anchor-point challenge sends Data.AnchorPoints as an
-            // array, even for a single registered point — matching
-            // buildAnchorSetupPayload's shape. CH-004 is the sole legacy
-            // exception: its dedicated /submitCH004 handler predates that
-            // convention and still expects one Data.AnchorPoint struct.
-            if (challenge.challengeCode === "CH-004") {
-              rawFields[field.name] = entries[0];
-            } else {
-              rawFields["anchorPoints"] = entries;
-            }
+          if (
+            normalizeFieldName(field.name) === "ANCHORPOINT" &&
+            isRegistrationStep &&
+            challenge.challengeCode !== "CH-004"
+          ) {
+            // On registration, every anchor-point challenge sends
+            // Data.AnchorPoints as an array, even for a single registered
+            // point — matching buildAnchorSetupPayload's shape. CH-004 is
+            // the sole legacy exception: its dedicated /submitCH004 handler
+            // predates that convention and still expects one struct.
+            rawFields["anchorPoints"] = entries;
+          } else if (normalizeFieldName(field.name) === "ANCHORPOINT") {
+            // Later steps select one already-registered point and log a
+            // single reading against it — keep the original single-struct
+            // shape (also CH-004's shape on every step).
+            rawFields[field.name] = entries[0];
           } else {
             rawFields[field.name] = entries;
           }
@@ -1609,15 +1620,20 @@ export default function LogEvidenceWizard({
 
       // A plain, non-addable LOCATION field named "anchorPoint" (CH-014/
       // CH-017's single-region registration) still submits as a one-entry
-      // Data.AnchorPoints array — never a bare object — matching the GROUP
-      // case above.
+      // Data.AnchorPoints array on the registration step — never a bare
+      // object — matching the GROUP case above. Later steps (if this shape
+      // ever recurs there) keep the plain single-object form.
       if (
         field.type === "LOCATION" &&
         !field.addableInput &&
         normalizeFieldName(field.name) === "ANCHORPOINT"
       ) {
         const shaped = shapeFieldValue(field, val, unit);
-        if (shaped !== undefined) rawFields["anchorPoints"] = [shaped];
+        if (shaped !== undefined) {
+          rawFields[isRegistrationStep ? "anchorPoints" : field.name] = isRegistrationStep
+            ? [shaped]
+            : shaped;
+        }
         continue;
       }
 
