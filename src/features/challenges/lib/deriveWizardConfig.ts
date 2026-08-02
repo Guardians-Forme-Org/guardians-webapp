@@ -366,12 +366,16 @@ export function deriveWizardConfig(
       continue;
     } else if (
       VOLUNTEER_HOURS_NAMES.has(normalizeFieldName(field.name)) ||
-      // The dedicated contributors step is a platform-user picker (an array
-      // of user IDs) — only a MULTISELECT "contributors" field means that.
-      // CH-012 also names a field "contributors", but it's a free-text LIST
-      // of names (may include non-platform people), so it must fall through
-      // to the generic dynamic renderer instead of hijacking the picker.
-      (CONTRIBUTORS_NAMES.has(normalizeFieldName(field.name)) && field.type === "MULTISELECT") ||
+      // A field named "contributors" is always the platform-user picker
+      // (ContributorsStep) regardless of its declared type — BE templates
+      // uniformly type it TEXT (never MULTISELECT), matching-by-name only
+      // has always been correct here. (2026-08-02: briefly gated this to
+      // MULTISELECT after a crash traced to a raw string reaching
+      // ContributorsList's ids.map — reverted per Tshaks/product, since that
+      // broke the already-established picker UI on every challenge. The
+      // crash is fixed defensively at the array-consumption sites instead —
+      // see ContributorsList's Array.isArray guard in ReviewStep.tsx.)
+      CONTRIBUTORS_NAMES.has(normalizeFieldName(field.name)) ||
       COMPLETION_NAMES.has(normalizeFieldName(field.name))
     ) {
       knownNameFields.push(field);

@@ -715,7 +715,9 @@ export default function LogEvidenceWizard({
     () => ({
       ...initForm(),
       volunteerHours: (dynamicValues[vhFieldName] as string) ?? "",
-      contributors: (dynamicValues[contribFieldName] as string[]) ?? [],
+      contributors: Array.isArray(dynamicValues[contribFieldName])
+        ? (dynamicValues[contribFieldName] as string[])
+        : [],
     }),
     [dynamicValues, vhFieldName, contribFieldName],
   );
@@ -856,7 +858,9 @@ export default function LogEvidenceWizard({
 
     const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
     const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
-    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const contributors = Array.isArray(dynamicValues[contribFieldName])
+      ? (dynamicValues[contribFieldName] as string[])
+      : [];
     const knownNames = new Set([
       vhFieldName,
       contribFieldName,
@@ -1228,7 +1232,9 @@ export default function LogEvidenceWizard({
       extraFields[toDataKey(field.name, shaped)] = shaped;
     }
 
-    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const contributors = Array.isArray(dynamicValues[contribFieldName])
+      ? (dynamicValues[contribFieldName] as string[])
+      : [];
     const data = {
       ...extraFields,
       volunteerHours,
@@ -1344,7 +1350,9 @@ export default function LogEvidenceWizard({
     const topLevelMediaFile = imageValue instanceof File ? imageValue : undefined;
     const mediaFile = topLevelMediaFile ?? groupMediaFiles[0];
 
-    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const contributors = Array.isArray(dynamicValues[contribFieldName])
+      ? (dynamicValues[contribFieldName] as string[])
+      : [];
     const data = {
       volunteerHours,
       capturedAt,
@@ -1475,7 +1483,9 @@ export default function LogEvidenceWizard({
         ? (dynamicValues[imageField.name] as File | undefined)
         : undefined) ?? detailImage;
 
-    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const contributors = Array.isArray(dynamicValues[contribFieldName])
+      ? (dynamicValues[contribFieldName] as string[])
+      : [];
     const data = {
       ...extraData,
       anchorPoint: anchorPoint as unknown as ChallengeSetupAnchorPoint,
@@ -1521,7 +1531,9 @@ export default function LogEvidenceWizard({
 
     const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
     const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
-    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const contributors = Array.isArray(dynamicValues[contribFieldName])
+      ? (dynamicValues[contribFieldName] as string[])
+      : [];
 
     // Same flattening deriveWizardConfig applies for rendering (unwraps the
     // typeless wrapper / splices a LOCATION-with-nested-fields, e.g. CH-016's
