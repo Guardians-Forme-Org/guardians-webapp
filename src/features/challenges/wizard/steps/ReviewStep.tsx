@@ -405,14 +405,12 @@ export default function ReviewStep({
               const stepIndex = dynamicConfig.fieldToStepIndex[field.name] ?? 1;
               const isBooleanType = field.type === "TOGGLE" || field.type === "BOOLEAN";
               const isImage = field.type === "IMAGE";
-              // Name-matched AND MULTISELECT-typed — a same-named TEXT/LIST
-              // field (CH-012's/CH-014's free-text "contributors") is a
-              // string, not an array of user IDs, and must fall through to
-              // the plain-text rendering below instead of ContributorsList.
+              // A field named "contributors" is always the platform-user
+              // picker regardless of declared type (BE types it TEXT
+              // uniformly) — matches deriveWizardConfig's classification.
               const isContributors =
-                field.type === "MULTISELECT" &&
-                (normalizeFieldName(field.name) === "CONTRIBUTORS" ||
-                  normalizeFieldName(field.name) === "CONTRIBUTORSLIST");
+                normalizeFieldName(field.name) === "CONTRIBUTORS" ||
+                normalizeFieldName(field.name) === "CONTRIBUTORSLIST";
 
               // GROUP/ITEM: one card per entry, every filled sub-field labeled
               if (field.type === "GROUP" || field.type === "ITEM") {
@@ -449,7 +447,12 @@ export default function ReviewStep({
               }
 
               if (isContributors) {
-                const ids = (value as string[] | undefined) ?? [];
+                // A never-populated field can still hold whatever raw
+                // default the BE/form state left behind (e.g. an empty
+                // string) rather than an array — guard the runtime shape,
+                // not just nullishness, so a stray non-array value renders
+                // as "no contributors yet" instead of crashing ids.map.
+                const ids = Array.isArray(value) ? (value as string[]) : [];
                 if (!ids.length) return null;
                 return (
                   <ReviewSection

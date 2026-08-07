@@ -20,6 +20,7 @@ import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle } from "@/lib/permissions";
 import { computeChallengeRoles } from "@/lib/roles";
 import type { ApiRecentActivity } from "@/lib/types/circles";
+import type { ApiTemplateFormField } from "@/lib/types/challenges";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -32,6 +33,7 @@ import {
   findAnchorLeaves,
   findAnchorReference,
   normalizeFieldName,
+  preNormalizeAnchorFields,
   shapeFieldValue,
   toDataKey,
 } from "../lib/deriveWizardConfig";
@@ -713,7 +715,9 @@ export default function LogEvidenceWizard({
     () => ({
       ...initForm(),
       volunteerHours: (dynamicValues[vhFieldName] as string) ?? "",
-      contributors: (dynamicValues[contribFieldName] as string[]) ?? [],
+      contributors: Array.isArray(dynamicValues[contribFieldName])
+        ? (dynamicValues[contribFieldName] as string[])
+        : [],
     }),
     [dynamicValues, vhFieldName, contribFieldName],
   );
@@ -854,7 +858,9 @@ export default function LogEvidenceWizard({
 
     const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
     const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
-    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const contributors = Array.isArray(dynamicValues[contribFieldName])
+      ? (dynamicValues[contribFieldName] as string[])
+      : [];
     const knownNames = new Set([
       vhFieldName,
       contribFieldName,
@@ -1226,12 +1232,20 @@ export default function LogEvidenceWizard({
       extraFields[toDataKey(field.name, shaped)] = shaped;
     }
 
-    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const contributors = Array.isArray(dynamicValues[contribFieldName])
+      ? (dynamicValues[contribFieldName] as string[])
+      : [];
+    // BE Data struct now has separate Location and Region slots — key off
+    // the template's own field name (CH-001/007/008B/009: "region";
+    // CH-008A/010: "location") instead of always writing "location"
+    const locationKey = locationField
+      ? toDataKey(locationField.name, location)
+      : "location";
     const data = {
       ...extraFields,
       volunteerHours,
       ...(weatherCondition ? { weatherCondition } : {}),
-      ...(location ? { location } : {}),
+      ...(location ? { [locationKey]: location } : {}),
       anchorPoints,
     };
     const payload: CH001SetupPayload = {
@@ -1342,7 +1356,9 @@ export default function LogEvidenceWizard({
     const topLevelMediaFile = imageValue instanceof File ? imageValue : undefined;
     const mediaFile = topLevelMediaFile ?? groupMediaFiles[0];
 
-    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const contributors = Array.isArray(dynamicValues[contribFieldName])
+      ? (dynamicValues[contribFieldName] as string[])
+      : [];
     const data = {
       volunteerHours,
       capturedAt,
@@ -1473,7 +1489,9 @@ export default function LogEvidenceWizard({
         ? (dynamicValues[imageField.name] as File | undefined)
         : undefined) ?? detailImage;
 
-    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const contributors = Array.isArray(dynamicValues[contribFieldName])
+      ? (dynamicValues[contribFieldName] as string[])
+      : [];
     const data = {
       ...extraData,
       anchorPoint: anchorPoint as unknown as ChallengeSetupAnchorPoint,
@@ -1519,11 +1537,20 @@ export default function LogEvidenceWizard({
 
     const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
     const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
-    const contributors = (dynamicValues[contribFieldName] as string[]) ?? [];
+    const contributors = Array.isArray(dynamicValues[contribFieldName])
+      ? (dynamicValues[contribFieldName] as string[])
+      : [];
+
+    // Same flattening deriveWizardConfig applies for rendering (unwraps the
+    // typeless wrapper / splices a LOCATION-with-nested-fields, e.g. CH-016's
+    // "Choose site location") — collection must agree with what was
+    // actually rendered, or spliced-in fields (species, mediaFile, …) would
+    // be silently dropped here even though the user filled them in.
+    const normalizedStepForm = preNormalizeAnchorFields(stepForm ?? [], anchorPointTracking);
 
     // The mark-complete screen consumes the completion flag field — matched
     // by normalized name (CONFIRM_COMPLETION, confirm, completed, …)
-    const completionField = (stepForm ?? []).find((f) =>
+    const completionField = normalizedStepForm.find((f) =>
       COMPLETION_NAMES.has(normalizeFieldName(f.name)),
     );
     const knownNames = new Set(
@@ -1546,48 +1573,82 @@ export default function LogEvidenceWizard({
       HECTARES: "AREA",
     };
 
+    // Multiple anchor points are only ever registered at once on the
+    // registration step — later steps select one already-registered point
+    // and log a single reading against it (per Tshaks, BE 2026-08-02), so
+    // the anchorPoints-array shaping below only applies here.
+    const isRegistrationStep = normalizeFieldName(stepMeta.stepType) === "REGISTRATION";
+
     const rawFields: Record<string, unknown> = {};
     // GROUP subfields of type IMAGE (e.g. CH-007's anchorPoint.mediaFile)
     // aren't a top-level field — collected here so a File nested inside a
     // GROUP entry still becomes the submission's multipart mediaFile instead
     // of being silently dropped
     const groupMediaFiles: File[] = [];
-    for (const field of stepForm ?? []) {
+    for (const field of normalizedStepForm) {
       if (knownNames.has(field.name)) continue;
       if (field.type === "IMAGE") continue;
       const val = dynamicValues[field.name];
       if (val === undefined || val === null || val === "") continue;
 
-      // GROUP/ITEM fields hold an array of sub-form entry objects
+      // GROUP/ITEM fields hold an array of sub-form entry objects. A
+      // sub-field can itself be a GROUP/ITEM (CH-011's species inside
+      // anchorPoint, CH-019's trees, CH-008B's anchorPointA) — shapeEntry
+      // recurses so a nested leaf (e.g. species.quantity, a NUMBER) still
+      // gets BE-typed instead of riding through as raw form-state string.
       if (field.type === "GROUP" || field.type === "ITEM") {
+        const shapeEntry = (
+          subFields: ApiTemplateFormField[],
+          entry: Record<string, unknown>,
+        ): Record<string, unknown> => {
+          const out: Record<string, unknown> = {};
+          for (const sub of subFields) {
+            const sv = entry[sub.name];
+            if (sv === undefined || sv === null || sv === "") continue;
+            if (sv instanceof File) {
+              if (sub.type === "IMAGE") groupMediaFiles.push(sv);
+              continue;
+            }
+            if (sub.type === "GROUP" || sub.type === "ITEM") {
+              const nested = (Array.isArray(sv) ? (sv as Record<string, unknown>[]) : [])
+                .map((nestedEntry) => shapeEntry(sub.fields ?? [], nestedEntry))
+                .filter((nestedEntry) => Object.keys(nestedEntry).length > 0);
+              if (nested.length) out[sub.name] = nested;
+              continue;
+            }
+            const subUnit =
+              (entry[`${sub.name}__unit`] as string) ??
+              sub.unitOfMeasureOptions?.[0]?.value;
+            const shaped = shapeFieldValue(sub, sv, subUnit);
+            if (shaped !== undefined) out[sub.name] = shaped;
+          }
+          return out;
+        };
         const entries = (
           Array.isArray(val) ? (val as Record<string, unknown>[]) : []
         )
-          .map((entry) => {
-            const out: Record<string, unknown> = {};
-            for (const sub of field.fields ?? []) {
-              const sv = entry[sub.name];
-              if (sv === undefined || sv === null || sv === "") continue;
-              if (sv instanceof File) {
-                if (sub.type === "IMAGE") groupMediaFiles.push(sv);
-                continue;
-              }
-              const subUnit =
-                (entry[`${sub.name}__unit`] as string) ??
-                sub.unitOfMeasureOptions?.[0]?.value;
-              const shaped = shapeFieldValue(sub, sv, subUnit);
-              if (shaped !== undefined) out[sub.name] = shaped;
-            }
-            return out;
-          })
+          .map((entry) => shapeEntry(field.fields ?? [], entry))
           .filter((entry) => Object.keys(entry).length > 0);
         if (entries.length) {
-          // Data.AnchorPoint is a single struct, not an array — an unadopted
-          // anchorPoint GROUP (nothing registered yet) sends its one entry
-          rawFields[field.name] =
-            normalizeFieldName(field.name) === "ANCHORPOINT"
-              ? entries[0]
-              : entries;
+          if (
+            normalizeFieldName(field.name) === "ANCHORPOINT" &&
+            isRegistrationStep &&
+            challenge.challengeCode !== "CH-004"
+          ) {
+            // On registration, every anchor-point challenge sends
+            // Data.AnchorPoints as an array, even for a single registered
+            // point — matching buildAnchorSetupPayload's shape. CH-004 is
+            // the sole legacy exception: its dedicated /submitCH004 handler
+            // predates that convention and still expects one struct.
+            rawFields["anchorPoints"] = entries;
+          } else if (normalizeFieldName(field.name) === "ANCHORPOINT") {
+            // Later steps select one already-registered point and log a
+            // single reading against it — keep the original single-struct
+            // shape (also CH-004's shape on every step).
+            rawFields[field.name] = entries[0];
+          } else {
+            rawFields[field.name] = entries;
+          }
         }
         continue;
       }
@@ -1598,6 +1659,25 @@ export default function LogEvidenceWizard({
       const unit =
         (dynamicValues[`${field.name}__unit`] as string) ??
         field.unitOfMeasureOptions?.[0]?.value;
+
+      // A plain, non-addable LOCATION field named "anchorPoint" (CH-014/
+      // CH-017's single-region registration) still submits as a one-entry
+      // Data.AnchorPoints array on the registration step — never a bare
+      // object — matching the GROUP case above. Later steps (if this shape
+      // ever recurs there) keep the plain single-object form.
+      if (
+        field.type === "LOCATION" &&
+        !field.addableInput &&
+        normalizeFieldName(field.name) === "ANCHORPOINT"
+      ) {
+        const shaped = shapeFieldValue(field, val, unit);
+        if (shaped !== undefined) {
+          rawFields[isRegistrationStep ? "anchorPoints" : field.name] = isRegistrationStep
+            ? [shaped]
+            : shaped;
+        }
+        continue;
+      }
 
       // Addable fields hold an array of entries — send one item per entry
       if (field.addableInput && Array.isArray(val)) {
@@ -1655,8 +1735,8 @@ export default function LogEvidenceWizard({
     // sendable. Some templates (CH-007) nest the image inside a GROUP entry
     // instead of a top-level field — fall back to the first one found there.
     const imageField =
-      stepForm?.find((f) => f.type === "IMAGE") ??
-      stepForm?.find((f) => f.type === "FILE");
+      normalizedStepForm.find((f) => f.type === "IMAGE") ??
+      normalizedStepForm.find((f) => f.type === "FILE");
     const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
     const mediaFile =
       (imageValue instanceof File ? imageValue : undefined) ??

@@ -119,6 +119,32 @@ function unwrapAnchorFields(f: ApiTemplateFormField): ApiTemplateFormField[] | n
   return f.anchorPoint?.fields ?? f.fields ?? null;
 }
 
+// Flattens the two "wrapper reused for shaping, not point selection" shapes
+// into ordinary top-level fields — the typeless wrapper (unwrapAnchorFields)
+// and a typed LOCATION field carrying nested fields (CH-016's "Choose site
+// location": a real value to capture AND a data container, so it's kept —
+// stripped of `fields` so it renders as a plain location picker — with its
+// nested fields spliced in alongside it, rather than losing them the way a
+// FieldControl LOCATION render otherwise would). No-op on a tracking step,
+// where the wrapper/reference is handled later once anchorPoints is known.
+// Exported so buildDynamicPayload can apply the identical transform to the
+// raw stepForm before collecting values — otherwise rendering and payload
+// collection would disagree on which fields exist.
+export function preNormalizeAnchorFields(
+  fields: ApiTemplateFormField[],
+  anchorPointTracking?: boolean,
+): ApiTemplateFormField[] {
+  if (anchorPointTracking) return fields;
+  return fields.flatMap((f) => {
+    const unwrapped = unwrapAnchorFields(f);
+    if (unwrapped) return unwrapped;
+    if (f.type === "LOCATION" && f.fields?.length) {
+      return [{ ...f, fields: undefined }, ...f.fields];
+    }
+    return [f];
+  });
+}
+
 // The real per-visit data fields under an anchor reference can be nested at
 // any depth, in a container of any (or no) declared type — CH-001/CH-008A
 // wrap them in a typeless field, CH-008B nests a proper GROUP inside a
@@ -162,7 +188,19 @@ export function findAnchorReference(
         !f.addableInput &&
         (normalizeFieldName(f.name) === "ANCHORPOINT" ||
           normalizeFieldName(f.name) === "ANCHORPOINTNAME") &&
-        (usableLeaves(f).length === 0 || anchorPointTracking === true)),
+        (usableLeaves(f).length === 0 || anchorPointTracking === true)) ||
+      // CH-009's heatwaveMonitoring ships its tracking reference as a typed
+      // LOCATION carrying nested per-visit fields (visitDate, checkinCount,
+      // …) instead of a GROUP — same shape as the GROUP tracking case, just
+      // a different container type. Only matches on a tracking step: an
+      // untracked LOCATION+nested-fields field (CH-016's firstPlanting) is a
+      // different idiom (a fresh per-submission location, not a point
+      // picker) and must not be swallowed here.
+      (f.type === "LOCATION" &&
+        !f.addableInput &&
+        anchorPointTracking === true &&
+        normalizeFieldName(f.name) === "ANCHORPOINT" &&
+        (f.fields?.length ?? 0) > 0),
   );
 }
 
@@ -187,9 +225,7 @@ export function deriveWizardConfig(
   // nested fields in flat so they render (and submit) like any other field.
   // Tracking steps are handled below, once anchorPoints is known, so their
   // nested fields render inline per selected point instead.
-  const preNormalized = anchorPointTracking
-    ? fields
-    : fields.flatMap((f) => unwrapAnchorFields(f) ?? [f]);
+  const preNormalized = preNormalizeAnchorFields(fields, anchorPointTracking);
 
   const sorted = [...preNormalized].sort((a, b) => a.displayOrder - b.displayOrder);
 
@@ -330,12 +366,16 @@ export function deriveWizardConfig(
       continue;
     } else if (
       VOLUNTEER_HOURS_NAMES.has(normalizeFieldName(field.name)) ||
-      // The dedicated contributors step is a platform-user picker (an array
-      // of user IDs) — only a MULTISELECT "contributors" field means that.
-      // CH-012 also names a field "contributors", but it's a free-text LIST
-      // of names (may include non-platform people), so it must fall through
-      // to the generic dynamic renderer instead of hijacking the picker.
-      (CONTRIBUTORS_NAMES.has(normalizeFieldName(field.name)) && field.type === "MULTISELECT") ||
+      // A field named "contributors" is always the platform-user picker
+      // (ContributorsStep) regardless of its declared type — BE templates
+      // uniformly type it TEXT (never MULTISELECT), matching-by-name only
+      // has always been correct here. (2026-08-02: briefly gated this to
+      // MULTISELECT after a crash traced to a raw string reaching
+      // ContributorsList's ids.map — reverted per Tshaks/product, since that
+      // broke the already-established picker UI on every challenge. The
+      // crash is fixed defensively at the array-consumption sites instead —
+      // see ContributorsList's Array.isArray guard in ReviewStep.tsx.)
+      CONTRIBUTORS_NAMES.has(normalizeFieldName(field.name)) ||
       COMPLETION_NAMES.has(normalizeFieldName(field.name))
     ) {
       knownNameFields.push(field);
@@ -442,9 +482,13 @@ export function toDataKey(name: string, val: unknown): string {
   // CH-009: registration's addable "address" persists as data.addresses;
   // the monitoring step's single "address" as data.location
   if (norm === "ADDRESS") return Array.isArray(val) ? "addresses" : "location";
-  // CH-001 step 1's top-level LOCATION field was renamed location -> region
-  // (BE commit a6b7649); the Go Data struct's json tag is still "location"
-  if (norm === "REGION") return "location";
+  // Data.AnchorPoints is always an array on the BE — an addable LOCATION
+  // named "anchorPoint" (CH-013) already builds one, just under the
+  // singular key; only the key needs renaming here (GROUP-typed
+  // anchorPoint and the plain single-LOCATION case are handled directly
+  // in LogEvidenceWizard's buildDynamicPayload, which never reaches this
+  // function for those fields).
+  if (norm === "ANCHORPOINT") return "anchorPoints";
   // BE tag is singular
   if (norm === "COMMUNICATIONCHANNELS") return "communicationChannel";
   return name;
