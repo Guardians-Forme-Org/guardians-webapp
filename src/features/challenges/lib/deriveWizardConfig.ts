@@ -493,3 +493,12 @@ export function toDataKey(name: string, val: unknown): string {
   if (norm === "COMMUNICATIONCHANNELS") return "communicationChannel";
   return name;
 }
+
+// Stamps a fresh mediaFileReferenceId onto a Region/Location/AnchorPoint
+// object (BE commit fbdb11e) so a photo uploaded alongside it can be matched
+// back to this entry — never mutates the source object (it's live form state)
+export function withMediaFileReferenceId<T extends object>(
+  obj: T,
+): T & { mediaFileReferenceId: string } {
+  return { ...obj, mediaFileReferenceId: crypto.randomUUID() };
+}

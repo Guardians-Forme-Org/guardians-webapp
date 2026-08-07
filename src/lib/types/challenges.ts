@@ -104,6 +104,10 @@ export type ChallengeSetupLocation = {
   longitude: number;
   formattedAddress: string;
   postalCode: string;
+  // Correlates this location to its uploaded photo (BE commit fbdb11e) —
+  // set on Region/Location/AnchorPoint alike so a future multi-file
+  // mediaFiles[] list can be matched back to the entry it belongs to
+  mediaFileReferenceId?: string;
 };
 
 export type ChallengeSetupAnchorPoint = {
@@ -111,6 +115,7 @@ export type ChallengeSetupAnchorPoint = {
   location?: ChallengeSetupLocation;
   higherRiskFlag?: boolean;
   measurement?: { value: number; unitOfMeasure: string };
+  mediaFileReferenceId?: string;
 };
 
 // Attached to the challenge by the BE after a successful setup-step

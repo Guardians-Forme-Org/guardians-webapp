@@ -36,6 +36,7 @@ import {
   preNormalizeAnchorFields,
   shapeFieldValue,
   toDataKey,
+  withMediaFileReferenceId,
 } from "../lib/deriveWizardConfig";
 import { DEFAULT_FORM_CONFIG, STEP_FORM_CONFIGS } from "../stepFormConfig";
 import { WizardHeader } from "../wizard/shared";
@@ -793,7 +794,8 @@ export default function LogEvidenceWizard({
       approvalRequired: false,
       volunteerHours,
       contributors: form.contributors,
-      data,
+      // data: already fully inside dataEnvelope — uncomment to send both
+      // data,
       dataEnvelope: { ...data, volunteerHours, contributors: form.contributors },
     };
   };
@@ -819,7 +821,7 @@ export default function LogEvidenceWizard({
         siUnit: "AREA" as const,
       },
       location: form.locationResult
-        ? {
+        ? withMediaFileReferenceId({
             placeId: form.locationResult.placeId,
             suburb: form.locationResult.suburb,
             city: form.locationResult.city,
@@ -830,7 +832,7 @@ export default function LogEvidenceWizard({
             longitude: form.locationResult.longitude,
             formattedAddress: form.locationResult.formattedAddress,
             postalCode: form.locationResult.postalCode,
-          }
+          })
         : null,
     };
     return {
@@ -845,7 +847,8 @@ export default function LogEvidenceWizard({
       submittedBy: user.id,
       volunteerHours,
       contributors: form.contributors,
-      data,
+      // data: already fully inside dataEnvelope — uncomment to send both
+      // data,
       dataEnvelope: { ...data, volunteerHours, contributors: form.contributors },
     };
   };
@@ -1115,18 +1118,23 @@ export default function LogEvidenceWizard({
 
     // A GROUP subfield of type IMAGE (CH-008A's referenceImage, CH-008C's
     // installationPhoto, CH-010's mediaFile) isn't a top-level field —
-    // collected here so a File nested inside an entry still becomes the
-    // submission's multipart mediaFile instead of being silently dropped
-    const groupMediaFiles: File[] = [];
+    // collected here, tagged with its point's mediaFileReferenceId, so it
+    // can travel as its own multipart part (see extraMediaFiles below)
+    // instead of only the first one surviving as the legacy mediaFile part
+    const pointMediaFiles: { file: File; mediaFileReferenceId: string }[] = [];
     const anchorPoints: ChallengeSetupAnchorPoint[] = entries
       .map((entry) => {
         const point: ChallengeSetupAnchorPoint = {
           name: nameSub ? ((entry[nameSub.name] as string) ?? "") : "",
         };
+        // Generated up front so it can tag both the point's own photo (if
+        // any, found in the subfield loop below) and its nested location
+        const mediaFileReferenceId = crypto.randomUUID();
+        point.mediaFileReferenceId = mediaFileReferenceId;
         const location = locSub
           ? (entry[locSub.name] as ChallengeSetupLocation | undefined)
           : undefined;
-        if (location) point.location = location;
+        if (location) point.location = { ...location, mediaFileReferenceId };
         const tempRaw = tempSub ? entry[tempSub.name] : undefined;
         if (
           tempSub &&
@@ -1152,7 +1160,8 @@ export default function LogEvidenceWizard({
           if (sub === nameSub || sub === locSub || sub === tempSub) continue;
           const sv = entry[sub.name];
           if (sv instanceof File) {
-            if (sub.type === "IMAGE") groupMediaFiles.push(sv);
+            if (sub.type === "IMAGE")
+              pointMediaFiles.push({ file: sv, mediaFileReferenceId });
             continue;
           }
           if (sv === undefined || sv === null || sv === "") continue;
@@ -1172,11 +1181,10 @@ export default function LogEvidenceWizard({
     const locationField = stepForm?.find(
       (f) => f.type === "LOCATION" && !f.addableInput,
     );
-    const location = locationField
-      ? (dynamicValues[locationField.name] as
-          | ChallengeSetupLocation
-          | undefined)
+    const rawLocation = locationField
+      ? (dynamicValues[locationField.name] as ChallengeSetupLocation | undefined)
       : undefined;
+    const location = rawLocation ? withMediaFileReferenceId(rawLocation) : undefined;
 
     const weatherField = stepForm?.find((f) => f.name.toUpperCase().includes("WEATHER"));
     const weatherRaw = weatherField
@@ -1188,13 +1196,24 @@ export default function LogEvidenceWizard({
         : undefined;
 
     // A top-level IMAGE field (CH-001's mediaFile) or a GROUP-nested one
-    // (CH-008A/C, CH-010) can supply the media file — only one can travel
-    // per submission today, so send the first found either way.
+    // (CH-008A/C, CH-010) supplies the legacy single mediaFile part (still
+    // the only file the BE reads today); every uploaded file, including
+    // that same one, also travels in mediaFiles tagged by its own
+    // mediaFileReferenceId, ready for whenever the BE reads more than one.
     const imageField = stepForm?.find((f) => f.type === "IMAGE");
     const topLevelMediaFile = imageField
       ? (dynamicValues[imageField.name] as File | undefined)
       : undefined;
-    const mediaFile = topLevelMediaFile ?? groupMediaFiles[0];
+    const mediaFile = topLevelMediaFile ?? pointMediaFiles[0]?.file;
+    const mediaFiles = topLevelMediaFile
+      ? [
+          {
+            file: topLevelMediaFile,
+            mediaFileReferenceId: location?.mediaFileReferenceId ?? crypto.randomUUID(),
+          },
+          ...pointMediaFiles,
+        ]
+      : pointMediaFiles;
 
     // Fields not consumed above (CH-008: SOURCE_TYPE, DATE_REGISTERED,
     // NETWORK_HOUSEHOLD_COUNT, PRIORITY_LIST_EXISTS, …) pass through under
@@ -1260,11 +1279,12 @@ export default function LogEvidenceWizard({
       submittedBy: user.id,
       volunteerHours,
       contributors,
-      data,
+      // data: already fully inside dataEnvelope — uncomment to send both
+      // data,
       dataEnvelope: { ...data, contributors },
     };
 
-    return { payload, mediaFile };
+    return { payload, mediaFile, mediaFiles };
   };
 
   // CH-002 step 1 only: registers the fixed observation point via the
@@ -1282,11 +1302,12 @@ export default function LogEvidenceWizard({
     };
 
     const locationField = stepForm?.find((f) => f.type === "LOCATION");
-    const location = locationField
+    const rawLocation = locationField
       ? (dynamicValues[locationField.name] as
           | ChallengeSetupLocation
           | undefined)
       : undefined;
+    const location = rawLocation ? withMediaFileReferenceId(rawLocation) : undefined;
 
     const weatherField = stepForm?.find((f) => f.name.toUpperCase().includes("WEATHER"));
     const weatherRaw = weatherField
@@ -1318,21 +1339,24 @@ export default function LogEvidenceWizard({
       groupField && Array.isArray(dynamicValues[groupField.name])
         ? (dynamicValues[groupField.name] as Record<string, unknown>[])
         : [];
-    const groupMediaFiles: File[] = [];
+    const pointMediaFiles: { file: File; mediaFileReferenceId: string }[] = [];
     const anchorPoints: ChallengeSetupAnchorPoint[] = groupEntries
       .map((entry) => {
         const point: ChallengeSetupAnchorPoint = {
           name: nameSub ? ((entry[nameSub.name] as string) ?? "") : "",
         };
+        const mediaFileReferenceId = crypto.randomUUID();
+        point.mediaFileReferenceId = mediaFileReferenceId;
         const entryLocation = locSub
           ? (entry[locSub.name] as ChallengeSetupLocation | undefined)
           : undefined;
-        if (entryLocation) point.location = entryLocation;
+        if (entryLocation) point.location = { ...entryLocation, mediaFileReferenceId };
         for (const sub of subFields) {
           if (sub === nameSub || sub === locSub) continue;
           const sv = entry[sub.name];
           if (sub.type === "IMAGE") {
-            if (sv instanceof File) groupMediaFiles.push(sv);
+            if (sv instanceof File)
+              pointMediaFiles.push({ file: sv, mediaFileReferenceId });
             continue;
           }
           if (sv === undefined || sv === null || sv === "") continue;
@@ -1348,13 +1372,23 @@ export default function LogEvidenceWizard({
       .filter((p) => p.name || p.location);
 
     // Older templates put the baseline image in a top-level IMAGE field;
-    // the current one nests it inside each anchor point entry instead —
-    // only one file can travel per submission today, so send the first
-    // found either way.
+    // the current one nests it inside each anchor point entry instead. The
+    // legacy mediaFile part still only ever carries one — every uploaded
+    // file, including that same one, also travels in mediaFiles tagged by
+    // its own mediaFileReferenceId.
     const imageField = stepForm?.find((f) => f.type === "IMAGE");
     const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
     const topLevelMediaFile = imageValue instanceof File ? imageValue : undefined;
-    const mediaFile = topLevelMediaFile ?? groupMediaFiles[0];
+    const mediaFile = topLevelMediaFile ?? pointMediaFiles[0]?.file;
+    const mediaFiles = topLevelMediaFile
+      ? [
+          {
+            file: topLevelMediaFile,
+            mediaFileReferenceId: location?.mediaFileReferenceId ?? crypto.randomUUID(),
+          },
+          ...pointMediaFiles,
+        ]
+      : pointMediaFiles;
 
     const contributors = Array.isArray(dynamicValues[contribFieldName])
       ? (dynamicValues[contribFieldName] as string[])
@@ -1378,11 +1412,12 @@ export default function LogEvidenceWizard({
       submittedBy: user.id,
       volunteerHours,
       contributors,
-      data,
+      // data: already fully inside dataEnvelope — uncomment to send both
+      // data,
       dataEnvelope: { ...data, contributors },
     };
 
-    return { payload, mediaFile };
+    return { payload, mediaFile, mediaFiles };
   };
 
   // Steps that re-measure a point registered during setup (setup-update):
@@ -1524,7 +1559,8 @@ export default function LogEvidenceWizard({
       submittedBy: user.id,
       volunteerHours,
       contributors,
-      data,
+      // data: already fully inside dataEnvelope — uncomment to send both
+      // data,
       dataEnvelope: { ...data, contributors },
     };
 
@@ -1581,10 +1617,11 @@ export default function LogEvidenceWizard({
 
     const rawFields: Record<string, unknown> = {};
     // GROUP subfields of type IMAGE (e.g. CH-007's anchorPoint.mediaFile)
-    // aren't a top-level field — collected here so a File nested inside a
-    // GROUP entry still becomes the submission's multipart mediaFile instead
-    // of being silently dropped
-    const groupMediaFiles: File[] = [];
+    // aren't a top-level field — collected here, always tagged with the
+    // owning entry's mediaFileReferenceId, so each entry's photo can travel
+    // as its own multipart part instead of only the first one surviving as
+    // the legacy mediaFile part
+    const groupMediaFiles: { file: File; mediaFileReferenceId: string }[] = [];
     for (const field of normalizedStepForm) {
       if (knownNames.has(field.name)) continue;
       if (field.type === "IMAGE") continue;
@@ -1600,18 +1637,22 @@ export default function LogEvidenceWizard({
         const shapeEntry = (
           subFields: ApiTemplateFormField[],
           entry: Record<string, unknown>,
+          mediaFileReferenceId: string,
         ): Record<string, unknown> => {
           const out: Record<string, unknown> = {};
           for (const sub of subFields) {
             const sv = entry[sub.name];
             if (sv === undefined || sv === null || sv === "") continue;
             if (sv instanceof File) {
-              if (sub.type === "IMAGE") groupMediaFiles.push(sv);
+              if (sub.type === "IMAGE")
+                groupMediaFiles.push({ file: sv, mediaFileReferenceId });
               continue;
             }
             if (sub.type === "GROUP" || sub.type === "ITEM") {
               const nested = (Array.isArray(sv) ? (sv as Record<string, unknown>[]) : [])
-                .map((nestedEntry) => shapeEntry(sub.fields ?? [], nestedEntry))
+                .map((nestedEntry) =>
+                  shapeEntry(sub.fields ?? [], nestedEntry, mediaFileReferenceId),
+                )
                 .filter((nestedEntry) => Object.keys(nestedEntry).length > 0);
               if (nested.length) out[sub.name] = nested;
               continue;
@@ -1620,14 +1661,31 @@ export default function LogEvidenceWizard({
               (entry[`${sub.name}__unit`] as string) ??
               sub.unitOfMeasureOptions?.[0]?.value;
             const shaped = shapeFieldValue(sub, sv, subUnit);
-            if (shaped !== undefined) out[sub.name] = shaped;
+            if (shaped === undefined) continue;
+            out[sub.name] =
+              sub.type === "LOCATION"
+                ? {
+                    ...(shaped as ChallengeSetupLocation),
+                    mediaFileReferenceId,
+                  }
+                : shaped;
           }
           return out;
         };
+        // Same id on the entry, its nested location, and its own photo —
+        // one physical photo per entry, correlated on all three (BE commit
+        // fbdb11e added mediaFileReferenceId to AnchorPoint/Location/Plant/
+        // Item alike, so every GROUP/ITEM entry gets one, not just anchor
+        // points)
         const entries = (
           Array.isArray(val) ? (val as Record<string, unknown>[]) : []
         )
-          .map((entry) => shapeEntry(field.fields ?? [], entry))
+          .map((entry) => {
+            const mediaFileReferenceId = crypto.randomUUID();
+            const shaped = shapeEntry(field.fields ?? [], entry, mediaFileReferenceId);
+            if (Object.keys(shaped).length) shaped.mediaFileReferenceId = mediaFileReferenceId;
+            return shaped;
+          })
           .filter((entry) => Object.keys(entry).length > 0);
         if (entries.length) {
           if (
@@ -1672,24 +1730,37 @@ export default function LogEvidenceWizard({
       ) {
         const shaped = shapeFieldValue(field, val, unit);
         if (shaped !== undefined) {
+          const withRef = withMediaFileReferenceId(
+            shaped as ChallengeSetupLocation,
+          );
           rawFields[isRegistrationStep ? "anchorPoints" : field.name] = isRegistrationStep
-            ? [shaped]
-            : shaped;
+            ? [withRef]
+            : withRef;
         }
         continue;
       }
 
       // Addable fields hold an array of entries — send one item per entry
       if (field.addableInput && Array.isArray(val)) {
-        const entries = val
-          .filter((v) => v !== undefined && v !== null && v !== "")
-          .map((v) => shapeFieldValue(field, v, unit))
-          .filter((v) => v !== undefined);
+        const entries = (
+          val
+            .filter((v) => v !== undefined && v !== null && v !== "")
+            .map((v) => shapeFieldValue(field, v, unit))
+            .filter((v) => v !== undefined) as unknown[]
+        ).map((v) =>
+          field.type === "LOCATION"
+            ? withMediaFileReferenceId(v as ChallengeSetupLocation)
+            : v,
+        );
         if (!entries.length) continue;
         rawFields[toDataKey(field.name, entries)] = entries;
       } else {
         const shaped = shapeFieldValue(field, val, unit);
-        if (shaped !== undefined) rawFields[toDataKey(field.name, val)] = shaped;
+        if (shaped === undefined) continue;
+        rawFields[toDataKey(field.name, val)] =
+          field.type === "LOCATION"
+            ? withMediaFileReferenceId(shaped as ChallengeSetupLocation)
+            : shaped;
       }
     }
 
@@ -1738,9 +1809,13 @@ export default function LogEvidenceWizard({
       normalizedStepForm.find((f) => f.type === "IMAGE") ??
       normalizedStepForm.find((f) => f.type === "FILE");
     const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
-    const mediaFile =
-      (imageValue instanceof File ? imageValue : undefined) ??
-      groupMediaFiles[0];
+    const topLevelMediaFile = imageValue instanceof File ? imageValue : undefined;
+    const mediaFile = topLevelMediaFile ?? groupMediaFiles[0]?.file;
+    // Every uploaded file, each tagged with its own mediaFileReferenceId —
+    // sent alongside (not instead of) the legacy single mediaFile part
+    const mediaFiles = topLevelMediaFile
+      ? [{ file: topLevelMediaFile, mediaFileReferenceId: crypto.randomUUID() }, ...groupMediaFiles]
+      : groupMediaFiles;
 
     const unitLabel = vhUnit === "H" ? "hours" : vhUnit.toLowerCase();
     const volunteerHours = {
@@ -1764,10 +1839,12 @@ export default function LogEvidenceWizard({
         approvalRequired: false,
         volunteerHours,
         contributors,
-        data,
+        // data: already fully inside dataEnvelope — uncomment to send both
+        // data,
         dataEnvelope: { ...data, volunteerHours, contributors },
       },
       mediaFile,
+      mediaFiles,
     };
   };
 
@@ -1797,6 +1874,7 @@ export default function LogEvidenceWizard({
   const resolveSubmission = (): {
     payload: unknown;
     mediaFile?: File;
+    mediaFiles?: { file: File; mediaFileReferenceId: string }[];
     transport: "registration" | "evidence" | "evidence-multipart" | "update";
   } => {
     if (!user) throw new Error("Not authenticated");
@@ -1823,8 +1901,8 @@ export default function LogEvidenceWizard({
         ].includes(challenge.challengeCode) &&
         normalizeFieldName(stepMeta.stepType) === "REGISTRATION"
       ) {
-        const { payload, mediaFile } = buildAnchorSetupPayload();
-        return { payload, mediaFile, transport: "registration" };
+        const { payload, mediaFile, mediaFiles } = buildAnchorSetupPayload();
+        return { payload, mediaFile, mediaFiles, transport: "registration" };
       }
 
       // CH-002 step 1 registers the observation point via /challengeSetup
@@ -1833,8 +1911,8 @@ export default function LogEvidenceWizard({
         challenge.challengeCode === "CH-002" &&
         normalizeFieldName(stepMeta.stepType) === "REGISTRATION"
       ) {
-        const { payload, mediaFile } = buildCH002SetupPayload();
-        return { payload, mediaFile, transport: "registration" };
+        const { payload, mediaFile, mediaFiles } = buildCH002SetupPayload();
+        return { payload, mediaFile, mediaFiles, transport: "registration" };
       }
 
       // Every other REGISTRATION step also submits via /challengeSetup —
@@ -1847,8 +1925,8 @@ export default function LogEvidenceWizard({
         !["CH-004", "CH-015"].includes(challenge.challengeCode)
       ) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { payload, mediaFile } = buildDynamicPayload() as any;
-        return { payload, mediaFile, transport: "registration" };
+        const { payload, mediaFile, mediaFiles } = buildDynamicPayload() as any;
+        return { payload, mediaFile, mediaFiles, transport: "registration" };
       }
 
       // Setup-update steps resend the setup data shape as multipart
@@ -1858,7 +1936,7 @@ export default function LogEvidenceWizard({
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { payload, mediaFile } = buildDynamicPayload() as any;
+      const { payload, mediaFile, mediaFiles } = buildDynamicPayload() as any;
       // These endpoints parse multipart only (metadata part + optional
       // mediaFile — see guardians-api GetMetadataFromForm/FormValue +
       // GetFileFromForm).
@@ -1888,6 +1966,7 @@ export default function LogEvidenceWizard({
       return {
         payload,
         mediaFile,
+        mediaFiles,
         transport: asMultipart ? "evidence-multipart" : "evidence",
       };
     }
@@ -1920,7 +1999,7 @@ export default function LogEvidenceWizard({
       return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { payload, mediaFile, transport } = resolveSubmission() as any;
+    const { payload, mediaFile, mediaFiles, transport } = resolveSubmission() as any;
 
     if (transport === "registration") {
       submitRegistration.mutate(
@@ -1931,6 +2010,7 @@ export default function LogEvidenceWizard({
           userId: user.id,
           payload,
           mediaFile,
+          mediaFiles,
         },
         { onSuccess: () => onSuccess() },
       );
@@ -1964,7 +2044,9 @@ export default function LogEvidenceWizard({
         stepId: stepMeta.stepId,
         userId: user.id,
         payload,
-        ...(transport === "evidence-multipart" ? { multipart: true, mediaFile } : {}),
+        ...(transport === "evidence-multipart"
+          ? { multipart: true, mediaFile, mediaFiles }
+          : {}),
       },
       { onSuccess },
     );
