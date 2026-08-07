@@ -1235,11 +1235,17 @@ export default function LogEvidenceWizard({
     const contributors = Array.isArray(dynamicValues[contribFieldName])
       ? (dynamicValues[contribFieldName] as string[])
       : [];
+    // BE Data struct now has separate Location and Region slots — key off
+    // the template's own field name (CH-001/007/008B/009: "region";
+    // CH-008A/010: "location") instead of always writing "location"
+    const locationKey = locationField
+      ? toDataKey(locationField.name, location)
+      : "location";
     const data = {
       ...extraFields,
       volunteerHours,
       ...(weatherCondition ? { weatherCondition } : {}),
-      ...(location ? { location } : {}),
+      ...(location ? { [locationKey]: location } : {}),
       anchorPoints,
     };
     const payload: CH001SetupPayload = {

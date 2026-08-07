@@ -489,9 +489,6 @@ export function toDataKey(name: string, val: unknown): string {
   // in LogEvidenceWizard's buildDynamicPayload, which never reaches this
   // function for those fields).
   if (norm === "ANCHORPOINT") return "anchorPoints";
-  // CH-001 step 1's top-level LOCATION field was renamed location -> region
-  // (BE commit a6b7649); the Go Data struct's json tag is still "location"
-  if (norm === "REGION") return "location";
   // BE tag is singular
   if (norm === "COMMUNICATIONCHANNELS") return "communicationChannel";
   return name;
