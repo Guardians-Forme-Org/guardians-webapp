@@ -103,9 +103,11 @@ type SubmitEvidencePayload = {
   thingUUID: string;
   submittedBy: string;
   approvalRequired: boolean;
-  volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
-  contributors: string[];
-  data: {
+  // Redundant with dataEnvelope (which already carries both) — kept
+  // optional, not deleted, so either can come back with a one-line change
+  volunteerHours?: { value: number; unitOfMeasure: string; siUnit: string };
+  contributors?: string[];
+  data?: {
     measurement?: { value: number; unitofMeasure: string; siUnit: string; description?: string };
     description: string;
   };
@@ -139,6 +141,7 @@ export function useSubmitEvidence() {
       userId,
       payload,
       mediaFile,
+      mediaFiles,
       multipart,
     }: {
       challengeCode: string;
@@ -147,6 +150,9 @@ export function useSubmitEvidence() {
       userId: string;
       payload: SubmitEvidencePayload | CH001SetupPayload | SetupUpdateEvidencePayload;
       mediaFile?: File;
+      // Every uploaded file, each tagged with its owning entry's
+      // mediaFileReferenceId — sent alongside mediaFile, not instead of it
+      mediaFiles?: { file: File; mediaFileReferenceId: string }[];
       // Send as metadata + mediaFile form parts instead of a JSON body
       multipart?: boolean;
     }) => {
@@ -172,6 +178,14 @@ export function useSubmitEvidence() {
         const formData = new FormData();
         formData.append("metadata", JSON.stringify(payload));
         if (mediaFile) formData.append("mediaFile", mediaFile);
+        // mediaFiles[<mediaFileReferenceId>] — bracket-keyed by id so the BE
+        // can map file -> mediaFileReferenceId directly off the field name,
+        // without needing a second, index-paired text field. The BE doesn't
+        // read these yet (single mediaFile only today), but the transport is
+        // ready the moment it does.
+        for (const m of mediaFiles ?? []) {
+          formData.append(`mediaFiles[${m.mediaFileReferenceId}]`, m.file);
+        }
         return apiFetch<SubmitEvidenceResponse>(endpoint, {
           method: "POST",
           body: formData,
@@ -260,9 +274,11 @@ type RegistrationPayload = {
   challengeCode: string;
   challengeId: string;
   submittedBy: string;
-  volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
-  contributors: string[];
-  data: {
+  // Redundant with dataEnvelope (which already carries both) — kept
+  // optional, not deleted, so either can come back with a one-line change
+  volunteerHours?: { value: number; unitOfMeasure: string; siUnit: string };
+  contributors?: string[];
+  data?: {
     unitOfMeasure: "LOCATION";
     currentActivity: string;
     permission: { obtained: boolean; holder: string };
@@ -291,9 +307,11 @@ export type SetupUpdateEvidencePayload = {
   thingId: string;
   circleId: string;
   submittedBy: string;
-  volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
-  contributors: string[];
-  data: {
+  // Redundant with dataEnvelope (which already carries both) — kept
+  // optional, not deleted, so either can come back with a one-line change
+  volunteerHours?: { value: number; unitOfMeasure: string; siUnit: string };
+  contributors?: string[];
+  data?: {
     anchorPoint: ChallengeSetupAnchorPoint;
     capturedAt: string;
     // Absent on selection-only steps (CH-008B/C, CH-010): no new reading
@@ -318,9 +336,11 @@ export type CH001SetupPayload = {
   thingId: string;
   circleId: string;
   submittedBy: string;
-  volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
-  contributors: string[];
-  data: {
+  // Redundant with dataEnvelope (which already carries both) — kept
+  // optional, not deleted, so either can come back with a one-line change
+  volunteerHours?: { value: number; unitOfMeasure: string; siUnit: string };
+  contributors?: string[];
+  data?: {
     volunteerHours: { value: number; unitOfMeasure: string; siUnit: string };
     weatherCondition?: string;
     // CH-002: when the observation was captured (DATE_CAPTURED field)
@@ -345,6 +365,7 @@ export function useSubmitRegistration() {
       userId,
       payload,
       mediaFile,
+      mediaFiles,
     }: {
       challengeCode: string;
       challengeId: string;
@@ -352,10 +373,17 @@ export function useSubmitRegistration() {
       userId: string;
       payload: RegistrationPayload | CH001SetupPayload;
       mediaFile?: File;
+      // Every uploaded file, each tagged with its owning entry's
+      // mediaFileReferenceId — sent alongside mediaFile, not instead of it
+      mediaFiles?: { file: File; mediaFileReferenceId: string }[];
     }) => {
       const formData = new FormData();
       formData.append("metadata", JSON.stringify(payload));
       if (mediaFile) formData.append("mediaFile", mediaFile);
+      // mediaFiles[<mediaFileReferenceId>] — see useSubmitEvidence
+      for (const m of mediaFiles ?? []) {
+        formData.append(`mediaFiles[${m.mediaFileReferenceId}]`, m.file);
+      }
       return apiFetch<void>("/challengeSetup", {
         method: "POST",
         body: formData,
