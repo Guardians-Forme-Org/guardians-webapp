@@ -792,6 +792,8 @@ export default function LogEvidenceWizard({
       thingUUID: challenge.impactRecords?.[0]?.thingUUID ?? "",
       submittedBy: user.id,
       approvalRequired: false,
+      volunteerHours,
+      contributors: form.contributors,
       // data: already fully inside dataEnvelope — uncomment to send both
       // data,
       dataEnvelope: { ...data, volunteerHours, contributors: form.contributors },
@@ -843,6 +845,8 @@ export default function LogEvidenceWizard({
       challengeId: challenge.challengeId,
       thingId: challenge.challengeId,
       submittedBy: user.id,
+      volunteerHours,
+      contributors: form.contributors,
       // data: already fully inside dataEnvelope — uncomment to send both
       // data,
       dataEnvelope: { ...data, volunteerHours, contributors: form.contributors },
@@ -1273,6 +1277,8 @@ export default function LogEvidenceWizard({
       thingId: challenge.challengeId,
       circleId: challenge.circleId,
       submittedBy: user.id,
+      volunteerHours,
+      contributors,
       // data: already fully inside dataEnvelope — uncomment to send both
       // data,
       dataEnvelope: { ...data, contributors },
@@ -1404,6 +1410,8 @@ export default function LogEvidenceWizard({
       thingId: challenge.challengeId,
       circleId: challenge.circleId,
       submittedBy: user.id,
+      volunteerHours,
+      contributors,
       // data: already fully inside dataEnvelope — uncomment to send both
       // data,
       dataEnvelope: { ...data, contributors },
@@ -1549,6 +1557,8 @@ export default function LogEvidenceWizard({
       thingId: challenge.challengeId,
       circleId: challenge.circleId,
       submittedBy: user.id,
+      volunteerHours,
+      contributors,
       // data: already fully inside dataEnvelope — uncomment to send both
       // data,
       dataEnvelope: { ...data, contributors },
@@ -1827,6 +1837,8 @@ export default function LogEvidenceWizard({
         thingUUID: challenge.impactRecords?.[0]?.thingUUID ?? "",
         submittedBy: user.id,
         approvalRequired: false,
+        volunteerHours,
+        contributors,
         // data: already fully inside dataEnvelope — uncomment to send both
         // data,
         dataEnvelope: { ...data, volunteerHours, contributors },
