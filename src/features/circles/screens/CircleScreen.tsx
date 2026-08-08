@@ -350,12 +350,13 @@ export default function CircleScreen({ circleId }: Props) {
                     <p className="text-2xl font-semibold text-[#333]">
                       {formatImpactDisplayValue(
                         contributionOnly
-                          ? record.impactSummary.contribution.displayName
-                          : record.impactSummary.impact.displayName
+                          ? record?.contribution?.summary
+                          : record?.impact?.summary
                       )}
                     </p>
                     <p className="text-[11px] text-text-muted">
-                      {formatImpactDisplayValue(record.impactSummary.contribution.displayName)} {t("contributed")}
+                      {/* {formatImpactDisplayValue(record.impactSummary.contribution.displayName)} {t("contributed")} */}
+                      { record.contribution?.summary }
                     </p>
                   </div>
                 );

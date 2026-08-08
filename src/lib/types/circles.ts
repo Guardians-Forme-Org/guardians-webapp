@@ -82,39 +82,64 @@ export type CreateCircleRequest = {
   };
 };
 
-export type ApiImpactRecord = {
+export interface ImpactMetric {
+  value: number;
+  unitOfMeasure: string;
+  siUnit: string;
+  shortSummary: string;
+  summary: string;
+  slug: string;
+}
+
+export interface ApiImpactRecord {
   id: string;
   impactRecordId: string;
-  thingUUID: string;
   thingId: string;
-  impactSummary: {
-    contribution: {
-      value: number;
-      unitOfMeasure: string;
-      displayName: string;
-      description?: string;
-      slug?: string;
-    };
-    impact: {
-      value: number;
-      unitOfMeasure: string;
-      displayName: string;
-      siUnit: string;
-      shortSummary?: string;
-      summary: string;
-      description?: string;
-      slug?: string;
-    };
-  };
+  impactType: string;
+  siUnit: string;
+  verified: boolean;
   verifiedDate: string | null;
   verifiedBy: string | null;
-  verified: boolean;
-  impactType: string;
   validationTier: string | null;
-  siUnit: string;
   createdAt: string;
   modifiedAt: string;
-};
+  impact: ImpactMetric;
+  contribution: ImpactMetric;
+}
+
+// export type ApiImpactRecord = {
+//   id: string;
+//   impactRecordId: string;
+//   thingUUID: string;
+//   thingId: string;
+//   impactSummary: {
+//     contribution: {
+//       value: number;
+//       unitOfMeasure: string;
+//       displayName: string;
+//       description?: string;
+//       slug?: string;
+//     };
+//     impact: {
+//       value: number;
+//       unitOfMeasure: string;
+//       displayName: string;
+//       siUnit: string;
+//       shortSummary?: string;
+//       summary: string;
+//       description?: string;
+//       slug?: string;
+//     };
+//   };
+//   verifiedDate: string | null;
+//   verifiedBy: string | null;
+//   verified: boolean;
+//   impactType: string;
+//   validationTier: string | null;
+//   siUnit: string;
+//   createdAt: string;
+//   modifiedAt: string;
+// };
 
 export type CircleCommunicationChannel = {
   name: string;
