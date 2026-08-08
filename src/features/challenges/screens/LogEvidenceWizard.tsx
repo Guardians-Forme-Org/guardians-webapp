@@ -19,7 +19,7 @@ import {
 import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle } from "@/lib/permissions";
 import { computeChallengeRoles } from "@/lib/roles";
-import type { ApiRecentActivity } from "@/lib/types/circles";
+import type { ApiActivityData, ApiRecentActivity } from "@/lib/types/circles";
 import type { ApiSubmittedSetupDetail, ApiTemplateFormField } from "@/lib/types/challenges";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -132,7 +132,7 @@ function valueUnitOf(v: { unit?: string; unitOfMeasure?: string }): string | und
 // dataEnvelope is being rolled out BE-side field by field — merge it over
 // `data` rather than picking one bag wholesale, so fields still missing from
 // dataEnvelope (e.g. mediaFiles) keep falling back to `data`.
-function mergeActivityData(activity: ApiRecentActivity): ApiRecentActivity["data"] {
+function mergeActivityData(activity: ApiRecentActivity): ApiActivityData {
   return { ...activity.data, ...activity.dataEnvelope };
 }
 
@@ -585,10 +585,15 @@ export default function LogEvidenceWizard({
   // Setup-step data (anchor points) feeds the update screens of later steps —
   // never the setup step itself
   const setupDetail = challenge?.submittedSetupDetail;
-  const setupData =
-    setupDetail && stepMeta && setupDetail.stepId !== stepMeta.stepId
-      ? mergeSetupDetailData(setupDetail)
-      : undefined;
+  // Memoized: mergeSetupDetailData returns a fresh object, and setupData is a
+  // dep of the derivedConfig memo below
+  const setupData = useMemo(
+    () =>
+      setupDetail && stepMeta && setupDetail.stepId !== stepMeta.stepId
+        ? mergeSetupDetailData(setupDetail)
+        : undefined,
+    [setupDetail, stepMeta],
+  );
 
   // Setup is whichever step sits first in challengeSteps (array position,
   // not a stepNumber/stepType field).

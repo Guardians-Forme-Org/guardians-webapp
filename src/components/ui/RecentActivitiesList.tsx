@@ -82,7 +82,9 @@ export default function RecentActivitiesList({ thingId, filterStepId, userId }: 
   return (
     <div className="px-10 pb-7.5 flex flex-col gap-6 fade-up">
       {activities.map((record) => {
-        const { measurement } = record.data;
+        // New submissions carry everything in dataEnvelope (data echoes null)
+        const measurement =
+          record.dataEnvelope?.measurement ?? record.data?.measurement;
         const title = record.activity || (
           measurement?.value != null
             ? `${measurement.value} ${measurement.unitOfMeasure}`

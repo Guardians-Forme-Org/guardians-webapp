@@ -37,7 +37,9 @@ export type ApiRecentActivity = {
   thingUUID: string;
   submittedBy: string;
   contributors: string[];
-  data: ApiActivityData;
+  // Null on new submissions — the FE sends only dataEnvelope now, and the BE
+  // echoes back what it received
+  data: ApiActivityData | null;
   // Echo of the payload the FE submitted (data + volunteerHours +
   // contributors merged) — takes precedence over `data` when present, since
   // it's the more complete/up-to-date copy
