@@ -386,7 +386,7 @@ export default function ProfilePage() {
           </p>
           {userRecords.map((ur, i) => {
             const cr = circleRecords.find((r) => r.siUnit === ur.siUnit);
-            const unit = ur.contribution?.unitOfMeasure ?? "";
+            const unit = ur.impact?.unitOfMeasure ?? "";
             const isOpen = expandedImpact === i;
             return (
               <div key={ur.impactRecordId ?? i}>
@@ -399,7 +399,7 @@ export default function ProfilePage() {
                       {t("myUnit", { unit })}
                     </Text>
                     <p className="text-2xl font-semibold text-text-subheading">
-                      {formatImpactMetricValue(ur.contribution)}
+                      {formatImpactMetricValue(ur.impact)}
                     </p>
                   </div>
                   <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
@@ -407,7 +407,7 @@ export default function ProfilePage() {
                       {t("circleUnit", { unit })}
                     </Text>
                     <p className="text-2xl font-semibold text-text-subheading">
-                      {cr?.contribution ? formatImpactMetricValue(cr.contribution) : "—"}
+                      {cr?.impact ? formatImpactMetricValue(cr.impact) : "—"}
                     </p>
                   </div>
                   <div className="pb-6 pl-2 shrink-0">
