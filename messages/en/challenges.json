@@ -72,6 +72,7 @@
   "activityUpdatedSubtitle": "Your changes have been saved",
   "activityUploadedSubtitle": "Your activity has been submitted to this challenge",
   "oneMeasurementHint": "Only one measurement per submission — clear the other field to use this one",
+  "resumeAnchorPointsHint": "You already registered the point(s) below. Tap one to open and edit it, or use \"+ Add another\" if the new point is in a different location - your existing points stay saved.",
   "addAnother": "Add another",
   "removeEntry": "Remove entry",
   "newReading": "New reading",

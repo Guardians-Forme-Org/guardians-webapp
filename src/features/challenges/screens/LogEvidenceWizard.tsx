@@ -20,7 +20,7 @@ import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle } from "@/lib/permissions";
 import { computeChallengeRoles } from "@/lib/roles";
 import type { ApiRecentActivity } from "@/lib/types/circles";
-import type { ApiTemplateFormField } from "@/lib/types/challenges";
+import type { ApiSubmittedSetupDetail, ApiTemplateFormField } from "@/lib/types/challenges";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -134,6 +134,105 @@ function valueUnitOf(v: { unit?: string; unitOfMeasure?: string }): string | und
 // dataEnvelope (e.g. mediaFiles) keep falling back to `data`.
 function mergeActivityData(activity: ApiRecentActivity): ApiRecentActivity["data"] {
   return { ...activity.data, ...activity.dataEnvelope };
+}
+
+// Same dataEnvelope rollout as activities, but on submittedSetupDetail — the
+// BE has been seen sending `data: null` with everything (anchorPoints
+// included) living in dataEnvelope instead. Also folds `region` in as
+// `location` since the setup endpoint's LOCATION field is keyed either way
+// depending on template (see toDataKey's locationKey comment).
+function mergeSetupDetailData(
+  setupDetail: ApiSubmittedSetupDetail,
+): NonNullable<ApiSubmittedSetupDetail["data"]> {
+  const { region, ...envelope } = setupDetail.dataEnvelope ?? {};
+  return {
+    ...setupDetail.data,
+    ...envelope,
+    location: envelope.location ?? region ?? setupDetail.data?.location ?? undefined,
+  };
+}
+
+// Reverses buildAnchorSetupPayload's entry → ChallengeSetupAnchorPoint
+// mapping. The BE replaces submittedSetupDetail wholesale on every
+// /challengeSetup call (no merge) — so reopening step one has to prefill the
+// addable GROUP with the already-registered points, editable in place,
+// otherwise resubmitting to add a far-away point silently drops the earlier
+// ones instead of appending to them.
+const TEMP_UNIT_LABELS_REVERSE: Record<string, string> = { "°C": "C", "°F": "F", K: "K" };
+
+function anchorPointToEntry(
+  point: ChallengeSetupAnchorPoint,
+  groupField: ApiTemplateFormField,
+): Record<string, unknown> {
+  const subFields = groupField.fields ?? [];
+  const nameSub = subFields.find((f) => f.type === "TEXT");
+  const locSub = subFields.find((f) => f.type === "LOCATION");
+  const numberSubFields = subFields.filter(
+    (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+  );
+  const tempSub =
+    numberSubFields.length === 1 &&
+    !DEDICATED_MEASUREMENT_NAMES.has(normalizeFieldName(numberSubFields[0].name))
+      ? numberSubFields[0]
+      : undefined;
+
+  const entry: Record<string, unknown> = {};
+  if (nameSub) entry[nameSub.name] = point.name;
+  if (locSub && point.location) {
+    const { mediaFileReferenceId: _drop, ...loc } = point.location;
+    entry[locSub.name] = loc;
+  }
+  if (tempSub && point.measurement) {
+    entry[tempSub.name] = String(point.measurement.value);
+    entry[`${tempSub.name}__unit`] =
+      TEMP_UNIT_LABELS_REVERSE[point.measurement.unitOfMeasure] ??
+      point.measurement.unitOfMeasure;
+  }
+
+  // Remaining subfields were passed through shaped (see buildAnchorSetupPayload)
+  // — undo just enough shaping to feed them back into FieldControl inputs.
+  for (const sub of subFields) {
+    if (sub === nameSub || sub === locSub || sub === tempSub) continue;
+    if (sub.type === "IMAGE") {
+      // Carry the mediaFile object through as-is — untouched, it goes back
+      // out verbatim in buildAnchorSetupPayload; replaced with a File if the
+      // user picks a new photo, or cleared to drop it.
+      if (point.mediaFile) entry[sub.name] = point.mediaFile;
+      continue;
+    }
+    const raw = (point as Record<string, unknown>)[sub.name];
+    if (raw === undefined || raw === null) continue;
+    if (isValueUnit(raw)) {
+      entry[sub.name] = String(raw.value);
+      const unit = valueUnitOf(raw);
+      if (unit) entry[`${sub.name}__unit`] = unit;
+    } else if (raw && typeof raw === "object" && "description" in raw) {
+      entry[sub.name] = (raw as { description?: string }).description ?? "";
+    } else if (sub.type === "DATE" && typeof raw === "string") {
+      // BE returns a full ISO timestamp; <input type="date"> needs YYYY-MM-DD
+      entry[sub.name] = raw.slice(0, 10);
+    } else {
+      entry[sub.name] = raw;
+    }
+  }
+  return entry;
+}
+
+// Reverses buildAnchorSetupPayload's `vhUnit === "H" ? "hours" : vhUnit.toLowerCase()`
+// — matches the stored unit string back to one of the field's own option
+// codes (falls back to the field's first/default option, "H" in practice).
+function reverseUnitCode(
+  field: ApiTemplateFormField | undefined,
+  storedUnit: string | undefined,
+): string | undefined {
+  if (!storedUnit) return undefined;
+  const opt = field?.unitOfMeasureOptions?.find(
+    (u) =>
+      u.value.toLowerCase() === storedUnit.toLowerCase() ||
+      u.label.toLowerCase() === storedUnit.toLowerCase() ||
+      (u.value === "H" && storedUnit.toLowerCase() === "hours"),
+  );
+  return opt?.value ?? field?.unitOfMeasureOptions?.[0]?.value;
 }
 
 function activityToDynamic(
@@ -488,8 +587,21 @@ export default function LogEvidenceWizard({
   const setupDetail = challenge?.submittedSetupDetail;
   const setupData =
     setupDetail && stepMeta && setupDetail.stepId !== stepMeta.stepId
-      ? setupDetail.data
+      ? mergeSetupDetailData(setupDetail)
       : undefined;
+
+  // Setup is whichever step sits first in challengeSteps (array position,
+  // not a stepNumber/stepType field).
+  const isSetupStep = challenge?.challengeSteps?.[0]?.stepId === stepId;
+  // Already-registered anchor points, visible only while sitting on the
+  // setup step itself — used to prefill/resume the addable GROUP below
+  // instead of starting blank and losing them on resubmit. Memoized so the
+  // empty-array fallback doesn't change identity every render and retrigger
+  // the prefill effect below.
+  const existingAnchorPoints = useMemo(
+    () => (isSetupStep && setupDetail ? (mergeSetupDetailData(setupDetail).anchorPoints ?? []) : []),
+    [isSetupStep, setupDetail],
+  );
 
   const anchorPointTracking =
     stepMeta?.anchorPointTracking ?? templateStep?.anchorPointTracking;
@@ -649,9 +761,7 @@ export default function LogEvidenceWizard({
 
   // Every step after setup re-measures or builds on submittedSetupDetail —
   // block direct-URL access to the wizard for later steps until setup has
-  // actually been submitted. Setup is whichever step sits first in
-  // challengeSteps (array position, not a stepNumber/stepType field).
-  const isSetupStep = challenge?.challengeSteps?.[0]?.stepId === stepId;
+  // actually been submitted.
   const setupRequired = !isSetupStep && !challenge?.submittedSetupDetail;
 
   useEffect(() => {
@@ -694,6 +804,67 @@ export default function LogEvidenceWizard({
         ?.name ?? "CONTRIBUTORS",
     [derivedConfig],
   );
+
+  // ── Prefill: resume the previously submitted setup step ────────────────────
+  // The BE replaces submittedSetupDetail wholesale on every /challengeSetup
+  // call (no merge) — reopening step one has to seed every field it carries
+  // (region, anchor points, volunteer hours, contributors) from what was
+  // already submitted, or resubmitting to add a far-away anchor point
+  // silently wipes the rest of the step, not just the missing point. Only
+  // ever fills in a field that's still empty, so an in-progress local draft
+  // (restored by the effect above) always wins, and this never re-fires
+  // once seeded.
+  useEffect(() => {
+    if (viewId || !isDerived || !isSetupStep || !setupDetail) return;
+    const merged = mergeSetupDetailData(setupDetail);
+    const groupField = stepForm?.find((f) => f.type === "GROUP");
+    const locationField = stepForm?.find(
+      (f) => f.type === "LOCATION" && !f.addableInput,
+    );
+    const vhField = derivedConfig?.steps.find((s) => s.kind === "volunteer-hours")
+      ?.fields[0];
+
+    setDynamicValues((prev) => {
+      const isEmpty = (v: unknown) =>
+        v === undefined || v === null || v === "" ||
+        (Array.isArray(v) && v.length === 0);
+      const next: DynamicValues = { ...prev };
+      let changed = false;
+
+      if (groupField && merged.anchorPoints?.length && isEmpty(prev[groupField.name])) {
+        next[groupField.name] = merged.anchorPoints.map((p) =>
+          anchorPointToEntry(p, groupField),
+        );
+        changed = true;
+      }
+      if (locationField && merged.location && isEmpty(prev[locationField.name])) {
+        const { mediaFileReferenceId: _drop, ...loc } = merged.location;
+        next[locationField.name] = loc;
+        changed = true;
+      }
+      if (vhField && setupDetail.volunteerHours && isEmpty(prev[vhFieldName])) {
+        next[vhFieldName] = String(setupDetail.volunteerHours.value);
+        const unit = reverseUnitCode(vhField, setupDetail.volunteerHours.unitOfMeasure);
+        if (unit) next[`${vhFieldName}__unit`] = unit;
+        changed = true;
+      }
+      if (setupDetail.contributors?.length && isEmpty(prev[contribFieldName])) {
+        next[contribFieldName] = setupDetail.contributors;
+        changed = true;
+      }
+
+      return changed ? next : prev;
+    });
+  }, [
+    viewId,
+    isDerived,
+    isSetupStep,
+    setupDetail,
+    stepForm,
+    derivedConfig,
+    vhFieldName,
+    contribFieldName,
+  ]);
 
   // ── View mode: populate form/dynamicValues once config resolves ────────────
   useEffect(() => {
@@ -1162,6 +1333,13 @@ export default function LogEvidenceWizard({
           if (sv instanceof File) {
             if (sub.type === "IMAGE")
               pointMediaFiles.push({ file: sv, mediaFileReferenceId });
+            continue;
+          }
+          // An untouched resumed IMAGE (see anchorPointToEntry) is still the
+          // mediaFile object as received — send it back as-is rather than
+          // dropping it, or the BE nulls the point's photo on resubmit.
+          if (sub.type === "IMAGE" && sv && typeof sv === "object") {
+            (point as Record<string, unknown>)[sub.name] = sv;
             continue;
           }
           if (sv === undefined || sv === null || sv === "") continue;
@@ -2132,6 +2310,10 @@ export default function LogEvidenceWizard({
             if (!ds) return null;
 
             if (ds.kind === "dynamic") {
+              const showResumeHint =
+                isSetupStep &&
+                existingAnchorPoints.length > 0 &&
+                ds.fields.some((f) => f.type === "GROUP");
               return (
                 <DynamicFieldsStep
                   fields={ds.fields}
@@ -2141,6 +2323,7 @@ export default function LogEvidenceWizard({
                   nextLabel={nextLabel}
                   disabledFields={disabledFields}
                   disabledHint={t("oneMeasurementHint")}
+                  resumeHint={showResumeHint ? t("resumeAnchorPointsHint") : undefined}
                 />
               );
             }

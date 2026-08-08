@@ -116,6 +116,9 @@ export type ChallengeSetupAnchorPoint = {
   higherRiskFlag?: boolean;
   measurement?: { value: number; unitOfMeasure: string };
   mediaFileReferenceId?: string;
+  // The BE resolves the uploaded photo onto the point itself (not just a
+  // referenceId) — a real, viewable URL, useful for a resume/edit preview
+  mediaFile?: { type: string; url: string; description: string; caption?: string } | null;
 };
 
 // Attached to the challenge by the BE after a successful setup-step
@@ -137,6 +140,16 @@ export type ApiSubmittedSetupDetail = {
   data: {
     anchorPoints?: ChallengeSetupAnchorPoint[] | null;
     location?: ChallengeSetupLocation;
+    mediaFiles?: { type: string; url: string; description: string }[];
+    volunteerHours?: { value: number; unitOfMeasure: string; siUnit: string };
+  } | null;
+  // The more complete echo of what was submitted (same dataEnvelope rollout
+  // as ApiRecentActivity) — the BE has been seen sending `data: null` with
+  // everything, including anchorPoints, living here instead
+  dataEnvelope?: {
+    anchorPoints?: ChallengeSetupAnchorPoint[] | null;
+    location?: ChallengeSetupLocation;
+    region?: ChallengeSetupLocation | null;
     mediaFiles?: { type: string; url: string; description: string }[];
     volunteerHours?: { value: number; unitOfMeasure: string; siUnit: string };
   };

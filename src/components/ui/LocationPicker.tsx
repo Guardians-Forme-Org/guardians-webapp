@@ -85,6 +85,14 @@ export default function LocationPicker({
 
   const locateCurrent = useCurrentLocation();
 
+  // defaultValue often arrives after mount (e.g. prefilled from a fetched
+  // submission, once the query resolves) — resync display so it actually
+  // shows up. Only fires when the prop itself changes value, so it never
+  // clobbers what the user is actively typing in between selections.
+  useEffect(() => {
+    setDisplay(defaultValue);
+  }, [defaultValue]);
+
   const handleUseCurrent = async () => {
     setLocating(true);
     setGeoError(null);

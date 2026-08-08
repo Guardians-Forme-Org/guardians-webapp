@@ -41,6 +41,9 @@ type Props = {
   // Fields greyed out because a mutually exclusive field is filled
   disabledFields?: Set<string>;
   disabledHint?: string;
+  // Shown above the fields — e.g. explaining that entries below were
+  // prefilled from a prior submission and can be edited or added to
+  resumeHint?: string;
 };
 
 function RadioDot({ selected }: { selected: boolean }) {
@@ -73,8 +76,10 @@ function ImageField({
   compact,
 }: {
   field: ApiTemplateFormField;
-  // string = already-uploaded media URL (editing an existing submission)
-  value: File | string | null;
+  // string = already-uploaded media URL (editing an existing submission);
+  // { url } = a resumed anchor point's mediaFile object (see
+  // LogEvidenceWizard's anchorPointToEntry) — same idea, different shape
+  value: File | string | { url: string } | null;
   onSelect: (f: File) => void;
   onClear: () => void;
   compact?: boolean;
@@ -82,6 +87,15 @@ function ImageField({
   const t = useTranslations("challenges");
   const ref = useRef<HTMLInputElement>(null);
   const [sizeError, setSizeError] = useState<string | null>(null);
+
+  const previewSrc =
+    typeof value === "string"
+      ? value
+      : value instanceof File
+        ? URL.createObjectURL(value)
+        : value && typeof value === "object" && "url" in value
+          ? value.url
+          : null;
 
   return (
     <FieldGroup label={field.label} required={field.required} compact={compact}>
@@ -105,13 +119,13 @@ function ImageField({
         }}
       />
       {/* A corrupted draft (an old File value JSON.stringify'd away to "{}")
-          can land here as neither a File nor a URL string — treat that the
-          same as no value instead of letting createObjectURL throw */}
-      {value && (typeof value === "string" || value instanceof File) ? (
+          can land here as neither a File, URL string, nor {url} object —
+          treat that the same as no value instead of showing a broken image */}
+      {previewSrc ? (
         <div className="relative w-full h-44 rounded-[8px] overflow-hidden border border-[rgba(26,26,24,0.14)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={typeof value === "string" ? value : URL.createObjectURL(value)}
+            src={previewSrc}
             alt=""
             className="w-full h-full object-cover"
           />
@@ -407,7 +421,7 @@ export function FieldControl({
     return (
       <ImageField
         field={field}
-        value={(value as File | string | null) ?? null}
+        value={(value as File | string | { url: string } | null) ?? null}
         onSelect={(f) => onChange(f)}
         onClear={() => onChange(null)}
         compact={compact}
@@ -586,7 +600,7 @@ function GroupField({
   );
 }
 
-export default function DynamicFieldsStep({ fields, values, update, onNext, nextLabel, disabledFields, disabledHint }: Props) {
+export default function DynamicFieldsStep({ fields, values, update, onNext, nextLabel, disabledFields, disabledHint, resumeHint }: Props) {
   // Fields greyed out by a mutually exclusive field don't block Next —
   // they're not the ones the user is meant to fill in right now.
   const missingRequired = fields.some(
@@ -599,6 +613,11 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
   return (
     <>
       <div className="flex flex-col gap-5 px-5 mt-7 flex-1">
+        {resumeHint && (
+          <p className="text-sm text-text-muted bg-[#f0efeb] border border-[rgba(26,26,24,0.14)] rounded-[8px] px-3 py-2.5">
+            {resumeHint}
+          </p>
+        )}
         {fields.map((field) => {
           if (field.type === "GROUP" || field.type === "ITEM") {
             return <GroupField key={field.name} field={field} value={values[field.name]} update={update} />;

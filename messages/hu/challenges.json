@@ -72,6 +72,7 @@
   "activityUpdatedSubtitle": "A módosításaidat elmentettük",
   "activityUploadedSubtitle": "A tevékenységedet beküldtük ehhez a kihíváshoz",
   "oneMeasurementHint": "Beküldésenként csak egy mérés adható meg — töröld a másik mezőt, ha ezt szeretnéd használni",
+  "resumeAnchorPointsHint": "Az alábbi pont(ok)at már regisztráltad. Koppints egyre a szerkesztéshez, vagy használd az „Új hozzáadása” gombot, ha az új pont más helyen van - a meglévő pontjaid megmaradnak.",
   "addAnother": "Új hozzáadása",
   "removeEntry": "Bejegyzés törlése",
   "newReading": "Új mérés",
