@@ -1,32 +1,6 @@
 import { api } from "@/lib/api";
+import type { ApiImpactRecord } from "@/lib/types/circles";
 import { useQuery } from "@tanstack/react-query";
-
-export type ImpactMatrixItem = {
-  id: string;
-  impactRecordId: string;
-  impactSummary: {
-    contribution: {
-      value: number;
-      unitOfMeasure: string;
-      displayName: string;
-      description?: string;
-      slug?: string;
-    };
-    impact: {
-      value: number;
-      unitOfMeasure: string;
-      displayName: string;
-      siUnit: string;
-      shortSummary: string;
-      summary: string;
-      description?: string;
-      slug?: string;
-    };
-  } | null;
-  verified: boolean;
-  impactType: string;
-  siUnit: string;
-};
 
 export type ThingsMatrixItem = {
   count: number;
@@ -37,7 +11,7 @@ export type ThingsMatrixItem = {
 };
 
 export type PublicMetricsResponse = {
-  impactMatrix: ImpactMatrixItem[];
+  impactMatrix: ApiImpactRecord[];
   thingsMatrix: ThingsMatrixItem[];
 };
 

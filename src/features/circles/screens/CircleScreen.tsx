@@ -12,7 +12,7 @@ import type {
   ApiCircleChallenge,
   CircleMember,
 } from "@/lib/types/circles";
-import { calcChallengeProgress, formatImpactDisplayValue, getImpactTileLabel, isContributionOnlyImpact } from "@/lib/utils";
+import { calcChallengeProgress, formatImpactMetricValue, getImpactTileLabel } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, MapPin, Pencil, UserPlus } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
@@ -338,7 +338,6 @@ export default function CircleScreen({ circleId }: Props) {
             </p>
             <div className="grid grid-cols-2 border-t border-[#e6e6e6]">
               {(circle.impactRecords ?? []).map((record, i) => {
-                const contributionOnly = isContributionOnlyImpact(record);
                 return (
                   <div
                     key={record.impactRecordId}
@@ -348,14 +347,10 @@ export default function CircleScreen({ circleId }: Props) {
                       {getImpactTileLabel(record)}
                     </p>
                     <p className="text-2xl font-semibold text-[#333]">
-                      {formatImpactDisplayValue(
-                        contributionOnly
-                          ? record.impactSummary.contribution.displayName
-                          : record.impactSummary.impact.displayName
-                      )}
+                      {formatImpactMetricValue(record.impact)}
                     </p>
                     <p className="text-[11px] text-text-muted">
-                      {formatImpactDisplayValue(record.impactSummary.contribution.displayName)} {t("contributed")}
+                      {formatImpactMetricValue(record.contribution)} {t("contributed")}
                     </p>
                   </div>
                 );

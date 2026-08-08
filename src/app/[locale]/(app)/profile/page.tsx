@@ -13,7 +13,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { PROFILE_CONFIG } from "@/lib/config";
 import type { ApiCircle, ApiImpactRecord } from "@/lib/types/circles";
 import type { ContributionMarker } from "@/lib/types/auth";
-import { isContributionOnlyImpact } from "@/lib/utils";
+import { formatImpactMetricValue } from "@/lib/utils";
 import {
   Calendar,
   CheckCircle,
@@ -50,30 +50,22 @@ function aggregateUserCircleImpact(circles: ApiCircle[], locale: string): ApiImp
 
   return Array.from(grouped.values()).map((bucket) => {
     const first = bucket[0];
-    const totalContrib = bucket.reduce(
-      (s, r) => s + (r.impactSummary?.contribution?.value ?? 0),
-      0,
-    );
-    const totalImpact = bucket.reduce(
-      (s, r) => s + (r.impactSummary?.impact?.value ?? 0),
-      0,
-    );
-    const contribUnit = first.impactSummary?.contribution?.unitOfMeasure ?? "";
-    const impactUnit = first.impactSummary?.impact?.unitOfMeasure ?? "";
+    const totalContrib = bucket.reduce((s, r) => s + (r.contribution?.value ?? 0), 0);
+    const totalImpact = bucket.reduce((s, r) => s + (r.impact?.value ?? 0), 0);
+    const contribUnit = first.contribution?.unitOfMeasure ?? "";
+    const impactUnit = first.impact?.unitOfMeasure ?? "";
 
     return {
       ...first,
-      impactSummary: {
-        contribution: {
-          ...(first.impactSummary?.contribution ?? {}),
-          value: totalContrib,
-          displayName: `${totalContrib.toLocaleString(locale, { maximumFractionDigits: 2 })} ${contribUnit}`,
-        },
-        impact: {
-          ...(first.impactSummary?.impact ?? {}),
-          value: totalImpact,
-          displayName: `${totalImpact.toLocaleString(locale, { maximumFractionDigits: 2 })} ${impactUnit}`,
-        },
+      contribution: {
+        ...first.contribution,
+        value: totalContrib,
+        displayName: `${totalContrib.toLocaleString(locale, { maximumFractionDigits: 2 })} ${contribUnit}`,
+      },
+      impact: {
+        ...first.impact,
+        value: totalImpact,
+        displayName: `${totalImpact.toLocaleString(locale, { maximumFractionDigits: 2 })} ${impactUnit}`,
       },
     };
   });
@@ -394,13 +386,12 @@ export default function ProfilePage() {
           </p>
           {userRecords.map((ur, i) => {
             const cr = circleRecords.find((r) => r.siUnit === ur.siUnit);
-            const unit = ur.impactSummary.contribution.unitOfMeasure;
-            const contributionOnly = isContributionOnlyImpact(ur);
-            const isOpen = !contributionOnly && expandedImpact === i;
+            const unit = ur.contribution?.unitOfMeasure ?? "";
+            const isOpen = expandedImpact === i;
             return (
               <div key={ur.impactRecordId ?? i}>
                 <button
-                  onClick={() => !contributionOnly && setExpandedImpact(isOpen ? null : i)}
+                  onClick={() => setExpandedImpact(isOpen ? null : i)}
                   className="flex items-end w-full border-b border-progress-track"
                 >
                   <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
@@ -408,7 +399,7 @@ export default function ProfilePage() {
                       {t("myUnit", { unit })}
                     </Text>
                     <p className="text-2xl font-semibold text-text-subheading">
-                      {ur.impactSummary.contribution.displayName}
+                      {formatImpactMetricValue(ur.contribution)}
                     </p>
                   </div>
                   <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
@@ -416,30 +407,28 @@ export default function ProfilePage() {
                       {t("circleUnit", { unit })}
                     </Text>
                     <p className="text-2xl font-semibold text-text-subheading">
-                      {cr?.impactSummary.contribution.displayName ?? "—"}
+                      {cr?.contribution ? formatImpactMetricValue(cr.contribution) : "—"}
                     </p>
                   </div>
-                  {!contributionOnly && (
-                    <div className="pb-6 pl-2 shrink-0">
-                      {isOpen ? (
-                        <ChevronUp size={14} className="text-text-muted" />
-                      ) : (
-                        <ChevronDown size={14} className="text-text-muted" />
-                      )}
-                    </div>
-                  )}
+                  <div className="pb-6 pl-2 shrink-0">
+                    {isOpen ? (
+                      <ChevronUp size={14} className="text-text-muted" />
+                    ) : (
+                      <ChevronDown size={14} className="text-text-muted" />
+                    )}
+                  </div>
                 </button>
                 {isOpen && (
                   <div className="px-1 pt-3 pb-5 border-b border-progress-track flex flex-col gap-2.5">
                     <p className="text-xs text-text-secondary leading-relaxed">
-                      {ur.impactSummary.impact.summary}
+                      {ur.impact?.summary}
                     </p>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs border border-border rounded-full px-2.5 py-0.5 text-text-muted">
                         {ur.impactType}
                       </span>
                       <span className="text-xs text-text-muted">
-                        → {ur.impactSummary.impact.displayName}
+                        → {formatImpactMetricValue(ur.impact)}
                       </span>
                       {ur.verified && (
                         <span className="text-xs bg-green-50 border border-gotf-green text-gotf-green rounded-full px-2.5 py-0.5 flex items-center gap-1">

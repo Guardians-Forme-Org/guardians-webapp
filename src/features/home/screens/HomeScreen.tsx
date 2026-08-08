@@ -44,8 +44,8 @@ export default function HomeScreen() {
 
   const impactRecords = loginData?.impactRecords ?? [];
   const badgeStats = impactRecords.slice(0, 3).map((r) => ({
-    label: r.impactSummary?.contribution?.unitOfMeasure ?? "",
-    value: r.impactSummary?.contribution?.value ?? 0,
+    label: r.contribution?.unitOfMeasure ?? "",
+    value: r.contribution?.value ?? 0,
   }));
   const activityStats = [
     { label: t("challengesStat"), value: loginData?.challengesCount.displayValue ?? "0" },

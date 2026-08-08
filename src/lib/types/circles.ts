@@ -82,38 +82,35 @@ export type CreateCircleRequest = {
   };
 };
 
+// Mirrors BE core/models/measurement.go Measurement — value/unitOfMeasure are
+// always set, the rest are `omitzero`/`omitempty` on the wire.
+export type ImpactMetric = {
+  value: number;
+  unitOfMeasure: string;
+  displayName?: string;
+  siUnit?: string;
+  shortSummary?: string;
+  summary?: string;
+  description?: string;
+  slug?: string;
+};
+
+// Mirrors BE core/models/irecord.go ImpactRecord (BE schema change, 2026-08-08):
+// contribution/impact are now top-level fields, not nested under impactSummary.
 export type ApiImpactRecord = {
   id: string;
   impactRecordId: string;
-  thingUUID: string;
   thingId: string;
-  impactSummary: {
-    contribution: {
-      value: number;
-      unitOfMeasure: string;
-      displayName: string;
-      description?: string;
-      slug?: string;
-    };
-    impact: {
-      value: number;
-      unitOfMeasure: string;
-      displayName: string;
-      siUnit: string;
-      shortSummary?: string;
-      summary: string;
-      description?: string;
-      slug?: string;
-    };
-  };
+  impactType: string;
+  siUnit: string;
+  verified: boolean;
   verifiedDate: string | null;
   verifiedBy: string | null;
-  verified: boolean;
-  impactType: string;
   validationTier: string | null;
-  siUnit: string;
   createdAt: string;
   modifiedAt: string;
+  impact: ImpactMetric;
+  contribution: ImpactMetric;
 };
 
 export type CircleCommunicationChannel = {

@@ -1,53 +1,5 @@
 import appConfig from "../../config.json";
 
-export function isCrimeIncidentImpact(item: {
-  siUnit?: string;
-  impactType?: string;
-  impactSummary?: { impact?: { unitOfMeasure?: string; shortSummary?: string } } | null;
-}): boolean {
-  const lower = (s?: string) => (s ?? "").toLowerCase();
-  return (
-    lower(item.siUnit).includes("incident") ||
-    lower(item.siUnit).includes("crime") ||
-    lower(item.impactType).includes("crime") ||
-    lower(item.impactSummary?.impact?.unitOfMeasure).includes("incident") ||
-    lower(item.impactSummary?.impact?.shortSummary).includes("crime")
-  );
-}
-
-export function isTreePlantingImpact(item: {
-  impactSummary?: { contribution?: { unitOfMeasure?: string } } | null;
-}): boolean {
-  return (item.impactSummary?.contribution?.unitOfMeasure ?? "")
-    .toLowerCase()
-    .includes("tree");
-}
-
-export function isGreenedAreaImpact(item: {
-  siUnit?: string;
-  impactSummary?: { contribution?: { unitOfMeasure?: string } } | null;
-}): boolean {
-  const unit = (item.impactSummary?.contribution?.unitOfMeasure ?? "").toLowerCase();
-  return (
-    (item.siUnit ?? "").toUpperCase() === "AREA" ||
-    unit.includes("m²") ||
-    unit.includes("m2")
-  );
-}
-
-// Records whose contribution is the headline stat (impact hidden), e.g. patrol
-// hours on crime challenges, trees planted or area greened on greening challenges.
-export function isContributionOnlyImpact(item: {
-  siUnit?: string;
-  impactType?: string;
-  impactSummary?: {
-    contribution?: { unitOfMeasure?: string };
-    impact?: { unitOfMeasure?: string; shortSummary?: string };
-  } | null;
-}): boolean {
-  return isCrimeIncidentImpact(item) || isTreePlantingImpact(item) || isGreenedAreaImpact(item);
-}
-
 export function deriveImpactLabel(shortSummary: string): string {
   const withUnitOf = shortSummary.replace(/^[\d,.]+ \S+ of /i, "");
   if (withUnitOf !== shortSummary) {
@@ -57,29 +9,21 @@ export function deriveImpactLabel(shortSummary: string): string {
   return numberOnly.charAt(0).toUpperCase() + numberOnly.slice(1);
 }
 
-// BE sends description/slug per impact & contribution only on records created
-// after 2026-07-17; older records fall back to the derived label.
+// BE sends description/slug per impact only on some write paths — the
+// volunteer-hours recalculation (BE 2026-08-08) sets slug but not
+// description; older records may have neither and fall back to the
+// derived label.
 export function getImpactTileLabel(item: {
-  siUnit?: string;
-  impactType?: string;
-  impactSummary?: {
-    contribution: { unitOfMeasure: string; description?: string };
-    impact: {
-      unitOfMeasure?: string;
-      shortSummary?: string;
-      summary?: string;
-      description?: string;
-    };
+  impact?: {
+    shortSummary?: string;
+    summary?: string;
+    description?: string;
+    slug?: string;
   } | null;
 }): string {
-  const contributionOnly = isContributionOnlyImpact(item);
-  const source = contributionOnly ? item.impactSummary?.contribution : item.impactSummary?.impact;
-  if (source?.description) return source.description;
-  return contributionOnly
-    ? (item.impactSummary?.contribution.unitOfMeasure ?? "")
-    : deriveImpactLabel(
-        item.impactSummary?.impact.shortSummary ?? item.impactSummary?.impact.summary ?? ""
-      );
+  if (item.impact?.description) return item.impact.description;
+  if (item.impact?.slug) return item.impact.slug;
+  return deriveImpactLabel(item.impact?.shortSummary ?? item.impact?.summary ?? "");
 }
 
 export function formatImpactDisplayValue(displayName: string): string {
@@ -89,6 +33,21 @@ export function formatImpactDisplayValue(displayName: string): string {
       return rounded % 1 === 0 ? String(Math.round(rounded)) : String(rounded);
     })
     .replace(/\bIncidents\b/, "incidents");
+}
+
+// displayName is `omitzero` on the BE Measurement struct — some write paths
+// (e.g. the volunteer-hours recalculation, BE 2026-08-08) never set it, only
+// value/unitOfMeasure/summary. Fall back to building "{value} {unit}" so the
+// tile isn't silently blank.
+export function formatImpactMetricValue(metric?: {
+  value?: number;
+  unitOfMeasure?: string;
+  displayName?: string;
+} | null): string {
+  const raw =
+    metric?.displayName ??
+    (metric?.value != null ? `${metric.value} ${metric.unitOfMeasure ?? ""}`.trim() : "");
+  return formatImpactDisplayValue(raw);
 }
 
 export function calcChallengeProgress(challenge: {

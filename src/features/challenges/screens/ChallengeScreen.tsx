@@ -19,8 +19,7 @@ import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
 import {
   calcChallengeProgress,
   getImpactTileLabel,
-  formatImpactDisplayValue,
-  isContributionOnlyImpact,
+  formatImpactMetricValue,
 } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, ChevronLeft, ChevronRight, MapPin, Pencil } from "lucide-react";
@@ -225,7 +224,6 @@ function HomeTab({
           </p>
           <div className="grid grid-cols-2 border-t border-[#e6e6e6]">
             {(challenge.impactRecords ?? []).map((record, i) => {
-              const contributionOnly = isContributionOnlyImpact(record);
               return (
                 <div
                   key={record.impactRecordId}
@@ -235,16 +233,10 @@ function HomeTab({
                     {getImpactTileLabel(record)}
                   </p>
                   <p className="text-2xl font-semibold text-[#333]">
-                    {formatImpactDisplayValue(
-                      contributionOnly
-                        ? record.impactSummary.contribution.displayName
-                        : record.impactSummary.impact.displayName,
-                    )}
+                    {formatImpactMetricValue(record.impact)}
                   </p>
                   <p className="text-[11px] text-text-muted">
-                    {formatImpactDisplayValue(
-                      record.impactSummary.contribution.displayName,
-                    )}{" "}
+                    {formatImpactMetricValue(record.contribution)}{" "}
                     {t("contributed")}
                   </p>
                 </div>

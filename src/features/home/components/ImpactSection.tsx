@@ -2,8 +2,9 @@
 
 import Skeleton from "@/components/ui/Skeleton";
 import Text from "@/components/ui/Text";
-import type { ImpactMatrixItem, ThingsMatrixItem } from "@/lib/hooks/metrics";
-import { formatImpactDisplayValue, getImpactTileLabel, isContributionOnlyImpact } from "@/lib/utils";
+import type { ThingsMatrixItem } from "@/lib/hooks/metrics";
+import type { ApiImpactRecord } from "@/lib/types/circles";
+import { formatImpactMetricValue, getImpactTileLabel } from "@/lib/utils";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -15,23 +16,20 @@ type PersonalStat = {
 type Props = {
   badgeStats: PersonalStat[];
   activityStats: PersonalStat[];
-  impactMatrix?: ImpactMatrixItem[];
+  impactMatrix?: ApiImpactRecord[];
   thingsMatrix?: ThingsMatrixItem[];
   mode?: "my" | "global";
   isLoading?: boolean;
 };
 
-function ImpactGrid({ items }: { items: ImpactMatrixItem[] }) {
+function ImpactGrid({ items }: { items: ApiImpactRecord[] }) {
   return (
     <div className="grid grid-cols-3 gap-x-2 gap-y-5 px-5 py-5">
       {items.map((item) => {
-        const contributionOnly = isContributionOnlyImpact(item);
         const label = getImpactTileLabel(item);
-        const value = contributionOnly
-          ? formatImpactDisplayValue(item.impactSummary?.contribution.displayName ?? "")
-          : formatImpactDisplayValue(item.impactSummary?.impact.displayName ?? "");
+        const value = formatImpactMetricValue(item.impact);
         return (
-          <div key={item.id} className="flex flex-col items-center">
+          <div key={item.impactRecordId} className="flex flex-col items-center">
             <Text variant="caption" className="text-text-secondary leading-tight text-center text-balance">
               {label}
             </Text>
