@@ -13,7 +13,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { PROFILE_CONFIG } from "@/lib/config";
 import type { ApiCircle, ApiImpactRecord } from "@/lib/types/circles";
 import type { ContributionMarker } from "@/lib/types/auth";
-import { formatImpactMetricValue } from "@/lib/utils";
+import { formatImpactMetricValue, getImpactTileLabel } from "@/lib/utils";
 import {
   Calendar,
   CheckCircle,
@@ -390,11 +390,17 @@ export default function ProfilePage() {
             const isOpen = expandedImpact === i;
             return (
               <div key={ur.impactRecordId ?? i}>
+                <Text
+                  variant="caption"
+                  className="text-text-secondary pt-6 px-1 block"
+                >
+                  {getImpactTileLabel(ur)}
+                </Text>
                 <button
                   onClick={() => setExpandedImpact(isOpen ? null : i)}
                   className="flex items-end w-full border-b border-progress-track"
                 >
-                  <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
+                  <div className="flex-1 flex flex-col gap-2 pt-1 pb-5 px-1 text-left">
                     <Text variant="caption" className="text-text-muted">
                       {t("myUnit", { unit })}
                     </Text>
@@ -402,7 +408,7 @@ export default function ProfilePage() {
                       {formatImpactMetricValue(ur.impact)}
                     </p>
                   </div>
-                  <div className="flex-1 flex flex-col gap-2 pt-6 pb-5 px-1 text-left">
+                  <div className="flex-1 flex flex-col gap-2 pt-1 pb-5 px-1 text-left">
                     <Text variant="caption" className="text-text-muted">
                       {t("circleUnit", { unit })}
                     </Text>

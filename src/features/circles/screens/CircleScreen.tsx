@@ -349,9 +349,6 @@ export default function CircleScreen({ circleId }: Props) {
                     <p className="text-2xl font-semibold text-[#333]">
                       {formatImpactMetricValue(record.impact)}
                     </p>
-                    <p className="text-[11px] text-text-muted">
-                      {formatImpactMetricValue(record.contribution)} {t("contributed")}
-                    </p>
                   </div>
                 );
               })}
