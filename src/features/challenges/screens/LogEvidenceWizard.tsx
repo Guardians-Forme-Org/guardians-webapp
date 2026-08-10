@@ -129,6 +129,17 @@ function valueUnitOf(v: { unit?: string; unitOfMeasure?: string }): string | und
   return v.unit ?? v.unitOfMeasure;
 }
 
+// Same shape as isValueUnit but for a field already known to be NUMBER/
+// NUMERIC — unit-less counts (e.g. CH-011 species.quantity: {"value": 1},
+// no unit/unitOfMeasure key at all) still need stringifying, so the unit key
+// can't be required here the way isValueUnit requires it to disambiguate
+// from other object-shaped fields (LOCATION, mediaFile, …).
+function isNumericFieldValue(
+  v: unknown,
+): v is { value: number; unit?: string; unitOfMeasure?: string } {
+  return v !== null && typeof v === "object" && !Array.isArray(v) && "value" in v;
+}
+
 // Reverses shapeEntry's per-subfield shaping (buildDynamicPayload) for one
 // nested GROUP/ITEM entry — recurses so a nested leaf (e.g. CH-011's
 // species.quantity) comes back as a form-usable string+unit instead of the
@@ -154,9 +165,10 @@ function unshapeSubEntry(
       entry[sub.name] = nestedArr.map((n) => unshapeSubEntry(sub.fields ?? [], n));
       continue;
     }
-    if ((sub.type === "NUMBER" || sub.type === "NUMERIC") && isValueUnit(v)) {
+    if ((sub.type === "NUMBER" || sub.type === "NUMERIC") && isNumericFieldValue(v)) {
       entry[sub.name] = String(v.value);
-      entry[`${sub.name}__unit`] = valueUnitOf(v);
+      const unit = valueUnitOf(v);
+      if (unit) entry[`${sub.name}__unit`] = unit;
       continue;
     }
     entry[sub.name] = v;
@@ -373,9 +385,11 @@ function activityToDynamic(
             out[k] = nestedArr.map((n) => unshapeSubEntry(subDef.fields ?? [], n));
             continue;
           }
-          if (isValueUnit(v)) {
-            out[k] = String(v.value);
-            out[`${k}__unit`] = valueUnitOf(v);
+          const isNumberSubDef = subDef?.type === "NUMBER" || subDef?.type === "NUMERIC";
+          if (isValueUnit(v) || (isNumberSubDef && isNumericFieldValue(v))) {
+            out[k] = String((v as { value: number }).value);
+            const unit = valueUnitOf(v as { unit?: string; unitOfMeasure?: string });
+            if (unit) out[`${k}__unit`] = unit;
           } else {
             out[k] = v;
           }
@@ -497,9 +511,10 @@ function activityToDynamic(
             if (url) entry[sub.name] = url;
             continue;
           }
-          if (isNumberSub && isValueUnit(raw)) {
+          if (isNumberSub && isNumericFieldValue(raw)) {
             entry[sub.name] = String(raw.value);
-            entry[`${sub.name}__unit`] = valueUnitOf(raw);
+            const unit = valueUnitOf(raw);
+            if (unit) entry[`${sub.name}__unit`] = unit;
             continue;
           }
           if (sub.type === "GROUP" || sub.type === "ITEM") {
@@ -1910,10 +1925,25 @@ export default function LogEvidenceWizard({
               continue;
             }
             if (sub.type === "GROUP" || sub.type === "ITEM") {
+              // Each nested entry (e.g. a species inside an anchor point)
+              // gets its own id, not the parent's — otherwise its photo is
+              // tagged with the same mediaFileReferenceId as the parent
+              // entry and its location, the nested entry has no id of its
+              // own to be matched against, and the photo is unrecoverable
+              // once the BE round-trips it (silently dropped or misattributed
+              // to the parent).
               const nested = (Array.isArray(sv) ? (sv as Record<string, unknown>[]) : [])
-                .map((nestedEntry) =>
-                  shapeEntry(sub.fields ?? [], nestedEntry, mediaFileReferenceId),
-                )
+                .map((nestedEntry) => {
+                  const nestedMediaFileReferenceId = crypto.randomUUID();
+                  const nestedShaped = shapeEntry(
+                    sub.fields ?? [],
+                    nestedEntry,
+                    nestedMediaFileReferenceId,
+                  );
+                  if (Object.keys(nestedShaped).length)
+                    nestedShaped.mediaFileReferenceId = nestedMediaFileReferenceId;
+                  return nestedShaped;
+                })
                 .filter((nestedEntry) => Object.keys(nestedEntry).length > 0);
               if (nested.length) out[sub.name] = nested;
               continue;
