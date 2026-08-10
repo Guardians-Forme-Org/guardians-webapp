@@ -367,16 +367,18 @@ export default function CircleScreen({ circleId }: Props) {
         {/* Description */}
         <div className="px-10 py-7.5 border-b border-progress-track">
           <p
-            className={`text-base text-text-primary leading-relaxed ${!expanded ? "line-clamp-4" : ""}`}
+            className={`text-base text-text-primary leading-relaxed ${!expanded && (circle.description?.length ?? 0) > 240 ? "line-clamp-4" : ""}`}
           >
             {circle.description}
           </p>
-          <button
-            onClick={() => setExpanded((v) => !v)}
-            className="text-base text-gotf-blue mt-2"
-          >
-            {expanded ? t("showLess") : t("showMore")}
-          </button>
+          {(circle.description?.length ?? 0) > 240 && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="text-base text-gotf-blue mt-2"
+            >
+              {expanded ? t("showLess") : t("showMore")}
+            </button>
+          )}
         </div>
 
         {/* Circle Lead */}

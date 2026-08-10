@@ -72,16 +72,18 @@ function HomeTab({
       {/* Description */}
       <div className="px-10 py-5">
         <p
-          className={`text-base text-[#666] leading-relaxed ${!expanded ? "line-clamp-3" : ""}`}
+          className={`text-base text-[#666] leading-relaxed ${!expanded && (challenge.description?.length ?? 0) > 180 ? "line-clamp-3" : ""}`}
         >
           {challenge.description}
         </p>
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="text-base text-gotf-blue mt-2"
-        >
-          {expanded ? t("showLess") : t("showMore")}
-        </button>
+        {(challenge.description?.length ?? 0) > 180 && (
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="text-base text-gotf-blue mt-2"
+          >
+            {expanded ? t("showLess") : t("showMore")}
+          </button>
+        )}
       </div>
 
       <div className="border-t border-progress-track" />

@@ -185,16 +185,18 @@ export default function StepScreen({ challengeId, stepId }: Props) {
               <div className="border-t border-progress-track mt-5" />
               <div className="px-10 py-7.5">
                 <p
-                  className={`text-base text-[#1a1a1a] leading-relaxed ${!expanded ? "line-clamp-3" : ""}`}
+                  className={`text-base text-[#1a1a1a] leading-relaxed ${!expanded && step.description.length > 180 ? "line-clamp-3" : ""}`}
                 >
                   {step.description}
                 </p>
-                <button
-                  onClick={() => setExpanded((v) => !v)}
-                  className="text-base text-gotf-blue mt-4"
-                >
-                  {expanded ? t("showLess") : t("showMore")}
-                </button>
+                {step.description.length > 180 && (
+                  <button
+                    onClick={() => setExpanded((v) => !v)}
+                    className="text-base text-gotf-blue mt-4"
+                  >
+                    {expanded ? t("showLess") : t("showMore")}
+                  </button>
+                )}
               </div>
             </>
           )}
