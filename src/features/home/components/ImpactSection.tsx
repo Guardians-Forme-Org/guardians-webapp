@@ -30,7 +30,10 @@ function ImpactGrid({ items }: { items: ApiImpactRecord[] }) {
         const value = formatImpactMetricValue(item.impact);
         return (
           <div key={item.impactRecordId} className="flex flex-col items-center">
-            <Text variant="caption" className="text-text-secondary leading-tight text-center text-balance">
+            <Text
+              variant="caption"
+              className="text-text-secondary leading-tight text-center text-balance min-h-8 flex items-end justify-center"
+            >
               {label}
             </Text>
             <p className="text-[22px] font-semibold text-text-primary leading-tight mt-0.5">
@@ -76,7 +79,10 @@ function PersonalStatRow({ stats }: { stats: PersonalStat[] }) {
     <div className="flex items-center gap-10 px-5 py-5">
       {stats.map((stat) => (
         <div key={stat.label} className="flex flex-col items-center w-full">
-          <Text variant="caption" className="text-text-secondary">
+          <Text
+            variant="caption"
+            className="text-text-secondary text-center text-balance min-h-8 flex items-end justify-center"
+          >
             {stat.label}
           </Text>
           <p className="text-[25px] font-semibold text-text-primary leading-tight mt-0.5">
