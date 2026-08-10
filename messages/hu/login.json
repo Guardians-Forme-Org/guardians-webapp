@@ -16,6 +16,7 @@
   "termsOfService": "Szolgáltatási feltételeket",
   "privacyPolicy": "Adatvédelmi irányelveket",
   "validationError": "Kérjük, add meg a hitelesítő adataidat és a jelszavadat.",
+  "genericError": "Valami hiba történt. Kérjük, próbáld újra.",
   "forgotPassword": "Elfelejtett jelszó?",
   "forgotPasswordTitle1": "Elfelejtett",
   "forgotPasswordTitle2": "jelszó?",

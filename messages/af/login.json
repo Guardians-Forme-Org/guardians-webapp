@@ -16,6 +16,7 @@
   "termsOfService": "Diensvoorwaardes",
   "privacyPolicy": "Privaatheidsbeleid",
   "validationError": "Voer asseblief jou aanmeldbesonderhede en wagwoord in.",
+  "genericError": "Iets het verkeerd gegaan. Probeer asseblief weer.",
   "forgotPassword": "Wagwoord vergeet?",
   "forgotPasswordTitle1": "Wagwoord",
   "forgotPasswordTitle2": "vergeet?",

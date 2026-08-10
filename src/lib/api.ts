@@ -151,6 +151,15 @@ export async function apiFetch<T>(
   return json as T;
 }
 
+// True when a thrown request error's message is our own `API error {status}`
+// placeholder (set above when the BE's response body had no error/message
+// field) rather than something the BE actually wrote for a human to read —
+// screens should swap this for a translated generic message instead of
+// showing the raw status code to the user.
+export function isGenericApiError(message: string): boolean {
+  return /^API error \d+$/.test(message);
+}
+
 // ── Convenience methods ───────────────────────────────────────────────────────
 
 export const api = {

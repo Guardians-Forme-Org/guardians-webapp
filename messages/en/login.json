@@ -16,6 +16,7 @@
   "termsOfService": "Terms of Service",
   "privacyPolicy": "Privacy Policy",
   "validationError": "Please enter your credentials and password.",
+  "genericError": "Something went wrong. Please try again.",
   "forgotPassword": "Forgot password?",
   "forgotPasswordTitle1": "Forgot your",
   "forgotPasswordTitle2": "password?",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useLogin } from "@/lib/hooks/auth";
+import { isGenericApiError } from "@/lib/api";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Eye, EyeOff, X } from "lucide-react";
@@ -19,8 +20,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  // A bare "API error {status}" means the BE didn't send anything a user
+  // could actually read (e.g. an unauthorized login returning a raw 500) —
+  // show a friendly generic message instead of leaking the status code.
   const error =
-    validationError ?? (apiError instanceof Error ? apiError.message : null);
+    validationError ??
+    (apiError instanceof Error
+      ? isGenericApiError(apiError.message)
+        ? t("genericError")
+        : apiError.message
+      : null);
 
   const handleLogin = () => {
     if (!credential.trim() || !password.trim()) {

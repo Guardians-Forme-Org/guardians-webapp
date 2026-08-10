@@ -16,6 +16,7 @@
   "termsOfService": "Conditions d'utilisation",
   "privacyPolicy": "Politique de confidentialité",
   "validationError": "Veuillez entrer vos identifiants et votre mot de passe.",
+  "genericError": "Une erreur s'est produite. Veuillez réessayer.",
   "forgotPassword": "Mot de passe oublié ?",
   "forgotPasswordTitle1": "Mot de passe",
   "forgotPasswordTitle2": "oublié ?",
