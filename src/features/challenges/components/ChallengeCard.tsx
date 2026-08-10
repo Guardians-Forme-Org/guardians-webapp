@@ -43,7 +43,7 @@ export default function ChallengeCard({ item }: Props) {
   return (
     <Link
       href={`/challenges/${item.challengeId}`}
-      className="flex h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white"
+      className="flex min-h-40 rounded-[16px] border border-progress-track overflow-hidden bg-white"
     >
       {/* Left image strip */}
       <div className="w-[120px] shrink-0 bg-surface flex items-center justify-center overflow-hidden">
@@ -55,17 +55,15 @@ export default function ChallengeCard({ item }: Props) {
       </div>
 
       {/* Right content */}
-      <div className="flex-1 relative overflow-hidden pt-[19px] px-4 pr-8 flex flex-col">
+      <div className="flex-1 relative pt-[19px] px-4 pr-8 flex flex-col">
         <ArrowRight size={20} className="absolute right-3 top-4 text-text-muted" />
 
-        <p className="text-[18px] font-bold text-text-subheading leading-tight">
-          {item.name}{" "}
-          {item.challengeCode && (
-            <span className="text-[12px] font-medium text-text-muted align-middle whitespace-nowrap">
-              {item.challengeCode}
-            </span>
-          )}
+        <p className="text-[18px] font-bold text-text-subheading leading-tight line-clamp-2">
+          {item.name}
         </p>
+        {item.challengeCode && (
+          <p className="text-[12px] font-medium text-text-muted mt-0.5">{item.challengeCode}</p>
+        )}
         <p className="text-[14px] text-text-subheading mt-1">{t("since", { date: since })}</p>
         {circle?.name && (
           <p className="text-[14px] text-text-muted">{t("by")} {circle.name}</p>
