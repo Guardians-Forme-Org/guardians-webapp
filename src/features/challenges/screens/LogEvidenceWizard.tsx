@@ -2109,15 +2109,9 @@ export default function LogEvidenceWizard({
         return { payload, mediaFile, mediaFiles, transport: "registration" };
       }
 
-      // Every other REGISTRATION step also submits via /challengeSetup —
-      // CH-004/CH-015 are the sole exception, since they have their own
-      // dedicated /submit{code} handler rather than going through the
-      // shared /challengeSetup route (see MULTIPART_CODES note below —
-      // both are multipart, just not via /challengeSetup)
-      if (
-        normalizeFieldName(stepMeta.stepType) === "REGISTRATION" &&
-        !["CH-004", "CH-015"].includes(challenge.challengeCode)
-      ) {
+      // Every other REGISTRATION step also submits via /challengeSetup,
+      // including CH-004/CH-015.
+      if (normalizeFieldName(stepMeta.stepType) === "REGISTRATION") {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { payload, mediaFile, mediaFiles } = buildDynamicPayload() as any;
         return { payload, mediaFile, mediaFiles, transport: "registration" };
