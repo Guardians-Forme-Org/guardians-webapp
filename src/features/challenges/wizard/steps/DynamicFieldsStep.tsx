@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { AlertTriangle, Camera, ChevronDown, X } from "lucide-react";
+import { Camera, ChevronDown, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
 import { compressImage, MAX_UPLOAD_BYTES } from "@/lib/compressImage";
@@ -74,6 +74,7 @@ function ImageField({
   onSelect,
   onClear,
   compact,
+  error,
 }: {
   field: ApiTemplateFormField;
   // string = already-uploaded media URL (editing an existing submission);
@@ -83,10 +84,15 @@ function ImageField({
   onSelect: (f: File) => void;
   onClear: () => void;
   compact?: boolean;
+  // Required-but-empty flag from the step's tap-to-reveal validation —
+  // superseded by sizeError below when both would apply, since a rejected
+  // file is the more actionable problem to show first.
+  error?: string;
 }) {
   const t = useTranslations("challenges");
   const ref = useRef<HTMLInputElement>(null);
   const [sizeError, setSizeError] = useState<string | null>(null);
+  const displayError = sizeError ?? error;
 
   const previewSrc =
     typeof value === "string"
@@ -98,7 +104,7 @@ function ImageField({
           : null;
 
   return (
-    <FieldGroup label={field.label} required={field.required} compact={compact}>
+    <FieldGroup label={field.label} required={field.required} compact={compact} error={displayError ?? undefined}>
       <input
         ref={ref}
         type="file"
@@ -147,12 +153,6 @@ function ImageField({
           <p className="text-[14px] font-semibold text-text-primary">{t("tapToUploadFiles")}</p>
         </button>
       )}
-      {sizeError && (
-        <div className="flex items-center gap-1 text-[#a32d2d] mt-1.5">
-          <AlertTriangle size={13} className="shrink-0" />
-          <span className="text-xs">{sizeError}</span>
-        </div>
-      )}
     </FieldGroup>
   );
 }
@@ -169,6 +169,7 @@ export function FieldControl({
   disabled = false,
   disabledHint,
   compact,
+  error,
 }: {
   field: ApiTemplateFormField;
   value: unknown;
@@ -179,6 +180,8 @@ export function FieldControl({
   disabledHint?: string;
   // Smaller field labels — for rendering inside a card (setup-update)
   compact?: boolean;
+  // Required-but-empty flag, set by the step's tap-to-reveal validation
+  error?: string;
 }) {
   const t = useTranslations("challenges");
   const activeUnit = unitValue ?? field.unitOfMeasureOptions?.[0]?.value;
@@ -198,7 +201,7 @@ export function FieldControl({
   // ── SELECT ──────────────────────────────────────────────────────────
   if (field.type === "SELECT") {
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact}>
+      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
         <div className="flex flex-col gap-2">
           {(field.options ?? []).length === 0 ? (
             <p className="text-sm text-text-muted py-2 px-1">{t("noOptionsAvailable")}</p>
@@ -227,7 +230,7 @@ export function FieldControl({
   if (field.type === "MULTISELECT") {
     const selected = (value as string[]) ?? [];
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact}>
+      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
         <div className="flex flex-col gap-2">
           {(field.options ?? []).map((opt) => {
             const isChecked = selected.includes(opt.value);
@@ -307,7 +310,7 @@ export function FieldControl({
           ? [value as string]
           : [""];
       return (
-        <FieldGroup label={field.label} required={field.required} compact={compact}>
+        <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
           <div className="flex flex-col gap-2">
             {entries.map((entry, i) => (
               <div key={i} className="flex items-center gap-2">
@@ -344,7 +347,7 @@ export function FieldControl({
     }
 
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact}>
+      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
         {numberInput((value as string) ?? "", (v) => onChange(v))}
         {disabled && disabledHint && (
           <p className="text-xs text-text-muted mt-1.5">{disabledHint}</p>
@@ -356,7 +359,7 @@ export function FieldControl({
   // ── DATE ────────────────────────────────────────────────────────────
   if (field.type === "DATE") {
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact}>
+      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
         <div className="w-full overflow-hidden">
           <input
             type="date"
@@ -372,7 +375,7 @@ export function FieldControl({
   // ── TIME ────────────────────────────────────────────────────────────
   if (field.type === "TIME") {
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact}>
+      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
         <div className="w-full overflow-hidden">
           <input
             type="time"
@@ -388,7 +391,7 @@ export function FieldControl({
   // ── TEXTAREA ────────────────────────────────────────────────────────
   if (field.type === "TEXTAREA" || field.type === "LIST") {
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact}>
+      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
         <textarea
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
@@ -404,7 +407,7 @@ export function FieldControl({
   if (field.type === "LOCATION") {
     const loc = value as LocationResult | null | undefined;
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact}>
+      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
         <LocationPicker
           defaultValue={loc?.formattedAddress}
           onSelect={(l) => onChange(l)}
@@ -425,6 +428,7 @@ export function FieldControl({
         onSelect={(f) => onChange(f)}
         onClear={() => onChange(null)}
         compact={compact}
+        error={error}
       />
     );
   }
@@ -432,7 +436,7 @@ export function FieldControl({
   // ── LOCATION_LIST (not yet supported) ────────────────────────────────
   if (field.type === "LOCATION_LIST") {
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact}>
+      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
         <p className="text-sm text-text-muted py-2 px-1">{t("locationListComingSoon")}</p>
       </FieldGroup>
     );
@@ -440,7 +444,7 @@ export function FieldControl({
 
   // ── TEXT (default) ──────────────────────────────────────────────────
   return (
-    <FieldGroup label={field.label} required={field.required} compact={compact}>
+    <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
       <input
         type="text"
         value={(value as string) ?? ""}
@@ -458,11 +462,17 @@ function GroupField({
   value,
   update,
   compact,
+  error,
 }: {
   field: ApiTemplateFormField;
   value: unknown;
   update: (name: string, value: unknown) => void;
   compact?: boolean;
+  // Required-but-incomplete flag from the step's tap-to-reveal validation —
+  // flagged on the group as a whole (no entry, or an entry missing one of
+  // its own required subfields) rather than diving into which subfield of
+  // which entry, since entries are already expanded and browsable.
+  error?: string;
 }) {
   const t = useTranslations("challenges");
   // Entries loaded with existing data (viewing/editing a submitted activity)
@@ -526,7 +536,7 @@ function GroupField({
   };
 
   return (
-    <FieldGroup label={field.label} required={field.required} compact={compact}>
+    <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
       <div className="flex flex-col gap-3">
         {entries.map((entry, i) => {
           const isExpanded = expanded.has(i);
@@ -601,14 +611,33 @@ function GroupField({
 }
 
 export default function DynamicFieldsStep({ fields, values, update, onNext, nextLabel, disabledFields, disabledHint, resumeHint }: Props) {
+  const t = useTranslations("challenges");
+  // Continue stays clickable rather than disabled — tapping it while a
+  // required field is still empty reveals exactly which one(s) inline, and
+  // scrolls to the first, instead of leaving the button silently dead with
+  // no way to tell why. Once revealed, errors track live so a field clears
+  // itself the moment the user fixes it, without needing another tap.
+  const [showErrors, setShowErrors] = useState(false);
+  const fieldRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
   // Fields greyed out by a mutually exclusive field don't block Next —
   // they're not the ones the user is meant to fill in right now.
-  const missingRequired = fields.some(
+  const missingFields = fields.filter(
     (field) =>
       field.required &&
       !(disabledFields?.has(field.name) ?? false) &&
       !isFieldFilled(field, values[field.name]),
   );
+  const missingNames = new Set(missingFields.map((f) => f.name));
+
+  const handleNext = () => {
+    if (missingFields.length) {
+      setShowErrors(true);
+      fieldRefs.current[missingFields[0].name]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    onNext();
+  };
 
   return (
     <>
@@ -619,26 +648,29 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
           </p>
         )}
         {fields.map((field) => {
-          if (field.type === "GROUP" || field.type === "ITEM") {
-            return <GroupField key={field.name} field={field} value={values[field.name]} update={update} />;
-          }
-
+          const error = showErrors && missingNames.has(field.name) ? t("required") : undefined;
           return (
-            <FieldControl
-              key={field.name}
-              field={field}
-              value={values[field.name]}
-              unitValue={values[`${field.name}__unit`] as string | undefined}
-              onChange={(v) => update(field.name, v)}
-              onUnitChange={(u) => update(`${field.name}__unit`, u)}
-              disabled={disabledFields?.has(field.name) ?? false}
-              disabledHint={disabledHint}
-            />
+            <div key={field.name} ref={(el) => { fieldRefs.current[field.name] = el; }}>
+              {field.type === "GROUP" || field.type === "ITEM" ? (
+                <GroupField field={field} value={values[field.name]} update={update} error={error} />
+              ) : (
+                <FieldControl
+                  field={field}
+                  value={values[field.name]}
+                  unitValue={values[`${field.name}__unit`] as string | undefined}
+                  onChange={(v) => update(field.name, v)}
+                  onUnitChange={(u) => update(`${field.name}__unit`, u)}
+                  disabled={disabledFields?.has(field.name) ?? false}
+                  disabledHint={disabledHint}
+                  error={error}
+                />
+              )}
+            </div>
           );
         })}
       </div>
 
-      <SaveButton label={nextLabel} onClick={onNext} disabled={missingRequired} />
+      <SaveButton label={nextLabel} onClick={handleNext} />
     </>
   );
 }

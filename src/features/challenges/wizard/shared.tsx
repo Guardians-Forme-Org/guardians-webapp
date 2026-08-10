@@ -71,6 +71,7 @@ export function FieldGroup({
   hint,
   required,
   compact,
+  error,
   children,
 }: {
   label: string;
@@ -79,6 +80,11 @@ export function FieldGroup({
   // Smaller label for fields rendered inside a card (e.g. the per-point
   // fields on the setup-update screen)
   compact?: boolean;
+  // Set once the user has tried to continue with this field still empty —
+  // rings the field red and appends the same caption/icon TextInput already
+  // uses for its own error state, so every field type gets one consistently
+  // without each hand-rolled input needing its own error styling.
+  error?: string;
   children: React.ReactNode;
 }) {
   const t = useTranslations("challenges");
@@ -98,7 +104,13 @@ export function FieldGroup({
         )}
       </div>
       {hint && <p className="text-xs text-[#8f8f8c]">{hint}</p>}
-      {children}
+      <div className={error ? "rounded-[10px] ring-2 ring-[#e24b4a]/70" : ""}>{children}</div>
+      {error && (
+        <div className="flex items-center gap-1 text-[#a32d2d]">
+          <AlertTriangle size={13} />
+          <span className="text-xs">{error}</span>
+        </div>
+      )}
     </div>
   );
 }
