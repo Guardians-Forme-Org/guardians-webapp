@@ -55,8 +55,8 @@ export default function ChallengeCard({ item }: Props) {
       </div>
 
       {/* Right content */}
-      <div className="flex-1 relative pt-[19px] px-4 pr-8 flex flex-col">
-        <ArrowRight size={20} className="absolute right-3 top-4 text-text-muted" />
+      <div className="flex-1 relative pt-2.5 px-4 pr-8 flex flex-col">
+        <ArrowRight size={20} className="absolute right-3 top-3 text-text-muted" />
 
         <p className="text-[18px] font-bold text-text-subheading leading-tight line-clamp-2">
           {item.name}
