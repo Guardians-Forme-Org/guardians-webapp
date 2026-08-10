@@ -471,9 +471,9 @@ function activityToDynamic(
 
   // First uploaded media file → the IMAGE field (as a URL string). BE has
   // used both "mediaFiles" (array) and "mediaFile" (singular) — check both.
-  // data.mediaFiles can contain URL-less placeholders (extra photos the FE
-  // couldn't upload — see buildCH015Payload) ahead of the real one, so find
-  // the first entry that actually has a url rather than assuming index 0.
+  // Older submissions (pre CH-015 mediaFiles[refId] upload parity) can still
+  // contain URL-less placeholders ahead of the real one, so find the first
+  // entry that actually has a url rather than assuming index 0.
   const mediaFileSingle = data.mediaFile as
     | { url?: string }
     | { url?: string }[]
@@ -484,16 +484,18 @@ function activityToDynamic(
       : mediaFileSingle);
   if (firstMediaFile?.url) {
     // Prefer a top-level IMAGE field; older templates have one. CH-015's
-    // current template nests each photo inside a GROUP instead — fall back
-    // to the first GROUP with an IMAGE subfield so the photo shows *somewhere*
-    // (the BE only tracks one url per submission today, so which group it
-    // truly came from can't be recovered)
+    // current template nests each photo inside a GROUP/ITEM entry instead —
+    // fall back to the first one with an IMAGE subfield so the photo shows
+    // *somewhere* (the BE only tracks one url per submission today, so
+    // which entry it truly came from can't be recovered)
     const imgField = fields.find((f) => f.type === "IMAGE");
     if (imgField && result[imgField.name] === undefined) {
       result[imgField.name] = firstMediaFile.url;
     } else if (!imgField) {
       const groupWithImage = fields.find(
-        (f) => f.type === "GROUP" && f.fields?.some((s) => s.type === "IMAGE"),
+        (f) =>
+          (f.type === "GROUP" || f.type === "ITEM") &&
+          f.fields?.some((s) => s.type === "IMAGE"),
       );
       const imageSub = groupWithImage?.fields?.find((s) => s.type === "IMAGE");
       if (groupWithImage && imageSub) {
@@ -1134,11 +1136,16 @@ export default function LogEvidenceWizard({
     // subfield name so the two can still be told apart on view/edit.
     const unitToSiUnit: Record<string, string> = { "m²": "AREA", COUNT: "COUNT" };
     const rawFields: Record<string, unknown> = {};
-    // GROUP subfields of type IMAGE (CH-015 nests each group's photo inside
-    // it, rather than a single top-level IMAGE field) — collected here so
-    // the BE's single-file submission still gets one, and any extra isn't
-    // silently dropped
-    const groupMediaFiles: File[] = [];
+    // GROUP/ITEM subfields of type IMAGE (CH-015 nests each entry's photo
+    // inside it, rather than a single top-level IMAGE field) — collected
+    // here, each tagged with a fresh mediaFileReferenceId (same idiom as the
+    // generic builder's entries.map, see buildDynamicPayload), so every
+    // photo travels as its own multipart part instead of only the first
+    // surviving as the legacy mediaFile part. Note: the Go Measurement
+    // struct has no mediaFileReferenceId slot, so today the BE can't
+    // correlate a given entry's row back to its photo by that id — the id
+    // still rides along for whenever that lands.
+    const groupMediaFiles: { file: File; mediaFileReferenceId: string }[] = [];
     for (const field of sorted) {
       if (
         knownNames.has(field.name) ||
@@ -1146,7 +1153,7 @@ export default function LogEvidenceWizard({
         !hasValue(field.name)
       )
         continue;
-      if (field.type === "GROUP") {
+      if (field.type === "GROUP" || field.type === "ITEM") {
         const numberSubs = (field.fields ?? []).filter(
           (f) => f.type === "NUMBER" || f.type === "NUMERIC",
         );
@@ -1158,11 +1165,12 @@ export default function LogEvidenceWizard({
           : [];
         const measurements: Record<string, unknown>[] = [];
         for (const entry of rawEntries) {
+          const mediaFileReferenceId = crypto.randomUUID();
           const species = speciesSub ? entry[speciesSub.name] : undefined;
           for (const sub of field.fields ?? []) {
             if (sub.type === "IMAGE") {
               const sv = entry[sub.name];
-              if (sv instanceof File) groupMediaFiles.push(sv);
+              if (sv instanceof File) groupMediaFiles.push({ file: sv, mediaFileReferenceId });
               continue;
             }
             if (!numberSubs.includes(sub)) continue;
@@ -1200,19 +1208,21 @@ export default function LogEvidenceWizard({
       }
     }
 
-    // A top-level IMAGE field (older templates) or a GROUP-nested one
-    // (CH-015's current template) can supply the media file — the BE only
-    // accepts one per submission today, so send the first found that way;
-    // any extra is stashed under data.mediaFiles (no uploaded URL yet, but
-    // at least the filename/type isn't silently lost)
+    // A top-level IMAGE field (older templates) or a GROUP/ITEM-nested one
+    // (CH-015's current template) can supply the legacy single mediaFile
+    // part (still the only file the BE reads today); every uploaded file,
+    // including that same one, also travels in mediaFiles tagged by its own
+    // mediaFileReferenceId — mirrors buildDynamicPayload's assembly.
     const topLevelImageField = stepForm?.find((f) => f.type === "IMAGE");
-    const topLevelMediaFile = topLevelImageField
-      ? (dynamicValues[topLevelImageField.name] as File | undefined)
+    const topLevelImageValue = topLevelImageField
+      ? dynamicValues[topLevelImageField.name]
       : undefined;
-    const allMediaFiles = topLevelMediaFile
-      ? [topLevelMediaFile, ...groupMediaFiles]
+    const topLevelMediaFile =
+      topLevelImageValue instanceof File ? topLevelImageValue : undefined;
+    const mediaFile = topLevelMediaFile ?? groupMediaFiles[0]?.file;
+    const mediaFiles = topLevelMediaFile
+      ? [{ file: topLevelMediaFile, mediaFileReferenceId: crypto.randomUUID() }, ...groupMediaFiles]
       : groupMediaFiles;
-    const [mediaFile, ...extraMediaFiles] = allMediaFiles;
 
     const volunteerHours = {
       value: vhValue,
@@ -1222,14 +1232,6 @@ export default function LogEvidenceWizard({
     const data = {
       ...rawFields,
       ...(measurement ? { measurement } : {}),
-      ...(extraMediaFiles.length
-        ? {
-            mediaFiles: extraMediaFiles.map((f) => ({
-              type: f.type,
-              description: f.name,
-            })),
-          }
-        : {}),
       description,
     };
     return {
@@ -1237,7 +1239,9 @@ export default function LogEvidenceWizard({
         stepId: stepMeta.stepId,
         activity: stepMeta.activity,
         stepNumber: stepMeta.stepNumber,
+        stepType: stepMeta.stepType,
         challengeCode: challenge.challengeCode,
+        challengeId: challenge.challengeId,
         circleId: challenge.circleId,
         thingId: challenge.challengeId,
         thingUUID: challenge.id,
@@ -1245,10 +1249,12 @@ export default function LogEvidenceWizard({
         approvalRequired: false,
         volunteerHours,
         contributors,
-        data,
+        // data: already fully inside dataEnvelope — uncomment to send both
+        // data,
         dataEnvelope: { ...data, volunteerHours, contributors },
       },
       mediaFile,
+      mediaFiles,
     };
   };
 
@@ -1625,10 +1631,15 @@ export default function LogEvidenceWizard({
       siUnit: "TIME",
     };
 
+    // Generated fresh per submission (not carried over from the registered
+    // point) so this reading's own photo, if any, can be correlated to it —
+    // same idiom as the registration builder's per-entry stamping.
+    const mediaFileReferenceId = crypto.randomUUID();
     const anchorPoint: Record<string, unknown> = {
       name: point.name,
       ...(point.location ? { location: point.location } : {}),
       higherRiskFlag: entry?.higherRiskFlag ?? point.higherRiskFlag ?? false,
+      mediaFileReferenceId,
     };
 
     // Inline per-point fields (CH-001/CH-008A wrapper shape) live in
@@ -1706,6 +1717,9 @@ export default function LogEvidenceWizard({
       (imageField
         ? (dynamicValues[imageField.name] as File | undefined)
         : undefined) ?? detailImage;
+    // Tagged with the same id stamped onto anchorPoint above, so this
+    // reading's photo can be correlated back to the point it belongs to
+    const mediaFiles = mediaFile ? [{ file: mediaFile, mediaFileReferenceId }] : [];
 
     const contributors = Array.isArray(dynamicValues[contribFieldName])
       ? (dynamicValues[contribFieldName] as string[])
@@ -1747,7 +1761,7 @@ export default function LogEvidenceWizard({
       dataEnvelope: { ...data, contributors },
     };
 
-    return { payload, mediaFile };
+    return { payload, mediaFile, mediaFiles };
   };
 
   const buildDynamicPayload = () => {
@@ -1873,19 +1887,16 @@ export default function LogEvidenceWizard({
         if (entries.length) {
           if (
             normalizeFieldName(field.name) === "ANCHORPOINT" &&
-            isRegistrationStep &&
-            challenge.challengeCode !== "CH-004"
+            isRegistrationStep
           ) {
             // On registration, every anchor-point challenge sends
             // Data.AnchorPoints as an array, even for a single registered
-            // point — matching buildAnchorSetupPayload's shape. CH-004 is
-            // the sole legacy exception: its dedicated /submitCH004 handler
-            // predates that convention and still expects one struct.
+            // point — matching buildAnchorSetupPayload's shape.
             rawFields["anchorPoints"] = entries;
           } else if (normalizeFieldName(field.name) === "ANCHORPOINT") {
             // Later steps select one already-registered point and log a
             // single reading against it — keep the original single-struct
-            // shape (also CH-004's shape on every step).
+            // shape.
             rawFields[field.name] = entries[0];
           } else {
             rawFields[field.name] = entries;
@@ -2114,8 +2125,8 @@ export default function LogEvidenceWizard({
 
       // Setup-update steps resend the setup data shape as multipart
       if (setupUpdateStep) {
-        const { payload, mediaFile } = buildSetupUpdatePayload(setupUpdateStep);
-        return { payload, mediaFile, transport: "evidence-multipart" };
+        const { payload, mediaFile, mediaFiles } = buildSetupUpdatePayload(setupUpdateStep);
+        return { payload, mediaFile, mediaFiles, transport: "evidence-multipart" };
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
