@@ -108,8 +108,16 @@ export default function StepScreen({ challengeId, stepId }: Props) {
             </div>
           </div>
 
+          {/* Description */}
+          <div className="border-t border-progress-track mt-5" />
+          <div className="px-10 py-7.5 flex flex-col gap-2.5">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+
           {/* Progress + Actions */}
-          <div className="px-10 py-7.5 border-t border-progress-track mt-5 flex flex-col gap-10">
+          <div className="px-10 py-7.5 border-t border-progress-track flex flex-col gap-10">
             <div className="flex flex-col gap-3">
               <Skeleton className="h-6 w-24" />
               <div className="flex items-center gap-5">
@@ -132,14 +140,6 @@ export default function StepScreen({ challengeId, stepId }: Props) {
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-4 w-20" />
             </div>
-          </div>
-
-          {/* Description */}
-          <div className="border-t border-progress-track" />
-          <div className="px-10 py-7.5 flex flex-col gap-2.5">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-2/3" />
           </div>
 
           {/* Activities log */}
@@ -180,8 +180,27 @@ export default function StepScreen({ challengeId, stepId }: Props) {
             </div>
           </div>
 
+          {!!step.description && (
+            <>
+              <div className="border-t border-progress-track mt-5" />
+              <div className="px-10 py-7.5">
+                <p
+                  className={`text-base text-[#1a1a1a] leading-relaxed ${!expanded ? "line-clamp-3" : ""}`}
+                >
+                  {step.description}
+                </p>
+                <button
+                  onClick={() => setExpanded((v) => !v)}
+                  className="text-base text-gotf-blue mt-4"
+                >
+                  {expanded ? t("showLess") : t("showMore")}
+                </button>
+              </div>
+            </>
+          )}
+
           {/* Progress + Actions */}
-          <div className="px-10 py-7.5 border-t border-progress-track mt-5 flex flex-col gap-10">
+          <div className="px-10 py-7.5 border-t border-progress-track flex flex-col gap-10">
             <div className="flex flex-col gap-3">
               <p className="text-xl font-semibold text-text-subheading">
                 {t("progress")}
@@ -298,25 +317,6 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                     {t("facilitator")}
                   </p>
                 </div>
-              </div>
-            </>
-          )}
-
-          {!!step.description && (
-            <>
-              <div className="border-t border-progress-track" />
-              <div className="px-10 py-7.5">
-                <p
-                  className={`text-base text-[#1a1a1a] leading-relaxed ${!expanded ? "line-clamp-3" : ""}`}
-                >
-                  {step.description}
-                </p>
-                <button
-                  onClick={() => setExpanded((v) => !v)}
-                  className="text-base text-gotf-blue mt-4"
-                >
-                  {expanded ? t("showLess") : t("showMore")}
-                </button>
               </div>
             </>
           )}
