@@ -1,0 +1,39 @@
+[api] GET http://127.0.0.1:11000/api/v1/evidences/8aa895c3-e1d8-413a-8515-e214fb1e24a0 → 200
+ {
+  "id": "8aa895c3-e1d8-413a-8515-e214fb1e24a0",
+  "circleId": "46FBE82",
+  "challengeCode": "CH-004",
+  "thingId": "1FD0638",
+  "thingUUID": "908561d6-8708-42b4-a82d-87972ccebec6",
+  "submittedBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+  "contributors": [
+    "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+    "73111e63-4362-4eea-b0c3-5bab8b1dbdd3"
+  ],
+  "data": {
+    "measurement": {
+      "value": 77,
+      "unitOfMeasure": "kg",
+      "siUnit": "MASS"
+    },
+    "description": "Pilled Caroots"
+  },
+  "dataEnvelope": {},
+  "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+  "stepNumber": 2,
+  "status": {
+    "id": "CO",
+    "name": "Confirmed",
+    "code": "CONFIRMED",
+    "color": "",
+    "createdAt": "2026-07-05T06:25:20.64310259Z"
+  },
+  "submittedAt": "2026-07-05T06:25:20.643103Z",
+  "modifiedAt": "2026-07-05T06:25:20.643103Z",
+  "locksOnCompletion": false,
+  "volunteerHours": {
+    "value": 3,
+    "unitOfMeasure": "hours",
+    "siUnit": "TIME"
+  }
+}

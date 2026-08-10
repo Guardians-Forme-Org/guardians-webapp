@@ -1,0 +1,61 @@
+{
+  "step1": {
+    "title1": "Permettez-nous de",
+    "title2": "vous authentifier",
+    "phoneLabel": "Numéro de téléphone",
+    "phonePlaceholder": "Entrez votre numéro de téléphone",
+    "emailLabel": "Adresse e-mail",
+    "emailPlaceholder": "Entrez votre adresse e-mail",
+    "passwordLabel": "Mot de passe",
+    "passwordPlaceholder": "Créez un mot de passe",
+    "confirmLabel": "Confirmer le mot de passe",
+    "confirmPlaceholder": "Répétez votre mot de passe",
+    "subtitle": "Entrez votre <strong>numéro de mobile</strong> ou votre <strong>e-mail</strong> et choisissez un mot de passe."
+  },
+  "step2": {
+    "title1": "Parlez-nous",
+    "title2": "de vous",
+    "firstNameLabel": "Prénom",
+    "firstNamePlaceholder": "Quel est votre prénom",
+    "lastNameLabel": "Nom de famille",
+    "lastNamePlaceholder": "Quel est votre nom de famille",
+    "regionLabel": "Région",
+    "locationPlaceholder": "Recherchez votre localisation",
+    "selectLocation": "Sélectionnez un lieu"
+  },
+  "step3": {
+    "noImage": "Aucune image sélectionnée",
+    "uploadImage": "Télécharger une image",
+    "remove": "Supprimer",
+    "confirm": "Confirmer",
+    "creating": "Création du compte…"
+  },
+  "step4": {
+    "title": "Vérifiez vos e-mails",
+    "subtitle": "Bienvenue chez\nles Gardiens du Futur",
+    "emailSent": "Nous avons envoyé un lien de confirmation à",
+    "emailInstruction": "Cliquez sur le lien pour vérifier votre compte, puis revenez pour vous connecter."
+  },
+  "ageGate": {
+    "title1": "Avant de",
+    "title2": "commencer",
+    "body": "Vous devez avoir 18 ans ou plus pour rejoindre les Gardiens du Futur.",
+    "confirm": "Oui, j'ai 18 ans ou plus",
+    "deny": "Non, j'ai moins de 18 ans",
+    "blockedTitle": "Désolé, vous n'êtes pas éligible",
+    "blockedBody": "Vous devez avoir 18 ans ou plus pour créer un compte.",
+    "blockedBack": "Retour"
+  },
+  "termsAndConditions": "Conditions générales",
+  "errors": {
+    "credentialsRequired": "Veuillez entrer une adresse e-mail ou un numéro de téléphone.",
+    "emailRequired": "Veuillez entrer votre adresse e-mail.",
+    "passwordRequired": "Veuillez créer un mot de passe.",
+    "passwordMismatch": "Les mots de passe ne correspondent pas.",
+    "firstNameRequired": "Veuillez entrer votre prénom.",
+    "lastNameRequired": "Veuillez entrer votre nom de famille.",
+    "locationRequired": "Veuillez sélectionner votre localisation.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "emailAlreadyExists": "An account with this email already exists."
+  }
+}

@@ -1,0 +1,153 @@
+"use client";
+
+import { useRecentActivities, useUserRecentActivities } from "@/lib/hooks/activities";
+import Avatar from "@/components/ui/Avatar";
+import Skeleton from "@/components/ui/Skeleton";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUsers } from "@/lib/hooks/users";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { useRouter } from "@/i18n/navigation";
+
+type Props =
+  | { thingId: string; filterStepId?: string; userId?: never }
+  | { userId: string; filterStepId?: never; thingId?: never };
+
+const LIMIT_STEPS = [3, 6, 10, 20, 50, 100];
+
+function formatStepId(stepId: string): string {
+  return stepId
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export default function RecentActivitiesList({ thingId, filterStepId, userId }: Props) {
+  const [limitIndex, setLimitIndex] = useState(0);
+  const limit = LIMIT_STEPS[limitIndex];
+  const thing = useRecentActivities(thingId ?? "", limit);
+  const user = useUserRecentActivities(userId ?? "", limit);
+  const { data: rawActivities = [], isLoading, isFetching, error } = thingId ? thing : user;
+  // More items may exist when the API filled the requested window
+  const hasMore = rawActivities.length >= limit && limitIndex < LIMIT_STEPS.length - 1;
+  const activities = filterStepId
+    ? rawActivities.filter((a) => a.stepId === filterStepId)
+    : rawActivities;
+  const { data: users = [] } = useUsers();
+  const { loginData, user: authUser } = useAuth();
+  const router = useRouter();
+  const t = useTranslations("common");
+
+  const avatarMap = useMemo(() => {
+    const map = new Map<string, string>();
+    users.forEach((u) => {
+      if (u.user_metadata?.avatarUrl) map.set(u.id, u.user_metadata.avatarUrl);
+    });
+    loginData?.challenges.forEach((c) =>
+      (c.members ?? []).forEach((m) => { if (m.avatarUrl) map.set(m.userId, m.avatarUrl); })
+    );
+    loginData?.circles.forEach((c) =>
+      c.members.forEach((m) => { if (m.avatarUrl) map.set(m.userId, m.avatarUrl); })
+    );
+    return map;
+  }, [users, loginData]);
+
+  if (isLoading) {
+    return (
+      <div className="px-10 pb-7.5 flex flex-col gap-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-center justify-between">
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <div className="flex" style={{ width: 48 }}>
+              <Skeleton className="size-8 rounded-full border-2 border-white" />
+              <Skeleton className="size-8 rounded-full border-2 border-white -ml-4" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="px-10 pb-7.5 text-sm text-text-muted">{(error as Error).message}</p>;
+  }
+
+  if (activities.length === 0) {
+    return <p className="px-10 pb-7.5 text-sm text-text-muted">{t("noActivities")}</p>;
+  }
+
+  return (
+    <div className="px-10 pb-7.5 flex flex-col gap-6 fade-up">
+      {activities.map((record) => {
+        // New submissions carry everything in dataEnvelope (data echoes null)
+        const measurement =
+          record.dataEnvelope?.measurement ?? record.data?.measurement;
+        const title = record.activity || (
+          measurement?.value != null
+            ? `${measurement.value} ${measurement.unitOfMeasure}`
+            : formatStepId(record.stepId)
+        );
+        const date = new Date(record.submittedAt).toLocaleString(undefined, {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+        const avatars = record.contributors.slice(0, 2).map((id) =>
+          avatarMap.get(id) ?? null
+        );
+        const isClickable = !!authUser;
+        const handleClick = () => {
+          router.push(`/challenges/${record.thingId}/steps/${record.stepId}/log?view=${record.id}`);
+        };
+        return (
+          <div
+            key={record.id}
+            role={isClickable ? "button" : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+            onClick={isClickable ? handleClick : undefined}
+            onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") handleClick(); } : undefined}
+            className={`flex items-center justify-between ${isClickable ? "cursor-pointer active:opacity-70" : ""}`}
+          >
+            <div className="flex flex-col gap-1 min-w-0 flex-1 pr-3">
+              <div className="flex items-baseline gap-2 min-w-0">
+                <p className="text-[18px] font-semibold text-[#1a1a1a] truncate">{title}</p>
+                {(record.volunteerHours?.value ?? 0) > 0 && (
+                  <p className="text-[12px] text-text-secondary shrink-0">
+                    · {record.volunteerHours.value} {record.volunteerHours.unitOfMeasure}
+                  </p>
+                )}
+              </div>
+              <p className="text-[12px] text-[#999]">{date}</p>
+            </div>
+            {avatars.length > 0 && (
+              <div className="flex shrink-0" style={{ width: avatars.length === 1 ? 32 : 48 }}>
+                {avatars.map((avatarUrl, i) => (
+                  <Avatar
+                    key={i}
+                    src={avatarUrl}
+                    className="size-8 rounded-full border-2 border-white shrink-0"
+                    style={{ marginLeft: i > 0 ? -16 : 0 }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {hasMore && (
+        <button
+          onClick={() => setLimitIndex((i) => i + 1)}
+          disabled={isFetching}
+          className="self-start text-base text-gotf-blue disabled:opacity-50"
+        >
+          {isFetching ? t("pleaseWait") : t("showMore")}
+        </button>
+      )}
+    </div>
+  );
+}

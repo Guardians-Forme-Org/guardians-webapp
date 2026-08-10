@@ -1,79 +1,93 @@
+"use client";
+
 import SearchBar from "@/components/ui/SearchBar";
-import SectionHeader from "@/components/ui/SectionHeader";
-import ChallengeCard, { type Challenge } from "../components/ChallengeCard";
-import CircleListItem, { type Circle } from "../components/CircleListItem";
+import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
+import { usePublicMetrics } from "@/lib/hooks/metrics";
+import { useEffect } from "react";
+import CirclesMap from "../components/CirclesMap";
 import HomeHeader from "../components/HomeHeader";
 import ImpactSection from "../components/ImpactSection";
-import LocationPill from "../components/LocationPill";
 
-const continueChallenges: Challenge[] = [
-  {
-    id: 1,
-    title: "Separate plastic b...",
-    challengeName: "Plastic Free Challenge",
-    circleName: "Soweto Green Circle",
-    currentStep: 2,
-    totalSteps: 5,
-  },
-  {
-    id: 2,
-    title: "Plant seeds",
-    challengeName: "1 Tree at a Time Challenge",
-    circleName: "Jozi Youth",
-    currentStep: 11,
-    totalSteps: 15,
-  },
-];
-
-const circles: Circle[] = [
-  { id: 1, rank: 1, name: "Green Urban Youth", joinDate: "12 March" },
-  { id: 2, rank: 2, name: "Park Watch", joinDate: "1 December" },
-  { id: 3, rank: 3, name: "Eco Homes", joinDate: "24 February" },
-];
-
-const badgeStats = [
-  { label: "Avoided CO₂", value: "20kg" },
-  { label: "Generated Area", value: "750m²" },
-  { label: "Processed Waste", value: "32kg" },
-];
-
-const activityStats = [
-  { label: "Challenges", value: "4" },
-  { label: "Circles", value: "2" },
-];
+// The mine/global toggle is retired: personal circles, challenges and
+// activities live on the profile screen now — home is always global
+const MAP_REFETCH_FLAG = "gotf_refetch_home";
 
 export default function HomeScreen() {
+  const { user, loginData } = useAuth();
+  const router = useRouter();
+  const t = useTranslations("home");
+
+  // Reload when returning from a circle opened via the map
+  useEffect(() => {
+    if (sessionStorage.getItem(MAP_REFETCH_FLAG) !== "1") return;
+    sessionStorage.removeItem(MAP_REFETCH_FLAG);
+    window.location.reload();
+   
+  }, []);
+
+  const displayName =
+    user?.user_metadata.firstName || user?.email?.split("@")[0] || "Guardian";
+
+  const avatarUrl =
+    user?.user_metadata.avatarUrl ||
+    loginData?.circles
+      .flatMap((c) => c.members)
+      .find((m) => m.userId === user?.id)?.avatarUrl ||
+    loginData?.challenges
+      .flatMap((c) => c.members ?? [])
+      .find((m) => m.userId === user?.id)?.avatarUrl;
+
+  const { data: publicMetrics, isLoading: metricsLoading } = usePublicMetrics();
+
+  const impactRecords = loginData?.impactRecords ?? [];
+  const badgeStats = impactRecords.slice(0, 3).map((r) => ({
+    label: r.contribution?.unitOfMeasure ?? "",
+    value: r.contribution?.value ?? 0,
+  }));
+  const activityStats = [
+    { label: t("challengesStat"), value: loginData?.challengesCount.displayValue ?? "0" },
+    { label: t("circlesStat"), value: loginData?.circlesCount.displayValue ?? "0" },
+    { label: "", value: "" },
+  ];
+
   return (
     <div className="flex flex-col min-h-full bg-white gap-4">
-      <HomeHeader name="Linda" hasNotification />
-      <SearchBar />
-      <LocationPill city="Brive-la-Gaillarde" country="France" />
+      <HomeHeader name={displayName} avatarUrl={avatarUrl} hasNotification />
+      <SearchBar
+        placeholder={t("searchPlaceholder")}
+        onSubmit={(q) =>
+          router.push(`/discover${q ? `?q=${encodeURIComponent(q)}` : ""}`)
+        }
+      />
 
-      <ImpactSection badgeStats={badgeStats} activityStats={activityStats} />
+      {/* ── Global view ─────────────────────────────────── */}
+      <div className="flex flex-col gap-6 pb-10">
+          <div className="fade-up" style={{ animationDelay: "0ms" }}>
+            <ImpactSection
+              badgeStats={badgeStats}
+              activityStats={activityStats}
+              impactMatrix={publicMetrics?.impactMatrix}
+              thingsMatrix={publicMetrics?.thingsMatrix}
+              mode="global"
+              isLoading={metricsLoading}
+            />
+          </div>
 
-      {/* Continue */}
-      <section className="mb-6">
-        <div className="px-5">
-          <SectionHeader title="Active Challenges" href="/challenges" />
+          {/* Located */}
+          <div className="flex flex-col gap-3 fade-up" style={{ animationDelay: "80ms" }}>
+            <p className="px-5 text-xl font-bold text-text-subheading">{t("located")}</p>
+            <CirclesMap />
+          </div>
+
+          {/* Recent Activities */}
+          <div className="flex flex-col gap-3 fade-up" style={{ animationDelay: "160ms" }}>
+            <p className="px-5 text-xl font-bold text-text-subheading">{t("recentActivities")}</p>
+            {user?.id && <RecentActivitiesList userId={user.id} />}
+          </div>
         </div>
-        <div className="flex gap-3 pl-5 overflow-x-auto no-scrollbar pb-1">
-          {continueChallenges.map((challenge) => (
-            <ChallengeCard key={challenge.id} challenge={challenge} />
-          ))}
-          <div className="w-5 shrink-0" aria-hidden="true" />
-        </div>
-      </section>
-
-      {/* Circles — floating panel */}
-      <section className="bg-white rounded-t-[20px] shadow-[0_-5px_20px_0_rgba(0,0,0,0.05)] px-5 pt-6 pb-8 -mt-2">
-        <SectionHeader title="Active Circles" href="/circles" />
-        <div className="flex flex-col gap-7.5">
-          {circles.map((circle) => (
-            <CircleListItem key={circle.id} circle={circle} />
-          ))}
-        </div>
-      </section>
-
     </div>
   );
 }

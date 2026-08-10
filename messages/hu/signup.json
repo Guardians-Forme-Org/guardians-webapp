@@ -1,0 +1,68 @@
+{
+  "step1": {
+    "title1": "Azonosítsuk",
+    "title2": "Önt",
+    "phoneLabel": "Telefonszám",
+    "phonePlaceholder": "Add meg a telefonszámod",
+    "emailLabel": "E-mail cím",
+    "emailPlaceholder": "Add meg az e-mail címed",
+    "passwordLabel": "Jelszó",
+    "passwordPlaceholder": "Hozz létre egy jelszót",
+    "confirmLabel": "Jelszó megerősítése",
+    "confirmPlaceholder": "Ismételd meg a jelszót",
+    "subtitle": "Add meg a <strong>mobilszámod</strong> vagy az <strong>e-mail címed</strong>, és válassz egy jelszót.",
+    "bodyPart1": "Add meg a ",
+    "bodyMobile": "mobilszámod",
+    "bodyOr": " vagy az ",
+    "bodyEmail": "e-mail címed",
+    "bodyPart2": ", és válassz egy jelszót."
+  },
+  "step2": {
+    "title1": "Mesélj nekünk",
+    "title2": "magadról",
+    "firstNameLabel": "Keresztnév",
+    "firstNamePlaceholder": "Mi a keresztneved?",
+    "lastNameLabel": "Vezetéknév",
+    "lastNamePlaceholder": "Mi a vezetékneved?",
+    "regionLabel": "Régió",
+    "locationPlaceholder": "Keress rá a helyedre",
+    "selectLocation": "Válassz helyszínt"
+  },
+  "step3": {
+    "noImage": "Nincs kép kiválasztva",
+    "uploadImage": "Kép feltöltése",
+    "remove": "Eltávolítás",
+    "confirm": "Megerősítés",
+    "creating": "Fiók létrehozása…",
+    "skipForNow": "Kihagyás most"
+  },
+  "step4": {
+    "title": "Ellenőrizd az e-maileidet",
+    "subtitle": "Üdvözlünk a\nJövő Őrzőinél",
+    "emailSent": "Megerősítő linket küldtünk a következő címre:",
+    "emailInstruction": "Kattints a linkre a fiókod hitelesítéséhez, majd térj vissza a bejelentkezéshez."
+  },
+  "ageGate": {
+    "title1": "Mielőtt",
+    "title2": "elkezdenénk",
+    "body": "A Jövő Őrzőihez való csatlakozáshoz legalább 18 évesnek kell lenned.",
+    "confirm": "Igen, 18 éves vagy idősebb vagyok",
+    "deny": "Nem, 18 évesnél fiatalabb vagyok",
+    "blockedTitle": "Sajnáljuk, nem vagy jogosult",
+    "blockedBody": "Fiók létrehozásához legalább 18 évesnek kell lenned.",
+    "blockedBack": "Vissza"
+  },
+  "termsAndConditions": "Általános Szerződési Feltételek",
+  "gotfName": "Jövő Őrzői",
+  "errors": {
+    "credentialsRequired": "Kérjük, adj meg egy e-mail címet vagy telefonszámot.",
+    "emailRequired": "Kérjük, add meg az e-mail címed.",
+    "passwordRequired": "Kérjük, hozz létre egy jelszót.",
+    "passwordMismatch": "A jelszavak nem egyeznek.",
+    "firstNameRequired": "Kérjük, add meg a keresztneved.",
+    "lastNameRequired": "Kérjük, add meg a vezetékneved.",
+    "locationRequired": "Kérjük, válassz helyszínt.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "emailAlreadyExists": "An account with this email already exists."
+  }
+}

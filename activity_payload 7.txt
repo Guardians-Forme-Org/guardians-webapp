@@ -1,0 +1,118 @@
+[api] GET http://127.0.0.1:11000/api/v1/evidences/ca4b3604-6f5a-46a4-a513-d1e76790bf93 → 200
+ {
+  "id": "ca4b3604-6f5a-46a4-a513-d1e76790bf93",
+  "circleId": "46FBE82",
+  "challengeCode": "CH-001",
+  "thingId": "5B738F6",
+  "thingUUID": "",
+  "submittedBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+  "contributors": [
+    "208525c2-25b7-4f99-951c-6b3b19c6d81f"
+  ],
+  "data": {
+    "mediaFiles": [
+      {
+        "type": "image/webp",
+        "url": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/Heat_Maps_Useless_Useful_Image_1.webp",
+        "description": ""
+      }
+    ],
+    "anchorPoints": [
+      {
+        "name": "Point 1",
+        "location": {
+          "placeId": "ChIJfQTHqRATlR4RSTjOm3ifavs",
+          "suburb": "Illiondale",
+          "city": "Edenvale",
+          "country": "South Africa",
+          "countryCode": "ZA",
+          "province": "Gauteng",
+          "latitude": -26.1126463,
+          "longitude": 28.1708584,
+          "formattedAddress": "58 Cecil Awret Rd, Illiondale, Edenvale, 1609, South Africa",
+          "postalCode": "1609"
+        },
+        "higherRiskFlag": false,
+        "measurement": {
+          "value": 2,
+          "unitOfMeasure": "°C"
+        }
+      },
+      {
+        "name": "Point 2",
+        "location": {
+          "placeId": "ChIJKcE1XhcTlR4RwVgXbG58avs",
+          "suburb": "Illiondale",
+          "city": "Edenvale",
+          "country": "South Africa",
+          "countryCode": "ZA",
+          "province": "Gauteng",
+          "latitude": -26.111047086793263,
+          "longitude": 28.170659916532912,
+          "formattedAddress": "89 Cecil Awret Rd, Illiondale, Edenvale, 1609, South Africa",
+          "postalCode": "1609"
+        },
+        "higherRiskFlag": false,
+        "measurement": {
+          "value": 3,
+          "unitOfMeasure": "°C"
+        }
+      },
+      {
+        "name": "Point 3",
+        "location": {
+          "placeId": "ChIJEYPgmhATlR4RP9KAA1dBudU",
+          "suburb": "Illiondale",
+          "city": "Edenvale",
+          "country": "South Africa",
+          "countryCode": "ZA",
+          "province": "Gauteng",
+          "latitude": -26.11393887590993,
+          "longitude": 28.171328855547852,
+          "formattedAddress": "6 Crawford Rd, Illiondale, Edenvale, 1609, South Africa",
+          "postalCode": "1609"
+        },
+        "higherRiskFlag": false,
+        "measurement": {
+          "value": 0,
+          "unitOfMeasure": "°C"
+        }
+      }
+    ],
+    "location": {
+      "placeId": "ChIJfQTHqRATlR4RSTjOm3ifavs",
+      "suburb": "Illiondale",
+      "city": "Edenvale",
+      "country": "South Africa",
+      "countryCode": "ZA",
+      "province": "Gauteng",
+      "latitude": -26.1126463,
+      "longitude": 28.1708584,
+      "formattedAddress": "58 Cecil Awret Rd, Illiondale, Edenvale, 1609, South Africa",
+      "postalCode": "1609"
+    },
+    "volunteerHours": {
+      "value": 3,
+      "unitOfMeasure": "hours",
+      "siUnit": "TIME"
+    }
+  },
+  "dataEnvelope": {},
+  "stepId": "SETUP_AND_REGISTRATION",
+  "stepNumber": 1,
+  "status": {
+    "id": "CO",
+    "name": "Confirmed",
+    "code": "CONFIRMED",
+    "color": "",
+    "createdAt": "2026-07-06T12:07:01.22338676+02:00"
+  },
+  "submittedAt": "2026-07-06T10:07:01.223387Z",
+  "modifiedAt": "2026-07-06T10:07:01.223387Z",
+  "locksOnCompletion": false,
+  "volunteerHours": {
+    "value": 3,
+    "unitOfMeasure": "hours",
+    "siUnit": "TIME"
+  }
+}

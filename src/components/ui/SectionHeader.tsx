@@ -1,4 +1,7 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import Text from "./Text";
 
 type Props = {
@@ -7,12 +10,13 @@ type Props = {
 };
 
 export default function SectionHeader({ title, href }: Props) {
+  const t = useTranslations("common");
   return (
     <div className="flex items-center justify-between mb-4">
       <Text variant="heading">{title}</Text>
       {href && (
         <Link href={href} className="text-sm text-gotf-blue hover:opacity-80 transition-opacity">
-          See all
+          {t("seeAll")}
         </Link>
       )}
     </div>

@@ -1,0 +1,61 @@
+{
+  "step1": {
+    "title1": "Ake",
+    "title2": "sikuqinisekise",
+    "phoneLabel": "Inombolo yocingo",
+    "phonePlaceholder": "Faka inombolo yocingo",
+    "emailLabel": "Ikheli le-imeyili",
+    "emailPlaceholder": "Faka ikheli lakho le-imeyili",
+    "passwordLabel": "Iphasiwedi",
+    "passwordPlaceholder": "Dala iphasiwedi",
+    "confirmLabel": "Qinisekisa Iphasiwedi",
+    "confirmPlaceholder": "Phinda iphasiwedi yakho",
+    "subtitle": "Faka <strong>inombolo yakho yeselula</strong> noma <strong>i-imeyili</strong> bese ukhetha iphasiwedi."
+  },
+  "step2": {
+    "title1": "Sitshele okwengeziwe",
+    "title2": "ngawe",
+    "firstNameLabel": "Igama",
+    "firstNamePlaceholder": "Yini igama lakho lokuqala",
+    "lastNameLabel": "Isibongo",
+    "lastNamePlaceholder": "Yini isibongo sakho",
+    "regionLabel": "Isifunda",
+    "locationPlaceholder": "Sesha indawo yakho",
+    "selectLocation": "Khetha indawo"
+  },
+  "step3": {
+    "noImage": "Akukho isithombe esikhethiwe",
+    "uploadImage": "Layisha Isithombe",
+    "remove": "Susa",
+    "confirm": "Qinisekisa",
+    "creating": "Yakha i-akhawunti…"
+  },
+  "step4": {
+    "title": "Hlola i-imeyili yakho",
+    "subtitle": "Siyakwamukela ku\nAbalondolozi Besikhathi Esizayo",
+    "emailSent": "Sithumele isixhumanisi sokuqinisekisa ku",
+    "emailInstruction": "Chofoza isixhumanisi ukuze uqinisekise i-akhawunti yakho, bese ubuyela ukuze ungene."
+  },
+  "ageGate": {
+    "title1": "Ngaphambi",
+    "title2": "kokuqala",
+    "body": "Kumele ube neminyaka eyi-18 noma ngaphezulu ukuze ujoyine Abalondolozi Besikhathi Esizayo.",
+    "confirm": "Yebo, ngineminyaka eyi-18 noma ngaphezulu",
+    "deny": "Cha, ngineminyaka engaphansi kweyi-18",
+    "blockedTitle": "Uxolo, awufanelekile",
+    "blockedBody": "Kumele ube neminyaka eyi-18 noma ngaphezulu ukuze udale i-akhawunti.",
+    "blockedBack": "Buyela emuva"
+  },
+  "termsAndConditions": "Imigomo Nezimiso",
+  "errors": {
+    "credentialsRequired": "Sicela ufake i-imeyili noma inombolo yocingo.",
+    "emailRequired": "Sicela ufake ikheli lakho le-imeyili.",
+    "passwordRequired": "Sicela udale iphasiwedi.",
+    "passwordMismatch": "Amaphasiwedi awafani.",
+    "firstNameRequired": "Sicela ufake igama lakho lokuqala.",
+    "lastNameRequired": "Sicela ufake isibongo sakho.",
+    "locationRequired": "Sicela ukhethe indawo yakho.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "emailAlreadyExists": "An account with this email already exists."
+  }
+}

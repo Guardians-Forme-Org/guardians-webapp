@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { QueryProvider } from "@/components/providers/QueryProvider";
+import { getLocale } from "next-intl/server";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -11,7 +14,20 @@ export const metadata: Metadata = {
   title: "GOTF",
   description:
     "Guardians of the Future is a civic action platform that makes real-world community impact honest, visible, and worth proving.",
-  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "GOTF",
+  },
+  icons: {
+    apple: [
+      { url: "/images/icons/apple-touch-icon-120.png", sizes: "120x120", type: "image/png" },
+      { url: "/images/icons/apple-touch-icon-152.png", sizes: "152x152", type: "image/png" },
+      { url: "/images/icons/apple-touch-icon-167.png", sizes: "167x167", type: "image/png" },
+      { url: "/images/icons/apple-touch-icon-180.png", sizes: "180x180", type: "image/png" },
+    ],
+    icon: "/images/icons/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -23,14 +39,19 @@ export const viewport: Viewport = {
   themeColor: "#003518",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale().catch(() => "en");
   return (
-    <html lang="en" className={`${geist.variable} h-full`}>
-      <body className="h-full bg-white text-zinc-900 antialiased">{children}</body>
+    <html lang={locale} className={`${geist.variable} h-full`}>
+      <body className="h-full bg-white text-zinc-900 antialiased">
+          <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
+        </body>
     </html>
   );
 }
