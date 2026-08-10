@@ -129,6 +129,41 @@ function valueUnitOf(v: { unit?: string; unitOfMeasure?: string }): string | und
   return v.unit ?? v.unitOfMeasure;
 }
 
+// Reverses shapeEntry's per-subfield shaping (buildDynamicPayload) for one
+// nested GROUP/ITEM entry — recurses so a nested leaf (e.g. CH-011's
+// species.quantity) comes back as a form-usable string+unit instead of the
+// raw {value, unitOfMeasure} object, which ReviewStep would otherwise render
+// directly as a React child and crash on.
+function unshapeSubEntry(
+  subFields: ApiTemplateFormField[],
+  raw: Record<string, unknown>,
+): Record<string, unknown> {
+  const entry: Record<string, unknown> = {};
+  for (const sub of subFields) {
+    const v = raw[sub.name];
+    if (v === undefined || v === null || v === "") continue;
+    if (sub.type === "IMAGE") {
+      const url = (v as { url?: string } | undefined)?.url;
+      if (url) entry[sub.name] = url;
+      continue;
+    }
+    if (sub.type === "GROUP" || sub.type === "ITEM") {
+      const nestedArr = Array.isArray(v)
+        ? (v as Record<string, unknown>[])
+        : [v as Record<string, unknown>];
+      entry[sub.name] = nestedArr.map((n) => unshapeSubEntry(sub.fields ?? [], n));
+      continue;
+    }
+    if ((sub.type === "NUMBER" || sub.type === "NUMERIC") && isValueUnit(v)) {
+      entry[sub.name] = String(v.value);
+      entry[`${sub.name}__unit`] = valueUnitOf(v);
+      continue;
+    }
+    entry[sub.name] = v;
+  }
+  return entry;
+}
+
 // dataEnvelope is being rolled out BE-side field by field — merge it over
 // `data` rather than picking one bag wholesale, so fields still missing from
 // dataEnvelope (e.g. mediaFiles) keep falling back to `data`.
@@ -326,6 +361,18 @@ function activityToDynamic(
             out[k] = (v as { url?: string }).url ?? "";
             continue;
           }
+          // A sub-field can itself be a GROUP/ITEM (e.g. CH-011's species
+          // inside anchorPoint) — recurse the same way buildDynamicPayload's
+          // shapeEntry does on submit, or the nested leaf rides through as
+          // the raw API object and crashes the review screen's renderer.
+          const subDef = (field.fields ?? []).find((f) => f.name === k);
+          if ((subDef?.type === "GROUP" || subDef?.type === "ITEM") && v) {
+            const nestedArr = Array.isArray(v)
+              ? (v as Record<string, unknown>[])
+              : [v as Record<string, unknown>];
+            out[k] = nestedArr.map((n) => unshapeSubEntry(subDef.fields ?? [], n));
+            continue;
+          }
           if (isValueUnit(v)) {
             out[k] = String(v.value);
             out[`${k}__unit`] = valueUnitOf(v);
@@ -453,6 +500,13 @@ function activityToDynamic(
           if (isNumberSub && isValueUnit(raw)) {
             entry[sub.name] = String(raw.value);
             entry[`${sub.name}__unit`] = valueUnitOf(raw);
+            continue;
+          }
+          if (sub.type === "GROUP" || sub.type === "ITEM") {
+            const rawArr = Array.isArray(raw)
+              ? (raw as Record<string, unknown>[])
+              : [raw as Record<string, unknown>];
+            entry[sub.name] = rawArr.map((r) => unshapeSubEntry(sub.fields ?? [], r));
             continue;
           }
           entry[sub.name] = raw;
@@ -1766,7 +1820,17 @@ export default function LogEvidenceWizard({
 
   const buildDynamicPayload = () => {
     if (!user || !challenge || !stepMeta) throw new Error("Not ready");
-    if (challenge.challengeCode === "CH-015") return buildCH015Payload();
+    // buildCH015Payload only applies to the evidence-logging steps (it
+    // flattens every GROUP field, including a literal "anchorPoint" group,
+    // into Data.Measurement-shaped entries under the field's raw name). Step
+    // 1 (setupAndRegistration) needs the generic registration shape below —
+    // an "anchorPoints" array — or the site's estimatedPlantingArea group
+    // gets sent as a bogus singular "anchorPoint" measurement array instead.
+    if (
+      challenge.challengeCode === "CH-015" &&
+      normalizeFieldName(stepMeta.stepType) !== "REGISTRATION"
+    )
+      return buildCH015Payload();
 
     const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
     const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
