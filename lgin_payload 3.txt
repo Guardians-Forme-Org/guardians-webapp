@@ -1,0 +1,3367 @@
+[api] POST http://127.0.0.1:11000/api/v1/login → 200
+{
+  "id": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+  "email": "tnemalili@gmail.com",
+  "metaData": {
+    "access_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImIwOGY1NzQwLTE5YWItNGQwMC1iM2ZlLWEyNjBlMGNhODQyYyIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2Fld2Z3aG1wZHB4d2V4YWdmZGJ3LnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIyMDg1MjVjMi0yNWI3LTRmOTktOTUxYy02YjNiMTljNmQ4MWYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgzNTA3OTQyLCJpYXQiOjE3ODI5MDMxNDIsImVtYWlsIjoidG5lbWFsaWxpQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiYXZhdGFyVXJsIjoiaHR0cHM6Ly9hZXdmd2htcGRweHdleGFnZmRidy5zdXBhYmFzZS5jby9zdG9yYWdlL3YxL29iamVjdC9wdWJsaWMvZ3VhcmRpYW5zLXN0b3JhZ2UvSU1HXzM4NTQuanBlZyIsImVtYWlsIjoiIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZpcnN0TmFtZSI6IlJlZ2luYWxkIiwiaWQiOiIiLCJsYXN0TmFtZSI6Ik5lbWFsaWxpIiwibG9jYXRpb24iOnsiY2l0eSI6IiIsImNvdW50cnkiOiIiLCJjb3VudHJ5Q29kZSI6IiIsImZvcm1hdHRlZEFkZHJlc3MiOiIiLCJsYXRpdHVkZSI6MCwibG9uZ2l0dWRlIjowLCJwbGFjZUlkIjoiIiwicG9zdGFsQ29kZSI6IiIsInByb3ZpbmNlIjoiIiwic3VidXJiIjoiIn0sIm1vYmlsZSI6IjA3MzU4NDU5OTUiLCJwYXNzd29yZCI6IiIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicHJlZmVycmVkTGFuZ3VhZ2UiOnsiY29kZSI6IiIsImlkIjoiIiwibmFtZSI6IiJ9LCJzdWIiOiIyMDg1MjVjMi0yNWI3LTRmOTktOTUxYy02YjNiMTljNmQ4MWYiLCJ1c2VybmFtZSI6IiJ9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzgyOTAzMTQyfV0sInNlc3Npb25faWQiOiJiMjg1MDBlYy0xMzRjLTQ4OGQtOGRlZi03MGQ3MDNhMDhlM2YiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.wOWXVaHnh0ZdN2ZQ6o8DiLWf-qDY6W8MVHR0fCY1inFh-0R2gA3np9lct6l5dc3fx2kgMhesBa7v68uLNUcvmA",
+    "token_type": "bearer",
+    "expires_in": 604800,
+    "refresh_token": "5dpsq2o2g57h",
+    "user": {
+      "id": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "aud": "authenticated",
+      "role": "authenticated",
+      "email": "tnemalili@gmail.com",
+      "invited_at": "0001-01-01T00:00:00Z",
+      "confirmed_at": "2026-06-07T21:50:04.220965Z",
+      "confirmation_sent_at": "2026-06-07T21:49:43.10046Z",
+      "app_metadata": {},
+      "user_metadata": {
+        "avatarUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/IMG_3854.jpeg",
+        "email": "",
+        "email_verified": true,
+        "firstName": "Reginald",
+        "id": "",
+        "lastName": "Nemalili",
+        "location": {
+          "city": "",
+          "country": "",
+          "countryCode": "",
+          "formattedAddress": "",
+          "latitude": 0,
+          "longitude": 0,
+          "placeId": "",
+          "postalCode": "",
+          "province": "",
+          "suburb": ""
+        },
+        "mobile": "0735845995",
+        "password": "",
+        "phone_verified": false,
+        "preferredLanguage": {
+          "code": "",
+          "id": "",
+          "name": ""
+        },
+        "sub": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+        "username": ""
+      },
+      "created_at": "2026-06-07T21:49:43.079478Z",
+      "updated_at": "2026-07-01T10:52:22.787032Z"
+    },
+    "provider_token": "",
+    "provider_refresh_token": ""
+  },
+  "challenges": [
+    {
+      "id": "908561d6-8708-42b4-a82d-87972ccebec6",
+      "name": "Kloof North Winter Composting",
+      "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/1776774438615.jpeg",
+      "challengeId": "1FD0638",
+      "challengeCode": "CH-004",
+      "circleId": "46FBE82",
+      "description": "Constantia North Kloof Composting sprint",
+      "region": {
+        "placeId": "ChIJ37TJQhuglR4R9i8GR8hlxOY",
+        "suburb": "Constantia Kloof",
+        "city": "Roodepoort",
+        "country": "South Africa",
+        "countryCode": "ZA",
+        "province": "Gauteng",
+        "latitude": -26.1445117,
+        "longitude": 27.9102141,
+        "formattedAddress": "Constantia Kloof, Roodepoort, 1709, South Africa",
+        "postalCode": "1709"
+      },
+      "membersCount": null,
+      "members": [
+        {
+          "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "challengeId": "1FD0638",
+          "joinedAt": "2026-06-23T15:58:25.705513Z",
+          "role": "CHALLENGE_FACILITATOR",
+          "permissions": [
+            "VIEW_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "ASSIGN_ROLES_CHALLENGE",
+            "REMOVE_ROLES_CHALLENGE",
+            "SUBMIT_CHALLENGE_EVIDENCE"
+          ],
+          "avatarUrl": ""
+        },
+        {
+          "userId": "73111e63-4362-4eea-b0c3-5bab8b1dbdd3",
+          "challengeId": "1FD0638",
+          "joinedAt": "2026-06-23T22:42:14.779307Z",
+          "role": "CHALLENGE_FACILITATOR",
+          "permissions": [
+            "VIEW_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "ASSIGN_ROLES_CHALLENGE",
+            "REMOVE_ROLES_CHALLENGE",
+            "SUBMIT_CHALLENGE_EVIDENCE"
+          ],
+          "avatarUrl": ""
+        },
+        {
+          "userId": "5f29be56-8a3b-4c96-bd70-8bf0ca29a112",
+          "challengeId": "1FD0638",
+          "joinedAt": "2026-06-23T23:41:39.766982Z",
+          "role": "MEMBER",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ],
+          "avatarUrl": ""
+        },
+        {
+          "userId": "5ce92227-105f-492e-af4c-5d9c2202b48c",
+          "challengeId": "1FD0638",
+          "joinedAt": "2026-06-24T10:04:11.271771Z",
+          "role": "MEMBER",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ],
+          "avatarUrl": ""
+        },
+        {
+          "userId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+          "challengeId": "1FD0638",
+          "joinedAt": "2026-06-24T10:49:00.782548Z",
+          "role": "MEMBER",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ],
+          "avatarUrl": ""
+        },
+        {
+          "userId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+          "challengeId": "1FD0638",
+          "joinedAt": "2026-06-29T11:44:45.730515Z",
+          "role": "MEMBER",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ],
+          "avatarUrl": ""
+        }
+      ],
+      "facilitatorId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "facilitator": {
+        "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+        "challengeId": "1FD0638",
+        "joinedAt": "2026-06-24T14:07:42.767294347Z",
+        "role": "CHALLENGE_FACILITATOR",
+        "permissions": null,
+        "avatarUrl": ""
+      },
+      "duration": null,
+      "equipments": [],
+      "location": {
+        "placeId": "ChIJ37TJQhuglR4R9i8GR8hlxOY",
+        "suburb": "Constantia Kloof",
+        "city": "Roodepoort",
+        "country": "South Africa",
+        "countryCode": "ZA",
+        "province": "Gauteng",
+        "latitude": -26.1445117,
+        "longitude": 27.9102141,
+        "formattedAddress": "Constantia Kloof, Roodepoort, 1709, South Africa",
+        "postalCode": "1709"
+      },
+      "status": {
+        "id": "A",
+        "name": "Active",
+        "code": "ACTIVE",
+        "color": "",
+        "createdAt": "2026-06-23T22:58:19.069903+02:00"
+      },
+      "templateId": "CH-004",
+      "challengeSteps": [
+        {
+          "stepNumber": 1,
+          "stepType": "SETUP_AND_REGISTRATION",
+          "stepId": "SETUP_AND_REGISTRATION",
+          "title": "Register Activation Model",
+          "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+          "isCompleted": true,
+          "form": null
+        },
+        {
+          "stepNumber": 2,
+          "stepType": "EXECUTION",
+          "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+          "title": "Log Waist and Composting Activities",
+          "description": "Track and record your waste management and composting efforts to measure your environmental impact. Log activities such as organic waste collection, compost production, food waste diversion, and recycling initiatives. By capturing these activities, you help demonstrate your contribution to reducing landfill waste, improving soil health, and supporting a more sustainable and circular environment.",
+          "isCompleted": true,
+          "form": null
+        },
+        {
+          "stepNumber": 3,
+          "stepType": "Completion",
+          "stepId": "COMPLETION",
+          "title": "",
+          "description": "Complete the Log Waste and Composting Activities challenge! Your efforts in tracking and managing waste have contributed to reducing environmental impact and promoting sustainable practices. Every composting activity and waste diversion action recorded helps create a cleaner environment, supports soil regeneration, and moves us closer to a more sustainable future. Keep up the great work and continue making a positive difference",
+          "isCompleted": true,
+          "form": null
+        }
+      ],
+      "template": {
+        "templateId": "CH-004",
+        "name": "Composting Sprint",
+        "library": [],
+        "SDGAlignments": null,
+        "impactDomains": null,
+        "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+        "minCompletedCycles": 100,
+        "maxCompletedCycles": 100000,
+        "equipments": [
+          {
+            "name": "Compost Bin or Pile",
+            "description": "A container or designated area for composting organic waste. This can be a commercial compost bin, a DIY bin made from pallets, or simply a pile in the backyard."
+          },
+          {
+            "name": "Kitchen Caddy",
+            "description": "A small container for collecting kitchen scraps before transferring them to the compost bin or pile. This helps keep the process convenient and reduces food waste."
+          },
+          {
+            "name": "Scale or Measuring Tools",
+            "description": "Tools for measuring the amount of waste added to the compost and tracking its progress. This can be a kitchen scale, measuring cups, or simply a notebook for recording observations."
+          }
+        ],
+        "steps": [
+          {
+            "stepNumber": 1,
+            "stepType": "Registration",
+            "stepId": "ACTIVATION_MODEL_REGISTRATION",
+            "title": "Register Activation Model",
+            "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+            "isCompleted": false,
+            "form": null
+          },
+          {
+            "stepNumber": 2,
+            "stepType": "",
+            "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+            "title": "Log Waist and Composting Activities",
+            "description": "Track and record your waste management and composting efforts to measure your environmental impact. Log activities such as organic waste collection, compost production, food waste diversion, and recycling initiatives. By capturing these activities, you help demonstrate your contribution to reducing landfill waste, improving soil health, and supporting a more sustainable and circular environment.",
+            "isCompleted": false,
+            "form": null
+          },
+          {
+            "stepNumber": 3,
+            "stepType": "Completion",
+            "stepId": "COMPLETION",
+            "title": "",
+            "description": "Complete the Log Waste and Composting Activities challenge! Your efforts in tracking and managing waste have contributed to reducing environmental impact and promoting sustainable practices. Every composting activity and waste diversion action recorded helps create a cleaner environment, supports soil regeneration, and moves us closer to a more sustainable future. Keep up the great work and continue making a positive difference",
+            "isCompleted": false,
+            "form": null
+          }
+        ],
+        "createdAt": "2026-06-12T12:01:59.025264Z"
+      },
+      "activatedDate": null,
+      "completedDate": null,
+      "createdAt": "2026-06-23T15:58:23.388887Z",
+      "modifiedAt": "2026-06-23T15:58:23.388887Z",
+      "partner": null,
+      "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "steps": 3,
+      "currentStep": 0,
+      "impactRecords": [
+        {
+          "id": "a7eccfbd-d949-424d-8fa5-ebd4846f14a1",
+          "impactRecordId": "8313986",
+          "thingUUID": "",
+          "thingId": "1FD0638",
+          "impactSummary": {
+            "contribution": {
+              "value": 75,
+              "unitOfMeasure": "L",
+              "displayName": "75.00 L"
+            },
+            "impact": {
+              "value": 37.5,
+              "unitOfMeasure": "kg",
+              "displayName": "37.50 kg",
+              "siUnit": "MASS",
+              "shortSummary": "37.50 kg of CO₂e Emission Avoided",
+              "summary": "Collecting 75.00 L of organic waste results in avoiding 37.50 kg of CO₂e emissions"
+            }
+          },
+          "verifiedDate": null,
+          "verifiedBy": null,
+          "createdAt": "2026-06-23T16:04:02.832698Z",
+          "modifiedAt": "2026-06-24T11:19:16.575932Z",
+          "verified": false,
+          "impactType": "Environmental",
+          "validationTier": null,
+          "siUnit": "VOLUME"
+        },
+        {
+          "id": "a9bd0e7d-f4c3-4968-ac2a-2fbde23711a3",
+          "impactRecordId": "F89B1F2",
+          "thingUUID": "",
+          "thingId": "1FD0638",
+          "impactSummary": {
+            "contribution": {
+              "value": 120,
+              "unitOfMeasure": "kg",
+              "displayName": "120.00 kg"
+            },
+            "impact": {
+              "value": 60,
+              "unitOfMeasure": "kg",
+              "displayName": "60.00 kg",
+              "siUnit": "MASS",
+              "shortSummary": "60.00 kg of CO₂e Emission Avoided",
+              "summary": "Collecting 120.00 kg of organic waste results in avoiding 60.00 kg of CO₂e emissions"
+            }
+          },
+          "verifiedDate": null,
+          "verifiedBy": null,
+          "createdAt": "2026-06-23T16:08:57.911014Z",
+          "modifiedAt": "2026-06-23T16:08:57.911014Z",
+          "verified": false,
+          "impactType": "Environmental",
+          "validationTier": null,
+          "siUnit": "MASS"
+        },
+        {
+          "id": "51c9c3c8-3aac-4ef2-b2b4-1b771d74039d",
+          "impactRecordId": "FB4DB94",
+          "thingUUID": "",
+          "thingId": "1FD0638",
+          "impactSummary": {
+            "contribution": {
+              "value": 17,
+              "unitOfMeasure": "hours",
+              "displayName": "17 hours"
+            },
+            "impact": {
+              "value": 6.800000000000001,
+              "unitOfMeasure": "Incidents",
+              "displayName": "6.80 Incidents",
+              "siUnit": "TIME",
+              "shortSummary": "6.80 crime incidents reduced",
+              "summary": "Volunteering for 17.00 hours results in reducing crime by 6.80 incidents"
+            }
+          },
+          "verifiedDate": null,
+          "verifiedBy": null,
+          "createdAt": "2026-06-23T16:04:02.736208Z",
+          "modifiedAt": "2026-06-24T11:19:16.475797Z",
+          "verified": false,
+          "impactType": "Environmental",
+          "validationTier": null,
+          "siUnit": "TIME"
+        }
+      ],
+      "joinLink": "https://app.theguardians.world/join?challengeId=1FD0638",
+      "communicationChannels": [
+        {
+          "name": "WhatsApp",
+          "url": "https://www.whatsapp.com/legal/privacy-policy",
+          "icon": "WhatsApp"
+        }
+      ]
+    },
+    {
+      "id": "cf901aa2-d6f9-4f60-8587-1a242bbb9002",
+      "name": "Edenvale Composters",
+      "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/lawn-leafjpg.jpg",
+      "challengeId": "EC8BF9A",
+      "challengeCode": "CH-004",
+      "circleId": "BA43C08",
+      "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+      "region": {
+        "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+        "suburb": "",
+        "city": "Edenvale",
+        "country": "South Africa",
+        "countryCode": "ZA",
+        "province": "Gauteng",
+        "latitude": -26.1302564,
+        "longitude": 28.1775094,
+        "formattedAddress": "Edenvale, South Africa",
+        "postalCode": ""
+      },
+      "membersCount": null,
+      "members": [
+        {
+          "userId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+          "challengeId": "EC8BF9A",
+          "joinedAt": "2026-06-28T19:08:56.923254Z",
+          "role": "CHALLENGE_FACILITATOR",
+          "permissions": [
+            "VIEW_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "ASSIGN_ROLES_CHALLENGE",
+            "REMOVE_ROLES_CHALLENGE",
+            "SUBMIT_CHALLENGE_EVIDENCE"
+          ],
+          "avatarUrl": ""
+        },
+        {
+          "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "challengeId": "EC8BF9A",
+          "joinedAt": "2026-06-28T19:08:57.016538Z",
+          "role": "CHALLENGE_OWNER",
+          "permissions": [
+            "CREATE_CHALLENGE",
+            "DELETE_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "VIEW_CHALLENGE",
+            "ASSIGN_ROLES_CHALLENGE"
+          ],
+          "avatarUrl": ""
+        },
+        {
+          "userId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+          "challengeId": "EC8BF9A",
+          "joinedAt": "2026-06-29T15:33:30.294827Z",
+          "role": "MEMBER",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ],
+          "avatarUrl": ""
+        }
+      ],
+      "facilitatorId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "facilitator": {
+        "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+        "challengeId": "EC8BF9A",
+        "joinedAt": "2026-06-29T02:06:05.713482971Z",
+        "role": "CHALLENGE_FACILITATOR",
+        "permissions": null,
+        "avatarUrl": ""
+      },
+      "duration": null,
+      "equipments": [],
+      "location": {
+        "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+        "suburb": "",
+        "city": "Edenvale",
+        "country": "South Africa",
+        "countryCode": "ZA",
+        "province": "Gauteng",
+        "latitude": -26.1302564,
+        "longitude": 28.1775094,
+        "formattedAddress": "Edenvale, South Africa",
+        "postalCode": ""
+      },
+      "status": {
+        "id": "P",
+        "name": "Pending",
+        "code": "PENDING",
+        "color": "",
+        "createdAt": "2026-06-28T19:08:56.662169011Z"
+      },
+      "templateId": "CH-004",
+      "challengeSteps": [
+        {
+          "stepNumber": 1,
+          "stepType": "REGISTRATION",
+          "stepId": "SETUP_AND_REGISTRATION",
+          "title": "Register Activation Model",
+          "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+          "isCompleted": true,
+          "form": null
+        },
+        {
+          "stepNumber": 2,
+          "stepType": "EXECUTION",
+          "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+          "title": "",
+          "description": "",
+          "isCompleted": true,
+          "form": null
+        },
+        {
+          "stepNumber": 3,
+          "stepType": "COMPLETION",
+          "stepId": "COMPLETION",
+          "title": "Completion",
+          "description": "",
+          "isCompleted": true,
+          "form": null
+        }
+      ],
+      "template": {
+        "templateId": "CH-004",
+        "name": "Compost Sprint",
+        "library": null,
+        "SDGAlignments": [
+          {
+            "code": "SDG12",
+            "name": "Responsible Consumption and Production",
+            "infoUrl": ""
+          },
+          {
+            "code": "SDG13",
+            "name": "Climate Action",
+            "infoUrl": ""
+          }
+        ],
+        "impactDomains": [
+          {
+            "code": "MAC",
+            "name": "Mitigation and Circularity",
+            "infoUrl": ""
+          },
+          {
+            "code": "DSI",
+            "name": "Democratic Social Infrastructure",
+            "infoUrl": ""
+          }
+        ],
+        "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+        "minCompletedCycles": 0,
+        "maxCompletedCycles": 0,
+        "equipments": [
+          {
+            "name": "Compost Bin or Pile",
+            "description": "A container or designated area for composting organic waste. This can be a commercial compost bin, a DIY bin made from pallets, or simply a pile in the backyard."
+          },
+          {
+            "name": "Kitchen Caddy",
+            "description": "A small container for collecting kitchen scraps before transferring them to the compost bin or pile. This helps keep the process convenient and reduces food waste."
+          },
+          {
+            "name": "Scale or Measuring Tools",
+            "description": "Tools for measuring the amount of waste added to the compost and tracking its progress. This can be a kitchen scale, measuring cups, or simply a notebook for recording observations."
+          }
+        ],
+        "steps": [
+          {
+            "stepNumber": 1,
+            "stepType": "REGISTRATION",
+            "stepId": "SETUP_AND_REGISTRATION",
+            "title": "Register Activation Model",
+            "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+            "isCompleted": false,
+            "form": [
+              {
+                "name": "LOCATION",
+                "label": "Choose a location",
+                "type": "LOCATION",
+                "required": true,
+                "displayOrder": 1
+              },
+              {
+                "name": "ACTIVATION_MODEL",
+                "label": "Select an activation model",
+                "type": "SELECT",
+                "required": true,
+                "displayOrder": 2,
+                "options": [
+                  {
+                    "value": "HUB",
+                    "label": "Hub"
+                  },
+                  {
+                    "value": "DISTRIBUTED",
+                    "label": "Distributed"
+                  },
+                  {
+                    "value": "PARTNER_FACILITY",
+                    "label": "Partner Facility"
+                  }
+                ]
+              },
+              {
+                "name": "START_DATE",
+                "label": "Start Date",
+                "type": "DATE",
+                "required": true,
+                "displayOrder": 2
+              },
+              {
+                "name": "END_DATE",
+                "label": "End Date",
+                "type": "DATE",
+                "required": true,
+                "displayOrder": 3
+              },
+              {
+                "name": "SITE_PHOTO",
+                "label": "Upload a site photo",
+                "type": "IMAGE",
+                "required": true,
+                "displayOrder": 4
+              },
+              {
+                "name": "VOLUNTEER_HOURS",
+                "label": "Enter Volunteer Hours",
+                "type": "NUMBER",
+                "required": true,
+                "displayOrder": 5,
+                "unitOfMeasureOptions": [
+                  {
+                    "value": "H",
+                    "label": "Hours"
+                  }
+                ]
+              },
+              {
+                "name": "CONTRIBUTORS",
+                "label": "List Contributors",
+                "type": "TEXT",
+                "required": true,
+                "displayOrder": 6
+              }
+            ]
+          },
+          {
+            "stepNumber": 2,
+            "stepType": "EXECUTION",
+            "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+            "title": "",
+            "description": "",
+            "isCompleted": false,
+            "form": [
+              {
+                "name": "MEASUREMENT",
+                "label": "Enter the amount of waste added to the compost",
+                "type": "NUMBER",
+                "required": true,
+                "displayOrder": 1,
+                "unitOfMeasureOptions": [
+                  {
+                    "value": "kg",
+                    "label": "Kilograms (kg)"
+                  },
+                  {
+                    "value": "lb",
+                    "label": "Pounds (lb)"
+                  },
+                  {
+                    "value": "L",
+                    "label": "Liters (L)"
+                  }
+                ]
+              },
+              {
+                "name": "ACTIVITY_DESCRIPTION",
+                "label": "Describe the composting activity",
+                "type": "TEXT",
+                "required": false,
+                "displayOrder": 2
+              },
+              {
+                "name": "RECEIPT_UPLOAD",
+                "label": "Upload a receipt for any composting supplies purchased",
+                "type": "IMAGE",
+                "required": false,
+                "displayOrder": 3
+              },
+              {
+                "name": "CONTRIBUTORS",
+                "label": "List Contributors",
+                "type": "TEXT",
+                "required": true,
+                "displayOrder": 4
+              }
+            ]
+          },
+          {
+            "stepNumber": 3,
+            "stepType": "COMPLETION",
+            "stepId": "COMPLETION",
+            "title": "Completion",
+            "description": "",
+            "isCompleted": false,
+            "form": [
+              {
+                "name": "CONFIRMATION",
+                "label": "Confirm Completion",
+                "type": "TOGGLE",
+                "required": true,
+                "displayOrder": 0
+              },
+              {
+                "name": "TEAM_REFLECTION_NOTES",
+                "label": "Team Reflection Notes",
+                "type": "TEXTAREA",
+                "required": false,
+                "displayOrder": 1
+              },
+              {
+                "name": "AUTO_REFLECTION_NOTES",
+                "label": "Auto-generated Reflection Notes",
+                "type": "TEXT",
+                "required": false,
+                "displayOrder": 2
+              },
+              {
+                "name": "CONTRIBUTORS",
+                "label": "List Contributors",
+                "type": "TEXT",
+                "required": false,
+                "displayOrder": 3
+              }
+            ]
+          }
+        ],
+        "createdAt": "2026-06-28T08:49:31.673105Z"
+      },
+      "activatedDate": null,
+      "completedDate": null,
+      "createdAt": "2026-06-28T19:08:56.662169Z",
+      "modifiedAt": "2026-06-28T19:08:56.662169Z",
+      "partner": null,
+      "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "steps": 3,
+      "currentStep": 0,
+      "impactRecords": [
+        {
+          "id": "18a2ab81-e4bf-4ea6-9507-592c650fa070",
+          "impactRecordId": "21F4F9D",
+          "thingUUID": "",
+          "thingId": "EC8BF9A",
+          "impactSummary": {
+            "contribution": {
+              "value": 10,
+              "unitOfMeasure": "hours",
+              "displayName": "10 hours"
+            },
+            "impact": {
+              "value": 4,
+              "unitOfMeasure": "Incidents",
+              "displayName": "4.00 Incidents",
+              "siUnit": "TIME",
+              "shortSummary": "4.00 crime incidents reduced",
+              "summary": "Volunteering for 10.00 hours results in reducing crime by 4.00 incidents"
+            }
+          },
+          "verifiedDate": null,
+          "verifiedBy": null,
+          "createdAt": "2026-06-29T00:48:04.112524Z",
+          "modifiedAt": "2026-06-30T20:50:43.725923Z",
+          "verified": false,
+          "impactType": "Environmental",
+          "validationTier": null,
+          "siUnit": "TIME"
+        }
+      ],
+      "joinLink": "https://app.theguardians.world/join?challengeId=EC8BF9A",
+      "communicationChannels": [
+        {
+          "name": "WhatsApp",
+          "url": "www.whatsapp.com",
+          "icon": "WhatsApp"
+        }
+      ]
+    },
+    {
+      "id": "0bde479e-d133-4a8c-8a4f-88f2d5fb6ffa",
+      "name": "Edenvale Greening",
+      "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/lawn-leafjpg.jpg",
+      "challengeId": "B03D9E3",
+      "challengeCode": "CH-015",
+      "circleId": "BA43C08",
+      "description": "Urban greening is a crucial strategy for mitigating the impacts of climate change in cities. This Template guides a Circle through a 4-week Urban Greening Initiative, where they will identify a location in their community that could benefit from increased greenery, plan and implement a greening project, and reflect on the process and outcomes. The goal is to enhance local biodiversity, improve air quality, and create a more resilient urban environment.",
+      "region": {
+        "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+        "suburb": "",
+        "city": "Edenvale",
+        "country": "South Africa",
+        "countryCode": "ZA",
+        "province": "Gauteng",
+        "latitude": -26.1302564,
+        "longitude": 28.1775094,
+        "formattedAddress": "Edenvale, South Africa",
+        "postalCode": ""
+      },
+      "membersCount": null,
+      "members": [
+        {
+          "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "challengeId": "B03D9E3",
+          "joinedAt": "2026-06-29T01:31:58.989171Z",
+          "role": "CHALLENGE_FACILITATOR",
+          "permissions": [
+            "VIEW_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "ASSIGN_ROLES_CHALLENGE",
+            "REMOVE_ROLES_CHALLENGE",
+            "SUBMIT_CHALLENGE_EVIDENCE"
+          ],
+          "avatarUrl": ""
+        }
+      ],
+      "facilitatorId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "facilitator": {
+        "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+        "challengeId": "B03D9E3",
+        "joinedAt": "2026-06-29T01:31:58.962676654Z",
+        "role": "CHALLENGE_FACILITATOR",
+        "permissions": null,
+        "avatarUrl": ""
+      },
+      "duration": null,
+      "equipments": [],
+      "location": {
+        "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+        "suburb": "",
+        "city": "Edenvale",
+        "country": "South Africa",
+        "countryCode": "ZA",
+        "province": "Gauteng",
+        "latitude": -26.1302564,
+        "longitude": 28.1775094,
+        "formattedAddress": "Edenvale, South Africa",
+        "postalCode": ""
+      },
+      "status": {
+        "id": "P",
+        "name": "Pending",
+        "code": "PENDING",
+        "color": "",
+        "createdAt": "2026-06-29T01:31:58.700779366Z"
+      },
+      "templateId": "CH-015",
+      "challengeSteps": [
+        {
+          "stepNumber": 1,
+          "stepType": "REGISTRATION",
+          "stepId": "SETUP_AND_REGISTRATION",
+          "title": "Site Identification and Registration",
+          "description": "Identify a location in your community that could benefit from increased greenery. This could be a vacant lot, a sidewalk strip, a schoolyard, or any other underutilized space. Take a photo of the site and gather information about its current condition and potential for greening.",
+          "isCompleted": true,
+          "form": null
+        },
+        {
+          "stepNumber": 2,
+          "stepType": "EXECUTION",
+          "stepId": "EXECUTION",
+          "title": "Planting and Implement Greening Project",
+          "description": "Plan and implement your urban greening project. This could involve planting trees, shrubs, flowers, or creating a community garden. Document the process with photos and notes on the types of plants used, the layout of the greenery, and any challenges faced during implementation.",
+          "isCompleted": true,
+          "form": null
+        },
+        {
+          "stepNumber": 3,
+          "stepType": "Completion",
+          "stepId": "COMPLETION",
+          "title": "Completion",
+          "description": "Reflect on the process and outcomes of your urban greening project. Take a final photo of the site and document any changes in biodiversity, air quality, or community engagement that resulted from your efforts.",
+          "isCompleted": true,
+          "form": null
+        }
+      ],
+      "template": {
+        "templateId": "CH-015",
+        "name": "Urban Greening Initiative",
+        "library": null,
+        "SDGAlignments": [
+          {
+            "code": "SDG11",
+            "name": "Sustainable Cities and Communities",
+            "infoUrl": ""
+          },
+          {
+            "code": "SDG15",
+            "name": "Life on Land",
+            "infoUrl": ""
+          }
+        ],
+        "impactDomains": [
+          {
+            "code": "MAC",
+            "name": "Mitigation and Circularity",
+            "infoUrl": ""
+          },
+          {
+            "code": "DSI",
+            "name": "Democratic Social Infrastructure",
+            "infoUrl": ""
+          }
+        ],
+        "description": "Urban greening is a crucial strategy for mitigating the impacts of climate change in cities. This Template guides a Circle through a 4-week Urban Greening Initiative, where they will identify a location in their community that could benefit from increased greenery, plan and implement a greening project, and reflect on the process and outcomes. The goal is to enhance local biodiversity, improve air quality, and create a more resilient urban environment.",
+        "minCompletedCycles": 0,
+        "maxCompletedCycles": 0,
+        "equipments": [
+          {
+            "name": "Gardening Tools",
+            "description": "Basic gardening tools such as shovels, trowels, gloves, and watering cans for planting and maintaining greenery."
+          },
+          {
+            "name": "Plants or Seeds",
+            "description": "A selection of plants or seeds suitable for the local climate and soil conditions. This could include native plants, flowers, shrubs, or trees."
+          },
+          {
+            "name": "Soil and Compost",
+            "description": "Quality soil and compost to support healthy plant growth. This can be sourced from a local garden center or created through composting organic waste."
+          },
+          {
+            "name": "Surface Breaking Tools",
+            "description": "Tools such as pickaxes or mattocks for breaking through hard surfaces like concrete or asphalt, if necessary for planting in urban areas."
+          }
+        ],
+        "steps": [
+          {
+            "stepNumber": 1,
+            "stepType": "REGISTRATION",
+            "stepId": "SETUP_AND_REGISTRATION",
+            "title": "Site Identification and Registration",
+            "description": "Identify a location in your community that could benefit from increased greenery. This could be a vacant lot, a sidewalk strip, a schoolyard, or any other underutilized space. Take a photo of the site and gather information about its current condition and potential for greening.",
+            "isCompleted": false,
+            "form": [
+              {
+                "name": "LOCATION",
+                "label": "Choose a location",
+                "type": "LOCATION",
+                "required": true,
+                "displayOrder": 1
+              },
+              {
+                "name": "SITE_PHOTO",
+                "label": "Upload a photo of the site",
+                "type": "IMAGE",
+                "required": true,
+                "displayOrder": 2
+              },
+              {
+                "name": "SITE_DESCRIPTION",
+                "label": "Describe the current condition of the site",
+                "type": "TEXT",
+                "required": false,
+                "displayOrder": 3
+              },
+              {
+                "name": "PERMISSION_STATUS",
+                "label": "Do you have permission to work on this site?",
+                "type": "TOGGLE",
+                "required": true,
+                "displayOrder": 4
+              },
+              {
+                "name": "SURFACE_TYPE",
+                "label": "Type of surface",
+                "type": "SELECT",
+                "required": true,
+                "displayOrder": 4,
+                "options": [
+                  {
+                    "value": "CONCRETE",
+                    "label": "Concrete"
+                  },
+                  {
+                    "value": "ASPHALT",
+                    "label": "Asphalt"
+                  },
+                  {
+                    "value": "SOIL",
+                    "label": "Soil"
+                  },
+                  {
+                    "value": "GRASS",
+                    "label": "Grass"
+                  }
+                ]
+              },
+              {
+                "name": "POTENTIAL_PLANTING_AREA",
+                "label": "Estimated area available for planting (in square meters)",
+                "type": "NUMBER",
+                "required": false,
+                "displayOrder": 5,
+                "unitOfMeasureOptions": [
+                  {
+                    "value": "SQM",
+                    "label": "Square Meters (sqm)"
+                  },
+                  {
+                    "value": "SQFT",
+                    "label": "Square Feet (sqft)"
+                  },
+                  {
+                    "value": "ACRES",
+                    "label": "Acres"
+                  },
+                  {
+                    "value": "HECTARES",
+                    "label": "Hectares"
+                  }
+                ]
+              },
+              {
+                "name": "VOLUNTEER_HOURS",
+                "label": "Enter Volunteer Hours",
+                "type": "NUMBER",
+                "required": true,
+                "displayOrder": 6,
+                "unitOfMeasureOptions": [
+                  {
+                    "value": "H",
+                    "label": "Hours"
+                  }
+                ]
+              },
+              {
+                "name": "CONTRIBUTORS",
+                "label": "List Contributors",
+                "type": "TEXT",
+                "required": true,
+                "displayOrder": 6
+              }
+            ]
+          },
+          {
+            "stepNumber": 2,
+            "stepType": "EXECUTION",
+            "stepId": "EXECUTION",
+            "title": "Planting and Implement Greening Project",
+            "description": "Plan and implement your urban greening project. This could involve planting trees, shrubs, flowers, or creating a community garden. Document the process with photos and notes on the types of plants used, the layout of the greenery, and any challenges faced during implementation.",
+            "isCompleted": false,
+            "form": [
+              {
+                "name": "PLANTING_DATE",
+                "label": "Date of planting",
+                "type": "DATE",
+                "required": true,
+                "displayOrder": 1
+              },
+              {
+                "name": "PLANTING_PHOTO",
+                "label": "Upload a photo of the planting process",
+                "type": "IMAGE",
+                "required": true,
+                "displayOrder": 2
+              },
+              {
+                "name": "AREA_SEALED_OR_REMOVED",
+                "label": "Area sealed or removed (in square meters)",
+                "type": "NUMBER",
+                "required": true,
+                "displayOrder": 2,
+                "unitOfMeasureOptions": [
+                  {
+                    "value": "SQM",
+                    "label": "Square Meters (m²)"
+                  },
+                  {
+                    "value": "SQFT",
+                    "label": "Square Feet (ft²)"
+                  },
+                  {
+                    "value": "ACRES",
+                    "label": "Acres"
+                  },
+                  {
+                    "value": "HECTARES",
+                    "label": "Hectares"
+                  }
+                ]
+              },
+              {
+                "name": "AREA_GREENED",
+                "label": "Area greened (in square meters)",
+                "type": "NUMBER",
+                "required": true,
+                "displayOrder": 3,
+                "unitOfMeasureOptions": [
+                  {
+                    "value": "SQM",
+                    "label": "Square Meters (m²)"
+                  },
+                  {
+                    "value": "SQFT",
+                    "label": "Square Feet (ft²)"
+                  },
+                  {
+                    "value": "ACRES",
+                    "label": "Acres"
+                  },
+                  {
+                    "value": "HECTARES",
+                    "label": "Hectares"
+                  }
+                ]
+              },
+              {
+                "name": "SPECIES_USED",
+                "label": "List the species used and their quantities",
+                "type": "TEXT",
+                "required": true,
+                "displayOrder": 3
+              },
+              {
+                "name": "VOLUNTEER_HOURS",
+                "label": "Enter Volunteer Hours",
+                "type": "NUMBER",
+                "required": true,
+                "displayOrder": 4,
+                "unitOfMeasureOptions": [
+                  {
+                    "value": "H",
+                    "label": "Hours"
+                  }
+                ]
+              },
+              {
+                "name": "CONTRIBUTORS",
+                "label": "List Contributors",
+                "type": "TEXT",
+                "required": true,
+                "displayOrder": 5
+              }
+            ]
+          },
+          {
+            "stepNumber": 3,
+            "stepType": "Completion",
+            "stepId": "COMPLETION",
+            "title": "Completion",
+            "description": "Reflect on the process and outcomes of your urban greening project. Take a final photo of the site and document any changes in biodiversity, air quality, or community engagement that resulted from your efforts.",
+            "isCompleted": false,
+            "form": [
+              {
+                "name": "CONFIRM_COMPLETION",
+                "label": "Completion Status",
+                "type": "TOGGLE",
+                "required": true,
+                "displayOrder": 1
+              },
+              {
+                "name": "FINAL_PHOTO",
+                "label": "Upload a final photo of the site",
+                "type": "IMAGE",
+                "required": true,
+                "displayOrder": 1
+              },
+              {
+                "name": "AUTO_REFLECTION",
+                "label": "Auto Reflection Notes",
+                "type": "TEXT",
+                "required": false,
+                "displayOrder": 2
+              },
+              {
+                "name": "VOLUNTEER_HOURS",
+                "label": "Enter Volunteer Hours",
+                "type": "NUMBER",
+                "required": true,
+                "displayOrder": 3,
+                "unitOfMeasureOptions": [
+                  {
+                    "value": "H",
+                    "label": "Hours"
+                  }
+                ]
+              },
+              {
+                "name": "CONTRIBUTORS",
+                "label": "List Contributors",
+                "type": "TEXT",
+                "required": true,
+                "displayOrder": 4
+              }
+            ]
+          }
+        ],
+        "createdAt": "2026-06-28T08:51:50.459585Z"
+      },
+      "activatedDate": null,
+      "completedDate": null,
+      "createdAt": "2026-06-29T01:31:58.700779Z",
+      "modifiedAt": "2026-06-29T01:31:58.700779Z",
+      "partner": null,
+      "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "steps": 3,
+      "currentStep": 0,
+      "impactRecords": [
+        {
+          "id": "32e2bba1-790a-4f25-9188-d0e88965e7a8",
+          "impactRecordId": "818A7C5",
+          "thingUUID": "",
+          "thingId": "B03D9E3",
+          "impactSummary": {
+            "contribution": {
+              "value": 9,
+              "unitOfMeasure": "hours",
+              "displayName": "9 hours"
+            },
+            "impact": {
+              "value": 3.6,
+              "unitOfMeasure": "Incidents",
+              "displayName": "3.60 Incidents",
+              "siUnit": "TIME",
+              "shortSummary": "3.60 crime incidents reduced",
+              "summary": "Volunteering for 9.00 hours results in reducing crime by 3.60 incidents"
+            }
+          },
+          "verifiedDate": null,
+          "verifiedBy": null,
+          "createdAt": "2026-06-29T02:01:32.435845Z",
+          "modifiedAt": "2026-06-29T02:03:41.555999Z",
+          "verified": false,
+          "impactType": "Environmental",
+          "validationTier": null,
+          "siUnit": "TIME"
+        }
+      ],
+      "joinLink": "https://app.theguardians.world/join?challengeId=B03D9E3",
+      "communicationChannels": [
+        {
+          "name": "WhatsApp",
+          "url": "www.whatsapp.com",
+          "icon": "WhatsApp"
+        }
+      ]
+    }
+  ],
+  "circles": [
+    {
+      "id": "5e603482-2d21-48f5-8819-10d658088768",
+      "circleId": "46FBE82",
+      "name": "Kloof North Guardians",
+      "description": "Kloof North Guardians Circle",
+      "createdAt": "2026-06-23T14:07:26.297506Z",
+      "updatedAt": "2026-06-23T14:07:26.297506Z",
+      "region": {
+        "placeId": "ChIJK-WUTsSflR4RYxmdpBBH4yE",
+        "suburb": "",
+        "city": "Roodepoort",
+        "country": "South Africa",
+        "countryCode": "ZA",
+        "province": "Gauteng",
+        "latitude": -26.1472785,
+        "longitude": 27.9010334,
+        "formattedAddress": "Roodepoort, South Africa",
+        "postalCode": ""
+      },
+      "membersCount": null,
+      "circleLeadId": "756d817b-52eb-4f4f-bd44-e209a923ec3d",
+      "circleLead": {
+        "circleId": "46FBE82",
+        "userId": "756d817b-52eb-4f4f-bd44-e209a923ec3d",
+        "joinedAt": "2026-06-23T22:35:50.007089Z",
+        "role": "CIRCLE_LEAD",
+        "avatarUrl": "",
+        "permissions": [
+          "UPDATE_CIRCLE",
+          "VIEW_CIRCLE",
+          "CREATE_CHALLENGE",
+          "DELETE_CHALLENGE",
+          "UPDATE_CHALLENGE",
+          "VIEW_CHALLENGE"
+        ]
+      },
+      "challenges": [
+        {
+          "id": "908561d6-8708-42b4-a82d-87972ccebec6",
+          "name": "Kloof North Winter Composting",
+          "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/1776774438615.jpeg",
+          "challengeId": "1FD0638",
+          "challengeCode": "CH-004",
+          "circleId": "46FBE82",
+          "description": "Constantia North Kloof Composting sprint",
+          "region": {
+            "placeId": "ChIJ37TJQhuglR4R9i8GR8hlxOY",
+            "suburb": "Constantia Kloof",
+            "city": "Roodepoort",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.1445117,
+            "longitude": 27.9102141,
+            "formattedAddress": "Constantia Kloof, Roodepoort, 1709, South Africa",
+            "postalCode": "1709"
+          },
+          "membersCount": null,
+          "members": [
+            {
+              "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+              "challengeId": "1FD0638",
+              "joinedAt": "2026-06-23T15:58:25.705513Z",
+              "role": "CHALLENGE_FACILITATOR",
+              "permissions": [
+                "VIEW_CHALLENGE",
+                "UPDATE_CHALLENGE",
+                "ASSIGN_ROLES_CHALLENGE",
+                "REMOVE_ROLES_CHALLENGE",
+                "SUBMIT_CHALLENGE_EVIDENCE"
+              ],
+              "avatarUrl": ""
+            },
+            {
+              "userId": "73111e63-4362-4eea-b0c3-5bab8b1dbdd3",
+              "challengeId": "1FD0638",
+              "joinedAt": "2026-06-23T22:42:14.779307Z",
+              "role": "CHALLENGE_FACILITATOR",
+              "permissions": [
+                "VIEW_CHALLENGE",
+                "UPDATE_CHALLENGE",
+                "ASSIGN_ROLES_CHALLENGE",
+                "REMOVE_ROLES_CHALLENGE",
+                "SUBMIT_CHALLENGE_EVIDENCE"
+              ],
+              "avatarUrl": ""
+            },
+            {
+              "userId": "5f29be56-8a3b-4c96-bd70-8bf0ca29a112",
+              "challengeId": "1FD0638",
+              "joinedAt": "2026-06-23T23:41:39.766982Z",
+              "role": "MEMBER",
+              "permissions": [
+                "VIEW_CIRCLE",
+                "VIEW_CHALLENGE"
+              ],
+              "avatarUrl": ""
+            },
+            {
+              "userId": "5ce92227-105f-492e-af4c-5d9c2202b48c",
+              "challengeId": "1FD0638",
+              "joinedAt": "2026-06-24T10:04:11.271771Z",
+              "role": "MEMBER",
+              "permissions": [
+                "VIEW_CIRCLE",
+                "VIEW_CHALLENGE"
+              ],
+              "avatarUrl": ""
+            },
+            {
+              "userId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+              "challengeId": "1FD0638",
+              "joinedAt": "2026-06-24T10:49:00.782548Z",
+              "role": "MEMBER",
+              "permissions": [
+                "VIEW_CIRCLE",
+                "VIEW_CHALLENGE"
+              ],
+              "avatarUrl": ""
+            },
+            {
+              "userId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+              "challengeId": "1FD0638",
+              "joinedAt": "2026-06-29T11:44:45.730515Z",
+              "role": "MEMBER",
+              "permissions": [
+                "VIEW_CIRCLE",
+                "VIEW_CHALLENGE"
+              ],
+              "avatarUrl": ""
+            }
+          ],
+          "facilitatorId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "facilitator": {
+            "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+            "challengeId": "1FD0638",
+            "joinedAt": "2026-06-24T14:07:42.767294347Z",
+            "role": "CHALLENGE_FACILITATOR",
+            "permissions": null,
+            "avatarUrl": ""
+          },
+          "duration": null,
+          "equipments": [],
+          "location": {
+            "placeId": "ChIJ37TJQhuglR4R9i8GR8hlxOY",
+            "suburb": "Constantia Kloof",
+            "city": "Roodepoort",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.1445117,
+            "longitude": 27.9102141,
+            "formattedAddress": "Constantia Kloof, Roodepoort, 1709, South Africa",
+            "postalCode": "1709"
+          },
+          "status": {
+            "id": "A",
+            "name": "Active",
+            "code": "ACTIVE",
+            "color": "",
+            "createdAt": "2026-06-23T22:58:19.069903+02:00"
+          },
+          "templateId": "CH-004",
+          "challengeSteps": [
+            {
+              "stepNumber": 1,
+              "stepType": "SETUP_AND_REGISTRATION",
+              "stepId": "SETUP_AND_REGISTRATION",
+              "title": "Register Activation Model",
+              "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+              "isCompleted": true,
+              "form": null
+            },
+            {
+              "stepNumber": 2,
+              "stepType": "EXECUTION",
+              "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+              "title": "Log Waist and Composting Activities",
+              "description": "Track and record your waste management and composting efforts to measure your environmental impact. Log activities such as organic waste collection, compost production, food waste diversion, and recycling initiatives. By capturing these activities, you help demonstrate your contribution to reducing landfill waste, improving soil health, and supporting a more sustainable and circular environment.",
+              "isCompleted": true,
+              "form": null
+            },
+            {
+              "stepNumber": 3,
+              "stepType": "Completion",
+              "stepId": "COMPLETION",
+              "title": "",
+              "description": "Complete the Log Waste and Composting Activities challenge! Your efforts in tracking and managing waste have contributed to reducing environmental impact and promoting sustainable practices. Every composting activity and waste diversion action recorded helps create a cleaner environment, supports soil regeneration, and moves us closer to a more sustainable future. Keep up the great work and continue making a positive difference",
+              "isCompleted": true,
+              "form": null
+            }
+          ],
+          "template": {
+            "templateId": "CH-004",
+            "name": "Composting Sprint",
+            "library": [],
+            "SDGAlignments": null,
+            "impactDomains": null,
+            "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+            "minCompletedCycles": 100,
+            "maxCompletedCycles": 100000,
+            "equipments": [
+              {
+                "name": "Compost Bin or Pile",
+                "description": "A container or designated area for composting organic waste. This can be a commercial compost bin, a DIY bin made from pallets, or simply a pile in the backyard."
+              },
+              {
+                "name": "Kitchen Caddy",
+                "description": "A small container for collecting kitchen scraps before transferring them to the compost bin or pile. This helps keep the process convenient and reduces food waste."
+              },
+              {
+                "name": "Scale or Measuring Tools",
+                "description": "Tools for measuring the amount of waste added to the compost and tracking its progress. This can be a kitchen scale, measuring cups, or simply a notebook for recording observations."
+              }
+            ],
+            "steps": [
+              {
+                "stepNumber": 1,
+                "stepType": "Registration",
+                "stepId": "ACTIVATION_MODEL_REGISTRATION",
+                "title": "Register Activation Model",
+                "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+                "isCompleted": false,
+                "form": null
+              },
+              {
+                "stepNumber": 2,
+                "stepType": "",
+                "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+                "title": "Log Waist and Composting Activities",
+                "description": "Track and record your waste management and composting efforts to measure your environmental impact. Log activities such as organic waste collection, compost production, food waste diversion, and recycling initiatives. By capturing these activities, you help demonstrate your contribution to reducing landfill waste, improving soil health, and supporting a more sustainable and circular environment.",
+                "isCompleted": false,
+                "form": null
+              },
+              {
+                "stepNumber": 3,
+                "stepType": "Completion",
+                "stepId": "COMPLETION",
+                "title": "",
+                "description": "Complete the Log Waste and Composting Activities challenge! Your efforts in tracking and managing waste have contributed to reducing environmental impact and promoting sustainable practices. Every composting activity and waste diversion action recorded helps create a cleaner environment, supports soil regeneration, and moves us closer to a more sustainable future. Keep up the great work and continue making a positive difference",
+                "isCompleted": false,
+                "form": null
+              }
+            ],
+            "createdAt": "2026-06-12T12:01:59.025264Z"
+          },
+          "activatedDate": null,
+          "completedDate": null,
+          "createdAt": "2026-06-23T15:58:23.388887Z",
+          "modifiedAt": "2026-06-23T15:58:23.388887Z",
+          "partner": null,
+          "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "steps": 3,
+          "currentStep": 0,
+          "impactRecords": [
+            {
+              "id": "a7eccfbd-d949-424d-8fa5-ebd4846f14a1",
+              "impactRecordId": "8313986",
+              "thingUUID": "",
+              "thingId": "1FD0638",
+              "impactSummary": {
+                "contribution": {
+                  "value": 75,
+                  "unitOfMeasure": "L",
+                  "displayName": "75.00 L"
+                },
+                "impact": {
+                  "value": 37.5,
+                  "unitOfMeasure": "kg",
+                  "displayName": "37.50 kg",
+                  "siUnit": "MASS",
+                  "shortSummary": "37.50 kg of CO₂e Emission Avoided",
+                  "summary": "Collecting 75.00 L of organic waste results in avoiding 37.50 kg of CO₂e emissions"
+                }
+              },
+              "verifiedDate": null,
+              "verifiedBy": null,
+              "createdAt": "2026-06-23T16:04:02.832698Z",
+              "modifiedAt": "2026-06-24T11:19:16.575932Z",
+              "verified": false,
+              "impactType": "Environmental",
+              "validationTier": null,
+              "siUnit": "VOLUME"
+            },
+            {
+              "id": "a9bd0e7d-f4c3-4968-ac2a-2fbde23711a3",
+              "impactRecordId": "F89B1F2",
+              "thingUUID": "",
+              "thingId": "1FD0638",
+              "impactSummary": {
+                "contribution": {
+                  "value": 120,
+                  "unitOfMeasure": "kg",
+                  "displayName": "120.00 kg"
+                },
+                "impact": {
+                  "value": 60,
+                  "unitOfMeasure": "kg",
+                  "displayName": "60.00 kg",
+                  "siUnit": "MASS",
+                  "shortSummary": "60.00 kg of CO₂e Emission Avoided",
+                  "summary": "Collecting 120.00 kg of organic waste results in avoiding 60.00 kg of CO₂e emissions"
+                }
+              },
+              "verifiedDate": null,
+              "verifiedBy": null,
+              "createdAt": "2026-06-23T16:08:57.911014Z",
+              "modifiedAt": "2026-06-23T16:08:57.911014Z",
+              "verified": false,
+              "impactType": "Environmental",
+              "validationTier": null,
+              "siUnit": "MASS"
+            },
+            {
+              "id": "51c9c3c8-3aac-4ef2-b2b4-1b771d74039d",
+              "impactRecordId": "FB4DB94",
+              "thingUUID": "",
+              "thingId": "1FD0638",
+              "impactSummary": {
+                "contribution": {
+                  "value": 17,
+                  "unitOfMeasure": "hours",
+                  "displayName": "17 hours"
+                },
+                "impact": {
+                  "value": 6.800000000000001,
+                  "unitOfMeasure": "Incidents",
+                  "displayName": "6.80 Incidents",
+                  "siUnit": "TIME",
+                  "shortSummary": "6.80 crime incidents reduced",
+                  "summary": "Volunteering for 17.00 hours results in reducing crime by 6.80 incidents"
+                }
+              },
+              "verifiedDate": null,
+              "verifiedBy": null,
+              "createdAt": "2026-06-23T16:04:02.736208Z",
+              "modifiedAt": "2026-06-24T11:19:16.475797Z",
+              "verified": false,
+              "impactType": "Environmental",
+              "validationTier": null,
+              "siUnit": "TIME"
+            }
+          ],
+          "joinLink": "https://app.theguardians.world/join?challengeId=1FD0638",
+          "communicationChannels": [
+            {
+              "name": "WhatsApp",
+              "url": "https://www.whatsapp.com/legal/privacy-policy",
+              "icon": "WhatsApp"
+            }
+          ]
+        }
+      ],
+      "members": [
+        {
+          "circleId": "46FBE82",
+          "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "joinedAt": "2026-06-23T14:07:26.397595Z",
+          "role": "CREATOR",
+          "avatarUrl": "",
+          "permissions": [
+            "CREATE_CIRCLE",
+            "DELETE_CIRCLE",
+            "UPDATE_CIRCLE",
+            "VIEW_CIRCLE",
+            "CREATE_CHALLENGE",
+            "DELETE_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "VIEW_CHALLENGE"
+          ]
+        },
+        {
+          "circleId": "46FBE82",
+          "userId": "756d817b-52eb-4f4f-bd44-e209a923ec3d",
+          "joinedAt": "2026-06-23T22:35:50.007089Z",
+          "role": "CIRCLE_LEAD",
+          "avatarUrl": "",
+          "permissions": [
+            "UPDATE_CIRCLE",
+            "VIEW_CIRCLE",
+            "CREATE_CHALLENGE",
+            "DELETE_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "VIEW_CHALLENGE"
+          ]
+        },
+        {
+          "circleId": "46FBE82",
+          "userId": "73111e63-4362-4eea-b0c3-5bab8b1dbdd3",
+          "joinedAt": "2026-06-23T22:42:14.692671Z",
+          "role": "MEMBER",
+          "avatarUrl": "",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ]
+        },
+        {
+          "circleId": "46FBE82",
+          "userId": "5ce92227-105f-492e-af4c-5d9c2202b48c",
+          "joinedAt": "2026-06-24T10:00:43.019833Z",
+          "role": "MEMBER",
+          "avatarUrl": "",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ]
+        },
+        {
+          "circleId": "46FBE82",
+          "userId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+          "joinedAt": "2026-06-24T10:50:56.883787Z",
+          "role": "MEMBER",
+          "avatarUrl": "",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ]
+        },
+        {
+          "circleId": "46FBE82",
+          "userId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+          "joinedAt": "2026-06-29T11:44:45.989445Z",
+          "role": "MEMBER",
+          "avatarUrl": "",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ]
+        }
+      ],
+      "joinLink": "https://app.theguardians.world/join?circleId=46FBE82",
+      "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/composting.jpg",
+      "communicationChannels": [
+        {
+          "name": "WhatsApp",
+          "url": "https://www.whatsapp.com/legal/privacy-policy",
+          "icon": "WhatsApp"
+        }
+      ],
+      "impactRecords": [
+        {
+          "id": "61a8d4cf-5d16-4c41-a424-5688b1b38bc8",
+          "impactRecordId": "E60E9FF",
+          "thingUUID": "46FBE82",
+          "thingId": "46FBE82",
+          "impactSummary": {
+            "contribution": {
+              "value": 37,
+              "unitOfMeasure": "hours",
+              "displayName": "37 hours"
+            },
+            "impact": {
+              "value": 14.8,
+              "unitOfMeasure": "Incidents",
+              "displayName": "14.80 Incidents",
+              "siUnit": "TIME",
+              "shortSummary": "14.80 crime incidents reduced",
+              "summary": "Volunteering for 37.00 hours results in reducing crime by 14.80 incidents"
+            }
+          },
+          "verifiedDate": null,
+          "verifiedBy": null,
+          "createdAt": "2026-06-23T16:04:04.1567Z",
+          "modifiedAt": "2026-06-24T11:19:17.776003Z",
+          "verified": false,
+          "impactType": "Environmental",
+          "validationTier": null,
+          "siUnit": "TIME"
+        },
+        {
+          "id": "52f8ba9f-0335-4fb5-96b2-782625cc77ba",
+          "impactRecordId": "34E7031",
+          "thingUUID": "46FBE82",
+          "thingId": "46FBE82",
+          "impactSummary": {
+            "contribution": {
+              "value": 75,
+              "unitOfMeasure": "L",
+              "displayName": "75.00 L"
+            },
+            "impact": {
+              "value": 37.5,
+              "unitOfMeasure": "kg",
+              "displayName": "37.50 kg",
+              "siUnit": "MASS",
+              "shortSummary": "37.50 kg of CO₂e Emission Avoided",
+              "summary": "Collecting 75.00 L of organic waste results in avoiding 37.50 kg of CO₂e emissions"
+            }
+          },
+          "verifiedDate": null,
+          "verifiedBy": null,
+          "createdAt": "2026-06-23T16:04:04.215838Z",
+          "modifiedAt": "2026-06-24T11:19:17.861643Z",
+          "verified": false,
+          "impactType": "Environmental",
+          "validationTier": null,
+          "siUnit": "VOLUME"
+        },
+        {
+          "id": "7b47bc1a-37dd-42b0-8209-4881f45f36a5",
+          "impactRecordId": "CB7223D",
+          "thingUUID": "46FBE82",
+          "thingId": "46FBE82",
+          "impactSummary": {
+            "contribution": {
+              "value": 120,
+              "unitOfMeasure": "kg",
+              "displayName": "120.00 kg"
+            },
+            "impact": {
+              "value": 60,
+              "unitOfMeasure": "kg",
+              "displayName": "60.00 kg",
+              "siUnit": "MASS",
+              "shortSummary": "60.00 kg of CO₂e Emission Avoided",
+              "summary": "Collecting 120.00 kg of organic waste results in avoiding 60.00 kg of CO₂e emissions"
+            }
+          },
+          "verifiedDate": null,
+          "verifiedBy": null,
+          "createdAt": "2026-06-23T16:08:59.581299Z",
+          "modifiedAt": "2026-06-23T16:08:59.581299Z",
+          "verified": false,
+          "impactType": "Environmental",
+          "validationTier": null,
+          "siUnit": "MASS"
+        }
+      ],
+      "status": {
+        "id": "UR",
+        "name": "Under Review",
+        "code": "UNDER_REVIEW",
+        "color": "",
+        "createdAt": "2026-06-23T14:07:26.297511577Z"
+      }
+    },
+    {
+      "id": "04d65d6c-3bdc-4e47-93a1-87e69fa7611b",
+      "circleId": "BA43C08",
+      "name": "Edenvalers II",
+      "description": "Edenvale community of Guardians",
+      "createdAt": "2026-06-24T15:29:09.596838Z",
+      "updatedAt": "2026-06-24T15:29:09.596838Z",
+      "region": {
+        "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+        "suburb": "",
+        "city": "Edenvale",
+        "country": "South Africa",
+        "countryCode": "ZA",
+        "province": "Gauteng",
+        "latitude": -26.1302564,
+        "longitude": 28.1775094,
+        "formattedAddress": "Edenvale, South Africa",
+        "postalCode": ""
+      },
+      "membersCount": null,
+      "circleLeadId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+      "circleLead": {
+        "circleId": "BA43C08",
+        "userId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+        "joinedAt": "2026-06-24T15:29:09.779053Z",
+        "role": "CIRCLE_LEAD",
+        "avatarUrl": "",
+        "permissions": [
+          "UPDATE_CIRCLE",
+          "VIEW_CIRCLE",
+          "CREATE_CHALLENGE",
+          "DELETE_CHALLENGE",
+          "UPDATE_CHALLENGE",
+          "VIEW_CHALLENGE"
+        ]
+      },
+      "challenges": [
+        {
+          "id": "cf901aa2-d6f9-4f60-8587-1a242bbb9002",
+          "name": "Edenvale Composters",
+          "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/lawn-leafjpg.jpg",
+          "challengeId": "EC8BF9A",
+          "challengeCode": "CH-004",
+          "circleId": "BA43C08",
+          "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+          "region": {
+            "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+            "suburb": "",
+            "city": "Edenvale",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.1302564,
+            "longitude": 28.1775094,
+            "formattedAddress": "Edenvale, South Africa",
+            "postalCode": ""
+          },
+          "membersCount": null,
+          "members": [
+            {
+              "userId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+              "challengeId": "EC8BF9A",
+              "joinedAt": "2026-06-28T19:08:56.923254Z",
+              "role": "CHALLENGE_FACILITATOR",
+              "permissions": [
+                "VIEW_CHALLENGE",
+                "UPDATE_CHALLENGE",
+                "ASSIGN_ROLES_CHALLENGE",
+                "REMOVE_ROLES_CHALLENGE",
+                "SUBMIT_CHALLENGE_EVIDENCE"
+              ],
+              "avatarUrl": ""
+            },
+            {
+              "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+              "challengeId": "EC8BF9A",
+              "joinedAt": "2026-06-28T19:08:57.016538Z",
+              "role": "CHALLENGE_OWNER",
+              "permissions": [
+                "CREATE_CHALLENGE",
+                "DELETE_CHALLENGE",
+                "UPDATE_CHALLENGE",
+                "VIEW_CHALLENGE",
+                "ASSIGN_ROLES_CHALLENGE"
+              ],
+              "avatarUrl": ""
+            },
+            {
+              "userId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+              "challengeId": "EC8BF9A",
+              "joinedAt": "2026-06-29T15:33:30.294827Z",
+              "role": "MEMBER",
+              "permissions": [
+                "VIEW_CIRCLE",
+                "VIEW_CHALLENGE"
+              ],
+              "avatarUrl": ""
+            }
+          ],
+          "facilitatorId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "facilitator": {
+            "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+            "challengeId": "EC8BF9A",
+            "joinedAt": "2026-06-29T02:06:05.713482971Z",
+            "role": "CHALLENGE_FACILITATOR",
+            "permissions": null,
+            "avatarUrl": ""
+          },
+          "duration": null,
+          "equipments": [],
+          "location": {
+            "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+            "suburb": "",
+            "city": "Edenvale",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.1302564,
+            "longitude": 28.1775094,
+            "formattedAddress": "Edenvale, South Africa",
+            "postalCode": ""
+          },
+          "status": {
+            "id": "P",
+            "name": "Pending",
+            "code": "PENDING",
+            "color": "",
+            "createdAt": "2026-06-28T19:08:56.662169011Z"
+          },
+          "templateId": "CH-004",
+          "challengeSteps": [
+            {
+              "stepNumber": 1,
+              "stepType": "REGISTRATION",
+              "stepId": "SETUP_AND_REGISTRATION",
+              "title": "Register Activation Model",
+              "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+              "isCompleted": true,
+              "form": null
+            },
+            {
+              "stepNumber": 2,
+              "stepType": "EXECUTION",
+              "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+              "title": "",
+              "description": "",
+              "isCompleted": true,
+              "form": null
+            },
+            {
+              "stepNumber": 3,
+              "stepType": "COMPLETION",
+              "stepId": "COMPLETION",
+              "title": "Completion",
+              "description": "",
+              "isCompleted": true,
+              "form": null
+            }
+          ],
+          "template": {
+            "templateId": "CH-004",
+            "name": "Compost Sprint",
+            "library": null,
+            "SDGAlignments": [
+              {
+                "code": "SDG12",
+                "name": "Responsible Consumption and Production",
+                "infoUrl": ""
+              },
+              {
+                "code": "SDG13",
+                "name": "Climate Action",
+                "infoUrl": ""
+              }
+            ],
+            "impactDomains": [
+              {
+                "code": "MAC",
+                "name": "Mitigation and Circularity",
+                "infoUrl": ""
+              },
+              {
+                "code": "DSI",
+                "name": "Democratic Social Infrastructure",
+                "infoUrl": ""
+              }
+            ],
+            "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+            "minCompletedCycles": 0,
+            "maxCompletedCycles": 0,
+            "equipments": [
+              {
+                "name": "Compost Bin or Pile",
+                "description": "A container or designated area for composting organic waste. This can be a commercial compost bin, a DIY bin made from pallets, or simply a pile in the backyard."
+              },
+              {
+                "name": "Kitchen Caddy",
+                "description": "A small container for collecting kitchen scraps before transferring them to the compost bin or pile. This helps keep the process convenient and reduces food waste."
+              },
+              {
+                "name": "Scale or Measuring Tools",
+                "description": "Tools for measuring the amount of waste added to the compost and tracking its progress. This can be a kitchen scale, measuring cups, or simply a notebook for recording observations."
+              }
+            ],
+            "steps": [
+              {
+                "stepNumber": 1,
+                "stepType": "REGISTRATION",
+                "stepId": "SETUP_AND_REGISTRATION",
+                "title": "Register Activation Model",
+                "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+                "isCompleted": false,
+                "form": [
+                  {
+                    "name": "LOCATION",
+                    "label": "Choose a location",
+                    "type": "LOCATION",
+                    "required": true,
+                    "displayOrder": 1
+                  },
+                  {
+                    "name": "ACTIVATION_MODEL",
+                    "label": "Select an activation model",
+                    "type": "SELECT",
+                    "required": true,
+                    "displayOrder": 2,
+                    "options": [
+                      {
+                        "value": "HUB",
+                        "label": "Hub"
+                      },
+                      {
+                        "value": "DISTRIBUTED",
+                        "label": "Distributed"
+                      },
+                      {
+                        "value": "PARTNER_FACILITY",
+                        "label": "Partner Facility"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "START_DATE",
+                    "label": "Start Date",
+                    "type": "DATE",
+                    "required": true,
+                    "displayOrder": 2
+                  },
+                  {
+                    "name": "END_DATE",
+                    "label": "End Date",
+                    "type": "DATE",
+                    "required": true,
+                    "displayOrder": 3
+                  },
+                  {
+                    "name": "SITE_PHOTO",
+                    "label": "Upload a site photo",
+                    "type": "IMAGE",
+                    "required": true,
+                    "displayOrder": 4
+                  },
+                  {
+                    "name": "VOLUNTEER_HOURS",
+                    "label": "Enter Volunteer Hours",
+                    "type": "NUMBER",
+                    "required": true,
+                    "displayOrder": 5,
+                    "unitOfMeasureOptions": [
+                      {
+                        "value": "H",
+                        "label": "Hours"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "CONTRIBUTORS",
+                    "label": "List Contributors",
+                    "type": "TEXT",
+                    "required": true,
+                    "displayOrder": 6
+                  }
+                ]
+              },
+              {
+                "stepNumber": 2,
+                "stepType": "EXECUTION",
+                "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+                "title": "",
+                "description": "",
+                "isCompleted": false,
+                "form": [
+                  {
+                    "name": "MEASUREMENT",
+                    "label": "Enter the amount of waste added to the compost",
+                    "type": "NUMBER",
+                    "required": true,
+                    "displayOrder": 1,
+                    "unitOfMeasureOptions": [
+                      {
+                        "value": "kg",
+                        "label": "Kilograms (kg)"
+                      },
+                      {
+                        "value": "lb",
+                        "label": "Pounds (lb)"
+                      },
+                      {
+                        "value": "L",
+                        "label": "Liters (L)"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "ACTIVITY_DESCRIPTION",
+                    "label": "Describe the composting activity",
+                    "type": "TEXT",
+                    "required": false,
+                    "displayOrder": 2
+                  },
+                  {
+                    "name": "RECEIPT_UPLOAD",
+                    "label": "Upload a receipt for any composting supplies purchased",
+                    "type": "IMAGE",
+                    "required": false,
+                    "displayOrder": 3
+                  },
+                  {
+                    "name": "CONTRIBUTORS",
+                    "label": "List Contributors",
+                    "type": "TEXT",
+                    "required": true,
+                    "displayOrder": 4
+                  }
+                ]
+              },
+              {
+                "stepNumber": 3,
+                "stepType": "COMPLETION",
+                "stepId": "COMPLETION",
+                "title": "Completion",
+                "description": "",
+                "isCompleted": false,
+                "form": [
+                  {
+                    "name": "CONFIRMATION",
+                    "label": "Confirm Completion",
+                    "type": "TOGGLE",
+                    "required": true,
+                    "displayOrder": 0
+                  },
+                  {
+                    "name": "TEAM_REFLECTION_NOTES",
+                    "label": "Team Reflection Notes",
+                    "type": "TEXTAREA",
+                    "required": false,
+                    "displayOrder": 1
+                  },
+                  {
+                    "name": "AUTO_REFLECTION_NOTES",
+                    "label": "Auto-generated Reflection Notes",
+                    "type": "TEXT",
+                    "required": false,
+                    "displayOrder": 2
+                  },
+                  {
+                    "name": "CONTRIBUTORS",
+                    "label": "List Contributors",
+                    "type": "TEXT",
+                    "required": false,
+                    "displayOrder": 3
+                  }
+                ]
+              }
+            ],
+            "createdAt": "2026-06-28T08:49:31.673105Z"
+          },
+          "activatedDate": null,
+          "completedDate": null,
+          "createdAt": "2026-06-28T19:08:56.662169Z",
+          "modifiedAt": "2026-06-28T19:08:56.662169Z",
+          "partner": null,
+          "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "steps": 3,
+          "currentStep": 0,
+          "impactRecords": [
+            {
+              "id": "18a2ab81-e4bf-4ea6-9507-592c650fa070",
+              "impactRecordId": "21F4F9D",
+              "thingUUID": "",
+              "thingId": "EC8BF9A",
+              "impactSummary": {
+                "contribution": {
+                  "value": 10,
+                  "unitOfMeasure": "hours",
+                  "displayName": "10 hours"
+                },
+                "impact": {
+                  "value": 4,
+                  "unitOfMeasure": "Incidents",
+                  "displayName": "4.00 Incidents",
+                  "siUnit": "TIME",
+                  "shortSummary": "4.00 crime incidents reduced",
+                  "summary": "Volunteering for 10.00 hours results in reducing crime by 4.00 incidents"
+                }
+              },
+              "verifiedDate": null,
+              "verifiedBy": null,
+              "createdAt": "2026-06-29T00:48:04.112524Z",
+              "modifiedAt": "2026-06-30T20:50:43.725923Z",
+              "verified": false,
+              "impactType": "Environmental",
+              "validationTier": null,
+              "siUnit": "TIME"
+            }
+          ],
+          "joinLink": "https://app.theguardians.world/join?challengeId=EC8BF9A",
+          "communicationChannels": [
+            {
+              "name": "WhatsApp",
+              "url": "www.whatsapp.com",
+              "icon": "WhatsApp"
+            }
+          ]
+        },
+        {
+          "id": "0bde479e-d133-4a8c-8a4f-88f2d5fb6ffa",
+          "name": "Edenvale Greening",
+          "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/lawn-leafjpg.jpg",
+          "challengeId": "B03D9E3",
+          "challengeCode": "CH-015",
+          "circleId": "BA43C08",
+          "description": "Urban greening is a crucial strategy for mitigating the impacts of climate change in cities. This Template guides a Circle through a 4-week Urban Greening Initiative, where they will identify a location in their community that could benefit from increased greenery, plan and implement a greening project, and reflect on the process and outcomes. The goal is to enhance local biodiversity, improve air quality, and create a more resilient urban environment.",
+          "region": {
+            "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+            "suburb": "",
+            "city": "Edenvale",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.1302564,
+            "longitude": 28.1775094,
+            "formattedAddress": "Edenvale, South Africa",
+            "postalCode": ""
+          },
+          "membersCount": null,
+          "members": [
+            {
+              "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+              "challengeId": "B03D9E3",
+              "joinedAt": "2026-06-29T01:31:58.989171Z",
+              "role": "CHALLENGE_FACILITATOR",
+              "permissions": [
+                "VIEW_CHALLENGE",
+                "UPDATE_CHALLENGE",
+                "ASSIGN_ROLES_CHALLENGE",
+                "REMOVE_ROLES_CHALLENGE",
+                "SUBMIT_CHALLENGE_EVIDENCE"
+              ],
+              "avatarUrl": ""
+            }
+          ],
+          "facilitatorId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "facilitator": {
+            "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+            "challengeId": "B03D9E3",
+            "joinedAt": "2026-06-29T01:31:58.962676654Z",
+            "role": "CHALLENGE_FACILITATOR",
+            "permissions": null,
+            "avatarUrl": ""
+          },
+          "duration": null,
+          "equipments": [],
+          "location": {
+            "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+            "suburb": "",
+            "city": "Edenvale",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.1302564,
+            "longitude": 28.1775094,
+            "formattedAddress": "Edenvale, South Africa",
+            "postalCode": ""
+          },
+          "status": {
+            "id": "P",
+            "name": "Pending",
+            "code": "PENDING",
+            "color": "",
+            "createdAt": "2026-06-29T01:31:58.700779366Z"
+          },
+          "templateId": "CH-015",
+          "challengeSteps": [
+            {
+              "stepNumber": 1,
+              "stepType": "REGISTRATION",
+              "stepId": "SETUP_AND_REGISTRATION",
+              "title": "Site Identification and Registration",
+              "description": "Identify a location in your community that could benefit from increased greenery. This could be a vacant lot, a sidewalk strip, a schoolyard, or any other underutilized space. Take a photo of the site and gather information about its current condition and potential for greening.",
+              "isCompleted": true,
+              "form": null
+            },
+            {
+              "stepNumber": 2,
+              "stepType": "EXECUTION",
+              "stepId": "EXECUTION",
+              "title": "Planting and Implement Greening Project",
+              "description": "Plan and implement your urban greening project. This could involve planting trees, shrubs, flowers, or creating a community garden. Document the process with photos and notes on the types of plants used, the layout of the greenery, and any challenges faced during implementation.",
+              "isCompleted": true,
+              "form": null
+            },
+            {
+              "stepNumber": 3,
+              "stepType": "Completion",
+              "stepId": "COMPLETION",
+              "title": "Completion",
+              "description": "Reflect on the process and outcomes of your urban greening project. Take a final photo of the site and document any changes in biodiversity, air quality, or community engagement that resulted from your efforts.",
+              "isCompleted": true,
+              "form": null
+            }
+          ],
+          "template": {
+            "templateId": "CH-015",
+            "name": "Urban Greening Initiative",
+            "library": null,
+            "SDGAlignments": [
+              {
+                "code": "SDG11",
+                "name": "Sustainable Cities and Communities",
+                "infoUrl": ""
+              },
+              {
+                "code": "SDG15",
+                "name": "Life on Land",
+                "infoUrl": ""
+              }
+            ],
+            "impactDomains": [
+              {
+                "code": "MAC",
+                "name": "Mitigation and Circularity",
+                "infoUrl": ""
+              },
+              {
+                "code": "DSI",
+                "name": "Democratic Social Infrastructure",
+                "infoUrl": ""
+              }
+            ],
+            "description": "Urban greening is a crucial strategy for mitigating the impacts of climate change in cities. This Template guides a Circle through a 4-week Urban Greening Initiative, where they will identify a location in their community that could benefit from increased greenery, plan and implement a greening project, and reflect on the process and outcomes. The goal is to enhance local biodiversity, improve air quality, and create a more resilient urban environment.",
+            "minCompletedCycles": 0,
+            "maxCompletedCycles": 0,
+            "equipments": [
+              {
+                "name": "Gardening Tools",
+                "description": "Basic gardening tools such as shovels, trowels, gloves, and watering cans for planting and maintaining greenery."
+              },
+              {
+                "name": "Plants or Seeds",
+                "description": "A selection of plants or seeds suitable for the local climate and soil conditions. This could include native plants, flowers, shrubs, or trees."
+              },
+              {
+                "name": "Soil and Compost",
+                "description": "Quality soil and compost to support healthy plant growth. This can be sourced from a local garden center or created through composting organic waste."
+              },
+              {
+                "name": "Surface Breaking Tools",
+                "description": "Tools such as pickaxes or mattocks for breaking through hard surfaces like concrete or asphalt, if necessary for planting in urban areas."
+              }
+            ],
+            "steps": [
+              {
+                "stepNumber": 1,
+                "stepType": "REGISTRATION",
+                "stepId": "SETUP_AND_REGISTRATION",
+                "title": "Site Identification and Registration",
+                "description": "Identify a location in your community that could benefit from increased greenery. This could be a vacant lot, a sidewalk strip, a schoolyard, or any other underutilized space. Take a photo of the site and gather information about its current condition and potential for greening.",
+                "isCompleted": false,
+                "form": [
+                  {
+                    "name": "LOCATION",
+                    "label": "Choose a location",
+                    "type": "LOCATION",
+                    "required": true,
+                    "displayOrder": 1
+                  },
+                  {
+                    "name": "SITE_PHOTO",
+                    "label": "Upload a photo of the site",
+                    "type": "IMAGE",
+                    "required": true,
+                    "displayOrder": 2
+                  },
+                  {
+                    "name": "SITE_DESCRIPTION",
+                    "label": "Describe the current condition of the site",
+                    "type": "TEXT",
+                    "required": false,
+                    "displayOrder": 3
+                  },
+                  {
+                    "name": "PERMISSION_STATUS",
+                    "label": "Do you have permission to work on this site?",
+                    "type": "TOGGLE",
+                    "required": true,
+                    "displayOrder": 4
+                  },
+                  {
+                    "name": "SURFACE_TYPE",
+                    "label": "Type of surface",
+                    "type": "SELECT",
+                    "required": true,
+                    "displayOrder": 4,
+                    "options": [
+                      {
+                        "value": "CONCRETE",
+                        "label": "Concrete"
+                      },
+                      {
+                        "value": "ASPHALT",
+                        "label": "Asphalt"
+                      },
+                      {
+                        "value": "SOIL",
+                        "label": "Soil"
+                      },
+                      {
+                        "value": "GRASS",
+                        "label": "Grass"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "POTENTIAL_PLANTING_AREA",
+                    "label": "Estimated area available for planting (in square meters)",
+                    "type": "NUMBER",
+                    "required": false,
+                    "displayOrder": 5,
+                    "unitOfMeasureOptions": [
+                      {
+                        "value": "SQM",
+                        "label": "Square Meters (sqm)"
+                      },
+                      {
+                        "value": "SQFT",
+                        "label": "Square Feet (sqft)"
+                      },
+                      {
+                        "value": "ACRES",
+                        "label": "Acres"
+                      },
+                      {
+                        "value": "HECTARES",
+                        "label": "Hectares"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "VOLUNTEER_HOURS",
+                    "label": "Enter Volunteer Hours",
+                    "type": "NUMBER",
+                    "required": true,
+                    "displayOrder": 6,
+                    "unitOfMeasureOptions": [
+                      {
+                        "value": "H",
+                        "label": "Hours"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "CONTRIBUTORS",
+                    "label": "List Contributors",
+                    "type": "TEXT",
+                    "required": true,
+                    "displayOrder": 6
+                  }
+                ]
+              },
+              {
+                "stepNumber": 2,
+                "stepType": "EXECUTION",
+                "stepId": "EXECUTION",
+                "title": "Planting and Implement Greening Project",
+                "description": "Plan and implement your urban greening project. This could involve planting trees, shrubs, flowers, or creating a community garden. Document the process with photos and notes on the types of plants used, the layout of the greenery, and any challenges faced during implementation.",
+                "isCompleted": false,
+                "form": [
+                  {
+                    "name": "PLANTING_DATE",
+                    "label": "Date of planting",
+                    "type": "DATE",
+                    "required": true,
+                    "displayOrder": 1
+                  },
+                  {
+                    "name": "PLANTING_PHOTO",
+                    "label": "Upload a photo of the planting process",
+                    "type": "IMAGE",
+                    "required": true,
+                    "displayOrder": 2
+                  },
+                  {
+                    "name": "AREA_SEALED_OR_REMOVED",
+                    "label": "Area sealed or removed (in square meters)",
+                    "type": "NUMBER",
+                    "required": true,
+                    "displayOrder": 2,
+                    "unitOfMeasureOptions": [
+                      {
+                        "value": "SQM",
+                        "label": "Square Meters (m²)"
+                      },
+                      {
+                        "value": "SQFT",
+                        "label": "Square Feet (ft²)"
+                      },
+                      {
+                        "value": "ACRES",
+                        "label": "Acres"
+                      },
+                      {
+                        "value": "HECTARES",
+                        "label": "Hectares"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "AREA_GREENED",
+                    "label": "Area greened (in square meters)",
+                    "type": "NUMBER",
+                    "required": true,
+                    "displayOrder": 3,
+                    "unitOfMeasureOptions": [
+                      {
+                        "value": "SQM",
+                        "label": "Square Meters (m²)"
+                      },
+                      {
+                        "value": "SQFT",
+                        "label": "Square Feet (ft²)"
+                      },
+                      {
+                        "value": "ACRES",
+                        "label": "Acres"
+                      },
+                      {
+                        "value": "HECTARES",
+                        "label": "Hectares"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "SPECIES_USED",
+                    "label": "List the species used and their quantities",
+                    "type": "TEXT",
+                    "required": true,
+                    "displayOrder": 3
+                  },
+                  {
+                    "name": "VOLUNTEER_HOURS",
+                    "label": "Enter Volunteer Hours",
+                    "type": "NUMBER",
+                    "required": true,
+                    "displayOrder": 4,
+                    "unitOfMeasureOptions": [
+                      {
+                        "value": "H",
+                        "label": "Hours"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "CONTRIBUTORS",
+                    "label": "List Contributors",
+                    "type": "TEXT",
+                    "required": true,
+                    "displayOrder": 5
+                  }
+                ]
+              },
+              {
+                "stepNumber": 3,
+                "stepType": "Completion",
+                "stepId": "COMPLETION",
+                "title": "Completion",
+                "description": "Reflect on the process and outcomes of your urban greening project. Take a final photo of the site and document any changes in biodiversity, air quality, or community engagement that resulted from your efforts.",
+                "isCompleted": false,
+                "form": [
+                  {
+                    "name": "CONFIRM_COMPLETION",
+                    "label": "Completion Status",
+                    "type": "TOGGLE",
+                    "required": true,
+                    "displayOrder": 1
+                  },
+                  {
+                    "name": "FINAL_PHOTO",
+                    "label": "Upload a final photo of the site",
+                    "type": "IMAGE",
+                    "required": true,
+                    "displayOrder": 1
+                  },
+                  {
+                    "name": "AUTO_REFLECTION",
+                    "label": "Auto Reflection Notes",
+                    "type": "TEXT",
+                    "required": false,
+                    "displayOrder": 2
+                  },
+                  {
+                    "name": "VOLUNTEER_HOURS",
+                    "label": "Enter Volunteer Hours",
+                    "type": "NUMBER",
+                    "required": true,
+                    "displayOrder": 3,
+                    "unitOfMeasureOptions": [
+                      {
+                        "value": "H",
+                        "label": "Hours"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "CONTRIBUTORS",
+                    "label": "List Contributors",
+                    "type": "TEXT",
+                    "required": true,
+                    "displayOrder": 4
+                  }
+                ]
+              }
+            ],
+            "createdAt": "2026-06-28T08:51:50.459585Z"
+          },
+          "activatedDate": null,
+          "completedDate": null,
+          "createdAt": "2026-06-29T01:31:58.700779Z",
+          "modifiedAt": "2026-06-29T01:31:58.700779Z",
+          "partner": null,
+          "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "steps": 3,
+          "currentStep": 0,
+          "impactRecords": [
+            {
+              "id": "32e2bba1-790a-4f25-9188-d0e88965e7a8",
+              "impactRecordId": "818A7C5",
+              "thingUUID": "",
+              "thingId": "B03D9E3",
+              "impactSummary": {
+                "contribution": {
+                  "value": 9,
+                  "unitOfMeasure": "hours",
+                  "displayName": "9 hours"
+                },
+                "impact": {
+                  "value": 3.6,
+                  "unitOfMeasure": "Incidents",
+                  "displayName": "3.60 Incidents",
+                  "siUnit": "TIME",
+                  "shortSummary": "3.60 crime incidents reduced",
+                  "summary": "Volunteering for 9.00 hours results in reducing crime by 3.60 incidents"
+                }
+              },
+              "verifiedDate": null,
+              "verifiedBy": null,
+              "createdAt": "2026-06-29T02:01:32.435845Z",
+              "modifiedAt": "2026-06-29T02:03:41.555999Z",
+              "verified": false,
+              "impactType": "Environmental",
+              "validationTier": null,
+              "siUnit": "TIME"
+            }
+          ],
+          "joinLink": "https://app.theguardians.world/join?challengeId=B03D9E3",
+          "communicationChannels": [
+            {
+              "name": "WhatsApp",
+              "url": "www.whatsapp.com",
+              "icon": "WhatsApp"
+            }
+          ]
+        },
+        {
+          "id": "52f3cffd-0a4a-45d1-a128-f98d809c0425",
+          "name": "Edenvale Compost III",
+          "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/ffd42295-cef1-4917-bff9-00758393e186.jpeg",
+          "challengeId": "C8F87BF",
+          "challengeCode": "CH-004",
+          "circleId": "BA43C08",
+          "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+          "region": {
+            "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+            "suburb": "",
+            "city": "Edenvale",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.1302564,
+            "longitude": 28.1775094,
+            "formattedAddress": "Edenvale, South Africa",
+            "postalCode": ""
+          },
+          "membersCount": null,
+          "members": [
+            {
+              "userId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+              "challengeId": "C8F87BF",
+              "joinedAt": "2026-06-29T03:00:49.92428Z",
+              "role": "CHALLENGE_FACILITATOR",
+              "permissions": [
+                "VIEW_CHALLENGE",
+                "UPDATE_CHALLENGE",
+                "ASSIGN_ROLES_CHALLENGE",
+                "REMOVE_ROLES_CHALLENGE",
+                "SUBMIT_CHALLENGE_EVIDENCE"
+              ],
+              "avatarUrl": ""
+            },
+            {
+              "userId": "fa249c20-1969-4613-a003-448f2aa65d60",
+              "challengeId": "C8F87BF",
+              "joinedAt": "2026-06-29T17:53:58.153959Z",
+              "role": "MEMBER",
+              "permissions": [
+                "VIEW_CIRCLE",
+                "VIEW_CHALLENGE"
+              ],
+              "avatarUrl": ""
+            }
+          ],
+          "facilitatorId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+          "facilitator": {
+            "userId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+            "challengeId": "C8F87BF",
+            "joinedAt": "2026-06-29T03:00:49.895468685Z",
+            "role": "CHALLENGE_FACILITATOR",
+            "permissions": null,
+            "avatarUrl": ""
+          },
+          "duration": null,
+          "equipments": [],
+          "location": {
+            "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+            "suburb": "",
+            "city": "Edenvale",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.1302564,
+            "longitude": 28.1775094,
+            "formattedAddress": "Edenvale, South Africa",
+            "postalCode": ""
+          },
+          "status": {
+            "id": "P",
+            "name": "Pending",
+            "code": "PENDING",
+            "color": "",
+            "createdAt": "2026-06-29T03:00:49.562907137Z"
+          },
+          "templateId": "CH-004",
+          "challengeSteps": [
+            {
+              "stepNumber": 1,
+              "stepType": "REGISTRATION",
+              "stepId": "SETUP_AND_REGISTRATION",
+              "title": "Register Activation Model",
+              "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+              "isCompleted": true,
+              "form": null
+            },
+            {
+              "stepNumber": 2,
+              "stepType": "EXECUTION",
+              "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+              "title": "",
+              "description": "",
+              "isCompleted": true,
+              "form": null
+            },
+            {
+              "stepNumber": 3,
+              "stepType": "COMPLETION",
+              "stepId": "COMPLETION",
+              "title": "Completion",
+              "description": "",
+              "isCompleted": true,
+              "form": null
+            }
+          ],
+          "template": {
+            "templateId": "CH-004",
+            "name": "Compost Sprint",
+            "library": null,
+            "SDGAlignments": [
+              {
+                "code": "SDG12",
+                "name": "Responsible Consumption and Production",
+                "infoUrl": ""
+              },
+              {
+                "code": "SDG13",
+                "name": "Climate Action",
+                "infoUrl": ""
+              }
+            ],
+            "impactDomains": [
+              {
+                "code": "MAC",
+                "name": "Mitigation and Circularity",
+                "infoUrl": ""
+              },
+              {
+                "code": "DSI",
+                "name": "Democratic Social Infrastructure",
+                "infoUrl": ""
+              }
+            ],
+            "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+            "minCompletedCycles": 0,
+            "maxCompletedCycles": 0,
+            "equipments": [
+              {
+                "name": "Compost Bin or Pile",
+                "description": "A container or designated area for composting organic waste. This can be a commercial compost bin, a DIY bin made from pallets, or simply a pile in the backyard."
+              },
+              {
+                "name": "Kitchen Caddy",
+                "description": "A small container for collecting kitchen scraps before transferring them to the compost bin or pile. This helps keep the process convenient and reduces food waste."
+              },
+              {
+                "name": "Scale or Measuring Tools",
+                "description": "Tools for measuring the amount of waste added to the compost and tracking its progress. This can be a kitchen scale, measuring cups, or simply a notebook for recording observations."
+              }
+            ],
+            "steps": [
+              {
+                "stepNumber": 1,
+                "stepType": "REGISTRATION",
+                "stepId": "SETUP_AND_REGISTRATION",
+                "title": "Register Activation Model",
+                "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+                "isCompleted": false,
+                "form": [
+                  {
+                    "name": "LOCATION",
+                    "label": "Choose a location",
+                    "type": "LOCATION",
+                    "required": true,
+                    "displayOrder": 1
+                  },
+                  {
+                    "name": "ACTIVATION_MODEL",
+                    "label": "Select an activation model",
+                    "type": "SELECT",
+                    "required": true,
+                    "displayOrder": 2,
+                    "options": [
+                      {
+                        "value": "HUB",
+                        "label": "Hub"
+                      },
+                      {
+                        "value": "DISTRIBUTED",
+                        "label": "Distributed"
+                      },
+                      {
+                        "value": "PARTNER_FACILITY",
+                        "label": "Partner Facility"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "START_DATE",
+                    "label": "Start Date",
+                    "type": "DATE",
+                    "required": true,
+                    "displayOrder": 2
+                  },
+                  {
+                    "name": "END_DATE",
+                    "label": "End Date",
+                    "type": "DATE",
+                    "required": true,
+                    "displayOrder": 3
+                  },
+                  {
+                    "name": "SITE_PHOTO",
+                    "label": "Upload a site photo",
+                    "type": "IMAGE",
+                    "required": true,
+                    "displayOrder": 4
+                  },
+                  {
+                    "name": "VOLUNTEER_HOURS",
+                    "label": "Enter Volunteer Hours",
+                    "type": "NUMBER",
+                    "required": true,
+                    "displayOrder": 5,
+                    "unitOfMeasureOptions": [
+                      {
+                        "value": "H",
+                        "label": "Hours"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "CONTRIBUTORS",
+                    "label": "List Contributors",
+                    "type": "TEXT",
+                    "required": true,
+                    "displayOrder": 6
+                  }
+                ]
+              },
+              {
+                "stepNumber": 2,
+                "stepType": "EXECUTION",
+                "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+                "title": "",
+                "description": "",
+                "isCompleted": false,
+                "form": [
+                  {
+                    "name": "MEASUREMENT",
+                    "label": "Enter the amount of waste added to the compost",
+                    "type": "NUMBER",
+                    "required": true,
+                    "displayOrder": 1,
+                    "unitOfMeasureOptions": [
+                      {
+                        "value": "kg",
+                        "label": "Kilograms (kg)"
+                      },
+                      {
+                        "value": "lb",
+                        "label": "Pounds (lb)"
+                      },
+                      {
+                        "value": "L",
+                        "label": "Liters (L)"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "ACTIVITY_DESCRIPTION",
+                    "label": "Describe the composting activity",
+                    "type": "TEXT",
+                    "required": false,
+                    "displayOrder": 2
+                  },
+                  {
+                    "name": "RECEIPT_UPLOAD",
+                    "label": "Upload a receipt for any composting supplies purchased",
+                    "type": "IMAGE",
+                    "required": false,
+                    "displayOrder": 3
+                  },
+                  {
+                    "name": "CONTRIBUTORS",
+                    "label": "List Contributors",
+                    "type": "TEXT",
+                    "required": true,
+                    "displayOrder": 4
+                  }
+                ]
+              },
+              {
+                "stepNumber": 3,
+                "stepType": "COMPLETION",
+                "stepId": "COMPLETION",
+                "title": "Completion",
+                "description": "",
+                "isCompleted": false,
+                "form": [
+                  {
+                    "name": "CONFIRMATION",
+                    "label": "Confirm Completion",
+                    "type": "TOGGLE",
+                    "required": true,
+                    "displayOrder": 0
+                  },
+                  {
+                    "name": "TEAM_REFLECTION_NOTES",
+                    "label": "Team Reflection Notes",
+                    "type": "TEXTAREA",
+                    "required": false,
+                    "displayOrder": 1
+                  },
+                  {
+                    "name": "AUTO_REFLECTION_NOTES",
+                    "label": "Auto-generated Reflection Notes",
+                    "type": "TEXT",
+                    "required": false,
+                    "displayOrder": 2
+                  },
+                  {
+                    "name": "CONTRIBUTORS",
+                    "label": "List Contributors",
+                    "type": "TEXT",
+                    "required": false,
+                    "displayOrder": 3
+                  }
+                ]
+              }
+            ],
+            "createdAt": "2026-06-28T08:49:31.673105Z"
+          },
+          "activatedDate": null,
+          "completedDate": null,
+          "createdAt": "2026-06-29T03:00:49.562907Z",
+          "modifiedAt": "2026-06-29T03:00:49.562907Z",
+          "partner": null,
+          "createdBy": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+          "steps": 3,
+          "currentStep": 0,
+          "impactRecords": [
+            {
+              "id": "8124a35f-e71f-48c4-805d-aae5e31081e6",
+              "impactRecordId": "597D543",
+              "thingUUID": "",
+              "thingId": "C8F87BF",
+              "impactSummary": {
+                "contribution": {
+                  "value": 11,
+                  "unitOfMeasure": "hours",
+                  "displayName": "11 hours"
+                },
+                "impact": {
+                  "value": 4.4,
+                  "unitOfMeasure": "Incidents",
+                  "displayName": "4.40 Incidents",
+                  "siUnit": "TIME",
+                  "shortSummary": "4.40 crime incidents reduced",
+                  "summary": "Volunteering for 11.00 hours results in reducing crime by 4.40 incidents"
+                }
+              },
+              "verifiedDate": null,
+              "verifiedBy": null,
+              "createdAt": "2026-06-29T03:15:11.377171Z",
+              "modifiedAt": "2026-06-29T15:19:44.550198Z",
+              "verified": false,
+              "impactType": "Environmental",
+              "validationTier": null,
+              "siUnit": "TIME"
+            }
+          ],
+          "joinLink": "https://app.theguardians.world/join?challengeId=C8F87BF",
+          "communicationChannels": [
+            {
+              "name": "WhatsApp",
+              "url": "www.whatsapp.com",
+              "icon": "WhatsApp"
+            }
+          ]
+        }
+      ],
+      "members": [
+        {
+          "circleId": "BA43C08",
+          "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "joinedAt": "2026-06-24T15:29:09.671287Z",
+          "role": "CREATOR",
+          "avatarUrl": "",
+          "permissions": [
+            "CREATE_CIRCLE",
+            "DELETE_CIRCLE",
+            "UPDATE_CIRCLE",
+            "VIEW_CIRCLE",
+            "CREATE_CHALLENGE",
+            "DELETE_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "VIEW_CHALLENGE"
+          ]
+        },
+        {
+          "circleId": "BA43C08",
+          "userId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+          "joinedAt": "2026-06-24T15:29:09.779053Z",
+          "role": "CIRCLE_LEAD",
+          "avatarUrl": "",
+          "permissions": [
+            "UPDATE_CIRCLE",
+            "VIEW_CIRCLE",
+            "CREATE_CHALLENGE",
+            "DELETE_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "VIEW_CHALLENGE"
+          ]
+        },
+        {
+          "circleId": "BA43C08",
+          "userId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+          "joinedAt": "2026-06-29T15:33:30.559105Z",
+          "role": "MEMBER",
+          "avatarUrl": "",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ]
+        },
+        {
+          "circleId": "BA43C08",
+          "userId": "fa249c20-1969-4613-a003-448f2aa65d60",
+          "joinedAt": "2026-06-29T17:53:58.615884Z",
+          "role": "MEMBER",
+          "avatarUrl": "",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ]
+        }
+      ],
+      "joinLink": "https://app.theguardians.world/join?circleId=BA43C08",
+      "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/images.jpg",
+      "communicationChannels": [],
+      "impactRecords": [
+        {
+          "id": "1b4d7e24-efe9-4cc9-9540-87021a725f9c",
+          "impactRecordId": "0DF1E55",
+          "thingUUID": "BA43C08",
+          "thingId": "BA43C08",
+          "impactSummary": {
+            "contribution": {
+              "value": 30,
+              "unitOfMeasure": "hours",
+              "displayName": "30 hours"
+            },
+            "impact": {
+              "value": 12,
+              "unitOfMeasure": "Incidents",
+              "displayName": "12.00 Incidents",
+              "siUnit": "TIME",
+              "shortSummary": "12.00 crime incidents reduced",
+              "summary": "Volunteering for 30.00 hours results in reducing crime by 12.00 incidents"
+            }
+          },
+          "verifiedDate": null,
+          "verifiedBy": null,
+          "createdAt": "2026-06-29T00:48:05.25927Z",
+          "modifiedAt": "2026-06-30T20:50:55.858688Z",
+          "verified": false,
+          "impactType": "Environmental",
+          "validationTier": null,
+          "siUnit": "TIME"
+        }
+      ],
+      "status": {
+        "id": "UR",
+        "name": "Under Review",
+        "code": "UNDER_REVIEW",
+        "color": "",
+        "createdAt": "2026-06-24T15:29:09.596844101Z"
+      }
+    },
+    {
+      "id": "1b2568ed-7437-4bbb-90d9-607f5da3c46f",
+      "circleId": "658E7D1",
+      "name": "Guardians ",
+      "description": "The guardians ",
+      "createdAt": "2026-06-29T03:19:40.215992Z",
+      "updatedAt": "2026-06-29T03:19:40.215992Z",
+      "region": {
+        "placeId": "ChIJw-Q333uDQUcREBAeDCnEAAA",
+        "suburb": "",
+        "city": "",
+        "country": "Hungary",
+        "countryCode": "HU",
+        "province": "",
+        "latitude": 47.162494,
+        "longitude": 19.503304,
+        "formattedAddress": "Hungary",
+        "postalCode": ""
+      },
+      "membersCount": null,
+      "circleLeadId": "5ce92227-105f-492e-af4c-5d9c2202b48c",
+      "circleLead": {
+        "circleId": "658E7D1",
+        "userId": "5ce92227-105f-492e-af4c-5d9c2202b48c",
+        "joinedAt": "2026-06-29T03:19:40.4335Z",
+        "role": "CIRCLE_LEAD",
+        "avatarUrl": "",
+        "permissions": [
+          "UPDATE_CIRCLE",
+          "VIEW_CIRCLE",
+          "CREATE_CHALLENGE",
+          "DELETE_CHALLENGE",
+          "UPDATE_CHALLENGE",
+          "VIEW_CHALLENGE"
+        ]
+      },
+      "challenges": [],
+      "members": [
+        {
+          "circleId": "658E7D1",
+          "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+          "joinedAt": "2026-06-29T03:19:40.311824Z",
+          "role": "CREATOR",
+          "avatarUrl": "",
+          "permissions": [
+            "CREATE_CIRCLE",
+            "DELETE_CIRCLE",
+            "UPDATE_CIRCLE",
+            "VIEW_CIRCLE",
+            "CREATE_CHALLENGE",
+            "DELETE_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "VIEW_CHALLENGE"
+          ]
+        },
+        {
+          "circleId": "658E7D1",
+          "userId": "5ce92227-105f-492e-af4c-5d9c2202b48c",
+          "joinedAt": "2026-06-29T03:19:40.4335Z",
+          "role": "CIRCLE_LEAD",
+          "avatarUrl": "",
+          "permissions": [
+            "UPDATE_CIRCLE",
+            "VIEW_CIRCLE",
+            "CREATE_CHALLENGE",
+            "DELETE_CHALLENGE",
+            "UPDATE_CHALLENGE",
+            "VIEW_CHALLENGE"
+          ]
+        },
+        {
+          "circleId": "658E7D1",
+          "userId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+          "joinedAt": "2026-06-29T14:31:53.164812Z",
+          "role": "MEMBER",
+          "avatarUrl": "",
+          "permissions": [
+            "VIEW_CIRCLE",
+            "VIEW_CHALLENGE"
+          ]
+        }
+      ],
+      "joinLink": "https://app.theguardians.world/join?circleId=658E7D1",
+      "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/banner.png",
+      "communicationChannels": [],
+      "impactRecords": [],
+      "status": {
+        "id": "UR",
+        "name": "Under Review",
+        "code": "UNDER_REVIEW",
+        "color": "",
+        "createdAt": "2026-06-29T03:19:40.215998732Z"
+      }
+    }
+  ],
+  "impactRecords": [
+    {
+      "id": "0da7fdfb-3992-4c2b-9625-526a9f4e131b",
+      "impactRecordId": "3BB0338",
+      "thingUUID": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "thingId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "impactSummary": {
+        "contribution": {
+          "value": 120,
+          "unitOfMeasure": "kg",
+          "displayName": "120.00 kg"
+        },
+        "impact": {
+          "value": 60,
+          "unitOfMeasure": "kg",
+          "displayName": "60.00 kg",
+          "siUnit": "MASS",
+          "shortSummary": "60.00 kg of CO₂e Emission Avoided",
+          "summary": "Collecting 120.00 kg of organic waste results in avoiding 60.00 kg of CO₂e emissions"
+        }
+      },
+      "verifiedDate": null,
+      "verifiedBy": null,
+      "createdAt": "2026-06-23T16:08:58.070716Z",
+      "modifiedAt": "2026-06-23T16:08:58.070716Z",
+      "verified": false,
+      "impactType": "Environmental",
+      "validationTier": null,
+      "siUnit": "MASS"
+    },
+    {
+      "id": "7ee8e116-830a-45bb-a6c1-335dd774fa9c",
+      "impactRecordId": "DD6CF4D",
+      "thingUUID": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "thingId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "impactSummary": {
+        "contribution": {
+          "value": 75,
+          "unitOfMeasure": "L",
+          "displayName": "75.00 L"
+        },
+        "impact": {
+          "value": 37.5,
+          "unitOfMeasure": "kg",
+          "displayName": "37.50 kg",
+          "siUnit": "MASS",
+          "shortSummary": "37.50 kg of CO₂e Emission Avoided",
+          "summary": "Collecting 75.00 L of organic waste results in avoiding 37.50 kg of CO₂e emissions"
+        }
+      },
+      "verifiedDate": null,
+      "verifiedBy": null,
+      "createdAt": "2026-06-23T16:04:02.987275Z",
+      "modifiedAt": "2026-06-23T16:04:02.987275Z",
+      "verified": false,
+      "impactType": "Environmental",
+      "validationTier": null,
+      "siUnit": "VOLUME"
+    },
+    {
+      "id": "463c627e-6018-4446-97a7-252a87d6aab4",
+      "impactRecordId": "409F8C5",
+      "thingUUID": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "thingId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "impactSummary": {
+        "contribution": {
+          "value": 56,
+          "unitOfMeasure": "hours",
+          "displayName": "56 hours"
+        },
+        "impact": {
+          "value": 22.400000000000002,
+          "unitOfMeasure": "Incidents",
+          "displayName": "22.40 Incidents",
+          "siUnit": "TIME",
+          "shortSummary": "22.40 crime incidents reduced",
+          "summary": "Volunteering for 56.00 hours results in reducing crime by 22.40 incidents"
+        }
+      },
+      "verifiedDate": null,
+      "verifiedBy": null,
+      "createdAt": "2026-06-23T16:04:02.91523Z",
+      "modifiedAt": "2026-06-30T20:50:45.409428Z",
+      "verified": false,
+      "impactType": "Environmental",
+      "validationTier": null,
+      "siUnit": "TIME"
+    }
+  ],
+  "challengesCount": {
+    "total": 3,
+    "label": "Challenges",
+    "displayValue": "03"
+  },
+  "circlesCount": {
+    "total": 3,
+    "label": "Circles",
+    "displayValue": "03"
+  },
+  "contributionMarkers": [
+    {
+      "id": "1",
+      "name": "FIRST CIRCLE",
+      "description": "This marker is awarded to users who have successfully completed their first circle of impact, demonstrating their commitment to making a positive difference in their community.",
+      "icon": "https://example.com/icons/first_circle.png",
+      "obtained": true
+    },
+    {
+      "id": "2",
+      "name": "DEEP ROOTS",
+      "description": "This marker is awarded to users who have shown a deep commitment to their impact journey, consistently engaging in activities that create lasting change and foster strong community connections.",
+      "icon": "https://example.com/icons/deep_roots.png",
+      "obtained": false
+    },
+    {
+      "id": "3",
+      "name": "RANGE",
+      "description": "This marker is awarded to users who have demonstrated a wide range of impact activities, showcasing their versatility and ability to address various community needs through diverse initiatives.",
+      "icon": "https://example.com/icons/range.png",
+      "obtained": false
+    },
+    {
+      "id": "4",
+      "name": "SUSTAINED",
+      "description": "This marker is awarded to users who have maintained consistent engagement in their impact activities over an extended period, demonstrating perseverance and dedication.",
+      "icon": "https://example.com/icons/sustained.png",
+      "obtained": false
+    },
+    {
+      "id": "5",
+      "name": "WITNESS",
+      "description": "This marker is awarded to users who have actively observed and documented the impact of their initiatives, providing valuable insights and feedback to improve future efforts.",
+      "icon": "https://example.com/icons/witness.png",
+      "obtained": false
+    },
+    {
+      "id": "6",
+      "name": "ORIGINATOR",
+      "description": "This marker is awarded to users who have initiated new impact projects or programs, demonstrating leadership and innovation in addressing community needs.",
+      "icon": "https://example.com/icons/originator.png",
+      "obtained": true
+    },
+    {
+      "id": "7",
+      "name": "FIRST IMPACT",
+      "description": "This marker is awarded to users who have made their first measurable impact in their community, marking the beginning of their journey towards creating positive change.",
+      "icon": "https://example.com/icons/first_impact.png",
+      "obtained": true
+    },
+    {
+      "id": "8",
+      "name": "MULTIPLIER",
+      "description": "This marker is awarded to users who have successfully multiplied their impact by engaging others and expanding the reach of their initiatives.",
+      "icon": "https://example.com/icons/multiplier.png",
+      "obtained": false
+    }
+  ]
+}

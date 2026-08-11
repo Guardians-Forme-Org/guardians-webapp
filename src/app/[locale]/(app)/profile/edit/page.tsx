@@ -1,0 +1,7 @@
+"use client";
+
+import EditProfileScreen from "@/features/profile/screens/EditProfileScreen";
+
+export default function EditProfilePage() {
+  return <EditProfileScreen />;
+}

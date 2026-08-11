@@ -1,0 +1,703 @@
+[api] GET https://api.dev.theguardians.world/api/v1/challenges/18DCD11 → 200
+{
+  "id": "368fb6cd-cb07-4e58-909b-82b4f170be28",
+  "name": "Gellérthegyi zöld",
+  "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/1000046297.jpg",
+  "challengeId": "18DCD11",
+  "challengeCode": "CH-015",
+  "circleId": "4500822",
+  "description": "Urban greening is a crucial strategy for mitigating the impacts of climate change in cities. This Template guides a Circle through a 4-week Urban Greening Initiative, where they will identify a location in their community that could benefit from increased greenery, plan and implement a greening project, and reflect on the process and outcomes. The goal is to enhance local biodiversity, improve air quality, and create a more resilient urban environment.",
+  "region": {
+    "placeId": "ChIJyc_U0TTDQUcRYBEeDCnEAAQ",
+    "suburb": "",
+    "city": "Budapest",
+    "country": "Magyarország",
+    "countryCode": "HU",
+    "province": "",
+    "latitude": 47.497912,
+    "longitude": 19.040235,
+    "formattedAddress": "Budapest, Magyarország",
+    "postalCode": ""
+  },
+  "membersCount": null,
+  "members": [
+    {
+      "userId": "5ce92227-105f-492e-af4c-5d9c2202b48c",
+      "challengeId": "18DCD11",
+      "joinedAt": "2026-06-29T11:00:52.849447Z",
+      "role": "CHALLENGE_FACILITATOR",
+      "permissions": [
+        "VIEW_CHALLENGE",
+        "UPDATE_CHALLENGE",
+        "ASSIGN_ROLES_CHALLENGE",
+        "REMOVE_ROLES_CHALLENGE",
+        "SUBMIT_CHALLENGE_EVIDENCE"
+      ],
+      "avatarUrl": ""
+    },
+    {
+      "userId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+      "challengeId": "18DCD11",
+      "joinedAt": "2026-06-29T11:15:41.741113Z",
+      "role": "MEMBER",
+      "permissions": [
+        "VIEW_CIRCLE",
+        "VIEW_CHALLENGE"
+      ],
+      "avatarUrl": ""
+    }
+  ],
+  "facilitatorId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+  "facilitator": {
+    "userId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+    "challengeId": "18DCD11",
+    "joinedAt": "2026-06-29T14:53:35.838995536Z",
+    "role": "CHALLENGE_FACILITATOR",
+    "permissions": null,
+    "avatarUrl": ""
+  },
+  "duration": null,
+  "equipments": [],
+  "location": {
+    "placeId": "ChIJyc_U0TTDQUcRYBEeDCnEAAQ",
+    "suburb": "",
+    "city": "Budapest",
+    "country": "Magyarország",
+    "countryCode": "HU",
+    "province": "",
+    "latitude": 47.497912,
+    "longitude": 19.040235,
+    "formattedAddress": "Budapest, Magyarország",
+    "postalCode": ""
+  },
+  "status": {
+    "id": "P",
+    "name": "Pending",
+    "code": "PENDING",
+    "color": "",
+    "createdAt": "2026-06-29T11:00:52.08081836Z"
+  },
+  "templateId": "CH-015",
+  "challengeSteps": [
+    {
+      "stepNumber": 1,
+      "stepType": "REGISTRATION",
+      "stepId": "SETUP_AND_REGISTRATION",
+      "title": "Site Identification and Registration",
+      "description": "Identify a location in your community that could benefit from increased greenery. This could be a vacant lot, a sidewalk strip, a schoolyard, or any other underutilized space. Take a photo of the site and gather information about its current condition and potential for greening.",
+      "isCompleted": false,
+      "form": [
+        {
+          "name": "LOCATION",
+          "label": "Choose a location",
+          "type": "LOCATION",
+          "required": true,
+          "displayOrder": 1
+        },
+        {
+          "name": "SITE_PHOTO",
+          "label": "Upload a photo of the site",
+          "type": "IMAGE",
+          "required": true,
+          "displayOrder": 2
+        },
+        {
+          "name": "SITE_DESCRIPTION",
+          "label": "Describe the current condition of the site",
+          "type": "TEXT",
+          "required": false,
+          "displayOrder": 3
+        },
+        {
+          "name": "PERMISSION_STATUS",
+          "label": "Do you have permission to work on this site?",
+          "type": "TOGGLE",
+          "required": true,
+          "displayOrder": 4
+        },
+        {
+          "name": "SURFACE_TYPE",
+          "label": "Type of surface",
+          "type": "SELECT",
+          "required": true,
+          "displayOrder": 4,
+          "options": [
+            {
+              "value": "CONCRETE",
+              "label": "Concrete"
+            },
+            {
+              "value": "ASPHALT",
+              "label": "Asphalt"
+            },
+            {
+              "value": "SOIL",
+              "label": "Soil"
+            },
+            {
+              "value": "GRASS",
+              "label": "Grass"
+            }
+          ]
+        },
+        {
+          "name": "POTENTIAL_PLANTING_AREA",
+          "label": "Estimated area available for planting (in square meters)",
+          "type": "NUMBER",
+          "required": false,
+          "displayOrder": 5,
+          "unitOfMeasureOptions": [
+            {
+              "value": "SQM",
+              "label": "Square Meters (sqm)"
+            },
+            {
+              "value": "SQFT",
+              "label": "Square Feet (sqft)"
+            },
+            {
+              "value": "ACRES",
+              "label": "Acres"
+            },
+            {
+              "value": "HECTARES",
+              "label": "Hectares"
+            }
+          ]
+        },
+        {
+          "name": "VOLUNTEER_HOURS",
+          "label": "Enter Volunteer Hours",
+          "type": "NUMBER",
+          "required": true,
+          "displayOrder": 6,
+          "unitOfMeasureOptions": [
+            {
+              "value": "H",
+              "label": "Hours"
+            }
+          ]
+        },
+        {
+          "name": "CONTRIBUTORS",
+          "label": "List Contributors",
+          "type": "TEXT",
+          "required": true,
+          "displayOrder": 6
+        }
+      ]
+    },
+    {
+      "stepNumber": 2,
+      "stepType": "EXECUTION",
+      "stepId": "EXECUTION",
+      "title": "Planting and Implement Greening Project",
+      "description": "Plan and implement your urban greening project. This could involve planting trees, shrubs, flowers, or creating a community garden. Document the process with photos and notes on the types of plants used, the layout of the greenery, and any challenges faced during implementation.",
+      "isCompleted": false,
+      "form": [
+        {
+          "name": "PLANTING_DATE",
+          "label": "Date of planting",
+          "type": "DATE",
+          "required": true,
+          "displayOrder": 1
+        },
+        {
+          "name": "PLANTING_PHOTO",
+          "label": "Upload a photo of the planting process",
+          "type": "IMAGE",
+          "required": true,
+          "displayOrder": 2
+        },
+        {
+          "name": "AREA_SEALED_OR_REMOVED",
+          "label": "Area sealed or removed (in square meters)",
+          "type": "NUMBER",
+          "required": true,
+          "displayOrder": 2,
+          "unitOfMeasureOptions": [
+            {
+              "value": "SQM",
+              "label": "Square Meters (m²)"
+            },
+            {
+              "value": "SQFT",
+              "label": "Square Feet (ft²)"
+            },
+            {
+              "value": "ACRES",
+              "label": "Acres"
+            },
+            {
+              "value": "HECTARES",
+              "label": "Hectares"
+            }
+          ]
+        },
+        {
+          "name": "AREA_GREENED",
+          "label": "Area greened (in square meters)",
+          "type": "NUMBER",
+          "required": true,
+          "displayOrder": 3,
+          "unitOfMeasureOptions": [
+            {
+              "value": "SQM",
+              "label": "Square Meters (m²)"
+            },
+            {
+              "value": "SQFT",
+              "label": "Square Feet (ft²)"
+            },
+            {
+              "value": "ACRES",
+              "label": "Acres"
+            },
+            {
+              "value": "HECTARES",
+              "label": "Hectares"
+            }
+          ]
+        },
+        {
+          "name": "SPECIES_USED",
+          "label": "List the species used and their quantities",
+          "type": "TEXT",
+          "required": true,
+          "displayOrder": 3
+        },
+        {
+          "name": "VOLUNTEER_HOURS",
+          "label": "Enter Volunteer Hours",
+          "type": "NUMBER",
+          "required": true,
+          "displayOrder": 4,
+          "unitOfMeasureOptions": [
+            {
+              "value": "H",
+              "label": "Hours"
+            }
+          ]
+        },
+        {
+          "name": "CONTRIBUTORS",
+          "label": "List Contributors",
+          "type": "TEXT",
+          "required": true,
+          "displayOrder": 5
+        }
+      ]
+    },
+    {
+      "stepNumber": 3,
+      "stepType": "Completion",
+      "stepId": "COMPLETION",
+      "title": "Completion",
+      "description": "Reflect on the process and outcomes of your urban greening project. Take a final photo of the site and document any changes in biodiversity, air quality, or community engagement that resulted from your efforts.",
+      "isCompleted": false,
+      "form": [
+        {
+          "name": "CONFIRM_COMPLETION",
+          "label": "Completion Status",
+          "type": "TOGGLE",
+          "required": true,
+          "displayOrder": 1
+        },
+        {
+          "name": "FINAL_PHOTO",
+          "label": "Upload a final photo of the site",
+          "type": "IMAGE",
+          "required": true,
+          "displayOrder": 1
+        },
+        {
+          "name": "AUTO_REFLECTION",
+          "label": "Auto Reflection Notes",
+          "type": "TEXT",
+          "required": false,
+          "displayOrder": 2
+        },
+        {
+          "name": "VOLUNTEER_HOURS",
+          "label": "Enter Volunteer Hours",
+          "type": "NUMBER",
+          "required": true,
+          "displayOrder": 3,
+          "unitOfMeasureOptions": [
+            {
+              "value": "H",
+              "label": "Hours"
+            }
+          ]
+        },
+        {
+          "name": "CONTRIBUTORS",
+          "label": "List Contributors",
+          "type": "TEXT",
+          "required": true,
+          "displayOrder": 4
+        }
+      ]
+    }
+  ],
+  "template": {
+    "templateId": "CH-015",
+    "name": "Urban Greening Initiative",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG11",
+        "name": "Sustainable Cities and Communities",
+        "infoUrl": ""
+      },
+      {
+        "code": "SDG15",
+        "name": "Life on Land",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "MAC",
+        "name": "Mitigation and Circularity",
+        "infoUrl": ""
+      },
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "Urban greening is a crucial strategy for mitigating the impacts of climate change in cities. This Template guides a Circle through a 4-week Urban Greening Initiative, where they will identify a location in their community that could benefit from increased greenery, plan and implement a greening project, and reflect on the process and outcomes. The goal is to enhance local biodiversity, improve air quality, and create a more resilient urban environment.",
+    "minCompletedCycles": 0,
+    "maxCompletedCycles": 0,
+    "equipments": [
+      {
+        "name": "Gardening Tools",
+        "description": "Basic gardening tools such as shovels, trowels, gloves, and watering cans for planting and maintaining greenery."
+      },
+      {
+        "name": "Plants or Seeds",
+        "description": "A selection of plants or seeds suitable for the local climate and soil conditions. This could include native plants, flowers, shrubs, or trees."
+      },
+      {
+        "name": "Soil and Compost",
+        "description": "Quality soil and compost to support healthy plant growth. This can be sourced from a local garden center or created through composting organic waste."
+      },
+      {
+        "name": "Surface Breaking Tools",
+        "description": "Tools such as pickaxes or mattocks for breaking through hard surfaces like concrete or asphalt, if necessary for planting in urban areas."
+      }
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "SETUP_AND_REGISTRATION",
+        "title": "Site Identification and Registration",
+        "description": "Identify a location in your community that could benefit from increased greenery. This could be a vacant lot, a sidewalk strip, a schoolyard, or any other underutilized space. Take a photo of the site and gather information about its current condition and potential for greening.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Choose a location",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "SITE_PHOTO",
+            "label": "Upload a photo of the site",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "SITE_DESCRIPTION",
+            "label": "Describe the current condition of the site",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 3
+          },
+          {
+            "name": "PERMISSION_STATUS",
+            "label": "Do you have permission to work on this site?",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "SURFACE_TYPE",
+            "label": "Type of surface",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 4,
+            "options": [
+              {
+                "value": "CONCRETE",
+                "label": "Concrete"
+              },
+              {
+                "value": "ASPHALT",
+                "label": "Asphalt"
+              },
+              {
+                "value": "SOIL",
+                "label": "Soil"
+              },
+              {
+                "value": "GRASS",
+                "label": "Grass"
+              }
+            ]
+          },
+          {
+            "name": "POTENTIAL_PLANTING_AREA",
+            "label": "Estimated area available for planting (in square meters)",
+            "type": "NUMBER",
+            "required": false,
+            "displayOrder": 5,
+            "unitOfMeasureOptions": [
+              {
+                "value": "SQM",
+                "label": "Square Meters (sqm)"
+              },
+              {
+                "value": "SQFT",
+                "label": "Square Feet (sqft)"
+              },
+              {
+                "value": "ACRES",
+                "label": "Acres"
+              },
+              {
+                "value": "HECTARES",
+                "label": "Hectares"
+              }
+            ]
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 6,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 6
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "EXECUTION",
+        "title": "Planting and Implement Greening Project",
+        "description": "Plan and implement your urban greening project. This could involve planting trees, shrubs, flowers, or creating a community garden. Document the process with photos and notes on the types of plants used, the layout of the greenery, and any challenges faced during implementation.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "PLANTING_DATE",
+            "label": "Date of planting",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "PLANTING_PHOTO",
+            "label": "Upload a photo of the planting process",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "AREA_SEALED_OR_REMOVED",
+            "label": "Area sealed or removed (in square meters)",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2,
+            "unitOfMeasureOptions": [
+              {
+                "value": "SQM",
+                "label": "Square Meters (m²)"
+              },
+              {
+                "value": "SQFT",
+                "label": "Square Feet (ft²)"
+              },
+              {
+                "value": "ACRES",
+                "label": "Acres"
+              },
+              {
+                "value": "HECTARES",
+                "label": "Hectares"
+              }
+            ]
+          },
+          {
+            "name": "AREA_GREENED",
+            "label": "Area greened (in square meters)",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "unitOfMeasureOptions": [
+              {
+                "value": "SQM",
+                "label": "Square Meters (m²)"
+              },
+              {
+                "value": "SQFT",
+                "label": "Square Feet (ft²)"
+              },
+              {
+                "value": "ACRES",
+                "label": "Acres"
+              },
+              {
+                "value": "HECTARES",
+                "label": "Hectares"
+              }
+            ]
+          },
+          {
+            "name": "SPECIES_USED",
+            "label": "List the species used and their quantities",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 4,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 5
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "Completion",
+        "stepId": "COMPLETION",
+        "title": "Completion",
+        "description": "Reflect on the process and outcomes of your urban greening project. Take a final photo of the site and document any changes in biodiversity, air quality, or community engagement that resulted from your efforts.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRM_COMPLETION",
+            "label": "Completion Status",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "FINAL_PHOTO",
+            "label": "Upload a final photo of the site",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "AUTO_REFLECTION",
+            "label": "Auto Reflection Notes",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 2
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:51:50.459585Z"
+  },
+  "activatedDate": null,
+  "completedDate": null,
+  "createdAt": "2026-06-29T11:00:52.080818Z",
+  "modifiedAt": "2026-06-29T11:00:52.080818Z",
+  "partner": null,
+  "createdBy": "5ce92227-105f-492e-af4c-5d9c2202b48c",
+  "steps": 3,
+  "currentStep": 0,
+  "impactRecords": [
+    {
+      "id": "62448c5f-d053-4c19-84cb-9eb785e7cd70",
+      "impactRecordId": "D1738DC",
+      "thingUUID": "",
+      "thingId": "18DCD11",
+      "impactSummary": {
+        "contribution": {
+          "value": 1,
+          "unitOfMeasure": "hours",
+          "displayName": "1 hours"
+        },
+        "impact": {
+          "value": 0.4,
+          "unitOfMeasure": "Incidents",
+          "displayName": "0.40 Incidents",
+          "siUnit": "TIME",
+          "shortSummary": "0.40 crime incidents reduced",
+          "summary": "Volunteering for 1.00 hours results in reducing crime by 0.40 incidents"
+        }
+      },
+      "verifiedDate": null,
+      "verifiedBy": null,
+      "createdAt": "2026-06-29T11:04:25.203712Z",
+      "modifiedAt": "2026-06-29T11:04:25.203712Z",
+      "verified": false,
+      "impactType": "Environmental",
+      "validationTier": null,
+      "siUnit": "TIME"
+    }
+  ],
+  "joinLink": "https://app.theguardians.world/join?challengeId=18DCD11",
+  "communicationChannels": [
+    {
+      "name": "WhatsApp",
+      "url": "https://chat.whatsapp.com/CVh0Tkbub6WBRTPCK089mD?s=cl&p=a&ilr=1",
+      "icon": "WhatsApp"
+    }
+  ]
+}

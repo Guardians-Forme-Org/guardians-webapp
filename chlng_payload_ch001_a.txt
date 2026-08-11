@@ -1,0 +1,710 @@
+{
+  "id": "11d8d5a9-341a-4e19-879a-41ed7caa3e5f",
+  "name": "Summer Heat Mapping Ruimsing",
+  "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/dry-and.jpg",
+  "challengeId": "5B738F6",
+  "challengeCode": "CH-001",
+  "circleId": "46FBE82",
+  "description": "Summer Heat Mapping Ruimsing",
+  "region": {
+    "placeId": "ChIJ37TJQhuglR4R9i8GR8hlxOY",
+    "suburb": "Constantia Kloof",
+    "city": "Roodepoort",
+    "country": "South Africa",
+    "countryCode": "ZA",
+    "province": "Gauteng",
+    "latitude": -26.1445117,
+    "longitude": 27.9102141,
+    "formattedAddress": "Constantia Kloof, Roodepoort, 1709, South Africa",
+    "postalCode": "1709"
+  },
+  "membersCount": null,
+  "members": [
+    {
+      "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "challengeId": "5B738F6",
+      "joinedAt": "2026-07-05T14:34:53.955521Z",
+      "role": "CHALLENGE_OWNER",
+      "permissions": [
+        "CREATE_CHALLENGE",
+        "DELETE_CHALLENGE",
+        "UPDATE_CHALLENGE",
+        "VIEW_CHALLENGE",
+        "ASSIGN_ROLES_CHALLENGE"
+      ],
+      "avatarUrl": ""
+    }
+  ],
+  "facilitatorId": "",
+  "facilitator": null,
+  "duration": null,
+  "equipments": null,
+  "location": {
+    "placeId": "ChIJfQTHqRATlR4RSTjOm3ifavs",
+    "suburb": "Illiondale",
+    "city": "Edenvale",
+    "country": "South Africa",
+    "countryCode": "ZA",
+    "province": "Gauteng",
+    "latitude": -26.1126463,
+    "longitude": 28.1708584,
+    "formattedAddress": "58 Cecil Awret Rd, Illiondale, Edenvale, 1609, South Africa",
+    "postalCode": "1609"
+  },
+  "status": {
+    "id": "A",
+    "name": "Active",
+    "code": "ACTIVE",
+    "color": "",
+    "createdAt": "2026-07-06T12:07:01.534704239+02:00"
+  },
+  "templateId": "CH-001",
+  "challengeSteps": [
+    {
+      "stepNumber": 1,
+      "stepType": "REGISTRATION",
+      "stepId": "SETUP_AND_REGISTRATION",
+      "title": "Define and Register Anchor Points",
+      "description": "Choose a location that is meaningful to you and likely to show change over time. This could be a natural landscape, an urban area, or any place that holds significance in the context of climate change.",
+      "isCompleted": false,
+      "form": [
+        {
+          "name": "LOCATION",
+          "label": "Choose a location",
+          "type": "LOCATION",
+          "required": true,
+          "displayOrder": 1,
+          "addableInput": false,
+          "unitOfMeasureOptions": null
+        },
+        {
+          "name": "ANCHOR_POINT",
+          "label": "Enter an anchor point",
+          "type": "GROUP",
+          "required": true,
+          "displayOrder": 4,
+          "addableInput": true,
+          "unitOfMeasureOptions": null,
+          "fields": [
+            {
+              "displayOrder": 1,
+              "label": "Anchor Point Name",
+              "name": "ANCHOR_POINT_NAME",
+              "placeholder": "Enter anchor point name...",
+              "required": true,
+              "type": "TEXT"
+            },
+            {
+              "displayOrder": 2,
+              "label": "Anchor Point Location",
+              "name": "LOCATION",
+              "placeholder": "Enter anchor point location...",
+              "required": false,
+              "type": "LOCATION"
+            },
+            {
+              "displayOrder": 3,
+              "label": "Enter observation temperature",
+              "name": "TEMPERATURE",
+              "placeholder": "Enter observation temperature...",
+              "required": true,
+              "type": "NUMBER",
+              "unitOfMeasureOptions": [
+                {
+                  "label": "Celsius (°C)",
+                  "value": "C"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "VOLUNTEER_HOURS",
+          "label": "Enter Volunteer Hours",
+          "type": "NUMBER",
+          "required": true,
+          "displayOrder": 2,
+          "addableInput": false,
+          "unitOfMeasureOptions": [
+            {
+              "value": "H",
+              "label": "Hours"
+            }
+          ]
+        },
+        {
+          "name": "CONTRIBUTORS",
+          "label": "List Contributors",
+          "type": "TEXT",
+          "required": true,
+          "displayOrder": 4,
+          "addableInput": false,
+          "unitOfMeasureOptions": null
+        },
+        {
+          "name": "IMAGE",
+          "label": "Upload a reference image",
+          "type": "IMAGE",
+          "required": true,
+          "displayOrder": 5,
+          "addableInput": false,
+          "unitOfMeasureOptions": null
+        }
+      ]
+    },
+    {
+      "stepNumber": 2,
+      "stepType": "EXECUTION",
+      "stepId": "BASELINE_OBSERVATION",
+      "title": "Take Baseline Measurements",
+      "description": "Record the baseline conditions at your observation point, including temperature, weather, and any notable features.",
+      "isCompleted": false,
+      "form": [
+        {
+          "name": "locations",
+          "label": "Observation Points",
+          "type": "SELECT",
+          "required": true,
+          "displayOrder": 1,
+          "addableInput": false,
+          "options": [
+            {
+              "value": "ChIJ4zGFAZpYwokRGUGph3Mf37w",
+              "label": "Central Park, Cape Town"
+            },
+            {
+              "value": "ChIJ4zGFAZpYwokRGUGph3Mf3zz",
+              "label": "Central Park, Cape Town (Alternate)"
+            }
+          ],
+          "unitOfMeasureOptions": null
+        },
+        {
+          "name": "VOLUNTEER_HOURS",
+          "label": "Enter Volunteer Hours",
+          "type": "NUMBER",
+          "required": true,
+          "displayOrder": 2,
+          "addableInput": false,
+          "unitOfMeasureOptions": [
+            {
+              "value": "H",
+              "label": "Hours"
+            }
+          ]
+        },
+        {
+          "name": "WEATHER_CONDITIONS",
+          "label": "Describe the weather conditions",
+          "type": "TEXT",
+          "required": true,
+          "displayOrder": 4,
+          "addableInput": false,
+          "unitOfMeasureOptions": null
+        },
+        {
+          "name": "FLAG",
+          "label": "Flag this observation point for higher risk or vulnerability",
+          "type": "TOGGLE",
+          "required": false,
+          "displayOrder": 5,
+          "addableInput": false,
+          "unitOfMeasureOptions": null
+        },
+        {
+          "name": "IMAGE",
+          "label": "Upload an image of the observation point",
+          "type": "IMAGE",
+          "required": false,
+          "displayOrder": 7,
+          "addableInput": false,
+          "unitOfMeasureOptions": null
+        },
+        {
+          "name": "CONTRIBUTORS",
+          "label": "List Contributors",
+          "type": "TEXT",
+          "required": true,
+          "displayOrder": 8,
+          "addableInput": false,
+          "unitOfMeasureOptions": null
+        }
+      ]
+    },
+    {
+      "stepNumber": 3,
+      "stepType": "COMPLETION",
+      "stepId": "COMPLETION",
+      "title": "Completion",
+      "description": "After completing the required number of observation cycles, reflect on the changes observed at your fixed observation point and share your findings with your Circle and community.",
+      "isCompleted": false,
+      "form": [
+        {
+          "name": "CONFIRMATION",
+          "label": "Confirm Completion",
+          "type": "TOGGLE",
+          "required": true,
+          "displayOrder": 0,
+          "addableInput": false,
+          "unitOfMeasureOptions": null
+        },
+        {
+          "name": "REFLECTION_NOTES",
+          "label": "Reflection Notes",
+          "type": "TEXTAREA",
+          "required": false,
+          "displayOrder": 1,
+          "addableInput": false,
+          "unitOfMeasureOptions": null
+        },
+        {
+          "name": "SHARE_WITH_CIRCLE",
+          "label": "Share Findings with Circle",
+          "type": "TOGGLE",
+          "required": false,
+          "displayOrder": 2,
+          "addableInput": false,
+          "unitOfMeasureOptions": null
+        }
+      ]
+    }
+  ],
+  "submittedSetupDetail": {
+    "id": "CA4B3604-6F5A-46A4-A513-D1E76790BF93",
+    "circleId": "46FBE82",
+    "challengeCode": "CH-001",
+    "thingId": "5B738F6",
+    "thingUUID": "",
+    "submittedBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+    "contributors": [
+      "208525c2-25b7-4f99-951c-6b3b19c6d81f"
+    ],
+    "data": {
+      "mediaFiles": [
+        {
+          "type": "image/webp",
+          "url": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/Heat_Maps_Useless_Useful_Image_1.webp",
+          "description": ""
+        }
+      ],
+      "anchorPoints": [
+        {
+          "name": "Point 1",
+          "location": {
+            "placeId": "ChIJfQTHqRATlR4RSTjOm3ifavs",
+            "suburb": "Illiondale",
+            "city": "Edenvale",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.1126463,
+            "longitude": 28.1708584,
+            "formattedAddress": "58 Cecil Awret Rd, Illiondale, Edenvale, 1609, South Africa",
+            "postalCode": "1609"
+          },
+          "higherRiskFlag": false,
+          "measurement": {
+            "value": 2,
+            "unitOfMeasure": "°C"
+          }
+        },
+        {
+          "name": "Point 2",
+          "location": {
+            "placeId": "ChIJKcE1XhcTlR4RwVgXbG58avs",
+            "suburb": "Illiondale",
+            "city": "Edenvale",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.111047086793263,
+            "longitude": 28.170659916532912,
+            "formattedAddress": "89 Cecil Awret Rd, Illiondale, Edenvale, 1609, South Africa",
+            "postalCode": "1609"
+          },
+          "higherRiskFlag": false,
+          "measurement": {
+            "value": 3,
+            "unitOfMeasure": "°C"
+          }
+        },
+        {
+          "name": "Point 3",
+          "location": {
+            "placeId": "ChIJEYPgmhATlR4RP9KAA1dBudU",
+            "suburb": "Illiondale",
+            "city": "Edenvale",
+            "country": "South Africa",
+            "countryCode": "ZA",
+            "province": "Gauteng",
+            "latitude": -26.11393887590993,
+            "longitude": 28.171328855547852,
+            "formattedAddress": "6 Crawford Rd, Illiondale, Edenvale, 1609, South Africa",
+            "postalCode": "1609"
+          },
+          "higherRiskFlag": false,
+          "measurement": {
+            "value": 0,
+            "unitOfMeasure": "°C"
+          }
+        }
+      ],
+      "location": {
+        "placeId": "ChIJfQTHqRATlR4RSTjOm3ifavs",
+        "suburb": "Illiondale",
+        "city": "Edenvale",
+        "country": "South Africa",
+        "countryCode": "ZA",
+        "province": "Gauteng",
+        "latitude": -26.1126463,
+        "longitude": 28.1708584,
+        "formattedAddress": "58 Cecil Awret Rd, Illiondale, Edenvale, 1609, South Africa",
+        "postalCode": "1609"
+      },
+      "volunteerHours": {
+        "value": 3,
+        "unitOfMeasure": "hours",
+        "siUnit": "TIME"
+      }
+    },
+    "dataEnvelope": {},
+    "stepId": "SETUP_AND_REGISTRATION",
+    "stepNumber": 1,
+    "status": {
+      "id": "CO",
+      "name": "Confirmed",
+      "code": "CONFIRMED",
+      "color": "",
+      "createdAt": "2026-07-06T12:07:01.22338676+02:00"
+    },
+    "submittedAt": "2026-07-06T12:07:01.223387253+02:00",
+    "modifiedAt": "2026-07-06T12:07:01.223386961+02:00",
+    "locksOnCompletion": false,
+    "volunteerHours": {
+      "value": 3,
+      "unitOfMeasure": "hours",
+      "siUnit": "TIME"
+    }
+  },
+  "template": {
+    "templateId": "CH-001",
+    "name": "Heat Spot Mapping",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG11",
+        "name": "Sustainable Cities and Communities",
+        "infoUrl": ""
+      },
+      {
+        "code": "SDG3",
+        "name": "Good Health and Well-being",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "RAA",
+        "name": "Resilience and Adaptation",
+        "infoUrl": ""
+      },
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "Climate change unfolds slowly — surfaces are removed, trees grow, compost matures, schoolyards transform. Day-to-day change is invisible to the people living through it. This Template asks a Circle to define a Fixed Observation Point and repeatedly document the same location from the same position over time. The collected images assemble into a visual sequence that makes transformation visible and shareable. The output is a narrative asset, not a measurement.",
+    "minCompletedCycles": 4,
+    "maxCompletedCycles": 12,
+    "equipments": [
+      {
+        "name": "Camera",
+        "description": "A camera to capture the observation point. This can be a smartphone camera, a digital camera, or any device capable of taking clear photos."
+      },
+      {
+        "name": "Tripod or Stable Surface",
+        "description": "To ensure consistent framing and stability for each photo, a tripod or a stable surface is recommended."
+      },
+      {
+        "name": "Marker or Reference Point",
+        "description": "A marker (like a stake, rock, or painted line) to indicate the exact location and angle from which to take the photos. This helps maintain consistency over time."
+      },
+      {
+        "name": "Spatial Reference Tools",
+        "description": "Tools such as a compass, GPS device, or smartphone app to help identify and maintain the exact location and orientation for each observation."
+      },
+      {
+        "name": "Weather and Temperature Recording Tools",
+        "description": "A thermometer or weather app to record the temperature and weather conditions at the time of each observation."
+      },
+      {
+        "name": "Notebook or Digital Device",
+        "description": "To record observations, notes, and any changes noticed during each cycle. This can be a physical notebook or a digital device like a tablet or smartphone."
+      },
+      {
+        "name": "Data Storage",
+        "description": "A method for storing and organizing the collected images and data, such as cloud storage, external hard drive, or a dedicated folder on a computer."
+      },
+      {
+        "name": "Image Editing Software (Optional)",
+        "description": "Software to compile the images into a visual sequence or video, if desired. This can be free or paid software depending on the user's preference."
+      }
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "SETUP_AND_REGISTRATION",
+        "title": "Define and Register Anchor Points",
+        "description": "Choose a location that is meaningful to you and likely to show change over time. This could be a natural landscape, an urban area, or any place that holds significance in the context of climate change.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Choose a location",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 1,
+            "addableInput": false,
+            "unitOfMeasureOptions": null
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2,
+            "addableInput": false,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "TEMPERATURE",
+            "label": "Enter baseline temperature",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "addableInput": false,
+            "unitOfMeasureOptions": [
+              {
+                "value": "C",
+                "label": "Celsius (°C)"
+              },
+              {
+                "value": "F",
+                "label": "Fahrenheit (°F)"
+              },
+              {
+                "value": "K",
+                "label": "Kelvin (K)"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4,
+            "addableInput": false,
+            "unitOfMeasureOptions": null
+          },
+          {
+            "name": "IMAGE",
+            "label": "Upload a reference image",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 5,
+            "addableInput": false,
+            "unitOfMeasureOptions": null
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "BASELINE_OBSERVATION",
+        "title": "Take Baseline Measurements",
+        "description": "Record the baseline conditions at your observation point, including temperature, weather, and any notable features.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "locations",
+            "label": "Observation Points",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 1,
+            "addableInput": false,
+            "options": [
+              {
+                "value": "ChIJ4zGFAZpYwokRGUGph3Mf37w",
+                "label": "Central Park, Cape Town"
+              },
+              {
+                "value": "ChIJ4zGFAZpYwokRGUGph3Mf3zz",
+                "label": "Central Park, Cape Town (Alternate)"
+              }
+            ],
+            "unitOfMeasureOptions": null
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 2,
+            "addableInput": false,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "TEMPERATURE",
+            "label": "Enter observation temperature",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 3,
+            "addableInput": false,
+            "unitOfMeasureOptions": [
+              {
+                "value": "C",
+                "label": "Celsius (°C)"
+              },
+              {
+                "value": "F",
+                "label": "Fahrenheit (°F)"
+              },
+              {
+                "value": "K",
+                "label": "Kelvin (K)"
+              }
+            ]
+          },
+          {
+            "name": "WEATHER_CONDITIONS",
+            "label": "Describe the weather conditions",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4,
+            "addableInput": false,
+            "unitOfMeasureOptions": null
+          },
+          {
+            "name": "FLAG",
+            "label": "Flag this observation point for higher risk or vulnerability",
+            "type": "TOGGLE",
+            "required": false,
+            "displayOrder": 5,
+            "addableInput": false,
+            "unitOfMeasureOptions": null
+          },
+          {
+            "name": "IMAGE",
+            "label": "Upload an image of the observation point",
+            "type": "IMAGE",
+            "required": false,
+            "displayOrder": 7,
+            "addableInput": false,
+            "unitOfMeasureOptions": null
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 8,
+            "addableInput": false,
+            "unitOfMeasureOptions": null
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "COMPLETION",
+        "stepId": "COMPLETION",
+        "title": "Completion",
+        "description": "After completing the required number of observation cycles, reflect on the changes observed at your fixed observation point and share your findings with your Circle and community.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRMATION",
+            "label": "Confirm Completion",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 0,
+            "addableInput": false,
+            "unitOfMeasureOptions": null
+          },
+          {
+            "name": "REFLECTION_NOTES",
+            "label": "Reflection Notes",
+            "type": "TEXTAREA",
+            "required": false,
+            "displayOrder": 1,
+            "addableInput": false,
+            "unitOfMeasureOptions": null
+          },
+          {
+            "name": "SHARE_WITH_CIRCLE",
+            "label": "Share Findings with Circle",
+            "type": "TOGGLE",
+            "required": false,
+            "displayOrder": 2,
+            "addableInput": false,
+            "unitOfMeasureOptions": null
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:49:12.110881Z"
+  },
+  "activatedDate": null,
+  "completedDate": null,
+  "createdAt": "2026-07-05T14:34:52.746303Z",
+  "modifiedAt": "2026-07-05T14:34:52.746303Z",
+  "partner": null,
+  "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+  "steps": 3,
+  "currentStep": 0,
+  "impactRecords": [
+    {
+      "id": "6babb690-fddc-4aab-96a0-a517b02aa85e",
+      "impactRecordId": "9F93320",
+      "thingUUID": "",
+      "thingId": "5B738F6",
+      "impactSummary": {
+        "contribution": {
+          "value": 11,
+          "unitOfMeasure": "Hours",
+          "displayName": "11 Hours"
+        },
+        "impact": {
+          "value": 4.4,
+          "unitOfMeasure": "Incidents",
+          "displayName": "4.40 Incidents",
+          "siUnit": "TIME",
+          "shortSummary": "4.40 crime incidents reduced",
+          "summary": "Volunteering for 11.00 Hours results in reducing crime by 4.40 incidents"
+        }
+      },
+      "verifiedDate": null,
+      "verifiedBy": null,
+      "createdAt": "2026-07-06T08:28:07.431415Z",
+      "modifiedAt": "2026-07-06T10:07:04.271245Z",
+      "verified": false,
+      "impactType": "Environmental",
+      "validationTier": null,
+      "siUnit": "TIME"
+    }
+  ],
+  "joinLink": "https://app.theguardians.world/join?challengeId=5B738F6",
+  "communicationChannels": null
+}

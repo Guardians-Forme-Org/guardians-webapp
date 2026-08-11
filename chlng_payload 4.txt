@@ -1,0 +1,389 @@
+[api] GET http://127.0.0.1:11000/api/v1/challenges/EC8BF9A → 200
+{
+  "id": "cf901aa2-d6f9-4f60-8587-1a242bbb9002",
+  "name": "Edenvale Composters",
+  "bannerUrl": "https://aewfwhmpdpxwexagfdbw.supabase.co/storage/v1/object/public/guardians-storage/lawn-leafjpg.jpg",
+  "challengeId": "EC8BF9A",
+  "challengeCode": "CH-004",
+  "circleId": "BA43C08",
+  "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+  "region": {
+    "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+    "suburb": "",
+    "city": "Edenvale",
+    "country": "South Africa",
+    "countryCode": "ZA",
+    "province": "Gauteng",
+    "latitude": -26.1302564,
+    "longitude": 28.1775094,
+    "formattedAddress": "Edenvale, South Africa",
+    "postalCode": ""
+  },
+  "membersCount": null,
+  "members": [
+    {
+      "userId": "e7e43f23-06ad-40c0-8d60-b5b669380dc9",
+      "challengeId": "EC8BF9A",
+      "joinedAt": "2026-06-28T19:08:56.923254Z",
+      "role": "CHALLENGE_FACILITATOR",
+      "permissions": [
+        "VIEW_CHALLENGE",
+        "UPDATE_CHALLENGE",
+        "ASSIGN_ROLES_CHALLENGE",
+        "REMOVE_ROLES_CHALLENGE",
+        "SUBMIT_CHALLENGE_EVIDENCE"
+      ],
+      "avatarUrl": ""
+    },
+    {
+      "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+      "challengeId": "EC8BF9A",
+      "joinedAt": "2026-06-28T19:08:57.016538Z",
+      "role": "CHALLENGE_OWNER",
+      "permissions": [
+        "CREATE_CHALLENGE",
+        "DELETE_CHALLENGE",
+        "UPDATE_CHALLENGE",
+        "VIEW_CHALLENGE",
+        "ASSIGN_ROLES_CHALLENGE"
+      ],
+      "avatarUrl": ""
+    },
+    {
+      "userId": "8fd2e6d2-016e-4cd3-bc0b-bf99f3d371e6",
+      "challengeId": "EC8BF9A",
+      "joinedAt": "2026-06-29T15:33:30.294827Z",
+      "role": "MEMBER",
+      "permissions": [
+        "VIEW_CIRCLE",
+        "VIEW_CHALLENGE"
+      ],
+      "avatarUrl": ""
+    }
+  ],
+  "facilitatorId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+  "facilitator": {
+    "userId": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+    "challengeId": "EC8BF9A",
+    "joinedAt": "2026-06-29T02:06:05.713482971Z",
+    "role": "CHALLENGE_FACILITATOR",
+    "permissions": null,
+    "avatarUrl": ""
+  },
+  "duration": null,
+  "equipments": [],
+  "location": {
+    "placeId": "ChIJs6XvzDoTlR4Rh9wdc2scQus",
+    "suburb": "",
+    "city": "Edenvale",
+    "country": "South Africa",
+    "countryCode": "ZA",
+    "province": "Gauteng",
+    "latitude": -26.1302564,
+    "longitude": 28.1775094,
+    "formattedAddress": "Edenvale, South Africa",
+    "postalCode": ""
+  },
+  "status": {
+    "id": "P",
+    "name": "Pending",
+    "code": "PENDING",
+    "color": "",
+    "createdAt": "2026-06-28T19:08:56.662169011Z"
+  },
+  "templateId": "CH-004",
+  "challengeSteps": [
+    {
+      "stepNumber": 1,
+      "stepType": "REGISTRATION",
+      "stepId": "SETUP_AND_REGISTRATION",
+      "title": "Register Activation Model",
+      "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+      "isCompleted": true,
+      "form": null
+    },
+    {
+      "stepNumber": 2,
+      "stepType": "EXECUTION",
+      "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+      "title": "",
+      "description": "",
+      "isCompleted": true,
+      "form": null
+    },
+    {
+      "stepNumber": 3,
+      "stepType": "COMPLETION",
+      "stepId": "COMPLETION",
+      "title": "Completion",
+      "description": "",
+      "isCompleted": true,
+      "form": null
+    }
+  ],
+  "template": {
+    "templateId": "CH-004",
+    "name": "Compost Sprint",
+    "library": null,
+    "SDGAlignments": [
+      {
+        "code": "SDG12",
+        "name": "Responsible Consumption and Production",
+        "infoUrl": ""
+      },
+      {
+        "code": "SDG13",
+        "name": "Climate Action",
+        "infoUrl": ""
+      }
+    ],
+    "impactDomains": [
+      {
+        "code": "MAC",
+        "name": "Mitigation and Circularity",
+        "infoUrl": ""
+      },
+      {
+        "code": "DSI",
+        "name": "Democratic Social Infrastructure",
+        "infoUrl": ""
+      }
+    ],
+    "description": "Composting is a powerful way to reduce waste and create nutrient-rich soil, but it can be intimidating for beginners. This Template guides a Circle through a 4-week Compost Sprint, where they will set up a composting system, document the process, and reflect on their experience. The goal is to make composting accessible and engaging, while also fostering a deeper connection to the natural cycles of decomposition and regeneration.",
+    "minCompletedCycles": 0,
+    "maxCompletedCycles": 0,
+    "equipments": [
+      {
+        "name": "Compost Bin or Pile",
+        "description": "A container or designated area for composting organic waste. This can be a commercial compost bin, a DIY bin made from pallets, or simply a pile in the backyard."
+      },
+      {
+        "name": "Kitchen Caddy",
+        "description": "A small container for collecting kitchen scraps before transferring them to the compost bin or pile. This helps keep the process convenient and reduces food waste."
+      },
+      {
+        "name": "Scale or Measuring Tools",
+        "description": "Tools for measuring the amount of waste added to the compost and tracking its progress. This can be a kitchen scale, measuring cups, or simply a notebook for recording observations."
+      }
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "stepType": "REGISTRATION",
+        "stepId": "SETUP_AND_REGISTRATION",
+        "title": "Register Activation Model",
+        "description": "Identify the location and context for your composting project. This could be a community garden, a schoolyard, or even your backyard. The key is to choose a space where you can set up a composting system and engage with others in the process.",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "LOCATION",
+            "label": "Choose a location",
+            "type": "LOCATION",
+            "required": true,
+            "displayOrder": 1
+          },
+          {
+            "name": "ACTIVATION_MODEL",
+            "label": "Select an activation model",
+            "type": "SELECT",
+            "required": true,
+            "displayOrder": 2,
+            "options": [
+              {
+                "value": "HUB",
+                "label": "Hub"
+              },
+              {
+                "value": "DISTRIBUTED",
+                "label": "Distributed"
+              },
+              {
+                "value": "PARTNER_FACILITY",
+                "label": "Partner Facility"
+              }
+            ]
+          },
+          {
+            "name": "START_DATE",
+            "label": "Start Date",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 2
+          },
+          {
+            "name": "END_DATE",
+            "label": "End Date",
+            "type": "DATE",
+            "required": true,
+            "displayOrder": 3
+          },
+          {
+            "name": "SITE_PHOTO",
+            "label": "Upload a site photo",
+            "type": "IMAGE",
+            "required": true,
+            "displayOrder": 4
+          },
+          {
+            "name": "VOLUNTEER_HOURS",
+            "label": "Enter Volunteer Hours",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 5,
+            "unitOfMeasureOptions": [
+              {
+                "value": "H",
+                "label": "Hours"
+              }
+            ]
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 6
+          }
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "stepType": "EXECUTION",
+        "stepId": "LOG_WASTE_AND_COMPOSTING_ACTIVITY",
+        "title": "",
+        "description": "",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "MEASUREMENT",
+            "label": "Enter the amount of waste added to the compost",
+            "type": "NUMBER",
+            "required": true,
+            "displayOrder": 1,
+            "unitOfMeasureOptions": [
+              {
+                "value": "kg",
+                "label": "Kilograms (kg)"
+              },
+              {
+                "value": "lb",
+                "label": "Pounds (lb)"
+              },
+              {
+                "value": "L",
+                "label": "Liters (L)"
+              }
+            ]
+          },
+          {
+            "name": "ACTIVITY_DESCRIPTION",
+            "label": "Describe the composting activity",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 2
+          },
+          {
+            "name": "RECEIPT_UPLOAD",
+            "label": "Upload a receipt for any composting supplies purchased",
+            "type": "IMAGE",
+            "required": false,
+            "displayOrder": 3
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": true,
+            "displayOrder": 4
+          }
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "stepType": "COMPLETION",
+        "stepId": "COMPLETION",
+        "title": "Completion",
+        "description": "",
+        "isCompleted": false,
+        "form": [
+          {
+            "name": "CONFIRMATION",
+            "label": "Confirm Completion",
+            "type": "TOGGLE",
+            "required": true,
+            "displayOrder": 0
+          },
+          {
+            "name": "TEAM_REFLECTION_NOTES",
+            "label": "Team Reflection Notes",
+            "type": "TEXTAREA",
+            "required": false,
+            "displayOrder": 1
+          },
+          {
+            "name": "AUTO_REFLECTION_NOTES",
+            "label": "Auto-generated Reflection Notes",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 2
+          },
+          {
+            "name": "CONTRIBUTORS",
+            "label": "List Contributors",
+            "type": "TEXT",
+            "required": false,
+            "displayOrder": 3
+          }
+        ]
+      }
+    ],
+    "createdAt": "2026-06-28T08:49:31.673105Z"
+  },
+  "activatedDate": null,
+  "completedDate": null,
+  "createdAt": "2026-06-28T19:08:56.662169Z",
+  "modifiedAt": "2026-06-28T19:08:56.662169Z",
+  "partner": null,
+  "createdBy": "208525c2-25b7-4f99-951c-6b3b19c6d81f",
+  "steps": 3,
+  "currentStep": 0,
+  "impactRecords": [
+    {
+      "id": "18a2ab81-e4bf-4ea6-9507-592c650fa070",
+      "impactRecordId": "21F4F9D",
+      "thingUUID": "",
+      "thingId": "EC8BF9A",
+      "impactSummary": {
+        "contribution": {
+          "value": 10,
+          "unitOfMeasure": "hours",
+          "displayName": "10 hours"
+        },
+        "impact": {
+          "value": 4,
+          "unitOfMeasure": "Incidents",
+          "displayName": "4.00 Incidents",
+          "siUnit": "TIME",
+          "shortSummary": "4.00 crime incidents reduced",
+          "summary": "Volunteering for 10.00 hours results in reducing crime by 4.00 incidents"
+        }
+      },
+      "verifiedDate": null,
+      "verifiedBy": null,
+      "createdAt": "2026-06-29T00:48:04.112524Z",
+      "modifiedAt": "2026-06-30T20:50:43.725923Z",
+      "verified": false,
+      "impactType": "Environmental",
+      "validationTier": null,
+      "siUnit": "TIME"
+    }
+  ],
+  "joinLink": "https://app.theguardians.world/join?challengeId=EC8BF9A",
+  "communicationChannels": [
+    {
+      "name": "WhatsApp",
+      "url": "www.whatsapp.com",
+      "icon": "WhatsApp"
+    }
+  ]
+}
