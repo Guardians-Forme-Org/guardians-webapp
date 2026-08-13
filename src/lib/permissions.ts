@@ -1,14 +1,45 @@
 // ── Whitelisted emails ────────────────────────────────────────────────────────
 // Add or remove emails here to control who can create circles and assign leads.
+// Kept per-env so each deploy can diverge later — identical for now across all four.
 
-export const WHITELISTED_EMAILS: string[] = [
-  "tnemalili@gmail.com",
-  "abel.siminya@gmail.com",
-  "nhlanhla@alignd.co.za",
-  "nhlanhlacliq@gmail.com",
-  "contato@salve.games",
-  "phonti@gmail.com",
-];
+import { APP_ENV, type AppEnv } from "./env";
+
+const WHITELISTED_EMAILS_BY_ENV: Record<AppEnv, string[]> = {
+  local: [
+    "tnemalili@gmail.com",
+    "abel.siminya@gmail.com",
+    "nhlanhla@alignd.co.za",
+    "nhlanhlacliq@gmail.com",
+    "contato@salve.games",
+    "phonti@gmail.com",
+  ],
+  development: [
+    "tnemalili@gmail.com",
+    "abel.siminya@gmail.com",
+    "nhlanhla@alignd.co.za",
+    "nhlanhlacliq@gmail.com",
+    "contato@salve.games",
+    "phonti@gmail.com",
+  ],
+  staging: [
+    "tnemalili@gmail.com",
+    "abel.siminya@gmail.com",
+    "nhlanhla@alignd.co.za",
+    "nhlanhlacliq@gmail.com",
+    "contato@salve.games",
+    "phonti@gmail.com",
+  ],
+  production: [
+    "tnemalili@gmail.com",
+    "abel.siminya@gmail.com",
+    "nhlanhla@alignd.co.za",
+    "nhlanhlacliq@gmail.com",
+    "contato@salve.games",
+    "phonti@gmail.com",
+  ],
+};
+
+export const WHITELISTED_EMAILS: string[] = WHITELISTED_EMAILS_BY_ENV[APP_ENV];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
