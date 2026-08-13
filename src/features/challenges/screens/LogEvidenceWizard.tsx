@@ -249,7 +249,17 @@ function anchorPointToEntry(
     }
     const raw = (point as Record<string, unknown>)[sub.name];
     if (raw === undefined || raw === null) continue;
-    if (isValueUnit(raw)) {
+    if (
+      (sub.type === "NUMBER" || sub.type === "NUMERIC") &&
+      isNumericFieldValue(raw)
+    ) {
+      // Unit-less counts (e.g. Households Served: {"value": 45}, no
+      // unit/unitOfMeasure key) fail isValueUnit below and would otherwise
+      // fall through to the raw-object branch, rendering as "[object Object]"
+      entry[sub.name] = String(raw.value);
+      const unit = valueUnitOf(raw);
+      if (unit) entry[`${sub.name}__unit`] = unit;
+    } else if (isValueUnit(raw)) {
       entry[sub.name] = String(raw.value);
       const unit = valueUnitOf(raw);
       if (unit) entry[`${sub.name}__unit`] = unit;
@@ -2243,7 +2253,8 @@ export default function LogEvidenceWizard({
         "CH-010A",
         "CH-010B",
         "CH-011",
-        "CH-012",
+        "CH-012A",
+        "CH-012B",
         "CH-013",
         "CH-014",
         "CH-015",
