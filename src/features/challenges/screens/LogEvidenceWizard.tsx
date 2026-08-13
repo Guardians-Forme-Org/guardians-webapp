@@ -460,9 +460,11 @@ function activityToDynamic(
         ),
       },
     } satisfies SetupUpdateEntry;
-  } else if (data.measurement) {
+  } else if (data.measurement && !fields.some((f) => f.name === "measurement")) {
     // data.measurement belongs to the first free numeric field, or the
-    // legacy MEASUREMENT name when the template has none
+    // legacy MEASUREMENT name when the template has none — skipped when a
+    // field is literally named "measurement" (e.g. CH-004), since the
+    // generic loop above already captured it under that name
     const numField = fields.find(
       (f) =>
         (f.type === "NUMBER" || f.type === "NUMERIC") &&
