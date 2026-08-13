@@ -294,7 +294,13 @@ function activityToDynamic(
   // submitted — merge per-field so a dataEnvelope missing a given key (still
   // being rolled out BE-side) falls back to the legacy `data` bag
   const data = mergeActivityData(activity);
-  const fields = stepForm ?? [];
+  // Same flattening deriveWizardConfig/buildDynamicPayload apply for
+  // rendering/collection — reading back must agree, or a non-tracking step's
+  // typeless "anchorPoint" wrapper (e.g. CH-004's composting log, reused
+  // purely for BE payload shaping) gets misread as a real anchor-point
+  // reference by findAnchorReference below instead of yielding its flattened
+  // fields (measurement, description) directly.
+  const fields = preNormalizeAnchorFields(stepForm ?? [], anchorPointTracking);
 
   // Generic reverse of buildDynamicPayload: captured fields were merged into
   // data under their raw template field names
@@ -454,9 +460,11 @@ function activityToDynamic(
         ),
       },
     } satisfies SetupUpdateEntry;
-  } else if (data.measurement) {
+  } else if (data.measurement && !fields.some((f) => f.name === "measurement")) {
     // data.measurement belongs to the first free numeric field, or the
-    // legacy MEASUREMENT name when the template has none
+    // legacy MEASUREMENT name when the template has none — skipped when a
+    // field is literally named "measurement" (e.g. CH-004), since the
+    // generic loop above already captured it under that name
     const numField = fields.find(
       (f) =>
         (f.type === "NUMBER" || f.type === "NUMERIC") &&
@@ -2520,9 +2528,18 @@ export default function LogEvidenceWizard({
                   dynamicConfig={{
                     // Fields consumed by the setup-update screen render via
                     // setupUpdate rows instead; an adopted anchor-reference
-                    // GROUP is replaced by its promoted detail fields
+                    // GROUP is replaced by its promoted detail fields.
+                    // Normalized the same way deriveWizardConfig/
+                    // activityToDynamic are, so a non-tracking step's
+                    // typeless "anchorPoint" wrapper (e.g. CH-004, reused
+                    // purely for BE payload shaping) yields its flattened
+                    // fields (measurement, description) here too, instead of
+                    // the raw wrapper the loop below can't render.
                     fields: [
-                      ...(stepForm ?? []).filter(
+                      ...preNormalizeAnchorFields(
+                        stepForm ?? [],
+                        anchorPointTracking,
+                      ).filter(
                         (f) =>
                           !setupUpdateStep?.fields.some(
                             (sf) => sf.name === f.name,
