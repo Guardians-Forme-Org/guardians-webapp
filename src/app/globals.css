@@ -31,6 +31,11 @@
   --profile-accent-bg: #1a2e1f;
   --profile-accent-border: #2d5438;
   --profile-unearned-bg: #1e1e2e;
+
+  /* Env badge */
+  --env-badge-local: #6b7280;
+  --env-badge-development: #0088ff;
+  --env-badge-staging: #f59e0b;
 }
 
 @theme inline {
@@ -62,6 +67,11 @@
   --color-profile-accent-bg: var(--profile-accent-bg);
   --color-profile-accent-border: var(--profile-accent-border);
   --color-profile-unearned-bg: var(--profile-unearned-bg);
+
+  /* Env badge */
+  --color-env-badge-local: var(--env-badge-local);
+  --color-env-badge-development: var(--env-badge-development);
+  --color-env-badge-staging: var(--env-badge-staging);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

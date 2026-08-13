@@ -21,6 +21,7 @@ import JoinConversationButton from "@/components/ui/JoinConversationButton";
 import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
 import { useTranslations } from "next-intl";
 import appConfig from "../../../../config.json";
+import { isStagingOrProduction } from "@/lib/env";
 
 type Props = { challengeId: string; stepId: string };
 
@@ -237,12 +238,14 @@ export default function StepScreen({ challengeId, stepId }: Props) {
 
             {canSubmit && isActionable && !setupRequired && (
               <div className="flex flex-col gap-2.5">
-                <Link
-                  href={`/challenges/${challengeId}/steps/${stepId}/log`}
-                  className="w-full h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full flex items-center justify-center"
-                >
-                  {t("uploadEvidence")}
-                </Link>
+                {!(step.isCompleted && isStagingOrProduction) && (
+                  <Link
+                    href={`/challenges/${challengeId}/steps/${stepId}/log`}
+                    className="w-full h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full flex items-center justify-center"
+                  >
+                    {t("uploadEvidence")}
+                  </Link>
+                )}
 
                 {step.isCompleted ? (
                   <div className="w-full h-12 border border-gotf-green text-gotf-green text-base font-semibold rounded-full flex items-center justify-center gap-2">
