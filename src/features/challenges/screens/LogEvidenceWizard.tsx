@@ -2072,8 +2072,17 @@ export default function LogEvidenceWizard({
     // Multiple anchor points are only ever registered at once on the
     // registration step — later steps select one already-registered point
     // and log a single reading against it (per Tshaks, BE 2026-08-02), so
-    // the anchorPoints-array shaping below only applies here.
-    const isRegistrationStep = normalizeFieldName(stepMeta.stepType) === "REGISTRATION";
+    // the anchorPoints-array shaping below only applies here. stepType isn't
+    // a reliable "is this registration" signal by itself — many templates
+    // give step 1 its own descriptive stepType (CH-013's
+    // "biodiversityRegistration", CH-012's "setup") instead of the literal
+    // "registration" this check expects, which silently sent a singular
+    // anchorPoint object on CH-013's actual setup submission. isSetupStep
+    // (array position, not label) is the same signal LogEvidenceWizard
+    // already trusts elsewhere for this — OR it in as a fallback so a step 1
+    // still counts as registration even when its stepType doesn't say so.
+    const isRegistrationStep =
+      normalizeFieldName(stepMeta.stepType) === "REGISTRATION" || isSetupStep;
 
     const rawFields: Record<string, unknown> = {};
     // GROUP subfields of type IMAGE (e.g. CH-007's anchorPoint.mediaFile)
@@ -2410,8 +2419,14 @@ export default function LogEvidenceWizard({
       }
 
       // Every other REGISTRATION step also submits via /challengeSetup,
-      // including CH-004/CH-015.
-      if (normalizeFieldName(stepMeta.stepType) === "REGISTRATION") {
+      // including CH-004/CH-015. stepType alone isn't reliable here — see
+      // the matching comment on buildDynamicPayload's isRegistrationStep —
+      // so fall back to isSetupStep (array position) for templates that
+      // give step 1 its own descriptive stepType instead of "registration"
+      // (CH-013's "biodiversityRegistration", CH-012's "setup"), which
+      // otherwise fell through to the generic /submit{code} evidence path
+      // below and never populated submittedSetupDetail correctly.
+      if (normalizeFieldName(stepMeta.stepType) === "REGISTRATION" || isSetupStep) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { payload, mediaFile, mediaFiles } = buildDynamicPayload() as any;
         return { payload, mediaFile, mediaFiles, transport: "registration" };
