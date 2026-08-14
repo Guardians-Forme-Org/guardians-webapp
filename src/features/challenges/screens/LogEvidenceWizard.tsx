@@ -2594,7 +2594,14 @@ export default function LogEvidenceWizard({
                                 const displayValue =
                                   f.type === "NUMBER" || f.type === "NUMERIC"
                                     ? `${val} ${unit ?? ""}`.trim()
-                                    : String(val);
+                                    : f.type === "DATE"
+                                      ? (() => {
+                                          const d = new Date(val as string);
+                                          return isNaN(d.getTime())
+                                            ? String(val)
+                                            : d.toLocaleDateString();
+                                        })()
+                                      : String(val);
                                 return [{ label: f.label, value: displayValue }];
                               },
                             );
