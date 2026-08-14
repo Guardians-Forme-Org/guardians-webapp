@@ -505,8 +505,16 @@ function activityToDynamic(
         (f.name.toLowerCase() === "locations" ||
           normalizeFieldName(f.name) === "ANCHORPOINT"),
     ) ?? (refField ? { name: "locations" } : undefined);
-  if (pointsField && (data.anchorPoint || data.measurement)) {
-    const anchorPointData = data.anchorPoint as Record<string, unknown> | undefined;
+  // CH-012A/B's BE stores/echoes Data.AnchorPoints as an array even for
+  // this single-point re-measurement idiom (see buildSetupUpdatePayload) —
+  // every other template here still uses the singular Data.AnchorPoint.
+  // Fall back to the array's first entry so reopening a CH-012A/B
+  // submission doesn't silently show a blank point.
+  const anchorPointRaw =
+    data.anchorPoint ??
+    (Array.isArray(data.anchorPoints) ? data.anchorPoints[0] : undefined);
+  if (pointsField && (anchorPointRaw || data.measurement)) {
+    const anchorPointData = anchorPointRaw as Record<string, unknown> | undefined;
     // A tracking step with several of its own named NUMBER fields (CH-008B's
     // rainwaterHarvesting: litresCollected/litresDistributed/houseHoldsCount/
     // houseHoldsServed) only unwraps ONE of them via primaryFieldName above —
@@ -527,8 +535,8 @@ function activityToDynamic(
       }
     }
     result[pointsField.name] = {
-      selected: data.anchorPoint?.name ?? "",
-      higherRiskFlag: data.anchorPoint?.higherRiskFlag ?? false,
+      selected: (anchorPointRaw as { name?: string } | undefined)?.name ?? "",
+      higherRiskFlag: (anchorPointRaw as { higherRiskFlag?: boolean } | undefined)?.higherRiskFlag ?? false,
       values: {
         ...(primaryFieldName && data.measurement?.value != null
           ? { [primaryFieldName]: String(data.measurement.value) }
@@ -1665,9 +1673,21 @@ export default function LogEvidenceWizard({
     const contributors = Array.isArray(dynamicValues[contribFieldName])
       ? (dynamicValues[contribFieldName] as string[])
       : [];
+    // CH-012A/B's BE endpoint expects Data.AnchorPoints as an array on every
+    // step, even a single-point re-measurement — unlike every other
+    // template using this idiom (CH-001/002/007/008A/B/009/010), which keep
+    // the singular Data.AnchorPoint struct here. Per explicit confirmation
+    // 2026-08-15 that this differs from the established convention above.
+    const anchorPointKey =
+      challenge.challengeCode === "CH-012A" || challenge.challengeCode === "CH-012B"
+        ? "anchorPoints"
+        : "anchorPoint";
     const data = {
       ...extraData,
-      anchorPoint: anchorPoint as unknown as ChallengeSetupAnchorPoint,
+      [anchorPointKey]:
+        anchorPointKey === "anchorPoints"
+          ? [anchorPoint as unknown as ChallengeSetupAnchorPoint]
+          : (anchorPoint as unknown as ChallengeSetupAnchorPoint),
       capturedAt: new Date().toISOString(),
       // Selection-only steps (CH-008B/C, CH-010) log no new reading — the
       // hours/detail screens carry the data
