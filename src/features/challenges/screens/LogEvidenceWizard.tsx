@@ -275,6 +275,58 @@ function anchorPointToEntry(
   return entry;
 }
 
+// CH-011's weeklyCareRounds and CH-015's greening ship their later-step
+// "anchorPoint" GROUP as addable (log several entries) AND
+// anchorPointTracking:true (each entry is against one previously-registered
+// point) — a combination the normal anchor-reference idiom doesn't support:
+// findAnchorReference only ever adopts a NON-addable GROUP as a point
+// selector (see deriveWizardConfig.ts), and reworking that shared matcher to
+// also flatten an addable+tracking GROUP would have to run CH-015's nested
+// species/greeningArea ITEM arrays through findAnchorLeaves, which flattens
+// nested containers into sibling leaf fields — colliding CH-015's two
+// same-named "speciesUsed" fields (one inside greeningArea, one alongside
+// it) and losing the per-species array shape entirely. Instead, splice a
+// synthetic "select a registered point" SELECT subfield into the GROUP so
+// the existing addable-entries editor (GroupField) captures the choice per
+// entry like any other subfield, scoped to just these two challenges.
+const ADDABLE_POINT_SELECT_CODES = new Set(["CH-011", "CH-015"]);
+export const REGISTERED_POINT_FIELD_NAME = "__registeredPoint";
+
+function withPointSelectSubfield(
+  fields: ApiTemplateFormField[],
+  challengeCode: string | undefined,
+  stepType: string | undefined,
+  anchorPoints: ChallengeSetupAnchorPoint[],
+): ApiTemplateFormField[] {
+  if (
+    !challengeCode ||
+    !ADDABLE_POINT_SELECT_CODES.has(challengeCode) ||
+    normalizeFieldName(stepType) === "REGISTRATION" ||
+    !anchorPoints.length
+  )
+    return fields;
+  return fields.map((f) =>
+    f.type === "GROUP" &&
+    f.addableInput &&
+    normalizeFieldName(f.name) === "ANCHORPOINT"
+      ? {
+          ...f,
+          fields: [
+            {
+              name: REGISTERED_POINT_FIELD_NAME,
+              label: "Select Registered Point",
+              type: "SELECT",
+              required: true,
+              displayOrder: -1,
+              options: anchorPoints.map((p) => ({ value: p.name, label: p.name })),
+            },
+            ...(f.fields ?? []),
+          ],
+        }
+      : f,
+  );
+}
+
 // Reverses buildAnchorSetupPayload's `vhUnit === "H" ? "hours" : vhUnit.toLowerCase()`
 // — matches the stored unit string back to one of the field's own option
 // codes (falls back to the field's first/default option, "H" in practice).
@@ -663,13 +715,10 @@ export default function LogEvidenceWizard({
     return tmpl?.steps?.find((s) => s.stepId === stepId) ?? null;
   }, [challenge?.templateId, templates, stepId]);
 
-  const stepForm =
+  const rawStepForm =
     (stepMeta?.form?.length ? stepMeta.form : null) ??
     templateStep?.form ??
     null;
-
-  // BE form takes precedence over FE config whenever form fields are present.
-  const isDerived = !!stepForm?.length;
 
   // Setup-step data (anchor points) feeds the update screens of later steps —
   // never the setup step itself
@@ -683,6 +732,24 @@ export default function LogEvidenceWizard({
         : undefined,
     [setupDetail, stepMeta],
   );
+
+  // CH-011/CH-015 splice a synthetic point-select subfield into their
+  // addable anchorPoint GROUP — see withPointSelectSubfield
+  const stepForm = useMemo(
+    () =>
+      rawStepForm
+        ? withPointSelectSubfield(
+            rawStepForm,
+            challenge?.challengeCode,
+            stepMeta?.stepType,
+            setupData?.anchorPoints ?? [],
+          )
+        : rawStepForm,
+    [rawStepForm, challenge?.challengeCode, stepMeta?.stepType, setupData],
+  );
+
+  // BE form takes precedence over FE config whenever form fields are present.
+  const isDerived = !!stepForm?.length;
 
   // Setup is whichever step sits first in challengeSteps (array position,
   // not a stepNumber/stepType field).
@@ -1241,6 +1308,105 @@ export default function LogEvidenceWizard({
       )
         continue;
       if (field.type === "GROUP" || field.type === "ITEM") {
+        // CH-015's greening step: each addable entry names which registered
+        // site it's for (see withPointSelectSubfield) — one AnchorPoint per
+        // entry, its fields folded onto the point by name (matching
+        // AnchorPoint.AreaGreened/SealedOrRemovedArea/SpeciesUsed/Species/
+        // PlantingDate directly), instead of the flat, unscoped Measurement
+        // array below, which has no way to say which registered point a
+        // reading belongs to.
+        const hasPointSelect = (field.fields ?? []).some(
+          (sub) => sub.name === REGISTERED_POINT_FIELD_NAME,
+        );
+        if (hasPointSelect) {
+          const rawEntries = Array.isArray(dynamicValues[field.name])
+            ? (dynamicValues[field.name] as Record<string, unknown>[])
+            : [];
+          const anchorPoints: Record<string, unknown>[] = [];
+          for (const entry of rawEntries) {
+            const selectedName = entry[REGISTERED_POINT_FIELD_NAME] as string | undefined;
+            const point = (setupData?.anchorPoints ?? []).find((p) => p.name === selectedName);
+            if (!point) continue;
+            const mediaFileReferenceId = crypto.randomUUID();
+            const out: Record<string, unknown> = {
+              name: point.name,
+              ...(point.location ? { location: point.location } : {}),
+              mediaFileReferenceId,
+            };
+            for (const sub of field.fields ?? []) {
+              if (sub.name === REGISTERED_POINT_FIELD_NAME) continue;
+              const sv = entry[sub.name];
+              if (sv === undefined || sv === null || sv === "") continue;
+              if (sub.type === "IMAGE") {
+                if (sv instanceof File) groupMediaFiles.push({ file: sv, mediaFileReferenceId });
+                continue;
+              }
+              if (sub.type === "GROUP" || sub.type === "ITEM") {
+                const nestedEntries = Array.isArray(sv) ? (sv as Record<string, unknown>[]) : [];
+                const nestedNumberSubs = (sub.fields ?? []).filter(
+                  (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+                );
+                // Both greeningArea and species have exactly one NUMBER
+                // subfield, so "has a NUMBER subfield" alone can't tell them
+                // apart — a TEXT subfield (species' name/id) marks a genuine
+                // per-record identity, same convention GroupField/
+                // anchorPointToEntry use elsewhere to find an entry's title.
+                const hasIdentity = (sub.fields ?? []).some((f) => f.type === "TEXT");
+                if (nestedNumberSubs.length && !hasIdentity) {
+                  // A per-entry area container (greeningArea): its own
+                  // NUMBER subfields become their own flat Measurement,
+                  // named after the subfield — matching the point's
+                  // dedicated AreaGreened/SealedOrRemovedArea fields
+                  for (const nestedEntry of nestedEntries) {
+                    for (const nSub of nestedNumberSubs) {
+                      const nv = nestedEntry[nSub.name];
+                      if (nv === undefined || nv === null || nv === "") continue;
+                      const unit =
+                        (nestedEntry[`${nSub.name}__unit`] as string) ??
+                        nSub.unitOfMeasureOptions?.[0]?.value ??
+                        "SQM";
+                      out[nSub.name] = {
+                        value: (parseFloat(String(nv)) || 0) * (areaToSqm[unit] ?? 1),
+                        unitOfMeasure: "m²",
+                      };
+                    }
+                  }
+                } else {
+                  // A genuine repeating sub-entity (species): keep as an
+                  // array — AnchorPoint.Species is []any, not a Measurement
+                  out[sub.name] = nestedEntries
+                    .map((ne) => {
+                      const shaped: Record<string, unknown> = {};
+                      for (const nSub of sub.fields ?? []) {
+                        const nv = ne[nSub.name];
+                        if (nv === undefined || nv === null || nv === "" || nSub.type === "IMAGE")
+                          continue;
+                        shaped[nSub.name] =
+                          nSub.type === "NUMBER" || nSub.type === "NUMERIC"
+                            ? parseFloat(String(nv)) || 0
+                            : nv;
+                      }
+                      return shaped;
+                    })
+                    .filter((s) => Object.keys(s).length > 0);
+                }
+                continue;
+              }
+              if (sub.type === "NUMBER" || sub.type === "NUMERIC") {
+                const unit =
+                  (entry[`${sub.name}__unit`] as string) ??
+                  sub.unitOfMeasureOptions?.[0]?.value ??
+                  "";
+                out[sub.name] = { value: parseFloat(String(sv)) || 0, unitOfMeasure: unit };
+                continue;
+              }
+              out[sub.name] = sv;
+            }
+            anchorPoints.push(out);
+          }
+          if (anchorPoints.length) rawFields["anchorPoints"] = anchorPoints;
+          continue;
+        }
         const numberSubs = (field.fields ?? []).filter(
           (f) => f.type === "NUMBER" || f.type === "NUMERIC",
         );
@@ -1981,6 +2147,17 @@ export default function LogEvidenceWizard({
           }
           return out;
         };
+        // CH-011/CH-015: withPointSelectSubfield spliced a synthetic
+        // point-choice field onto this GROUP — each entry names which
+        // registered point it's logged against, rather than the whole GROUP
+        // being one single-point re-measurement.
+        const hasPointSelect = (field.fields ?? []).some(
+          (sub) => sub.name === REGISTERED_POINT_FIELD_NAME,
+        );
+        const realSubFields = hasPointSelect
+          ? (field.fields ?? []).filter((sub) => sub.name !== REGISTERED_POINT_FIELD_NAME)
+          : (field.fields ?? []);
+
         // Same id on the entry, its nested location, and its own photo —
         // one physical photo per entry, correlated on all three (BE commit
         // fbdb11e added mediaFileReferenceId to AnchorPoint/Location/Plant/
@@ -1991,19 +2168,30 @@ export default function LogEvidenceWizard({
         )
           .map((entry) => {
             const mediaFileReferenceId = crypto.randomUUID();
-            const shaped = shapeEntry(field.fields ?? [], entry, mediaFileReferenceId);
+            const shaped = shapeEntry(realSubFields, entry, mediaFileReferenceId);
             if (Object.keys(shaped).length) shaped.mediaFileReferenceId = mediaFileReferenceId;
+            if (hasPointSelect) {
+              const selectedName = entry[REGISTERED_POINT_FIELD_NAME] as string | undefined;
+              const point = (setupData?.anchorPoints ?? []).find((p) => p.name === selectedName);
+              if (point) {
+                shaped.name = point.name;
+                if (point.location) shaped.location = point.location;
+              }
+            }
             return shaped;
           })
           .filter((entry) => Object.keys(entry).length > 0);
         if (entries.length) {
           if (
             normalizeFieldName(field.name) === "ANCHORPOINT" &&
-            isRegistrationStep
+            (isRegistrationStep || hasPointSelect)
           ) {
             // On registration, every anchor-point challenge sends
             // Data.AnchorPoints as an array, even for a single registered
-            // point — matching buildAnchorSetupPayload's shape.
+            // point — matching buildAnchorSetupPayload's shape. Same array
+            // shape for a later addable+point-select step (CH-011): each
+            // entry is its own AnchorPoint reading against a different
+            // registered point, not one single-struct re-measurement.
             rawFields["anchorPoints"] = entries;
           } else if (normalizeFieldName(field.name) === "ANCHORPOINT") {
             // Later steps select one already-registered point and log a
