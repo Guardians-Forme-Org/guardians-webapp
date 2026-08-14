@@ -1400,7 +1400,13 @@ export default function LogEvidenceWizard({
                 out[sub.name] = { value: parseFloat(String(sv)) || 0, unitOfMeasure: unit };
                 continue;
               }
-              out[sub.name] = sv;
+              // Route every other scalar (DATE in particular) through
+              // shapeFieldValue instead of passing the raw form value —
+              // plantingDate otherwise rode through as the bare "YYYY-MM-DD"
+              // string the <input type="date"> produces, which the BE's
+              // RFC3339 time.Parse rejects ("cannot parse "" as "T"").
+              const shapedSv = shapeFieldValue(sub, sv, undefined);
+              if (shapedSv !== undefined) out[sub.name] = shapedSv;
             }
             anchorPoints.push(out);
           }
