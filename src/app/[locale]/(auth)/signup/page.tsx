@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { X, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import { useRegister } from "@/lib/hooks/auth";
 import { useUsers } from "@/lib/hooks/users";
 import { compressImage } from "@/lib/compressImage";
@@ -189,14 +190,12 @@ function Step1({
   onNext,
   onClose,
   onGoToStep,
-  error,
 }: {
   form: FormData;
   onChange: (f: keyof FormData, v: string) => void;
   onNext: () => void;
   onClose: () => void;
   onGoToStep?: (step: number) => void;
-  error: string | null;
 }) {
   const t = useTranslations("signup");
   const tCommon = useTranslations("common");
@@ -279,8 +278,6 @@ function Step1({
             </button>
           </div>
         </div>
-
-        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
 
       <div className="flex-1" />
@@ -298,7 +295,6 @@ function Step2({
   onNext,
   onClose,
   onGoToStep,
-  error,
 }: {
   form: FormData;
   onChange: (f: keyof FormData, v: string) => void;
@@ -306,7 +302,6 @@ function Step2({
   onNext: () => void;
   onClose: () => void;
   onGoToStep?: (step: number) => void;
-  error: string | null;
 }) {
   const t = useTranslations("signup");
   const tCommon = useTranslations("common");
@@ -386,7 +381,6 @@ function Step2({
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-600 px-10 mt-4">{error}</p>}
       <div className="flex-1" />
       <BottomButton label={tCommon("continue")} onClick={onNext} />
       <TermsFooter />
@@ -404,7 +398,6 @@ function Step3({
   onClose,
   onGoToStep,
   loading,
-  error,
 }: {
   form: FormData;
   onChange: (f: keyof FormData, v: string) => void;
@@ -413,7 +406,6 @@ function Step3({
   onClose: () => void;
   onGoToStep?: (step: number) => void;
   loading: boolean;
-  error: string | null;
 }) {
   const t = useTranslations("signup");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -443,8 +435,6 @@ function Step3({
       </div>
 
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-
-      {error && <p className="text-sm text-red-600 text-center px-10 mb-2">{error}</p>}
 
       <div className="bg-[#eee] mx-2.5 rounded-[10px] px-10 pt-10 pb-[70px] flex flex-col gap-2.5 mt-auto">
         <button onClick={() => fileRef.current?.click()} className="w-full h-14 bg-white rounded-full text-lg font-medium text-[#1e1e1e]">
@@ -520,7 +510,7 @@ const SIGNUP_DRAFT_KEY = "signup-draft";
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { mutate: register, isPending, error: apiError } = useRegister();
+  const { mutate: register, isPending } = useRegister();
   const { data: existingUsers = [] } = useUsers();
   const t = useTranslations("signup");
 
@@ -528,7 +518,6 @@ export default function SignUpPage() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>(initForm);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Load draft (passwords and avatar blob are never persisted)
   useEffect(() => {
@@ -548,7 +537,7 @@ export default function SignUpPage() {
     localStorage.setItem(SIGNUP_DRAFT_KEY, JSON.stringify({ form: serializable, step }));
   }, [form, step]);
 
-  const next = () => { setValidationError(null); setStep((s) => s + 1); };
+  const next = () => setStep((s) => s + 1);
   const close = () => { localStorage.removeItem(SIGNUP_DRAFT_KEY); router.push("/get-started"); };
   const updateForm = (field: keyof FormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
@@ -557,15 +546,15 @@ export default function SignUpPage() {
 
   const handleStep1Next = () => {
     if (!form.email) {
-      setValidationError(t("errors.emailRequired"));
+      toast.error(t("errors.emailRequired"));
       return;
     }
     if (!form.password) {
-      setValidationError(t("errors.passwordRequired"));
+      toast.error(t("errors.passwordRequired"));
       return;
     }
     if (form.password !== form.confirmPassword) {
-      setValidationError(t("errors.passwordMismatch"));
+      toast.error(t("errors.passwordMismatch"));
       return;
     }
     if (USE_CLIENT_SIDE_EMAIL_CHECK) {
@@ -573,28 +562,26 @@ export default function SignUpPage() {
         (u) => u.email?.toLowerCase() === form.email.toLowerCase(),
       );
       if (emailTaken) {
-        setValidationError(t("errors.emailAlreadyExists"));
+        toast.error(t("errors.emailAlreadyExists"));
         return;
       }
     }
-    setValidationError(null);
     next();
   };
 
   const handleStep2Next = () => {
     if (!form.firstName.trim()) {
-      setValidationError(t("errors.firstNameRequired"));
+      toast.error(t("errors.firstNameRequired"));
       return;
     }
     if (!form.lastName.trim()) {
-      setValidationError(t("errors.lastNameRequired"));
+      toast.error(t("errors.lastNameRequired"));
       return;
     }
     if (!form.location) {
-      setValidationError(t("errors.locationRequired"));
+      toast.error(t("errors.locationRequired"));
       return;
     }
-    setValidationError(null);
     next();
   };
 
@@ -624,15 +611,12 @@ export default function SignUpPage() {
       {
         onSuccess: () => { localStorage.removeItem(SIGNUP_DRAFT_KEY); next(); },
         onError: (err) => {
-          setValidationError(err instanceof Error ? err.message : t("errors.registrationFailed"));
+          toast.error(err instanceof Error ? err.message : t("errors.registrationFailed"));
           setStep(1);
         },
       },
     );
   };
-
-  const submitError =
-    apiError instanceof Error ? apiError.message : null;
 
   if (!ageConfirmed)
     return <AgeGate onConfirm={() => setAgeConfirmed(true)} onClose={close} />;
@@ -645,11 +629,10 @@ export default function SignUpPage() {
         onNext={handleStep1Next}
         onClose={close}
         onGoToStep={setStep}
-        error={validationError}
       />
     );
   if (step === 2)
-    return <Step2 form={form} onChange={updateForm} onLocationSelect={updateLocation} onNext={handleStep2Next} onClose={close} onGoToStep={setStep} error={validationError} />;
+    return <Step2 form={form} onChange={updateForm} onLocationSelect={updateLocation} onNext={handleStep2Next} onClose={close} onGoToStep={setStep} />;
   if (step === 3)
     return (
       <Step3
@@ -660,7 +643,6 @@ export default function SignUpPage() {
         onClose={close}
         onGoToStep={setStep}
         loading={isPending}
-        error={submitError}
       />
     );
   return <Step4 onDone={() => router.push("/login")} email={form.email} />;

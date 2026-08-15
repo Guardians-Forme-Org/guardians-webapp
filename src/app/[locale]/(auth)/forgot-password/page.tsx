@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { useForgotPassword } from "@/lib/hooks/auth";
+import { isGenericApiError } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -14,20 +16,24 @@ export default function ForgotPasswordPage() {
 
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = () => {
     if (!email.trim()) {
-      setError(t("forgotPasswordErrorEmail"));
+      toast.error(t("forgotPasswordErrorEmail"));
       return;
     }
-    setError(null);
     forgotPassword(
       { email: email.trim() },
       {
         onSuccess: () => setSent(true),
         onError: (err) =>
-          setError(err instanceof Error ? err.message : t("forgotPasswordErrorGeneric")),
+          toast.error(
+            err instanceof Error
+              ? isGenericApiError(err.message)
+                ? t("forgotPasswordErrorGeneric")
+                : err.message
+              : t("forgotPasswordErrorGeneric"),
+          ),
       },
     );
   };
@@ -118,17 +124,12 @@ export default function ForgotPasswordPage() {
           <input
             type="email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setError(null);
-            }}
+            onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             placeholder={t("emailPlaceholder")}
             className="h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 text-base placeholder:text-[#9a9898] outline-none"
           />
         </div>
-
-        {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
         <button
           onClick={handleSubmit}

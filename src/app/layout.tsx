@@ -6,6 +6,7 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { getLocale } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
 import EnvBadge from "@/components/ui/EnvBadge";
+import { Toaster } from "sonner";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -53,6 +54,15 @@ export default async function RootLayout({
           <QueryProvider>
           <AuthProvider>{children}</AuthProvider>
         </QueryProvider>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            classNames: {
+              toast: "!bg-black !text-white !border-0 !rounded-[8px]",
+              error: "!bg-red-600",
+            },
+          }}
+        />
         <EnvBadge />
         <Analytics />
         </body>
