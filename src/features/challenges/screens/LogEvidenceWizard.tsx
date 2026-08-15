@@ -373,7 +373,19 @@ function activityToDynamic(
     // the raw MediaFile object, not a URL string, and would otherwise
     // clobber the field before the dedicated logic below can set it
     if (field.type === "IMAGE") continue;
-    const raw = data[field.name];
+    // Every "anchorPoint"-named field now round-trips as the plural
+    // data.anchorPoints array (see buildDynamicPayload/buildSetupUpdatePayload,
+    // per Tshaks 2026-08-15) even where the template field itself is still
+    // named singular — fall back to it so reopening a submission doesn't
+    // silently show blank data. Addable (CH-011) keeps every entry; a
+    // non-addable single-point field takes just the first.
+    const raw =
+      data[field.name] ??
+      (normalizeFieldName(field.name) === "ANCHORPOINT" && Array.isArray(data.anchorPoints)
+        ? field.addableInput
+          ? data.anchorPoints
+          : data.anchorPoints[0]
+        : undefined);
     if (raw === undefined || raw === null || raw === "") continue;
 
     if (
@@ -1673,21 +1685,14 @@ export default function LogEvidenceWizard({
     const contributors = Array.isArray(dynamicValues[contribFieldName])
       ? (dynamicValues[contribFieldName] as string[])
       : [];
-    // CH-012A/B's BE endpoint expects Data.AnchorPoints as an array on every
-    // step, even a single-point re-measurement — unlike every other
-    // template using this idiom (CH-001/002/007/008A/B/009/010), which keep
-    // the singular Data.AnchorPoint struct here. Per explicit confirmation
-    // 2026-08-15 that this differs from the established convention above.
-    const anchorPointKey =
-      challenge.challengeCode === "CH-012A" || challenge.challengeCode === "CH-012B"
-        ? "anchorPoints"
-        : "anchorPoint";
+    // Per Tshaks 2026-08-15: every template using this re-measure-one-point
+    // idiom sends Data.AnchorPoints as an array, even for a single point —
+    // the earlier singular Data.AnchorPoint struct here (2026-08-02 per the
+    // same source) was breaking image-URL anchoring on the BE. Confirmed
+    // across challenges, not just CH-012A/B.
     const data = {
       ...extraData,
-      [anchorPointKey]:
-        anchorPointKey === "anchorPoints"
-          ? [anchorPoint as unknown as ChallengeSetupAnchorPoint]
-          : (anchorPoint as unknown as ChallengeSetupAnchorPoint),
+      anchorPoints: [anchorPoint as unknown as ChallengeSetupAnchorPoint],
       capturedAt: new Date().toISOString(),
       // Selection-only steps (CH-008B/C, CH-010) log no new reading — the
       // hours/detail screens carry the data
@@ -1989,22 +1994,12 @@ export default function LogEvidenceWizard({
           })
           .filter((entry) => Object.keys(entry).length > 0);
         if (entries.length) {
-          if (
-            normalizeFieldName(field.name) === "ANCHORPOINT" &&
-            (isRegistrationStep || hasPointSelect)
-          ) {
-            // On registration, every anchor-point challenge sends
-            // Data.AnchorPoints as an array, even for a single registered
-            // point — matching buildAnchorSetupPayload's shape. Same array
-            // shape for a later addable+point-select step (CH-011): each
-            // entry is its own AnchorPoint reading against a different
-            // registered point, not one single-struct re-measurement.
-            rawFields["anchorPoints"] = entries;
-          } else if (normalizeFieldName(field.name) === "ANCHORPOINT") {
-            // Later steps select one already-registered point and log a
-            // single reading against it — keep the original single-struct
-            // shape.
-            rawFields[field.name] = entries[0];
+          if (normalizeFieldName(field.name) === "ANCHORPOINT") {
+            // Every step sends Data.AnchorPoints as an array, even a later
+            // step logging one reading against a single already-registered
+            // point — per Tshaks 2026-08-15, the earlier singular
+            // Data.AnchorPoint struct broke image-URL anchoring on the BE.
+            rawFields["anchorPoints"] = isRegistrationStep || hasPointSelect ? entries : [entries[0]];
           } else {
             rawFields[field.name] = entries;
           }
@@ -2020,10 +2015,9 @@ export default function LogEvidenceWizard({
         field.unitOfMeasureOptions?.[0]?.value;
 
       // A plain, non-addable LOCATION field named "anchorPoint" (CH-014/
-      // CH-017's single-region registration) still submits as a one-entry
-      // Data.AnchorPoints array on the registration step — never a bare
-      // object — matching the GROUP case above. Later steps (if this shape
-      // ever recurs there) keep the plain single-object form.
+      // CH-017's single-region registration) always submits as a one-entry
+      // Data.AnchorPoints array — never a bare object — on every step, per
+      // Tshaks 2026-08-15.
       if (
         field.type === "LOCATION" &&
         !field.addableInput &&
@@ -2034,9 +2028,7 @@ export default function LogEvidenceWizard({
           const withRef = withMediaFileReferenceId(
             shaped as ChallengeSetupLocation,
           );
-          rawFields[isRegistrationStep ? "anchorPoints" : field.name] = isRegistrationStep
-            ? [withRef]
-            : withRef;
+          rawFields["anchorPoints"] = [withRef];
         }
         continue;
       }

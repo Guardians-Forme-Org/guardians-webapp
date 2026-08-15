@@ -15,7 +15,7 @@ export type DynamicValues = Record<string, unknown>;
 // entry, and GROUP needs at least one entry whose own required subfields
 // are all filled. TOGGLE/BOOLEAN are always "filled" — false is a valid
 // answer, not missing data.
-function isFieldFilled(field: ApiTemplateFormField, value: unknown): boolean {
+export function isFieldFilled(field: ApiTemplateFormField, value: unknown): boolean {
   if (field.type === "TOGGLE" || field.type === "BOOLEAN") return true;
   if (field.type === "MULTISELECT") return Array.isArray(value) && value.length > 0;
   if (field.type === "GROUP" || field.type === "ITEM") {
