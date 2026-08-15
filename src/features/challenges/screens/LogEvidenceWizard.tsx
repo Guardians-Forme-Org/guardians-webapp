@@ -496,7 +496,7 @@ function activityToDynamic(
     }
   }
 
-  // Re-measured registered point (setup-update steps): data.anchorPoint +
+  // Re-measured registered point (setup-update steps): data.anchorPoints[0] +
   // data.measurement feed the SELECT "locations" (or "anchorPoint" — CH-001's
   // BASELINE_OBSERVATION shape) entry. A type-less field, or a typed GROUP
   // with no direct usable leaves (CH-007: only its identity subfield), is
@@ -517,11 +517,13 @@ function activityToDynamic(
         (f.name.toLowerCase() === "locations" ||
           normalizeFieldName(f.name) === "ANCHORPOINT"),
     ) ?? (refField ? { name: "locations" } : undefined);
-  // CH-012A/B's BE stores/echoes Data.AnchorPoints as an array even for
-  // this single-point re-measurement idiom (see buildSetupUpdatePayload) —
-  // every other template here still uses the singular Data.AnchorPoint.
-  // Fall back to the array's first entry so reopening a CH-012A/B
-  // submission doesn't silently show a blank point.
+  // Every template's BE now stores/echoes Data.AnchorPoints as an array,
+  // even for this single-point re-measurement idiom (see
+  // buildSetupUpdatePayload, per Tshaks 2026-08-15) — data.anchorPoint
+  // (singular) only remains on submissions made before that change. A given
+  // record only ever has one of the two keys, so check either order; fall
+  // back to the array's first entry so reopening a submission doesn't show
+  // a blank point.
   const anchorPointRaw =
     data.anchorPoint ??
     (Array.isArray(data.anchorPoints) ? data.anchorPoints[0] : undefined);
@@ -1773,16 +1775,18 @@ export default function LogEvidenceWizard({
 
     // Multiple anchor points are only ever registered at once on the
     // registration step — later steps select one already-registered point
-    // and log a single reading against it (per Tshaks, BE 2026-08-02), so
-    // the anchorPoints-array shaping below only applies here. stepType isn't
-    // a reliable "is this registration" signal by itself — many templates
-    // give step 1 its own descriptive stepType (CH-013's
+    // and log a single reading against it (per Tshaks, BE 2026-08-02).
+    // Every step sends Data.AnchorPoints as an array either way (per Tshaks
+    // 2026-08-15) — isRegistrationStep below only decides the array's
+    // *contents*: every currently-entered point on registration, versus the
+    // one point being re-measured, wrapped in a one-entry array, later.
+    // stepType isn't a reliable "is this registration" signal by itself —
+    // many templates give step 1 its own descriptive stepType (CH-013's
     // "biodiversityRegistration", CH-012's "setup") instead of the literal
-    // "registration" this check expects, which silently sent a singular
-    // anchorPoint object on CH-013's actual setup submission. isSetupStep
-    // (array position, not label) is the same signal LogEvidenceWizard
-    // already trusts elsewhere for this — OR it in as a fallback so a step 1
-    // still counts as registration even when its stepType doesn't say so.
+    // "registration" this check expects. isSetupStep (array position, not
+    // label) is the same signal LogEvidenceWizard already trusts elsewhere
+    // for this — OR it in as a fallback so a step 1 still counts as
+    // registration even when its stepType doesn't say so.
     const isRegistrationStep =
       normalizeFieldName(stepMeta.stepType) === "REGISTRATION" || isSetupStep;
 
@@ -2230,38 +2234,19 @@ export default function LogEvidenceWizard({
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { payload, mediaFile, mediaFiles } = buildDynamicPayload() as any;
-      // These endpoints parse multipart only (metadata part + optional
-      // mediaFile — see guardians-api GetMetadataFromForm/FormValue +
-      // GetFileFromForm).
-      const MULTIPART_CODES = [
-        "CH-001",
-        "CH-002",
-        "CH-004",
-        "CH-007",
-        "CH-008A",
-        "CH-008B",
-        "CH-008C",
-        "CH-009",
-        "CH-010",
-        "CH-010A",
-        "CH-010B",
-        "CH-011",
-        "CH-012A",
-        "CH-012B",
-        "CH-013",
-        "CH-014",
-        "CH-015",
-        "CH-016",
-        "CH-017",
-        "CH-018",
-        "CH-019",
-      ];
-      const asMultipart = MULTIPART_CODES.includes(challenge.challengeCode);
+      // Every /submitCH0xx handler on this dynamic path (generic
+      // HandleEvidenceSubmission and every challenge-specific override —
+      // CH-004/008B/012B/015/016) reads the payload via ctx.FormValue
+      // ("metadata"), which only resolves on a multipart body — there is no
+      // BE code path that parses a plain JSON evidence submission. A
+      // per-code allowlist here previously meant any new challenge code
+      // left off the list silently 400'd ("Invalid circle Data format")
+      // instead of just working.
       return {
         payload,
         mediaFile,
         mediaFiles,
-        transport: asMultipart ? "evidence-multipart" : "evidence",
+        transport: "evidence-multipart",
       };
     }
 
