@@ -2622,7 +2622,18 @@ export default function LogEvidenceWizard({
                                 const val = entry?.values?.[f.name];
                                 if (val === undefined || val === null || val === "") return [];
                                 if (f.type === "IMAGE") {
-                                  return [{ label: f.label, image: val as File | string }];
+                                  // val can be a File (freshly picked), a URL
+                                  // string, or the point's raw mediaFile
+                                  // object (activityToDynamic's point.mediaFile
+                                  // fallback) — SetupUpdateRow only accepts
+                                  // File | string, so unwrap the object's url
+                                  // instead of handing the whole thing to
+                                  // <img src>.
+                                  const image =
+                                    val instanceof File || typeof val === "string"
+                                      ? val
+                                      : (val as { url?: string } | undefined)?.url;
+                                  return image ? [{ label: f.label, image }] : [];
                                 }
                                 const unit =
                                   f === primaryField
