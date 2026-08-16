@@ -364,12 +364,13 @@ export function FieldControl({
           type="date"
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          // min-w-0 (not overflow-hidden — that clips the native control
-          // instead of letting it shrink) matches every other input in this
-          // file: iOS Safari's date/time control has an intrinsic content
-          // width that ignores `width: 100%` unless the element is also
-          // allowed to shrink below its default min-width.
-          className="w-full min-w-0 h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
+          // Native date/time controls (iOS and Android alike) ignore
+          // `width: 100%` once their own intrinsic content width is wider —
+          // min-w-0 alone doesn't override that, the box just renders past
+          // the container instead (confirmed on-device 2026-08-16).
+          // width:1px + min-w-full forces the box to size off min-width
+          // instead of content, which does override it on both platforms.
+          className="w-px min-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
         />
       </FieldGroup>
     );
@@ -383,7 +384,7 @@ export function FieldControl({
           type="time"
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full min-w-0 h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
+          className="w-px min-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
         />
       </FieldGroup>
     );
