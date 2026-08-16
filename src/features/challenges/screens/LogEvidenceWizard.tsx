@@ -165,10 +165,19 @@ function unshapeSubEntry(
       entry[sub.name] = nestedArr.map((n) => unshapeSubEntry(sub.fields ?? [], n));
       continue;
     }
-    if ((sub.type === "NUMBER" || sub.type === "NUMERIC") && isNumericFieldValue(v)) {
-      entry[sub.name] = String(v.value);
-      const unit = valueUnitOf(v);
-      if (unit) entry[`${sub.name}__unit`] = unit;
+    if (sub.type === "NUMBER" || sub.type === "NUMERIC") {
+      if (isNumericFieldValue(v)) {
+        entry[sub.name] = String(v.value);
+        const unit = valueUnitOf(v);
+        if (unit) entry[`${sub.name}__unit`] = unit;
+      } else if (typeof v === "number" || typeof v === "string") {
+        // Loosely-typed BE fields (e.g. AnchorPoint.Species is `[]any`, no
+        // struct validation) can echo a NUMBER leaf as a bare scalar
+        // instead of the {value, unitOfMeasure} shape — coerce it the same
+        // way so it still behaves as a number instead of riding through
+        // untouched.
+        entry[sub.name] = String(v);
+      }
       continue;
     }
     entry[sub.name] = v;
@@ -470,6 +479,8 @@ function activityToDynamic(
             out[k] = String((v as { value: number }).value);
             const unit = valueUnitOf(v as { unit?: string; unitOfMeasure?: string });
             if (unit) out[`${k}__unit`] = unit;
+          } else if (isNumberSubDef && (typeof v === "number" || typeof v === "string")) {
+            out[k] = String(v);
           } else {
             out[k] = v;
           }
@@ -595,6 +606,7 @@ function activityToDynamic(
       const nameSub = subs.find((f) => f.type === "TEXT");
       const locSub = subs.find((f) => f.type === "LOCATION");
       const numberSubs = subs.filter((f) => f.type === "NUMBER" || f.type === "NUMERIC");
+      const imageSubs = subs.filter((f) => f.type === "IMAGE");
       result[groupField.name] = data.anchorPoints.map((p) => {
         const entry: Record<string, unknown> = {};
         if (nameSub) entry[nameSub.name] = p.name;
@@ -611,6 +623,20 @@ function activityToDynamic(
           ) {
             raw = p.measurement;
           }
+          // The BE always uploads a point's photo onto its own fixed
+          // `mediaFile` slot, regardless of what the template calls the
+          // subfield (CH-002 dev vs staging templates name it
+          // differently) — fall back to that slot the same way NUMBER
+          // falls back to point.measurement, so the photo shows up
+          // whatever the per-challenge template names the field.
+          if (
+            (raw === undefined || raw === null || raw === "") &&
+            sub.type === "IMAGE" &&
+            imageSubs.length === 1 &&
+            p.mediaFile
+          ) {
+            raw = p.mediaFile;
+          }
           if (raw === undefined || raw === null || raw === "") continue;
           if (sub.type === "IMAGE") {
             const url = (raw as { url?: string } | undefined)?.url;
@@ -621,6 +647,10 @@ function activityToDynamic(
             entry[sub.name] = String(raw.value);
             const unit = valueUnitOf(raw);
             if (unit) entry[`${sub.name}__unit`] = unit;
+            continue;
+          }
+          if (isNumberSub && (typeof raw === "number" || typeof raw === "string")) {
+            entry[sub.name] = String(raw);
             continue;
           }
           if (sub.type === "GROUP" || sub.type === "ITEM") {
