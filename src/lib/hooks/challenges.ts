@@ -7,7 +7,6 @@ import type {
   TemplatesListResponse,
 } from "@/lib/types/challenges";
 import type { ApiCircleChallenge } from "@/lib/types/circles";
-import { normalizeFieldName } from "@/features/challenges/lib/deriveWizardConfig";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useTemplates() {
@@ -157,19 +156,14 @@ export function useSubmitEvidence() {
       multipart?: boolean;
     }) => {
       // Per-variant endpoints — the BE registers /submitCH008A and
-      // /submitCH008B separately (guardians-api server.go), no shared CH008.
-      // The merged CH-010 template has no /submitCH010 route yet: its SETUP
-      // (installation) step uses the old CH-010B route, everything else the
-      // old CH-010A route — both handlers are identical generic inserts.
-      // stepId casing has flipped between BE pulls (was "SETUP", now
-      // "setup") — normalize so routing doesn't silently break again.
-      const routeCode =
-        challengeCode === "CH-010"
-          ? normalizeFieldName(stepId) === "SETUP"
-            ? "CH-010B"
-            : "CH-010A"
-          : challengeCode;
-      const endpoint = `/submit${routeCode.replace("-", "")}`;
+      // /submitCH008B separately (guardians-api server.go), no shared CH008;
+      // same for /submitCH012A and /submitCH012B. The merged CH-010 template
+      // now has its own /submitCH010 route (added after the 2026-07-21
+      // CH-010A/B split was retired) — route straight off whatever code the
+      // challenge actually carries instead of rewriting it, so a legacy
+      // pre-merge instance still reporting "CH-010A"/"CH-010B" keeps hitting
+      // its own route while a current "CH-010" challenge hits the real one.
+      const endpoint = `/submit${challengeCode.replace("-", "")}`;
       const headers = {
         "X-Step-ID": stepId,
         "X-User-Id": userId,
@@ -312,7 +306,7 @@ export type SetupUpdateEvidencePayload = {
   volunteerHours?: { value: number; unitOfMeasure: string; siUnit: string };
   contributors?: string[];
   data?: {
-    anchorPoint: ChallengeSetupAnchorPoint;
+    anchorPoints: ChallengeSetupAnchorPoint[];
     capturedAt: string;
     // Absent on selection-only steps (CH-008B/C, CH-010): no new reading
     measurement?: { value: number; unitOfMeasure: string };

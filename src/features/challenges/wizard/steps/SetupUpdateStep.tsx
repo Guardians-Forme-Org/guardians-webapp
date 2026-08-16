@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { ApiTemplateFormField, ChallengeSetupAnchorPoint } from "@/lib/types/challenges";
 import { FieldGroup, SaveButton, ToggleCard } from "../shared";
 import appConfig from "../../../../../config.json";
-import { FieldControl, type DynamicValues } from "./DynamicFieldsStep";
+import { FieldControl, isFieldFilled, type DynamicValues } from "./DynamicFieldsStep";
 import { DEDICATED_MEASUREMENT_NAMES, normalizeFieldName } from "../../lib/deriveWizardConfig";
 
 // Compact (smaller) labels for the per-point fields inside a selected
@@ -68,6 +69,10 @@ export default function SetupUpdateStep({
   selectionOnly,
 }: Props) {
   const t = useTranslations("challenges");
+  // Tapping Save while a required detail field (e.g. CH-001's temperature)
+  // is empty used to submit anyway — this step had no validation at all,
+  // unlike DynamicFieldsStep's tap-to-reveal pattern, which it mirrors here.
+  const [showErrors, setShowErrors] = useState(false);
 
   const entry = values[pointsField.name] as SetupUpdateEntry | undefined;
 
@@ -86,23 +91,13 @@ export default function SetupUpdateStep({
       : undefined;
   const otherFields = detailFields.filter((f) => f !== primaryField);
 
-  // "Last reading" context for a NUMBER field: the primary field's prior
-  // value lives on point.measurement (the generic slot); a dedicated field
-  // (capacity, waterLevelReading, litresCollected, …) would carry its own
-  // prior value under its own name on the point, same as it's submitted —
-  // read generically so this picks up whatever the BE returns per field,
-  // without a hardcoded list here. Renders nothing if the BE doesn't (yet)
-  // echo that field back on the point.
-  const lastReadingFor = (
-    point: ChallengeSetupAnchorPoint,
-    field: ApiTemplateFormField,
-  ): { value: number; unitOfMeasure: string } | undefined => {
-    if (field === primaryField) return point.measurement;
-    const raw = (point as unknown as Record<string, unknown>)[field.name];
-    return raw && typeof raw === "object" && "value" in raw
-      ? (raw as { value: number; unitOfMeasure: string })
-      : undefined;
-  };
+  const pointMissing = !selectionOnly && !!pointsField.required && !entry?.selected;
+  const missingDetailFields = selectionOnly
+    ? []
+    : [...(primaryField ? [primaryField] : []), ...otherFields].filter(
+        (f) => f.required && !isFieldFilled(f, entry?.values?.[f.name]),
+      );
+  const missingDetailNames = new Set(missingDetailFields.map((f) => f.name));
 
   const selectPoint = (point: ChallengeSetupAnchorPoint) => {
     if (entry?.selected === point.name) return;
@@ -123,6 +118,14 @@ export default function SetupUpdateStep({
     update(pointsField.name, { ...entry, values: { ...entry.values, [name]: value } });
   };
 
+  const handleNext = () => {
+    if (pointMissing || missingDetailFields.length) {
+      setShowErrors(true);
+      return;
+    }
+    onNext();
+  };
+
   return (
     <>
       <div className="flex flex-col gap-5 px-5 mt-7 flex-1">
@@ -130,6 +133,9 @@ export default function SetupUpdateStep({
           <div className="flex flex-col gap-3">
             {anchorPoints.length === 0 && (
               <p className="text-sm text-text-muted">{t("noAnchorPoints")}</p>
+            )}
+            {showErrors && pointMissing && (
+              <p className="text-sm text-red-600">{t("required")}</p>
             )}
             {anchorPoints.map((point, i) => {
               const isSelected = entry?.selected === point.name;
@@ -163,9 +169,15 @@ export default function SetupUpdateStep({
                       {primaryField && (
                         <div className="flex flex-col gap-1.5">
                           <label className="text-sm font-medium text-text-primary">
-                            {t("newReading")}
+                            {primaryField.label}
                           </label>
-                          <div className="w-full flex items-center border border-[rgba(26,26,24,0.28)] rounded-[8px] overflow-hidden">
+                          <div
+                            className={`w-full flex items-center border rounded-[8px] overflow-hidden ${
+                              showErrors && missingDetailNames.has(primaryField.name)
+                                ? "border-red-600"
+                                : "border-[rgba(26,26,24,0.28)]"
+                            }`}
+                          >
                             <input
                               type="number"
                               inputMode="decimal"
@@ -184,39 +196,30 @@ export default function SetupUpdateStep({
                               </div>
                             )}
                           </div>
-                          {point.measurement && (
-                            <p className="text-xs text-text-muted">
-                              {t("lastReading", {
-                                value: `${point.measurement.value} ${point.measurement.unitOfMeasure}`,
-                              })}
-                            </p>
+                          {showErrors && missingDetailNames.has(primaryField.name) && (
+                            <p className="text-xs text-red-600">{t("required")}</p>
                           )}
                         </div>
                       )}
 
                       {otherFields.map((field) => {
-                        const isNumber = field.type === "NUMBER" || field.type === "NUMERIC";
-                        const lastValue = isNumber ? lastReadingFor(point, field) : undefined;
+                        const error =
+                          showErrors && missingDetailNames.has(field.name)
+                            ? t("required")
+                            : undefined;
                         return (
-                          <div key={field.name} className="flex flex-col gap-1.5">
-                            <FieldControl
-                              field={field}
-                              value={entry?.values?.[field.name]}
-                              unitValue={
-                                entry?.values?.[`${field.name}__unit`] as string | undefined
-                              }
-                              onChange={(v) => patchValue(field.name, v)}
-                              onUnitChange={(u) => patchValue(`${field.name}__unit`, u)}
-                              compact={COMPACT_DETAIL_FIELDS}
-                            />
-                            {lastValue && (
-                              <p className="text-xs text-text-muted">
-                                {t("lastReading", {
-                                  value: `${lastValue.value} ${lastValue.unitOfMeasure}`,
-                                })}
-                              </p>
-                            )}
-                          </div>
+                          <FieldControl
+                            key={field.name}
+                            field={field}
+                            value={entry?.values?.[field.name]}
+                            unitValue={
+                              entry?.values?.[`${field.name}__unit`] as string | undefined
+                            }
+                            onChange={(v) => patchValue(field.name, v)}
+                            onUnitChange={(u) => patchValue(`${field.name}__unit`, u)}
+                            compact={COMPACT_DETAIL_FIELDS}
+                            error={error}
+                          />
                         );
                       })}
 
@@ -239,7 +242,7 @@ export default function SetupUpdateStep({
         </FieldGroup>
       </div>
 
-      <SaveButton label={nextLabel} onClick={onNext} />
+      <SaveButton label={nextLabel} onClick={handleNext} />
     </>
   );
 }

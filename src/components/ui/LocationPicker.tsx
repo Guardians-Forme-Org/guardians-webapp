@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { LocateFixed, Map as MapIcon, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import { useCurrentLocation } from "@/lib/hooks/location";
 import MapPickerSheet from "./MapPickerSheet";
@@ -80,7 +81,6 @@ export default function LocationPicker({
 
   const [display, setDisplay] = useState(defaultValue);
   const [locating, setLocating] = useState(false);
-  const [geoError, setGeoError] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
 
   const locateCurrent = useCurrentLocation();
@@ -95,13 +95,12 @@ export default function LocationPicker({
 
   const handleUseCurrent = async () => {
     setLocating(true);
-    setGeoError(null);
     try {
       const result = await locateCurrent();
       setDisplay(result.formattedAddress);
       onSelectRef.current(result);
     } catch {
-      setGeoError(t("currentLocationFailed"));
+      toast.error(t("currentLocationFailed"));
     } finally {
       setLocating(false);
     }
@@ -183,7 +182,6 @@ export default function LocationPicker({
               </button>
             )}
           </div>
-          {geoError && <p className="text-xs text-red-600 mt-1">{geoError}</p>}
         </>
       )}
       {mapOpen && (
@@ -191,7 +189,6 @@ export default function LocationPicker({
           initialCenter={initialCenter}
           onConfirm={(result) => {
             setDisplay(result.formattedAddress);
-            setGeoError(null);
             setMapOpen(false);
             onSelectRef.current(result);
           }}

@@ -165,10 +165,19 @@ function unshapeSubEntry(
       entry[sub.name] = nestedArr.map((n) => unshapeSubEntry(sub.fields ?? [], n));
       continue;
     }
-    if ((sub.type === "NUMBER" || sub.type === "NUMERIC") && isNumericFieldValue(v)) {
-      entry[sub.name] = String(v.value);
-      const unit = valueUnitOf(v);
-      if (unit) entry[`${sub.name}__unit`] = unit;
+    if (sub.type === "NUMBER" || sub.type === "NUMERIC") {
+      if (isNumericFieldValue(v)) {
+        entry[sub.name] = String(v.value);
+        const unit = valueUnitOf(v);
+        if (unit) entry[`${sub.name}__unit`] = unit;
+      } else if (typeof v === "number" || typeof v === "string") {
+        // Loosely-typed BE fields (e.g. AnchorPoint.Species is `[]any`, no
+        // struct validation) can echo a NUMBER leaf as a bare scalar
+        // instead of the {value, unitOfMeasure} shape — coerce it the same
+        // way so it still behaves as a number instead of riding through
+        // untouched.
+        entry[sub.name] = String(v);
+      }
       continue;
     }
     entry[sub.name] = v;
@@ -249,7 +258,17 @@ function anchorPointToEntry(
     }
     const raw = (point as Record<string, unknown>)[sub.name];
     if (raw === undefined || raw === null) continue;
-    if (isValueUnit(raw)) {
+    if (
+      (sub.type === "NUMBER" || sub.type === "NUMERIC") &&
+      isNumericFieldValue(raw)
+    ) {
+      // Unit-less counts (e.g. Households Served: {"value": 45}, no
+      // unit/unitOfMeasure key) fail isValueUnit below and would otherwise
+      // fall through to the raw-object branch, rendering as "[object Object]"
+      entry[sub.name] = String(raw.value);
+      const unit = valueUnitOf(raw);
+      if (unit) entry[`${sub.name}__unit`] = unit;
+    } else if (isValueUnit(raw)) {
       entry[sub.name] = String(raw.value);
       const unit = valueUnitOf(raw);
       if (unit) entry[`${sub.name}__unit`] = unit;
@@ -263,6 +282,58 @@ function anchorPointToEntry(
     }
   }
   return entry;
+}
+
+// CH-011's weeklyCareRounds and CH-015's greening ship their later-step
+// "anchorPoint" GROUP as addable (log several entries) AND
+// anchorPointTracking:true (each entry is against one previously-registered
+// point) — a combination the normal anchor-reference idiom doesn't support:
+// findAnchorReference only ever adopts a NON-addable GROUP as a point
+// selector (see deriveWizardConfig.ts), and reworking that shared matcher to
+// also flatten an addable+tracking GROUP would have to run CH-015's nested
+// species/greeningArea ITEM arrays through findAnchorLeaves, which flattens
+// nested containers into sibling leaf fields — colliding CH-015's two
+// same-named "speciesUsed" fields (one inside greeningArea, one alongside
+// it) and losing the per-species array shape entirely. Instead, splice a
+// synthetic "select a registered point" SELECT subfield into the GROUP so
+// the existing addable-entries editor (GroupField) captures the choice per
+// entry like any other subfield, scoped to just these two challenges.
+const ADDABLE_POINT_SELECT_CODES = new Set(["CH-011", "CH-015"]);
+export const REGISTERED_POINT_FIELD_NAME = "__registeredPoint";
+
+function withPointSelectSubfield(
+  fields: ApiTemplateFormField[],
+  challengeCode: string | undefined,
+  stepType: string | undefined,
+  anchorPoints: ChallengeSetupAnchorPoint[],
+): ApiTemplateFormField[] {
+  if (
+    !challengeCode ||
+    !ADDABLE_POINT_SELECT_CODES.has(challengeCode) ||
+    normalizeFieldName(stepType) === "REGISTRATION" ||
+    !anchorPoints.length
+  )
+    return fields;
+  return fields.map((f) =>
+    f.type === "GROUP" &&
+    f.addableInput &&
+    normalizeFieldName(f.name) === "ANCHORPOINT"
+      ? {
+          ...f,
+          fields: [
+            {
+              name: REGISTERED_POINT_FIELD_NAME,
+              label: "Select Registered Point",
+              type: "SELECT",
+              required: true,
+              displayOrder: -1,
+              options: anchorPoints.map((p) => ({ value: p.name, label: p.name })),
+            },
+            ...(f.fields ?? []),
+          ],
+        }
+      : f,
+  );
 }
 
 // Reverses buildAnchorSetupPayload's `vhUnit === "H" ? "hours" : vhUnit.toLowerCase()`
@@ -311,7 +382,19 @@ function activityToDynamic(
     // the raw MediaFile object, not a URL string, and would otherwise
     // clobber the field before the dedicated logic below can set it
     if (field.type === "IMAGE") continue;
-    const raw = data[field.name];
+    // Every "anchorPoint"-named field now round-trips as the plural
+    // data.anchorPoints array (see buildDynamicPayload/buildSetupUpdatePayload,
+    // per Tshaks 2026-08-15) even where the template field itself is still
+    // named singular — fall back to it so reopening a submission doesn't
+    // silently show blank data. Addable (CH-011) keeps every entry; a
+    // non-addable single-point field takes just the first.
+    const raw =
+      data[field.name] ??
+      (normalizeFieldName(field.name) === "ANCHORPOINT" && Array.isArray(data.anchorPoints)
+        ? field.addableInput
+          ? data.anchorPoints
+          : data.anchorPoints[0]
+        : undefined);
     if (raw === undefined || raw === null || raw === "") continue;
 
     if (
@@ -396,6 +479,8 @@ function activityToDynamic(
             out[k] = String((v as { value: number }).value);
             const unit = valueUnitOf(v as { unit?: string; unitOfMeasure?: string });
             if (unit) out[`${k}__unit`] = unit;
+          } else if (isNumberSubDef && (typeof v === "number" || typeof v === "string")) {
+            out[k] = String(v);
           } else {
             out[k] = v;
           }
@@ -422,7 +507,7 @@ function activityToDynamic(
     }
   }
 
-  // Re-measured registered point (setup-update steps): data.anchorPoint +
+  // Re-measured registered point (setup-update steps): data.anchorPoints[0] +
   // data.measurement feed the SELECT "locations" (or "anchorPoint" — CH-001's
   // BASELINE_OBSERVATION shape) entry. A type-less field, or a typed GROUP
   // with no direct usable leaves (CH-007: only its identity subfield), is
@@ -443,21 +528,57 @@ function activityToDynamic(
         (f.name.toLowerCase() === "locations" ||
           normalizeFieldName(f.name) === "ANCHORPOINT"),
     ) ?? (refField ? { name: "locations" } : undefined);
-  if (pointsField && (data.anchorPoint || data.measurement)) {
-    const anchorPointData = data.anchorPoint as Record<string, unknown> | undefined;
+  // Every template's BE now stores/echoes Data.AnchorPoints as an array,
+  // even for this single-point re-measurement idiom (see
+  // buildSetupUpdatePayload, per Tshaks 2026-08-15) — data.anchorPoint
+  // (singular) only remains on submissions made before that change. A given
+  // record only ever has one of the two keys, so check either order; fall
+  // back to the array's first entry so reopening a submission doesn't show
+  // a blank point.
+  const anchorPointRaw =
+    data.anchorPoint ??
+    (Array.isArray(data.anchorPoints) ? data.anchorPoints[0] : undefined);
+  if (pointsField && (anchorPointRaw || data.measurement)) {
+    const anchorPointData = anchorPointRaw as Record<string, unknown> | undefined;
+    // A tracking step with several of its own named NUMBER fields (CH-008B's
+    // rainwaterHarvesting: litresCollected/litresDistributed/houseHoldsCount/
+    // houseHoldsServed) only unwraps ONE of them via primaryFieldName above —
+    // the rest rode through as raw {value, unitOfMeasure} objects here,
+    // which SetupUpdateStep's FieldControl renders as "[object Object]"
+    // since it expects a plain string plus a separate `${name}__unit` key.
+    const imageDetailFields = nestedDetailFields.filter((f) => f.type === "IMAGE");
+    const extraEntries: [string, unknown][] = [];
+    for (const f of nestedDetailFields) {
+      if (f.name === primaryFieldName) continue;
+      if (f.type === "IMAGE") {
+        // Same fixed-slot fallback as activityToDynamic's GROUP-entries
+        // mapping and anchorPointToEntry: the BE always uploads a point's
+        // photo onto its own `mediaFile` slot regardless of what the
+        // template calls the per-point photo field, so a re-measure step's
+        // prior photo (e.g. CH-002's periodic update) has to be read from
+        // there too, not from the field's own (always-empty) name.
+        const photo = anchorPointData?.mediaFile;
+        if (photo && imageDetailFields.length === 1) extraEntries.push([f.name, photo]);
+        continue;
+      }
+      const v = anchorPointData?.[f.name] ?? data[f.name];
+      if (v === undefined || v === null || v === "") continue;
+      if ((f.type === "NUMBER" || f.type === "NUMERIC") && isNumericFieldValue(v)) {
+        extraEntries.push([f.name, String(v.value)]);
+        const unit = valueUnitOf(v);
+        if (unit) extraEntries.push([`${f.name}__unit`, unit]);
+      } else {
+        extraEntries.push([f.name, v]);
+      }
+    }
     result[pointsField.name] = {
-      selected: data.anchorPoint?.name ?? "",
-      higherRiskFlag: data.anchorPoint?.higherRiskFlag ?? false,
+      selected: (anchorPointRaw as { name?: string } | undefined)?.name ?? "",
+      higherRiskFlag: (anchorPointRaw as { higherRiskFlag?: boolean } | undefined)?.higherRiskFlag ?? false,
       values: {
         ...(primaryFieldName && data.measurement?.value != null
           ? { [primaryFieldName]: String(data.measurement.value) }
           : {}),
-        ...Object.fromEntries(
-          nestedDetailFields
-            .filter((f) => f.name !== primaryFieldName && f.type !== "IMAGE")
-            .map((f) => [f.name, anchorPointData?.[f.name] ?? data[f.name]])
-            .filter(([, v]) => v !== undefined && v !== null && v !== ""),
-        ),
+        ...Object.fromEntries(extraEntries),
       },
     } satisfies SetupUpdateEntry;
   } else if (data.measurement && !fields.some((f) => f.name === "measurement")) {
@@ -497,6 +618,7 @@ function activityToDynamic(
       const nameSub = subs.find((f) => f.type === "TEXT");
       const locSub = subs.find((f) => f.type === "LOCATION");
       const numberSubs = subs.filter((f) => f.type === "NUMBER" || f.type === "NUMERIC");
+      const imageSubs = subs.filter((f) => f.type === "IMAGE");
       result[groupField.name] = data.anchorPoints.map((p) => {
         const entry: Record<string, unknown> = {};
         if (nameSub) entry[nameSub.name] = p.name;
@@ -513,6 +635,20 @@ function activityToDynamic(
           ) {
             raw = p.measurement;
           }
+          // The BE always uploads a point's photo onto its own fixed
+          // `mediaFile` slot, regardless of what the template calls the
+          // subfield (CH-002 dev vs staging templates name it
+          // differently) — fall back to that slot the same way NUMBER
+          // falls back to point.measurement, so the photo shows up
+          // whatever the per-challenge template names the field.
+          if (
+            (raw === undefined || raw === null || raw === "") &&
+            sub.type === "IMAGE" &&
+            imageSubs.length === 1 &&
+            p.mediaFile
+          ) {
+            raw = p.mediaFile;
+          }
           if (raw === undefined || raw === null || raw === "") continue;
           if (sub.type === "IMAGE") {
             const url = (raw as { url?: string } | undefined)?.url;
@@ -523,6 +659,10 @@ function activityToDynamic(
             entry[sub.name] = String(raw.value);
             const unit = valueUnitOf(raw);
             if (unit) entry[`${sub.name}__unit`] = unit;
+            continue;
+          }
+          if (isNumberSub && (typeof raw === "number" || typeof raw === "string")) {
+            entry[sub.name] = String(raw);
             continue;
           }
           if (sub.type === "GROUP" || sub.type === "ITEM") {
@@ -645,21 +785,41 @@ export default function LogEvidenceWizard({
 
   // ── Resolve step form fields ───────────────────────────────────────────────
   // Priority: challengeSteps.form (if non-null) → template.steps.form (fallback)
-  const stepMeta = challenge?.challengeSteps?.find((s) => s.stepId === stepId);
+  // Fetched here (ahead of its other use further down) because the stepId
+  // fallback below needs it — the BE can rename a step's stepId after
+  // activities were already submitted under the old one (seen on CH-013:
+  // step 2 renamed "baselineObservations" → "exception"), so an old
+  // activity/URL still carrying the retired id can no longer find its step
+  // by stepId at all. When that happens, fall back to matching by stepNumber
+  // off the viewed activity instead of silently dropping to the bare
+  // file-upload/volunteer-hours/contributors/review default config.
+  const { data: fetchedEvidence, isError: evidenceFetchFailed } = useEvidence(
+    viewId ?? "",
+  );
+  const stepMeta =
+    challenge?.challengeSteps?.find((s) => s.stepId === stepId) ??
+    (fetchedEvidence
+      ? challenge?.challengeSteps?.find(
+          (s) => s.stepNumber === fetchedEvidence.stepNumber,
+        )
+      : undefined);
   const { data: templates } = useTemplates();
   const templateStep = useMemo(() => {
     if (!challenge?.templateId || !templates) return null;
     const tmpl = templates.find((t) => t.templateId === challenge.templateId);
-    return tmpl?.steps?.find((s) => s.stepId === stepId) ?? null;
-  }, [challenge?.templateId, templates, stepId]);
+    return (
+      tmpl?.steps?.find((s) => s.stepId === stepId) ??
+      (fetchedEvidence
+        ? tmpl?.steps?.find((s) => s.stepNumber === fetchedEvidence.stepNumber)
+        : undefined) ??
+      null
+    );
+  }, [challenge?.templateId, templates, stepId, fetchedEvidence]);
 
-  const stepForm =
+  const rawStepForm =
     (stepMeta?.form?.length ? stepMeta.form : null) ??
     templateStep?.form ??
     null;
-
-  // BE form takes precedence over FE config whenever form fields are present.
-  const isDerived = !!stepForm?.length;
 
   // Setup-step data (anchor points) feeds the update screens of later steps —
   // never the setup step itself
@@ -673,6 +833,24 @@ export default function LogEvidenceWizard({
         : undefined,
     [setupDetail, stepMeta],
   );
+
+  // CH-011/CH-015 splice a synthetic point-select subfield into their
+  // addable anchorPoint GROUP — see withPointSelectSubfield
+  const stepForm = useMemo(
+    () =>
+      rawStepForm
+        ? withPointSelectSubfield(
+            rawStepForm,
+            challenge?.challengeCode,
+            stepMeta?.stepType,
+            setupData?.anchorPoints ?? [],
+          )
+        : rawStepForm,
+    [rawStepForm, challenge?.challengeCode, stepMeta?.stepType, setupData],
+  );
+
+  // BE form takes precedence over FE config whenever form fields are present.
+  const isDerived = !!stepForm?.length;
 
   // Setup is whichever step sits first in challengeSteps (array position,
   // not a stepNumber/stepType field).
@@ -808,11 +986,9 @@ export default function LogEvidenceWizard({
     );
   }, [dynamicValues, stepId, viewId, isDerived]);
 
-  // ── View mode: fetch the submission — refresh and shared links work too ────
-  // Only applied while still in view mode so it can't clobber in-progress edits.
-  const { data: fetchedEvidence, isError: evidenceFetchFailed } = useEvidence(
-    viewId ?? "",
-  );
+  // ── View mode: apply the submission fetched above — refresh and shared ─────
+  // links work too. Only applied while still in view mode so it can't
+  // clobber in-progress edits.
   useEffect(() => {
     if (fetchedEvidence && isViewMode) setViewActivity(fetchedEvidence);
   }, [fetchedEvidence, isViewMode]);
@@ -1105,233 +1281,6 @@ export default function LogEvidenceWizard({
       // data: already fully inside dataEnvelope — uncomment to send both
       // data,
       dataEnvelope: { ...data, volunteerHours, contributors: form.contributors },
-    };
-  };
-
-  // CH-015 (urban greening) only: the API parses exactly data.measurement +
-  // data.description — any other key is silently dropped by its body parser
-  // and produces no impact. Map the dynamic form fields into that shape.
-  const buildCH015Payload = () => {
-    if (!user || !challenge || !stepMeta) throw new Error("Not ready");
-
-    const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
-    const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
-    const contributors = Array.isArray(dynamicValues[contribFieldName])
-      ? (dynamicValues[contribFieldName] as string[])
-      : [];
-    const knownNames = new Set([
-      vhFieldName,
-      contribFieldName,
-      "CONFIRM_COMPLETION",
-      "CONFIRMATION",
-    ]);
-
-    // The AREA impact formula assumes square metres — convert before sending
-    const areaToSqm: Record<string, number> = {
-      SQM: 1,
-      SQFT: 0.09290304,
-      ACRES: 4046.8564224,
-      HECTARES: 10000,
-    };
-
-    const sorted = [...(stepForm ?? [])].sort(
-      (a, b) => a.displayOrder - b.displayOrder,
-    );
-    const hasValue = (name: string) => {
-      const v = dynamicValues[name];
-      return v !== undefined && v !== null && v !== "";
-    };
-
-    // Measurement source: the last numeric field with unit options — the
-    // form's outcome metric (AREA_GREENED, after AREA_SEALED_OR_REMOVED)
-    const numericFields = sorted.filter(
-      (f) =>
-        !knownNames.has(f.name) &&
-        (f.type === "NUMBER" || f.type === "NUMERIC") &&
-        f.unitOfMeasureOptions?.length &&
-        hasValue(f.name),
-    );
-    const measurementField = numericFields[numericFields.length - 1];
-
-    let measurement:
-      | {
-          value: number;
-          unitofMeasure: string;
-          siUnit: string;
-          description?: string;
-        }
-      | undefined;
-    if (measurementField) {
-      const value =
-        parseFloat(dynamicValues[measurementField.name] as string) || 0;
-      const unit =
-        (dynamicValues[`${measurementField.name}__unit`] as string) ??
-        measurementField.unitOfMeasureOptions?.[0]?.value ??
-        "SQM";
-      measurement = {
-        value: value * (areaToSqm[unit] ?? 1),
-        unitofMeasure: "m²",
-        siUnit: "AREA",
-      };
-    } else {
-      // Tree-planting variant: no area filled — the count field becomes a
-      // COUNT measurement (drives the trees-planted impact formula)
-      const countField = sorted.find(
-        (f) =>
-          !knownNames.has(f.name) &&
-          (f.type === "NUMBER" || f.type === "NUMERIC") &&
-          !f.unitOfMeasureOptions?.length &&
-          f.name.includes("COUNT") &&
-          hasValue(f.name),
-      );
-      if (countField) {
-        const value = parseFloat(dynamicValues[countField.name] as string) || 0;
-        measurement = { value, unitofMeasure: "count", siUnit: "COUNT" };
-      }
-    }
-
-    // Description: an explicit DESCRIPTION field, else the species free-text field
-    const descriptionField =
-      sorted.find((f) => f.name.includes("DESCRIPTION") && hasValue(f.name)) ??
-      sorted.find(
-        (f) =>
-          f.name.includes("SPECIES") && f.type === "TEXT" && hasValue(f.name),
-      );
-    const description = descriptionField
-      ? String(dynamicValues[descriptionField.name])
-      : "";
-    if (measurement && description) measurement.description = description;
-
-    // Also send every captured field under its raw name (original values,
-    // pre-conversion). Most of these are ignored by the API today, but
-    // data.greeningArea/plantingArea are []Measurement on the BE
-    // (models.Data) — a flat {value, unitOfMeasure, siUnit, speciesUsed,
-    // description} struct, not an object keyed by subfield name. A group
-    // can hold more than one numeric subfield (e.g. greeningArea has both
-    // sealedOrRemovedArea and areaGreened), so each becomes its OWN flat
-    // Measurement entry in the array, tagged via `description` with the
-    // subfield name so the two can still be told apart on view/edit.
-    const unitToSiUnit: Record<string, string> = { "m²": "AREA", COUNT: "COUNT" };
-    const rawFields: Record<string, unknown> = {};
-    // GROUP/ITEM subfields of type IMAGE (CH-015 nests each entry's photo
-    // inside it, rather than a single top-level IMAGE field) — collected
-    // here, each tagged with a fresh mediaFileReferenceId (same idiom as the
-    // generic builder's entries.map, see buildDynamicPayload), so every
-    // photo travels as its own multipart part instead of only the first
-    // surviving as the legacy mediaFile part. Note: the Go Measurement
-    // struct has no mediaFileReferenceId slot, so today the BE can't
-    // correlate a given entry's row back to its photo by that id — the id
-    // still rides along for whenever that lands.
-    const groupMediaFiles: { file: File; mediaFileReferenceId: string }[] = [];
-    for (const field of sorted) {
-      if (
-        knownNames.has(field.name) ||
-        field.type === "IMAGE" ||
-        !hasValue(field.name)
-      )
-        continue;
-      if (field.type === "GROUP" || field.type === "ITEM") {
-        const numberSubs = (field.fields ?? []).filter(
-          (f) => f.type === "NUMBER" || f.type === "NUMERIC",
-        );
-        const speciesSub = (field.fields ?? []).find(
-          (f) => normalizeFieldName(f.name) === "SPECIESUSED",
-        );
-        const rawEntries = Array.isArray(dynamicValues[field.name])
-          ? (dynamicValues[field.name] as Record<string, unknown>[])
-          : [];
-        const measurements: Record<string, unknown>[] = [];
-        for (const entry of rawEntries) {
-          const mediaFileReferenceId = crypto.randomUUID();
-          const species = speciesSub ? entry[speciesSub.name] : undefined;
-          for (const sub of field.fields ?? []) {
-            if (sub.type === "IMAGE") {
-              const sv = entry[sub.name];
-              if (sv instanceof File) groupMediaFiles.push({ file: sv, mediaFileReferenceId });
-              continue;
-            }
-            if (!numberSubs.includes(sub)) continue;
-            const sv = entry[sub.name];
-            if (sv === undefined || sv === null || sv === "") continue;
-            const unit =
-              (entry[`${sub.name}__unit`] as string) ??
-              sub.unitOfMeasureOptions?.[0]?.value ??
-              "";
-            measurements.push({
-              value: parseFloat(String(sv)) || 0,
-              unitOfMeasure: unit,
-              siUnit: unitToSiUnit[unit] ?? unit,
-              description: sub.name,
-              ...(species ? { speciesUsed: species } : {}),
-            });
-          }
-        }
-        if (measurements.length) rawFields[field.name] = measurements;
-        continue;
-      }
-      if (
-        (field.type === "NUMBER" || field.type === "NUMERIC") &&
-        field.unitOfMeasureOptions?.length
-      ) {
-        const unit =
-          (dynamicValues[`${field.name}__unit`] as string) ??
-          field.unitOfMeasureOptions[0].value;
-        rawFields[field.name] = {
-          value: parseFloat(dynamicValues[field.name] as string) || 0,
-          unit,
-        };
-      } else {
-        rawFields[field.name] = dynamicValues[field.name];
-      }
-    }
-
-    // A top-level IMAGE field (older templates) or a GROUP/ITEM-nested one
-    // (CH-015's current template) can supply the legacy single mediaFile
-    // part (still the only file the BE reads today); every uploaded file,
-    // including that same one, also travels in mediaFiles tagged by its own
-    // mediaFileReferenceId — mirrors buildDynamicPayload's assembly.
-    const topLevelImageField = stepForm?.find((f) => f.type === "IMAGE");
-    const topLevelImageValue = topLevelImageField
-      ? dynamicValues[topLevelImageField.name]
-      : undefined;
-    const topLevelMediaFile =
-      topLevelImageValue instanceof File ? topLevelImageValue : undefined;
-    const mediaFile = topLevelMediaFile ?? groupMediaFiles[0]?.file;
-    const mediaFiles = topLevelMediaFile
-      ? [{ file: topLevelMediaFile, mediaFileReferenceId: crypto.randomUUID() }, ...groupMediaFiles]
-      : groupMediaFiles;
-
-    const volunteerHours = {
-      value: vhValue,
-      unitOfMeasure: vhUnit === "H" ? "hours" : vhUnit.toLowerCase(),
-      siUnit: "TIME",
-    };
-    const data = {
-      ...rawFields,
-      ...(measurement ? { measurement } : {}),
-      description,
-    };
-    return {
-      payload: {
-        stepId: stepMeta.stepId,
-        activity: stepMeta.activity,
-        stepNumber: stepMeta.stepNumber,
-        stepType: stepMeta.stepType,
-        challengeCode: challenge.challengeCode,
-        challengeId: challenge.challengeId,
-        circleId: challenge.circleId,
-        thingId: challenge.challengeId,
-        thingUUID: challenge.id,
-        submittedBy: user.id,
-        approvalRequired: false,
-        volunteerHours,
-        contributors,
-        // data: already fully inside dataEnvelope — uncomment to send both
-        // data,
-        dataEnvelope: { ...data, volunteerHours, contributors },
-      },
-      mediaFile,
-      mediaFiles,
     };
   };
 
@@ -1801,9 +1750,14 @@ export default function LogEvidenceWizard({
     const contributors = Array.isArray(dynamicValues[contribFieldName])
       ? (dynamicValues[contribFieldName] as string[])
       : [];
+    // Per Tshaks 2026-08-15: every template using this re-measure-one-point
+    // idiom sends Data.AnchorPoints as an array, even for a single point —
+    // the earlier singular Data.AnchorPoint struct here (2026-08-02 per the
+    // same source) was breaking image-URL anchoring on the BE. Confirmed
+    // across challenges, not just CH-012A/B.
     const data = {
       ...extraData,
-      anchorPoint: anchorPoint as unknown as ChallengeSetupAnchorPoint,
+      anchorPoints: [anchorPoint as unknown as ChallengeSetupAnchorPoint],
       capturedAt: new Date().toISOString(),
       // Selection-only steps (CH-008B/C, CH-010) log no new reading — the
       // hours/detail screens carry the data
@@ -1843,17 +1797,6 @@ export default function LogEvidenceWizard({
 
   const buildDynamicPayload = () => {
     if (!user || !challenge || !stepMeta) throw new Error("Not ready");
-    // buildCH015Payload only applies to the evidence-logging steps (it
-    // flattens every GROUP field, including a literal "anchorPoint" group,
-    // into Data.Measurement-shaped entries under the field's raw name). Step
-    // 1 (setupAndRegistration) needs the generic registration shape below —
-    // an "anchorPoints" array — or the site's estimatedPlantingArea group
-    // gets sent as a bogus singular "anchorPoint" measurement array instead.
-    if (
-      challenge.challengeCode === "CH-015" &&
-      normalizeFieldName(stepMeta.stepType) !== "REGISTRATION"
-    )
-      return buildCH015Payload();
 
     const vhValue = parseFloat(dynamicValues[vhFieldName] as string) || 0;
     const vhUnit = (dynamicValues[`${vhFieldName}__unit`] as string) ?? "H";
@@ -1895,9 +1838,20 @@ export default function LogEvidenceWizard({
 
     // Multiple anchor points are only ever registered at once on the
     // registration step — later steps select one already-registered point
-    // and log a single reading against it (per Tshaks, BE 2026-08-02), so
-    // the anchorPoints-array shaping below only applies here.
-    const isRegistrationStep = normalizeFieldName(stepMeta.stepType) === "REGISTRATION";
+    // and log a single reading against it (per Tshaks, BE 2026-08-02).
+    // Every step sends Data.AnchorPoints as an array either way (per Tshaks
+    // 2026-08-15) — isRegistrationStep below only decides the array's
+    // *contents*: every currently-entered point on registration, versus the
+    // one point being re-measured, wrapped in a one-entry array, later.
+    // stepType isn't a reliable "is this registration" signal by itself —
+    // many templates give step 1 its own descriptive stepType (CH-013's
+    // "biodiversityRegistration", CH-012's "setup") instead of the literal
+    // "registration" this check expects. isSetupStep (array position, not
+    // label) is the same signal LogEvidenceWizard already trusts elsewhere
+    // for this — OR it in as a fallback so a step 1 still counts as
+    // registration even when its stepType doesn't say so.
+    const isRegistrationStep =
+      normalizeFieldName(stepMeta.stepType) === "REGISTRATION" || isSetupStep;
 
     const rawFields: Record<string, unknown> = {};
     // GROUP subfields of type IMAGE (e.g. CH-007's anchorPoint.mediaFile)
@@ -1971,6 +1925,116 @@ export default function LogEvidenceWizard({
           }
           return out;
         };
+        // CH-011/CH-015: withPointSelectSubfield spliced a synthetic
+        // point-choice field onto this GROUP — each entry names which
+        // registered point it's logged against, rather than the whole GROUP
+        // being one single-point re-measurement.
+        const hasPointSelect = (field.fields ?? []).some(
+          (sub) => sub.name === REGISTERED_POINT_FIELD_NAME,
+        );
+        const realSubFields = hasPointSelect
+          ? (field.fields ?? []).filter((sub) => sub.name !== REGISTERED_POINT_FIELD_NAME)
+          : (field.fields ?? []);
+
+        // CH-015's greening entries nest area/species one level deeper
+        // (greeningArea, species) than CH-011's flat roundDate/plantsWatered
+        // — the generic shapeEntry above always nests a GROUP/ITEM subfield
+        // as an array under its own name, but AnchorPoint has no
+        // "greeningArea" slot, only dedicated AreaGreened/SealedOrRemovedArea
+        // fields directly on the point. Scoped to CH-015 specifically (not
+        // "any hasPointSelect entry") so CH-011 keeps using the exact same
+        // shapeEntry call/output shape it already does — CH-011 has no
+        // nested subfields so this would be a no-op for it anyway, but
+        // there's no reason to move it off a working path for zero benefit.
+        const areaToSqm: Record<string, number> = {
+          SQM: 1,
+          SQFT: 0.09290304,
+          ACRES: 4046.8564224,
+          HECTARES: 10000,
+        };
+        const shapeCH015PointEntry = (
+          entry: Record<string, unknown>,
+          mediaFileReferenceId: string,
+        ): Record<string, unknown> => {
+          const out: Record<string, unknown> = {};
+          for (const sub of realSubFields) {
+            const sv = entry[sub.name];
+            if (sv === undefined || sv === null || sv === "") continue;
+            if (sub.type === "IMAGE") {
+              if (sv instanceof File) groupMediaFiles.push({ file: sv, mediaFileReferenceId });
+              continue;
+            }
+            if (sub.type === "GROUP" || sub.type === "ITEM") {
+              const nestedEntries = Array.isArray(sv) ? (sv as Record<string, unknown>[]) : [];
+              const nestedNumberSubs = (sub.fields ?? []).filter(
+                (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+              );
+              // Both greeningArea and species have exactly one NUMBER
+              // subfield, so "has a NUMBER subfield" alone can't tell them
+              // apart — a TEXT subfield (species' name/id) marks a genuine
+              // per-record identity, same convention GroupField/
+              // anchorPointToEntry use elsewhere to find an entry's title.
+              const hasIdentity = (sub.fields ?? []).some((f) => f.type === "TEXT");
+              if (nestedNumberSubs.length && !hasIdentity) {
+                // A per-entry area container (greeningArea): its own NUMBER
+                // subfields become their own flat Measurement, named after
+                // the subfield — matching the point's dedicated
+                // AreaGreened/SealedOrRemovedArea fields
+                for (const nestedEntry of nestedEntries) {
+                  for (const nSub of nestedNumberSubs) {
+                    const nv = nestedEntry[nSub.name];
+                    if (nv === undefined || nv === null || nv === "") continue;
+                    const unit =
+                      (nestedEntry[`${nSub.name}__unit`] as string) ??
+                      nSub.unitOfMeasureOptions?.[0]?.value ??
+                      "SQM";
+                    out[nSub.name] = {
+                      value: (parseFloat(String(nv)) || 0) * (areaToSqm[unit] ?? 1),
+                      unitOfMeasure: "m²",
+                    };
+                  }
+                }
+              } else {
+                // A genuine repeating sub-entity (species): keep as an
+                // array — AnchorPoint.Species is []any, not a Measurement
+                out[sub.name] = nestedEntries
+                  .map((ne) => {
+                    const shaped: Record<string, unknown> = {};
+                    for (const nSub of sub.fields ?? []) {
+                      const nv = ne[nSub.name];
+                      if (nv === undefined || nv === null || nv === "" || nSub.type === "IMAGE")
+                        continue;
+                      shaped[nSub.name] =
+                        nSub.type === "NUMBER" || nSub.type === "NUMERIC"
+                          ? parseFloat(String(nv)) || 0
+                          : nv;
+                    }
+                    return shaped;
+                  })
+                  .filter((s) => Object.keys(s).length > 0);
+              }
+              continue;
+            }
+            if (sub.type === "NUMBER" || sub.type === "NUMERIC") {
+              const unit =
+                (entry[`${sub.name}__unit`] as string) ??
+                sub.unitOfMeasureOptions?.[0]?.value ??
+                "";
+              out[sub.name] = { value: parseFloat(String(sv)) || 0, unitOfMeasure: unit };
+              continue;
+            }
+            // Route every other scalar (DATE in particular) through
+            // shapeFieldValue instead of the raw form value — plantingDate
+            // otherwise rode through as the bare "YYYY-MM-DD" string
+            // <input type="date"> produces, which the BE's RFC3339
+            // time.Parse rejects ("cannot parse "" as "T"").
+            const shapedSv = shapeFieldValue(sub, sv, undefined);
+            if (shapedSv !== undefined) out[sub.name] = shapedSv;
+          }
+          return out;
+        };
+        const usesCH015Shaping = hasPointSelect && challenge.challengeCode === "CH-015";
+
         // Same id on the entry, its nested location, and its own photo —
         // one physical photo per entry, correlated on all three (BE commit
         // fbdb11e added mediaFileReferenceId to AnchorPoint/Location/Plant/
@@ -1981,25 +2045,28 @@ export default function LogEvidenceWizard({
         )
           .map((entry) => {
             const mediaFileReferenceId = crypto.randomUUID();
-            const shaped = shapeEntry(field.fields ?? [], entry, mediaFileReferenceId);
+            const shaped = usesCH015Shaping
+              ? shapeCH015PointEntry(entry, mediaFileReferenceId)
+              : shapeEntry(realSubFields, entry, mediaFileReferenceId);
             if (Object.keys(shaped).length) shaped.mediaFileReferenceId = mediaFileReferenceId;
+            if (hasPointSelect) {
+              const selectedName = entry[REGISTERED_POINT_FIELD_NAME] as string | undefined;
+              const point = (setupData?.anchorPoints ?? []).find((p) => p.name === selectedName);
+              if (point) {
+                shaped.name = point.name;
+                if (point.location) shaped.location = point.location;
+              }
+            }
             return shaped;
           })
           .filter((entry) => Object.keys(entry).length > 0);
         if (entries.length) {
-          if (
-            normalizeFieldName(field.name) === "ANCHORPOINT" &&
-            isRegistrationStep
-          ) {
-            // On registration, every anchor-point challenge sends
-            // Data.AnchorPoints as an array, even for a single registered
-            // point — matching buildAnchorSetupPayload's shape.
-            rawFields["anchorPoints"] = entries;
-          } else if (normalizeFieldName(field.name) === "ANCHORPOINT") {
-            // Later steps select one already-registered point and log a
-            // single reading against it — keep the original single-struct
-            // shape.
-            rawFields[field.name] = entries[0];
+          if (normalizeFieldName(field.name) === "ANCHORPOINT") {
+            // Every step sends Data.AnchorPoints as an array, even a later
+            // step logging one reading against a single already-registered
+            // point — per Tshaks 2026-08-15, the earlier singular
+            // Data.AnchorPoint struct broke image-URL anchoring on the BE.
+            rawFields["anchorPoints"] = isRegistrationStep || hasPointSelect ? entries : [entries[0]];
           } else {
             rawFields[field.name] = entries;
           }
@@ -2015,10 +2082,9 @@ export default function LogEvidenceWizard({
         field.unitOfMeasureOptions?.[0]?.value;
 
       // A plain, non-addable LOCATION field named "anchorPoint" (CH-014/
-      // CH-017's single-region registration) still submits as a one-entry
-      // Data.AnchorPoints array on the registration step — never a bare
-      // object — matching the GROUP case above. Later steps (if this shape
-      // ever recurs there) keep the plain single-object form.
+      // CH-017's single-region registration) always submits as a one-entry
+      // Data.AnchorPoints array — never a bare object — on every step, per
+      // Tshaks 2026-08-15.
       if (
         field.type === "LOCATION" &&
         !field.addableInput &&
@@ -2029,9 +2095,7 @@ export default function LogEvidenceWizard({
           const withRef = withMediaFileReferenceId(
             shaped as ChallengeSetupLocation,
           );
-          rawFields[isRegistrationStep ? "anchorPoints" : field.name] = isRegistrationStep
-            ? [withRef]
-            : withRef;
+          rawFields["anchorPoints"] = [withRef];
         }
         continue;
       }
@@ -2212,8 +2276,14 @@ export default function LogEvidenceWizard({
       }
 
       // Every other REGISTRATION step also submits via /challengeSetup,
-      // including CH-004/CH-015.
-      if (normalizeFieldName(stepMeta.stepType) === "REGISTRATION") {
+      // including CH-004/CH-015. stepType alone isn't reliable here — see
+      // the matching comment on buildDynamicPayload's isRegistrationStep —
+      // so fall back to isSetupStep (array position) for templates that
+      // give step 1 its own descriptive stepType instead of "registration"
+      // (CH-013's "biodiversityRegistration", CH-012's "setup"), which
+      // otherwise fell through to the generic /submit{code} evidence path
+      // below and never populated submittedSetupDetail correctly.
+      if (normalizeFieldName(stepMeta.stepType) === "REGISTRATION" || isSetupStep) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { payload, mediaFile, mediaFiles } = buildDynamicPayload() as any;
         return { payload, mediaFile, mediaFiles, transport: "registration" };
@@ -2227,37 +2297,19 @@ export default function LogEvidenceWizard({
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { payload, mediaFile, mediaFiles } = buildDynamicPayload() as any;
-      // These endpoints parse multipart only (metadata part + optional
-      // mediaFile — see guardians-api GetMetadataFromForm/FormValue +
-      // GetFileFromForm).
-      const MULTIPART_CODES = [
-        "CH-001",
-        "CH-002",
-        "CH-004",
-        "CH-007",
-        "CH-008A",
-        "CH-008B",
-        "CH-008C",
-        "CH-009",
-        "CH-010",
-        "CH-010A",
-        "CH-010B",
-        "CH-011",
-        "CH-012",
-        "CH-013",
-        "CH-014",
-        "CH-015",
-        "CH-016",
-        "CH-017",
-        "CH-018",
-        "CH-019",
-      ];
-      const asMultipart = MULTIPART_CODES.includes(challenge.challengeCode);
+      // Every /submitCH0xx handler on this dynamic path (generic
+      // HandleEvidenceSubmission and every challenge-specific override —
+      // CH-004/008B/012B/015/016) reads the payload via ctx.FormValue
+      // ("metadata"), which only resolves on a multipart body — there is no
+      // BE code path that parses a plain JSON evidence submission. A
+      // per-code allowlist here previously meant any new challenge code
+      // left off the list silently 400'd ("Invalid circle Data format")
+      // instead of just working.
       return {
         payload,
         mediaFile,
         mediaFiles,
-        transport: asMultipart ? "evidence-multipart" : "evidence",
+        transport: "evidence-multipart",
       };
     }
 
@@ -2591,7 +2643,18 @@ export default function LogEvidenceWizard({
                                 const val = entry?.values?.[f.name];
                                 if (val === undefined || val === null || val === "") return [];
                                 if (f.type === "IMAGE") {
-                                  return [{ label: f.label, image: val as File | string }];
+                                  // val can be a File (freshly picked), a URL
+                                  // string, or the point's raw mediaFile
+                                  // object (activityToDynamic's point.mediaFile
+                                  // fallback) — SetupUpdateRow only accepts
+                                  // File | string, so unwrap the object's url
+                                  // instead of handing the whole thing to
+                                  // <img src>.
+                                  const image =
+                                    val instanceof File || typeof val === "string"
+                                      ? val
+                                      : (val as { url?: string } | undefined)?.url;
+                                  return image ? [{ label: f.label, image }] : [];
                                 }
                                 const unit =
                                   f === primaryField
@@ -2602,7 +2665,14 @@ export default function LogEvidenceWizard({
                                 const displayValue =
                                   f.type === "NUMBER" || f.type === "NUMERIC"
                                     ? `${val} ${unit ?? ""}`.trim()
-                                    : String(val);
+                                    : f.type === "DATE"
+                                      ? (() => {
+                                          const d = new Date(val as string);
+                                          return isNaN(d.getTime())
+                                            ? String(val)
+                                            : d.toLocaleDateString();
+                                        })()
+                                      : String(val);
                                 return [{ label: f.label, value: displayValue }];
                               },
                             );

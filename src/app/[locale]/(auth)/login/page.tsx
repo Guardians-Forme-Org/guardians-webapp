@@ -6,37 +6,25 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Eye, EyeOff, X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type Mode = "mobile" | "email";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { mutate: login, isPending, error: apiError } = useLogin();
+  const { mutate: login, isPending } = useLogin();
   const t = useTranslations("login");
 
   const [mode, setMode] = useState<Mode>("email");
   const [credential, setCredential] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
-
-  // A bare "API error {status}" means the BE didn't send anything a user
-  // could actually read (e.g. an unauthorized login returning a raw 500) —
-  // show a friendly generic message instead of leaking the status code.
-  const error =
-    validationError ??
-    (apiError instanceof Error
-      ? isGenericApiError(apiError.message)
-        ? t("genericError")
-        : apiError.message
-      : null);
 
   const handleLogin = () => {
     if (!credential.trim() || !password.trim()) {
-      setValidationError(t("validationError"));
+      toast.error(t("validationError"));
       return;
     }
-    setValidationError(null);
     login(
       { emailOrMobile: credential.trim(), password },
       {
@@ -45,6 +33,17 @@ export default function LoginPage() {
           sessionStorage.removeItem("guardians_return_to");
           router.push(returnTo ?? "/home");
         },
+        // A bare "API error {status}" means the BE didn't send anything a user
+        // could actually read (e.g. an unauthorized login returning a raw 500) —
+        // show a friendly generic message instead of leaking the status code.
+        onError: (err) =>
+          toast.error(
+            err instanceof Error
+              ? isGenericApiError(err.message)
+                ? t("genericError")
+                : err.message
+              : t("genericError"),
+          ),
       },
     );
   };
@@ -97,10 +96,7 @@ export default function LoginPage() {
           <input
             type={mode === "email" ? "email" : "tel"}
             value={credential}
-            onChange={(e) => {
-              setCredential(e.target.value);
-              setValidationError(null);
-            }}
+            onChange={(e) => setCredential(e.target.value)}
             placeholder={
               mode === "mobile" ? t("phonePlaceholder") : t("emailPlaceholder")
             }
@@ -117,10 +113,7 @@ export default function LoginPage() {
             <input
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setValidationError(null);
-              }}
+              onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               placeholder={t("passwordPlaceholder")}
               className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#9a9898] outline-none"
@@ -135,8 +128,6 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
-
-        {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
         {/* Forgot password */}
         <div className="flex justify-end mb-5 -mt-3">

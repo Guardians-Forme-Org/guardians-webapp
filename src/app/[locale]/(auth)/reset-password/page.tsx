@@ -5,7 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { X, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import { useResetPassword } from "@/lib/hooks/auth";
+import { isGenericApiError } from "@/lib/api";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -20,7 +22,6 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
@@ -31,24 +32,29 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = () => {
     if (!newPassword || !confirmPassword) {
-      setError(t("resetPasswordErrorMissing"));
+      toast.error(t("resetPasswordErrorMissing"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError(t("resetPasswordErrorMismatch"));
+      toast.error(t("resetPasswordErrorMismatch"));
       return;
     }
     if (!token) {
-      setError(t("resetPasswordErrorInvalidLink"));
+      toast.error(t("resetPasswordErrorInvalidLink"));
       return;
     }
-    setError(null);
     resetPassword(
       { token, newPassword, accessToken: accessToken ?? undefined },
       {
         onSuccess: () => setDone(true),
         onError: (err) =>
-          setError(err instanceof Error ? err.message : t("resetPasswordErrorInvalidLink")),
+          toast.error(
+            err instanceof Error
+              ? isGenericApiError(err.message)
+                ? t("resetPasswordErrorInvalidLink")
+                : err.message
+              : t("resetPasswordErrorInvalidLink"),
+          ),
       },
     );
   };
@@ -111,7 +117,7 @@ export default function ResetPasswordPage() {
               <input
                 type={showNew ? "text" : "password"}
                 value={newPassword}
-                onChange={(e) => { setNewPassword(e.target.value); setError(null); }}
+                onChange={(e) => setNewPassword(e.target.value)}
                 placeholder={t("resetPasswordPlaceholder")}
                 className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#9a9898] outline-none"
               />
@@ -134,7 +140,7 @@ export default function ResetPasswordPage() {
               <input
                 type={showConfirm ? "text" : "password"}
                 value={confirmPassword}
-                onChange={(e) => { setConfirmPassword(e.target.value); setError(null); }}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 placeholder={t("resetPasswordConfirmPlaceholder")}
                 className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#9a9898] outline-none"
@@ -149,8 +155,6 @@ export default function ResetPasswordPage() {
               </button>
             </div>
           </div>
-
-          {error && <p className="text-sm text-red-600">{error}</p>}
         </div>
       )}
 

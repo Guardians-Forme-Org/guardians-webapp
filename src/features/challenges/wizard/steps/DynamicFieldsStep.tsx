@@ -15,7 +15,7 @@ export type DynamicValues = Record<string, unknown>;
 // entry, and GROUP needs at least one entry whose own required subfields
 // are all filled. TOGGLE/BOOLEAN are always "filled" — false is a valid
 // answer, not missing data.
-function isFieldFilled(field: ApiTemplateFormField, value: unknown): boolean {
+export function isFieldFilled(field: ApiTemplateFormField, value: unknown): boolean {
   if (field.type === "TOGGLE" || field.type === "BOOLEAN") return true;
   if (field.type === "MULTISELECT") return Array.isArray(value) && value.length > 0;
   if (field.type === "GROUP" || field.type === "ITEM") {
@@ -360,14 +360,18 @@ export function FieldControl({
   if (field.type === "DATE") {
     return (
       <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
-        <div className="w-full overflow-hidden">
-          <input
-            type="date"
-            value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full max-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
-          />
-        </div>
+        <input
+          type="date"
+          value={(value as string) ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+          // Native date/time controls (iOS and Android alike) ignore
+          // `width: 100%` once their own intrinsic content width is wider —
+          // min-w-0 alone doesn't override that, the box just renders past
+          // the container instead (confirmed on-device 2026-08-16).
+          // width:1px + min-w-full forces the box to size off min-width
+          // instead of content, which does override it on both platforms.
+          className="w-px min-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
+        />
       </FieldGroup>
     );
   }
@@ -376,14 +380,12 @@ export function FieldControl({
   if (field.type === "TIME") {
     return (
       <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
-        <div className="w-full overflow-hidden">
-          <input
-            type="time"
-            value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full max-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
-          />
-        </div>
+        <input
+          type="time"
+          value={(value as string) ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-px min-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
+        />
       </FieldGroup>
     );
   }

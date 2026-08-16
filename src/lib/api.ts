@@ -145,10 +145,38 @@ export async function apiFetch<T>(
       (json as { error?: string; message?: string } | null)?.error ??
       (json as { error?: string; message?: string } | null)?.message ??
       `API error ${response.status}`;
-    throw new Error(message);
+    throw new Error(unwrapSupabaseError(message));
   }
 
   return json as T;
+}
+
+// guardians-api's auth routes (recover, login, resetPassword, signup, …) go
+// through supabase-community/auth-go, which on a non-2xx response formats
+// its Go error as `response status code {N}: {rawBody}` (fmt.Errorf, see
+// auth-go/endpoints/*.go) — rawBody is GoTrue's own JSON error body, e.g.
+// {"code":429,"error_code":"over_email_send_rate_limit","msg":"Email rate
+// limit exceeded"}. The BE passes err.Error() straight through as the
+// `error` field, so that whole Go-wrapped string — not a message meant for
+// a person — is what apiFetch would otherwise throw verbatim (see the
+// 2026-08-15 forgot-password screenshot). Unwrap GoTrue's own `msg` instead:
+// still Supabase's wording, just without the Go/HTTP scaffolding around it.
+// A message that doesn't match this shape (a plain BE validation error like
+// "email is required" isn't Supabase-originated) passes through unchanged.
+function unwrapSupabaseError(message: string): string {
+  const match = message.match(/^response status code \d+:\s*(\{[\s\S]*\})\s*$/);
+  if (!match) return message;
+  try {
+    const body = JSON.parse(match[1]) as {
+      msg?: string;
+      error_description?: string;
+      message?: string;
+      error?: string;
+    };
+    return body.msg ?? body.error_description ?? body.message ?? body.error ?? message;
+  } catch {
+    return message;
+  }
 }
 
 // True when a thrown request error's message is our own `API error {status}`
