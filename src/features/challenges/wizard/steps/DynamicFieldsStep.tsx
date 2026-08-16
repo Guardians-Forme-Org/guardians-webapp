@@ -360,14 +360,17 @@ export function FieldControl({
   if (field.type === "DATE") {
     return (
       <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
-        <div className="w-full overflow-hidden">
-          <input
-            type="date"
-            value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full max-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
-          />
-        </div>
+        <input
+          type="date"
+          value={(value as string) ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+          // min-w-0 (not overflow-hidden — that clips the native control
+          // instead of letting it shrink) matches every other input in this
+          // file: iOS Safari's date/time control has an intrinsic content
+          // width that ignores `width: 100%` unless the element is also
+          // allowed to shrink below its default min-width.
+          className="w-full min-w-0 h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
+        />
       </FieldGroup>
     );
   }
@@ -376,14 +379,12 @@ export function FieldControl({
   if (field.type === "TIME") {
     return (
       <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
-        <div className="w-full overflow-hidden">
-          <input
-            type="time"
-            value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full max-w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
-          />
-        </div>
+        <input
+          type="time"
+          value={(value as string) ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full min-w-0 h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
+        />
       </FieldGroup>
     );
   }
