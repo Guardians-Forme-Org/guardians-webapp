@@ -785,13 +785,36 @@ export default function LogEvidenceWizard({
 
   // ── Resolve step form fields ───────────────────────────────────────────────
   // Priority: challengeSteps.form (if non-null) → template.steps.form (fallback)
-  const stepMeta = challenge?.challengeSteps?.find((s) => s.stepId === stepId);
+  // Fetched here (ahead of its other use further down) because the stepId
+  // fallback below needs it — the BE can rename a step's stepId after
+  // activities were already submitted under the old one (seen on CH-013:
+  // step 2 renamed "baselineObservations" → "exception"), so an old
+  // activity/URL still carrying the retired id can no longer find its step
+  // by stepId at all. When that happens, fall back to matching by stepNumber
+  // off the viewed activity instead of silently dropping to the bare
+  // file-upload/volunteer-hours/contributors/review default config.
+  const { data: fetchedEvidence, isError: evidenceFetchFailed } = useEvidence(
+    viewId ?? "",
+  );
+  const stepMeta =
+    challenge?.challengeSteps?.find((s) => s.stepId === stepId) ??
+    (fetchedEvidence
+      ? challenge?.challengeSteps?.find(
+          (s) => s.stepNumber === fetchedEvidence.stepNumber,
+        )
+      : undefined);
   const { data: templates } = useTemplates();
   const templateStep = useMemo(() => {
     if (!challenge?.templateId || !templates) return null;
     const tmpl = templates.find((t) => t.templateId === challenge.templateId);
-    return tmpl?.steps?.find((s) => s.stepId === stepId) ?? null;
-  }, [challenge?.templateId, templates, stepId]);
+    return (
+      tmpl?.steps?.find((s) => s.stepId === stepId) ??
+      (fetchedEvidence
+        ? tmpl?.steps?.find((s) => s.stepNumber === fetchedEvidence.stepNumber)
+        : undefined) ??
+      null
+    );
+  }, [challenge?.templateId, templates, stepId, fetchedEvidence]);
 
   const rawStepForm =
     (stepMeta?.form?.length ? stepMeta.form : null) ??
@@ -963,11 +986,9 @@ export default function LogEvidenceWizard({
     );
   }, [dynamicValues, stepId, viewId, isDerived]);
 
-  // ── View mode: fetch the submission — refresh and shared links work too ────
-  // Only applied while still in view mode so it can't clobber in-progress edits.
-  const { data: fetchedEvidence, isError: evidenceFetchFailed } = useEvidence(
-    viewId ?? "",
-  );
+  // ── View mode: apply the submission fetched above — refresh and shared ─────
+  // links work too. Only applied while still in view mode so it can't
+  // clobber in-progress edits.
   useEffect(() => {
     if (fetchedEvidence && isViewMode) setViewActivity(fetchedEvidence);
   }, [fetchedEvidence, isViewMode]);
