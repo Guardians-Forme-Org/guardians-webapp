@@ -546,9 +546,21 @@ function activityToDynamic(
     // the rest rode through as raw {value, unitOfMeasure} objects here,
     // which SetupUpdateStep's FieldControl renders as "[object Object]"
     // since it expects a plain string plus a separate `${name}__unit` key.
+    const imageDetailFields = nestedDetailFields.filter((f) => f.type === "IMAGE");
     const extraEntries: [string, unknown][] = [];
     for (const f of nestedDetailFields) {
-      if (f.name === primaryFieldName || f.type === "IMAGE") continue;
+      if (f.name === primaryFieldName) continue;
+      if (f.type === "IMAGE") {
+        // Same fixed-slot fallback as activityToDynamic's GROUP-entries
+        // mapping and anchorPointToEntry: the BE always uploads a point's
+        // photo onto its own `mediaFile` slot regardless of what the
+        // template calls the per-point photo field, so a re-measure step's
+        // prior photo (e.g. CH-002's periodic update) has to be read from
+        // there too, not from the field's own (always-empty) name.
+        const photo = anchorPointData?.mediaFile;
+        if (photo && imageDetailFields.length === 1) extraEntries.push([f.name, photo]);
+        continue;
+      }
       const v = anchorPointData?.[f.name] ?? data[f.name];
       if (v === undefined || v === null || v === "") continue;
       if ((f.type === "NUMBER" || f.type === "NUMERIC") && isNumericFieldValue(v)) {
