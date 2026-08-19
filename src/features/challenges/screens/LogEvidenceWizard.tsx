@@ -36,6 +36,7 @@ import {
   preNormalizeAnchorFields,
   shapeFieldValue,
   toDataKey,
+  usableLeaves,
   withMediaFileReferenceId,
 } from "../lib/deriveWizardConfig";
 import { DEFAULT_FORM_CONFIG, STEP_FORM_CONFIGS } from "../stepFormConfig";
@@ -516,7 +517,22 @@ function activityToDynamic(
   // via findAnchorLeaves, wherever they actually live — render inline per
   // point; echo their prior values back by name so re-opening a submission
   // shows what was entered.
-  const refField = findAnchorReference(fields, anchorPointTracking);
+  const refField =
+    findAnchorReference(fields, anchorPointTracking) ??
+    // deriveWizardConfig separately promotes a non-addable "anchorPoint"
+    // GROUP with usable leaves into a registered-point selector once the
+    // circle has registered points (CH-004/CH-010's non-tracking per-point
+    // report shape) — findAnchorReference only recognizes the *pure*
+    // reference case (no usable leaves) or a tracking step, so mirror that
+    // second promotion path here too, or its fields silently fail to
+    // rehydrate on reopen.
+    fields.find(
+      (f) =>
+        f.type === "GROUP" &&
+        !f.addableInput &&
+        normalizeFieldName(f.name) === "ANCHORPOINT" &&
+        usableLeaves(f).length > 0,
+    );
   const nestedDetailFields = refField ? findAnchorLeaves(refField) : [];
   const primaryFieldName = nestedDetailFields.find(
     (f) => f.type === "NUMBER" || f.type === "NUMERIC",
@@ -575,9 +591,18 @@ function activityToDynamic(
       selected: (anchorPointRaw as { name?: string } | undefined)?.name ?? "",
       higherRiskFlag: (anchorPointRaw as { higherRiskFlag?: boolean } | undefined)?.higherRiskFlag ?? false,
       values: {
-        ...(primaryFieldName && data.measurement?.value != null
-          ? { [primaryFieldName]: String(data.measurement.value) }
-          : {}),
+        ...(() => {
+          if (!primaryFieldName) return {};
+          // CH-001/CH-002/CH-008B's tracking steps echo the new reading as
+          // a flat top-level data.measurement alongside the point array;
+          // CH-004's non-tracking report has no such top-level key — its
+          // measurement lives only on the point entry itself, same as
+          // every other detail field above.
+          const raw = data.measurement ?? anchorPointData?.[primaryFieldName];
+          return isNumericFieldValue(raw)
+            ? { [primaryFieldName]: String(raw.value) }
+            : {};
+        })(),
         ...Object.fromEntries(extraEntries),
       },
     } satisfies SetupUpdateEntry;
