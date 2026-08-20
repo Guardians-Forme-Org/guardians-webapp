@@ -1741,6 +1741,33 @@ export default function LogEvidenceWizard({
         if (!detailImage && val instanceof File) detailImage = val;
         continue;
       }
+      // shapeFieldValue has no array/entry handling, so a GROUP/ITEM field's
+      // entries (e.g. CH-011's "species") would otherwise ride through
+      // unshaped — its NUMBER/NUMERIC subfields (quantity, speciesPlanted)
+      // need the same {value, unitOfMeasure?} Measurement shape volunteerHours
+      // gets, not a bare number or the raw form-state string
+      if ((field.type === "GROUP" || field.type === "ITEM") && Array.isArray(val)) {
+        const numSubs = (field.fields ?? []).filter(
+          (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+        );
+        const converted = (val as Record<string, unknown>[]).map((e) => {
+          if (!e || typeof e !== "object") return e;
+          const out: Record<string, unknown> = { ...e };
+          for (const sub of numSubs) {
+            const raw = out[sub.name];
+            if (raw === undefined || raw === "") continue;
+            const subUnit =
+              (out[`${sub.name}__unit`] as string) ?? sub.unitOfMeasureOptions?.[0]?.value;
+            out[sub.name] = shapeFieldValue(sub, raw, subUnit);
+            delete out[`${sub.name}__unit`];
+          }
+          return out;
+        });
+        extraData[toDataKey(field.name, converted)] = converted;
+        consumed.add(field.name);
+        continue;
+      }
+
       const unit =
         (bag?.[`${field.name}__unit`] as string) ??
         field.unitOfMeasureOptions?.[0]?.value;
