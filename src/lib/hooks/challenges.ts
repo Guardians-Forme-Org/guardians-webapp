@@ -195,6 +195,8 @@ export function useSubmitEvidence() {
     onSuccess: (_data, { challengeId }) => {
       queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+      queryClient.invalidateQueries({ queryKey: ["recentActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["userRecentActivities"] });
     },
   });
 }
@@ -227,6 +229,8 @@ export function useUpdateEvidence() {
     onSuccess: (_data, { challengeId }) => {
       queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+      queryClient.invalidateQueries({ queryKey: ["recentActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["userRecentActivities"] });
     },
   });
 }
@@ -390,6 +394,8 @@ export function useSubmitRegistration() {
     onSuccess: (_data, { challengeId }) => {
       queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+      queryClient.invalidateQueries({ queryKey: ["recentActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["userRecentActivities"] });
     },
   });
 }
@@ -421,6 +427,8 @@ export function useMarkStepComplete() {
     onSuccess: (_data, { challengeId }) => {
       queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+      queryClient.invalidateQueries({ queryKey: ["recentActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["userRecentActivities"] });
     },
   });
 }

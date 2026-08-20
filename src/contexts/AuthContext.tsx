@@ -137,7 +137,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = getStoredSession();
     if (stored.token && stored.user) {
       if (stored.loginData) {
-        queryClient.setQueryData(["loginData"], stored.loginData);
+        // updatedAt: 0 marks this seeded snapshot as already stale, so the
+        // loginData query below refetches immediately instead of trusting a
+        // possibly-old localStorage copy for the next 2 minutes (staleTime) —
+        // still paints instantly from cache, just doesn't block the refresh
+        queryClient.setQueryData(["loginData"], stored.loginData, { updatedAt: 0 });
       }
       setToken(stored.token);
       setUser(stored.user);
