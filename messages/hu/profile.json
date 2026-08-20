@@ -21,6 +21,7 @@
   "myUnit": "Saját {unit}",
   "circleUnit": "Kör {unit}",
   "verified": "Hitelesített",
+  "mostRecent": "Legutóbbi: {summary}",
   "theTrace": "A Nyom",
   "contributionMarkers": "Hozzájárulási jelzők",
   "noMarkersEarned": "Még nem szerzett",

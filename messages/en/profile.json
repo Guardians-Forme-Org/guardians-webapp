@@ -21,6 +21,7 @@
   "myUnit": "My {unit}",
   "circleUnit": "Circle {unit}",
   "verified": "Verified",
+  "mostRecent": "Most recent: {summary}",
   "theTrace": "The Trace",
   "contributionMarkers": "Contribution markers",
   "noMarkersEarned": "Not yet earned",

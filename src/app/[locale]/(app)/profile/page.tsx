@@ -11,6 +11,7 @@ import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useRouter } from "@/i18n/navigation";
 import { PROFILE_CONFIG } from "@/lib/config";
+import { useThingImpactRecords } from "@/lib/hooks/metrics";
 import type { ApiCircle, ApiImpactRecord } from "@/lib/types/circles";
 import type { ContributionMarker } from "@/lib/types/auth";
 import { formatImpactMetricValue, getImpactTileLabel } from "@/lib/utils";
@@ -36,7 +37,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function aggregateUserCircleImpact(circles: ApiCircle[], locale: string): ApiImpactRecord[] {
   const allRecords = circles.flatMap((c) => c.impactRecords ?? []);
@@ -75,7 +76,15 @@ function aggregateUserCircleImpact(circles: ApiCircle[], locale: string): ApiImp
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, logout, loginData, loading } = useAuth();
+  const { user, logout, loginData, loading, refreshProfile } = useAuth();
+
+  // Impact, counts and markers are fetched by the auth provider, which stays
+  // mounted across navigation — without this, opening the profile shows
+  // whatever was last fetched instead of the impact just earned
+  useEffect(() => {
+    refreshProfile();
+  }, [refreshProfile]);
+
   const t = useTranslations("profile");
   const tCommon = useTranslations("common");
   const tHome = useTranslations("home");
@@ -116,7 +125,11 @@ export default function ProfilePage() {
       .flatMap((c) => c.members ?? [])
       .find((m) => m.userId === user?.id)?.avatarUrl;
 
-  const userRecords = loginData?.impactRecords ?? [];
+  // Impact read straight off the thing record (thingId = userId) so it reflects
+  // the last submission; loginData carries the same array, just fetched with
+  // everything else, so it stands in until this lands
+  const { data: thingImpact } = useThingImpactRecords(user?.id);
+  const userRecords = thingImpact ?? loginData?.impactRecords ?? [];
   const circleRecords = PROFILE_CONFIG.aggregateUserCircleImpact
     ? aggregateUserCircleImpact(loginData?.circles ?? [], locale)
     : (loginData?.circles ?? []).flatMap((c) => c.impactRecords ?? []);
@@ -426,9 +439,14 @@ export default function ProfilePage() {
                 </button>
                 {isOpen && (
                   <div className="px-1 pt-3 pb-5 border-b border-progress-track flex flex-col gap-2.5">
-                    <p className="text-xs text-text-secondary leading-relaxed">
-                      {ur.impact?.summary}
-                    </p>
+                    {/* The BE writes the latest submission's amount into
+                        impact.summary while impact.value keeps accumulating —
+                        label it so it doesn't read as a description of the total */}
+                    {ur.impact?.summary && (
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        {t("mostRecent", { summary: ur.impact.summary })}
+                      </p>
+                    )}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs border border-border rounded-full px-2.5 py-0.5 text-text-muted">
                         {ur.impactType}

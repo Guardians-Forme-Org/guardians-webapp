@@ -1741,6 +1741,33 @@ export default function LogEvidenceWizard({
         if (!detailImage && val instanceof File) detailImage = val;
         continue;
       }
+      // shapeFieldValue has no array/entry handling, so a GROUP/ITEM field's
+      // entries (e.g. CH-011's "species") would otherwise ride through
+      // unshaped — its NUMBER/NUMERIC subfields (quantity, speciesPlanted)
+      // need the same {value, unitOfMeasure?} Measurement shape volunteerHours
+      // gets, not a bare number or the raw form-state string
+      if ((field.type === "GROUP" || field.type === "ITEM") && Array.isArray(val)) {
+        const numSubs = (field.fields ?? []).filter(
+          (f) => f.type === "NUMBER" || f.type === "NUMERIC",
+        );
+        const converted = (val as Record<string, unknown>[]).map((e) => {
+          if (!e || typeof e !== "object") return e;
+          const out: Record<string, unknown> = { ...e };
+          for (const sub of numSubs) {
+            const raw = out[sub.name];
+            if (raw === undefined || raw === "") continue;
+            const subUnit =
+              (out[`${sub.name}__unit`] as string) ?? sub.unitOfMeasureOptions?.[0]?.value;
+            out[sub.name] = shapeFieldValue(sub, raw, subUnit);
+            delete out[`${sub.name}__unit`];
+          }
+          return out;
+        });
+        extraData[toDataKey(field.name, converted)] = converted;
+        consumed.add(field.name);
+        continue;
+      }
+
       const unit =
         (bag?.[`${field.name}__unit`] as string) ??
         field.unitOfMeasureOptions?.[0]?.value;
@@ -2300,6 +2327,23 @@ export default function LogEvidenceWizard({
         return { payload, mediaFile, mediaFiles, transport: "registration" };
       }
 
+      // Setup-update steps resend the setup data shape as multipart — must
+      // be checked before the blanket "registration stepType" shortcut
+      // below: a step can be stepType:"registration" while actually being a
+      // select-an-already-registered-point step (CH-011's
+      // registerAdaptedPlants, which selects one of the points registered in
+      // its own step 1) rather than a genuine create-new-points
+      // registration. buildDynamicPayload doesn't know about the
+      // "locations" rename deriveWizardConfig applies to such a field, so it
+      // silently drops the point selection — the submitted record ends up
+      // with no anchorPoint at all. A true create-new-points registration
+      // step never reaches here with setupUpdateStep set (setupData is
+      // undefined while viewing that same step — see its computation above).
+      if (setupUpdateStep) {
+        const { payload, mediaFile, mediaFiles } = buildSetupUpdatePayload(setupUpdateStep);
+        return { payload, mediaFile, mediaFiles, transport: "evidence-multipart" };
+      }
+
       // Every other REGISTRATION step also submits via /challengeSetup,
       // including CH-004/CH-015. stepType alone isn't reliable here — see
       // the matching comment on buildDynamicPayload's isRegistrationStep —
@@ -2312,12 +2356,6 @@ export default function LogEvidenceWizard({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { payload, mediaFile, mediaFiles } = buildDynamicPayload() as any;
         return { payload, mediaFile, mediaFiles, transport: "registration" };
-      }
-
-      // Setup-update steps resend the setup data shape as multipart
-      if (setupUpdateStep) {
-        const { payload, mediaFile, mediaFiles } = buildSetupUpdatePayload(setupUpdateStep);
-        return { payload, mediaFile, mediaFiles, transport: "evidence-multipart" };
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
