@@ -1,16 +1,18 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import { Leaf, Pencil } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { WizardStepType } from "../../stepFormConfig";
 import { normalizeFieldName } from "../../lib/deriveWizardConfig";
 import { FileThumb, ReadOnlyField } from "../shared";
 import type { LogFormData } from "../types";
 import type { ApiTemplateFormField } from "@/lib/types/challenges";
+import type { ImpactMetric } from "@/lib/types/circles";
 import type { DynamicValues } from "./DynamicFieldsStep";
 import { useUser } from "@/lib/hooks/users";
 import Avatar from "@/components/ui/Avatar";
 import Skeleton from "@/components/ui/Skeleton";
+import { formatImpactMetricValue } from "@/lib/utils";
 
 type UserLike = {
   id: string;
@@ -81,6 +83,9 @@ type Props = {
   uploadLabel?: string;
   dynamicConfig?: DynamicReviewConfig;
   isLoading?: boolean;
+  // BE-computed impact of this specific submission — only present once the
+  // record has actually been submitted (view mode), never while composing
+  impact?: ImpactMetric | null;
 };
 
 function ReviewSection({
@@ -308,6 +313,34 @@ function SimpleEntryCard({
   );
 }
 
+// Clearly set apart from the plain submission fields below it (tinted card,
+// icon, its own label) so a viewer can't mistake a BE-computed result for
+// something they typed in — this is the outcome of the submission, not part
+// of it.
+function ImpactCard({ impact }: { impact: ImpactMetric }) {
+  const t = useTranslations("challenges");
+  const headline = impact.shortSummary ?? formatImpactMetricValue(impact);
+
+  return (
+    <div className="rounded-[14px] border border-gotf-green-light/30 bg-gotf-green-light/10 p-4 flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center size-7 rounded-full bg-gotf-green-light/20 shrink-0">
+          <Leaf size={15} className="text-gotf-green" />
+        </div>
+        <p className="text-xs font-semibold text-gotf-green uppercase tracking-wider">
+          {t("impactGeneratedLabel")}
+        </p>
+      </div>
+      {headline && (
+        <p className="text-xl font-bold text-gotf-green leading-tight">{headline}</p>
+      )}
+      {impact.summary && impact.summary !== headline && (
+        <p className="text-sm text-[#2f5240] leading-snug">{impact.summary}</p>
+      )}
+    </div>
+  );
+}
+
 function ReadOnlyToggle({ checked }: { checked: boolean }) {
   return (
     <div
@@ -338,6 +371,7 @@ export default function ReviewStep({
   uploadLabel = "Upload",
   dynamicConfig,
   isLoading,
+  impact,
 }: Props) {
   const t = useTranslations("challenges");
   const idx = (type: WizardStepType) => stepTypes.indexOf(type) + 1;
@@ -347,8 +381,12 @@ export default function ReviewStep({
     return (
       <>
         <div className="px-5 mt-7 mb-6">
-          <h1 className="text-[32px] font-bold text-black">{t("reviewHeading")}</h1>
-          <p className="text-base text-text-muted mt-1">{t("checkDetails")}</p>
+          <h1 className="text-[32px] font-bold text-black">
+            {readOnly ? t("submissionHeading") : t("reviewHeading")}
+          </h1>
+          <p className="text-base text-text-muted mt-1">
+            {readOnly ? t("submissionSubheading") : t("checkDetails")}
+          </p>
         </div>
         <div className={`flex flex-col gap-6 px-5 ${readOnly ? "pb-safe-nav" : ""}`}>
           {[0, 1, 2, 3].map((i) => (
@@ -373,13 +411,18 @@ export default function ReviewStep({
   return (
     <>
       <div className="px-5 mt-7 mb-6">
-        <h1 className="text-[32px] font-bold text-black">{t("reviewHeading")}</h1>
+        <h1 className="text-[32px] font-bold text-black">
+          {readOnly ? t("submissionHeading") : t("reviewHeading")}
+        </h1>
         <p className="text-base text-text-muted mt-1">
-          {t("checkDetails")}
+          {readOnly ? t("submissionSubheading") : t("checkDetails")}
         </p>
       </div>
 
       <div className={`flex flex-col gap-6 px-5 ${readOnly ? "pb-safe-nav" : ""}`}>
+        {/* ── Impact (BE-computed result of this submission) ──────────────── */}
+        {impact && <ImpactCard impact={impact} />}
+
         {/* ── Setup-update entry (point registered during setup) ──────────── */}
         {dynamicConfig?.setupUpdate && dynamicConfig.setupUpdate.rows.length > 0 && (
           <ReviewSection

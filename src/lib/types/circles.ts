@@ -61,6 +61,9 @@ export type ApiRecentActivity = {
     unitOfMeasure: string;
     siUnit: string;
   };
+  // BE-computed impact of this specific submission (added 2026-08-20) —
+  // absent on older records/steps the impact engine doesn't cover yet
+  impact?: ImpactMetric;
 };
 
 export type CreateCircleRequest = {
