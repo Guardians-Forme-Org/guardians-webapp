@@ -14,6 +14,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
           // reflects joins/updates even when the API hasn't committed yet.
           setTimeout(() => {
             client.refetchQueries({ queryKey: ["loginData"] });
+            client.refetchQueries({ queryKey: ["thingImpactRecords"] });
           }, 2500);
         },
       }),

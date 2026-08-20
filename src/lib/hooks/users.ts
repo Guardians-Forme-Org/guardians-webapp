@@ -52,6 +52,20 @@ export function useUsers() {
   });
 }
 
+// Live user_metadata (name, avatar, mobile, location) for one user.
+// /users/{id} can't serve this — it returns circles/challenges/impact with the
+// identity fields left blank — so /login was the only thing that ever set it.
+// The /users list is the one endpoint that returns current metadata; share its
+// ["users"] cache and pick our own record out of it.
+export function useUserMetadata(userId: string | null | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: ["users"],
+    queryFn: () => api.get<UsersResponse>("/users"),
+    select: (res) => toArray(res).find((u) => u.id === userId)?.user_metadata ?? null,
+    enabled: enabled && !!userId,
+  });
+}
+
 export function useUser(userId: string | null | undefined) {
   return useQuery({
     queryKey: ["user", userId],
