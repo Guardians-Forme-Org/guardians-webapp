@@ -2300,6 +2300,23 @@ export default function LogEvidenceWizard({
         return { payload, mediaFile, mediaFiles, transport: "registration" };
       }
 
+      // Setup-update steps resend the setup data shape as multipart — must
+      // be checked before the blanket "registration stepType" shortcut
+      // below: a step can be stepType:"registration" while actually being a
+      // select-an-already-registered-point step (CH-011's
+      // registerAdaptedPlants, which selects one of the points registered in
+      // its own step 1) rather than a genuine create-new-points
+      // registration. buildDynamicPayload doesn't know about the
+      // "locations" rename deriveWizardConfig applies to such a field, so it
+      // silently drops the point selection — the submitted record ends up
+      // with no anchorPoint at all. A true create-new-points registration
+      // step never reaches here with setupUpdateStep set (setupData is
+      // undefined while viewing that same step — see its computation above).
+      if (setupUpdateStep) {
+        const { payload, mediaFile, mediaFiles } = buildSetupUpdatePayload(setupUpdateStep);
+        return { payload, mediaFile, mediaFiles, transport: "evidence-multipart" };
+      }
+
       // Every other REGISTRATION step also submits via /challengeSetup,
       // including CH-004/CH-015. stepType alone isn't reliable here — see
       // the matching comment on buildDynamicPayload's isRegistrationStep —
@@ -2312,12 +2329,6 @@ export default function LogEvidenceWizard({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { payload, mediaFile, mediaFiles } = buildDynamicPayload() as any;
         return { payload, mediaFile, mediaFiles, transport: "registration" };
-      }
-
-      // Setup-update steps resend the setup data shape as multipart
-      if (setupUpdateStep) {
-        const { payload, mediaFile, mediaFiles } = buildSetupUpdatePayload(setupUpdateStep);
-        return { payload, mediaFile, mediaFiles, transport: "evidence-multipart" };
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
