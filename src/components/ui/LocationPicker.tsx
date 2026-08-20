@@ -118,7 +118,10 @@ export default function LocationPicker({
       if (!inputRef.current) return;
 
       autocomplete = new Autocomplete(inputRef.current, {
-        types: ["geocode"],
+        // No types restriction — Google's own "search everything" pattern.
+        // "geocode" excluded establishment results entirely, so a mall,
+        // building, or park (not a street address) never showed up;
+        // omitting types blends addresses, cities, and places together.
         fields: ["place_id", "address_components", "geometry", "formatted_address"],
       });
 
