@@ -2602,6 +2602,7 @@ export default function LogEvidenceWizard({
                   uploadLabel={
                     viewId && !isViewMode ? t("update") : t("upload")
                   }
+                  impact={viewActivity?.impact}
                   dynamicConfig={{
                     // Fields consumed by the setup-update screen render via
                     // setupUpdate rows instead; an adopted anchor-reference
@@ -2645,7 +2646,18 @@ export default function LogEvidenceWizard({
                             const point = (
                               setupUpdateStep.anchorPoints ?? []
                             ).find((p) => p.name === entry?.selected);
-                            const detailFields = setupUpdateStep.detailFields ?? [];
+                            // Same merge buildSetupUpdatePayload does: inline
+                            // per-point fields (CH-001/CH-008A wrapper shape)
+                            // live on the step itself, but CH-004/CH-010's
+                            // refGroup-promotion shape (selectionOnly, no
+                            // anchorPointTracking) only ever populates
+                            // derivedConfig.anchorDetailFields, never
+                            // setupUpdateStep.detailFields — reading just one
+                            // of the two silently drops those fields' rows.
+                            const detailFields = [
+                              ...(setupUpdateStep.detailFields ?? []),
+                              ...(derivedConfig.anchorDetailFields ?? []),
+                            ];
                             // See buildSetupUpdatePayload: a single NUMBER
                             // field is the point's one generic reading;
                             // several means a structured report where every
@@ -2833,6 +2845,7 @@ export default function LogEvidenceWizard({
                 canEdit={isViewMode ? false : canEdit}
                 isLoading={isViewLoading}
                 uploadLabel={viewId && !isViewMode ? t("update") : t("upload")}
+                impact={viewActivity?.impact}
               />
             )}
           </>
