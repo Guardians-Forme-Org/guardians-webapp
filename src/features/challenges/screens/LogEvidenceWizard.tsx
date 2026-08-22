@@ -24,9 +24,11 @@ import type { ApiSubmittedSetupDetail, ApiTemplateFormField } from "@/lib/types/
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { AnchorPoint } from "@/lib/types/contract";
+import { warnUnmappedAnchorPointKey } from "@/lib/types/contractKeys";
 import type { DerivedStep, DerivedWizardConfig } from "../lib/deriveWizardConfig";
 import {
-  ANCHOR_POINT_DATA_NAMES,
+  anchorWrappedNames,
   COMPLETION_NAMES,
   DEDICATED_MEASUREMENT_NAMES,
   deriveWizardConfig,
@@ -300,6 +302,17 @@ function anchorPointToEntry(
 // the existing addable-entries editor (GroupField) captures the choice per
 // entry like any other subfield, scoped to just these two challenges.
 const ADDABLE_POINT_SELECT_CODES = new Set(["CH-011", "CH-015"]);
+// An anchor point under construction. Slots written by name are checked against
+// contract.ts (the generated mirror of models.AnchorPoint); the index signature
+// carries the template-named fields written dynamically alongside them.
+// location/region use the FE's own ChallengeSetupLocation: the generated
+// Location marks every field required because Go always serialises them, but
+// what the picker produces is legitimately narrower.
+type AnchorPointDraft = Partial<Omit<AnchorPoint, "location" | "region">> & {
+  location?: ChallengeSetupLocation;
+  region?: ChallengeSetupLocation;
+} & Record<string, unknown>;
+
 export const REGISTERED_POINT_FIELD_NAME = "__registeredPoint";
 
 function withPointSelectSubfield(
@@ -373,6 +386,12 @@ function activityToDynamic(
   // reference by findAnchorReference below instead of yielding its flattened
   // fields (measurement, description) directly.
   const fields = preNormalizeAnchorFields(stepForm ?? [], anchorPointTracking);
+  // Fields the wrapper owns were submitted inside data.anchorPoints[0], not at
+  // the top level (see buildDynamicPayload) — read them back from there
+  const wrappedNames = anchorWrappedNames(stepForm ?? [], anchorPointTracking);
+  const wrappedPoint = (
+    Array.isArray(data.anchorPoints) ? data.anchorPoints[0] : undefined
+  ) as Record<string, unknown> | undefined;
 
   // Generic reverse of buildDynamicPayload: captured fields were merged into
   // data under their raw template field names
@@ -390,6 +409,7 @@ function activityToDynamic(
     // silently show blank data. Addable (CH-011) keeps every entry; a
     // non-addable single-point field takes just the first.
     const raw =
+      (wrappedNames.has(field.name) ? wrappedPoint?.[field.name] : undefined) ??
       data[field.name] ??
       (normalizeFieldName(field.name) === "ANCHORPOINT" && Array.isArray(data.anchorPoints)
         ? field.addableInput
@@ -593,12 +613,15 @@ function activityToDynamic(
       values: {
         ...(() => {
           if (!primaryFieldName) return {};
-          // CH-001/CH-002/CH-008B's tracking steps echo the new reading as
-          // a flat top-level data.measurement alongside the point array;
-          // CH-004's non-tracking report has no such top-level key — its
-          // measurement lives only on the point entry itself, same as
-          // every other detail field above.
-          const raw = data.measurement ?? anchorPointData?.[primaryFieldName];
+          // The reading now goes out on the point (anchorPoint.measurement),
+          // where the template nests it. Records written before that change
+          // still carry a flat top-level data.measurement, and a few templates
+          // echo it under the field's own name on the point — check all three,
+          // point first, so a reopened submission never comes back blank.
+          const raw =
+            anchorPointData?.measurement ??
+            data.measurement ??
+            anchorPointData?.[primaryFieldName];
           return isNumericFieldValue(raw)
             ? { [primaryFieldName]: String(raw.value) }
             : {};
@@ -1686,7 +1709,7 @@ export default function LogEvidenceWizard({
     // point) so this reading's own photo, if any, can be correlated to it —
     // same idiom as the registration builder's per-entry stamping.
     const mediaFileReferenceId = crypto.randomUUID();
-    const anchorPoint: Record<string, unknown> = {
+    const anchorPoint: AnchorPointDraft = {
       name: point.name,
       ...(point.location ? { location: point.location } : {}),
       higherRiskFlag: entry?.higherRiskFlag ?? point.higherRiskFlag ?? false,
@@ -1717,6 +1740,14 @@ export default function LogEvidenceWizard({
     const promotedDetailFields = derivedConfig?.anchorDetailFields ?? [];
     const detailFields = [...inlineDetailFields, ...promotedDetailFields];
     const detailNames = new Set(detailFields.map((f) => f.name));
+    // Both detail lists were read out of the template's own "anchorPoint"
+    // container — inline ones by findAnchorLeaves, promoted ones by
+    // usableLeaves — so membership here IS "the template nests this field
+    // under the point", which is what decides where it's submitted. Keyed on
+    // field identity rather than name: a genuinely top-level stepForm field
+    // can share a name with a nested one, and only the nested one belongs on
+    // the point.
+    const anchorFields: ReadonlySet<ApiTemplateFormField> = new Set(detailFields);
     const consumed = new Set(
       [
         setupStep.fields.map((f) => f.name),
@@ -1763,7 +1794,17 @@ export default function LogEvidenceWizard({
           }
           return out;
         });
-        extraData[toDataKey(field.name, converted)] = converted;
+        // NUMBER/NUMERIC subfields come out of that loop as Measurements,
+        // which is already the shape AnchorPoint.Species expects for
+        // `quantity`. Subfield names travel exactly as the template spells
+        // them (healthStatus, not the struct's `health`) — remapping names
+        // here would be the same guesswork the allowlist was.
+        if (anchorFields.has(field)) {
+          warnUnmappedAnchorPointKey(field.name, challenge.challengeCode);
+          anchorPoint[field.name] = converted;
+        } else {
+          extraData[toDataKey(field.name, converted)] = converted;
+        }
         consumed.add(field.name);
         continue;
       }
@@ -1773,7 +1814,8 @@ export default function LogEvidenceWizard({
         field.unitOfMeasureOptions?.[0]?.value;
       const shaped = shapeFieldValue(field, val, unit);
       if (shaped === undefined) continue;
-      if (ANCHOR_POINT_DATA_NAMES.has(normalizeFieldName(field.name))) {
+      if (anchorFields.has(field)) {
+        warnUnmappedAnchorPointKey(field.name, challenge.challengeCode);
         anchorPoint[field.name] = shaped;
       } else {
         extraData[toDataKey(field.name, val)] = shaped;
@@ -1802,6 +1844,23 @@ export default function LogEvidenceWizard({
     const contributors = Array.isArray(dynamicValues[contribFieldName])
       ? (dynamicValues[contribFieldName] as string[])
       : [];
+    // The point's one generic reading. primaryField is an inline detail field,
+    // i.e. the template nests it under anchorPoint, so it belongs on the point
+    // like every other nested field — AnchorPoint.Measurement is the slot for a
+    // NUMBER field the struct has no dedicated name for (CH-001's temperature).
+    // Selection-only steps (CH-008B/C, CH-010) log no new reading at all — the
+    // hours/detail screens carry their data.
+    if (!setupStep.selectionOnly && primaryField) {
+      anchorPoint.measurement = {
+        value: parseFloat((entry?.values?.[primaryField.name] as string) ?? "") || 0,
+        // °C is CH-001's temperature default; other codes (CH-008A water
+        // levels) inherit the unit stored on the registered point
+        unitOfMeasure:
+          point.measurement?.unitOfMeasure ??
+          (challenge.challengeCode === "CH-001" ? "°C" : ""),
+      };
+    }
+
     // Per Tshaks 2026-08-15: every template using this re-measure-one-point
     // idiom sends Data.AnchorPoints as an array, even for a single point —
     // the earlier singular Data.AnchorPoint struct here (2026-08-02 per the
@@ -1811,20 +1870,6 @@ export default function LogEvidenceWizard({
       ...extraData,
       anchorPoints: [anchorPoint as unknown as ChallengeSetupAnchorPoint],
       capturedAt: new Date().toISOString(),
-      // Selection-only steps (CH-008B/C, CH-010) log no new reading — the
-      // hours/detail screens carry the data
-      ...(setupStep.selectionOnly || !primaryField
-        ? {}
-        : {
-            measurement: {
-              value: parseFloat((entry?.values?.[primaryField.name] as string) ?? "") || 0,
-              // °C is CH-001's temperature default; other codes (CH-008A
-              // water levels) inherit the unit stored on the registered point
-              unitOfMeasure:
-                point.measurement?.unitOfMeasure ??
-                (challenge.challengeCode === "CH-001" ? "°C" : ""),
-            },
-          }),
       volunteerHours,
     };
     const payload: SetupUpdateEvidencePayload = {
@@ -1862,6 +1907,10 @@ export default function LogEvidenceWizard({
     // actually rendered, or spliced-in fields (species, mediaFile, …) would
     // be silently dropped here even though the user filled them in.
     const normalizedStepForm = preNormalizeAnchorFields(stepForm ?? [], anchorPointTracking);
+    // Which of those flattened fields came out of a typeless "anchorPoint"
+    // wrapper — the template nests them under the point, so the payload does
+    // too, however flat they had to be rendered. (CH-004's composting log.)
+    const wrappedNames = anchorWrappedNames(stepForm ?? [], anchorPointTracking);
 
     // The mark-complete screen consumes the completion flag field — matched
     // by normalized name (CONFIRM_COMPLETION, confirm, completed, …)
@@ -1906,6 +1955,9 @@ export default function LogEvidenceWizard({
       normalizeFieldName(stepMeta.stepType) === "REGISTRATION" || isSetupStep;
 
     const rawFields: Record<string, unknown> = {};
+    // Values for wrappedNames accumulate here instead of in rawFields, and are
+    // emitted as the single-entry data.anchorPoints array below
+    const wrappedPoint: AnchorPointDraft = {};
     // GROUP subfields of type IMAGE (e.g. CH-007's anchorPoint.mediaFile)
     // aren't a top-level field — collected here, always tagged with the
     // owning entry's mediaFileReferenceId, so each entry's photo can travel
@@ -2165,18 +2217,42 @@ export default function LogEvidenceWizard({
             : v,
         );
         if (!entries.length) continue;
-        rawFields[toDataKey(field.name, entries)] = entries;
+        if (wrappedNames.has(field.name)) {
+          warnUnmappedAnchorPointKey(field.name, challenge.challengeCode);
+          wrappedPoint[field.name] = entries;
+        } else {
+          rawFields[toDataKey(field.name, entries)] = entries;
+        }
       } else {
         const shaped = shapeFieldValue(field, val, unit);
         if (shaped === undefined) continue;
-        rawFields[toDataKey(field.name, val)] =
+        const value =
           field.type === "LOCATION"
             ? withMediaFileReferenceId(shaped as ChallengeSetupLocation)
             : shaped;
+        if (wrappedNames.has(field.name)) {
+          warnUnmappedAnchorPointKey(field.name, challenge.challengeCode);
+          wrappedPoint[field.name] = value;
+        } else {
+          rawFields[toDataKey(field.name, val)] = value;
+        }
       }
     }
 
-    // Build data in the expected shape
+    // The typeless wrapper's own fields travel as the single-entry
+    // data.anchorPoints array the BE expects (CH004EvidenceSubmission reads
+    // anchorPoints[0] directly). Stamped so a photo from the same wrapper —
+    // handled further down as the multipart part, since IMAGE fields never
+    // enter the loop above — can be correlated back to this point.
+    const wrappedPointReferenceId = crypto.randomUUID();
+    if (Object.keys(wrappedPoint).length) {
+      wrappedPoint.mediaFileReferenceId = wrappedPointReferenceId;
+      rawFields.anchorPoints = [wrappedPoint];
+    }
+
+    // Build data in the expected shape. The measurement/description hoists
+    // below read rawFields only, so a wrapper-owned measurement/description
+    // stays on the point instead of being pulled back up to the top level.
     const data: Record<string, unknown> = {};
 
     const measurementKey = Object.keys(rawFields).find(
@@ -2224,9 +2300,20 @@ export default function LogEvidenceWizard({
     const topLevelMediaFile = imageValue instanceof File ? imageValue : undefined;
     const mediaFile = topLevelMediaFile ?? groupMediaFiles[0]?.file;
     // Every uploaded file, each tagged with its own mediaFileReferenceId —
-    // sent alongside (not instead of) the legacy single mediaFile part
+    // sent alongside (not instead of) the legacy single mediaFile part. An
+    // image that came out of the anchor wrapper carries the point's id so the
+    // BE can hang it off that point rather than orphaning it.
     const mediaFiles = topLevelMediaFile
-      ? [{ file: topLevelMediaFile, mediaFileReferenceId: crypto.randomUUID() }, ...groupMediaFiles]
+      ? [
+          {
+            file: topLevelMediaFile,
+            mediaFileReferenceId:
+              imageField && wrappedNames.has(imageField.name)
+                ? wrappedPointReferenceId
+                : crypto.randomUUID(),
+          },
+          ...groupMediaFiles,
+        ]
       : groupMediaFiles;
 
     const unitLabel = vhUnit === "H" ? "hours" : vhUnit.toLowerCase();
