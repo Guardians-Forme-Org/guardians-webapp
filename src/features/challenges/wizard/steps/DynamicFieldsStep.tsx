@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, ChevronDown, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
@@ -458,6 +458,13 @@ export function FieldControl({
   );
 }
 
+// An entry counts as filled once any one of its subfields holds a value
+const entryHasData = (entry: Record<string, unknown>) =>
+  Object.values(entry).some((v) => v !== undefined && v !== null && v !== "");
+
+const hasFilledEntry = (value: unknown) =>
+  Array.isArray(value) && (value as Record<string, unknown>[]).some(entryHasData);
+
 // GROUP — a sub-form; addable groups repeat as collapsible entry cards
 function GroupField({
   field,
@@ -473,22 +480,30 @@ function GroupField({
   // Required-but-incomplete flag from the step's tap-to-reveal validation —
   // flagged on the group as a whole (no entry, or an entry missing one of
   // its own required subfields) rather than diving into which subfield of
-  // which entry, since entries are already expanded and browsable.
+  // which entry.
   error?: string;
 }) {
   const t = useTranslations("challenges");
-  // Entries loaded with existing data (viewing/editing a submitted activity)
-  // start expanded so all of it is visible at once, matching the review
-  // screen; a fresh blank entry starts expanded too, since there's nothing
-  // to hide
-  const [expanded, setExpanded] = useState<Set<number>>(() => {
-    const initial =
-      Array.isArray(value) && value.length ? (value as Record<string, unknown>[]) : [{}];
-    const withData = initial
-      .map((entry, i) => [i, entry] as const)
-      .filter(([, entry]) => Object.values(entry).some((v) => v !== undefined && v !== null && v !== ""));
-    return withData.length ? new Set(withData.map(([i]) => i)) : new Set([0]);
-  });
+  // Entries that arrive already filled — reopening the setup step, where the
+  // points registered last time are prefilled — start collapsed, so the whole
+  // list and the "+ Add another" button under it fit on screen; one expanded
+  // point used to fill the view and hide the fact that another can be added.
+  // A fresh blank entry starts expanded, since there's nothing to hide.
+  // Only top-level groups collapse: sub-groups (compact) sit inside an
+  // already-open entry, so they stay open as before.
+  // Prefilled values can land a render after mount (the submitted setup
+  // detail resolves async), so the collapse runs on whichever render first
+  // sees data — but never once the user has touched this group, or typing
+  // into the blank first entry would collapse it mid-edit.
+  const settled = useRef(false);
+  const [expanded, setExpanded] = useState<Set<number>>(() =>
+    !compact && hasFilledEntry(value) ? new Set() : new Set([0]),
+  );
+  useEffect(() => {
+    if (compact || settled.current || !hasFilledEntry(value)) return;
+    settled.current = true;
+    setExpanded(new Set());
+  }, [compact, value]);
   // Index of the entry whose remove button is awaiting a confirming second tap
   const [confirmingRemove, setConfirmingRemove] = useState<number | null>(null);
 
@@ -497,10 +512,13 @@ function GroupField({
   const entries: Record<string, unknown>[] =
     Array.isArray(value) && value.length ? (value as Record<string, unknown>[]) : [{}];
 
-  const setEntry = (i: number, patch: Record<string, unknown>) =>
+  const setEntry = (i: number, patch: Record<string, unknown>) => {
+    settled.current = true;
     update(field.name, entries.map((e, j) => (j === i ? { ...e, ...patch } : e)));
+  };
 
   const toggleEntry = (i: number) => {
+    settled.current = true;
     setConfirmingRemove(null);
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -511,12 +529,14 @@ function GroupField({
   };
 
   const addEntry = () => {
+    settled.current = true;
     setConfirmingRemove(null);
     update(field.name, [...entries, {}]);
     setExpanded((prev) => new Set(prev).add(entries.length));
   };
 
   const removeEntry = (i: number) => {
+    settled.current = true;
     setConfirmingRemove(null);
     update(field.name, entries.filter((_, j) => j !== i));
     // Re-key expanded indices after the removed entry shifts them down
@@ -532,8 +552,7 @@ function GroupField({
 
   // Empty cards remove on first tap; filled ones need a confirming second tap
   const handleRemoveTap = (i: number, entry: Record<string, unknown>) => {
-    const hasData = Object.values(entry).some((v) => v !== undefined && v !== null && v !== "");
-    if (!hasData || confirmingRemove === i) removeEntry(i);
+    if (!entryHasData(entry) || confirmingRemove === i) removeEntry(i);
     else setConfirmingRemove(i);
   };
 
@@ -603,7 +622,13 @@ function GroupField({
           );
         })}
         {field.addableInput && (
-          <button onClick={addEntry} className="self-start text-sm font-semibold text-gotf-green py-1">
+          // A bordered pill rather than a plain text link — it sits under a
+          // stack of bordered entry cards, where a small green link reads as
+          // a caption and gets skipped
+          <button
+            onClick={addEntry}
+            className="self-start border-[1.5px] border-dashed border-gotf-green rounded-full px-4 py-2 text-sm font-semibold text-gotf-green"
+          >
             + {t("addAnother")}
           </button>
         )}
