@@ -1760,6 +1760,10 @@ export default function LogEvidenceWizard({
     );
     const extraData: Record<string, unknown> = {};
     let detailImage: File | undefined;
+    // Photos belonging to a GROUP/ITEM entry (CH-011's species), each tagged
+    // with its own entry's mediaFileReferenceId so it travels as its own
+    // multipart part — same idiom buildDynamicPayload's shapeEntry uses
+    const entryMediaFiles: { file: File; mediaFileReferenceId: string }[] = [];
     for (const field of [...detailFields, ...(stepForm ?? [])]) {
       if (!field.name || consumed.has(field.name)) continue;
       if (!detailNames.has(field.name) && field.type === "GROUP") continue;
@@ -1781,9 +1785,29 @@ export default function LogEvidenceWizard({
         const numSubs = (field.fields ?? []).filter(
           (f) => f.type === "NUMBER" || f.type === "NUMERIC",
         );
+        const imageSubNames = new Set(
+          (field.fields ?? []).filter((f) => f.type === "IMAGE").map((f) => f.name),
+        );
         const converted = (val as Record<string, unknown>[]).map((e) => {
           if (!e || typeof e !== "object") return e;
           const out: Record<string, unknown> = { ...e };
+          // One id per entry, correlating the entry with its own photo. The BE
+          // reads it back off each entry (models.Species.MediaFileReferenceId)
+          // and looks the file up as mediaFiles[<id>].
+          const entryMediaFileReferenceId = crypto.randomUUID();
+          for (const name of imageSubNames) {
+            const sv = out[name];
+            if (sv instanceof File) {
+              // A File spread into a plain object JSON-serialises to {} —
+              // pull it out to its own multipart part instead of letting an
+              // empty husk ride through in its place, silently losing the photo
+              entryMediaFiles.push({ file: sv, mediaFileReferenceId: entryMediaFileReferenceId });
+              delete out[name];
+            }
+            // An already-uploaded photo (view/edit mode) arrives as the
+            // MediaFile object the BE sent — left in place, so reopening and
+            // resubmitting doesn't null it out
+          }
           for (const sub of numSubs) {
             const raw = out[sub.name];
             if (raw === undefined || raw === "") continue;
@@ -1792,6 +1816,7 @@ export default function LogEvidenceWizard({
             out[sub.name] = shapeFieldValue(sub, raw, subUnit);
             delete out[`${sub.name}__unit`];
           }
+          out.mediaFileReferenceId = entryMediaFileReferenceId;
           return out;
         });
         // NUMBER/NUMERIC subfields come out of that loop as Measurements,
@@ -1838,8 +1863,12 @@ export default function LogEvidenceWizard({
         ? (dynamicValues[imageField.name] as File | undefined)
         : undefined) ?? detailImage;
     // Tagged with the same id stamped onto anchorPoint above, so this
-    // reading's photo can be correlated back to the point it belongs to
-    const mediaFiles = mediaFile ? [{ file: mediaFile, mediaFileReferenceId }] : [];
+    // reading's photo can be correlated back to the point it belongs to —
+    // sent alongside each GROUP/ITEM entry's own photo
+    const mediaFiles = [
+      ...(mediaFile ? [{ file: mediaFile, mediaFileReferenceId }] : []),
+      ...entryMediaFiles,
+    ];
 
     const contributors = Array.isArray(dynamicValues[contribFieldName])
       ? (dynamicValues[contribFieldName] as string[])
@@ -2099,20 +2128,37 @@ export default function LogEvidenceWizard({
                   }
                 }
               } else {
-                // A genuine repeating sub-entity (species): keep as an
-                // array — AnchorPoint.Species is []any, not a Measurement
+                // A genuine repeating sub-entity (species): keep as an array.
+                // AnchorPoint.Species is []*Species (it was []any until the BE
+                // typed it), so each entry has to match that struct — notably
+                // Quantity is a *Measurement, and a bare number there fails
+                // json.Unmarshal and 400s the whole submission.
                 out[sub.name] = nestedEntries
                   .map((ne) => {
                     const shaped: Record<string, unknown> = {};
+                    // Same per-entry correlation the top-level species entries
+                    // get: the BE walks species and looks its photo up as
+                    // mediaFiles[<id>] (Species.MediaFileReferenceId)
+                    const nestedMediaFileReferenceId = crypto.randomUUID();
                     for (const nSub of sub.fields ?? []) {
                       const nv = ne[nSub.name];
-                      if (nv === undefined || nv === null || nv === "" || nSub.type === "IMAGE")
+                      if (nv === undefined || nv === null || nv === "") continue;
+                      if (nSub.type === "IMAGE") {
+                        if (nv instanceof File)
+                          groupMediaFiles.push({
+                            file: nv,
+                            mediaFileReferenceId: nestedMediaFileReferenceId,
+                          });
                         continue;
-                      shaped[nSub.name] =
-                        nSub.type === "NUMBER" || nSub.type === "NUMERIC"
-                          ? parseFloat(String(nv)) || 0
-                          : nv;
+                      }
+                      const nUnit =
+                        (ne[`${nSub.name}__unit`] as string) ??
+                        nSub.unitOfMeasureOptions?.[0]?.value;
+                      const nShaped = shapeFieldValue(nSub, nv, nUnit);
+                      if (nShaped !== undefined) shaped[nSub.name] = nShaped;
                     }
+                    if (!Object.keys(shaped).length) return shaped;
+                    shaped.mediaFileReferenceId = nestedMediaFileReferenceId;
                     return shaped;
                   })
                   .filter((s) => Object.keys(s).length > 0);
