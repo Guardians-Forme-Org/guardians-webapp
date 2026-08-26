@@ -179,15 +179,18 @@ function WizardTitle({
 function WizardNextButton({
   label,
   onClick,
+  disabled,
 }: {
   label: string;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="px-5 mb-20 pt-4 shrink-0">
       <button
         onClick={onClick}
-        className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
+        disabled={disabled}
+        className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium disabled:opacity-40"
       >
         {label}
       </button>
@@ -219,6 +222,17 @@ function Step1({
   isLoading: boolean;
 }) {
   const t = useTranslations("challenges");
+  const [search, setSearch] = useState("");
+
+  const query = search.trim().toLowerCase();
+  const filtered = query
+    ? templates.filter((tmpl) =>
+        [tmpl.templateId, tmpl.name, tmpl.description].some((field) =>
+          field?.toLowerCase().includes(query),
+        ),
+      )
+    : templates;
+
   return (
     <>
       <WizardTitle
@@ -230,9 +244,13 @@ function Step1({
       <div className="px-10 mb-6">
         <div className="flex items-center gap-2 bg-white shadow-sm rounded-full px-5 h-12.5">
           <Search size={16} className="text-text-muted shrink-0" />
-          <span className="text-base text-[#737373]">
-            {t("searchTemplates")}
-          </span>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("searchTemplates")}
+            className="flex-1 w-px min-w-0 bg-transparent text-base text-text-primary placeholder:text-[#737373] outline-none"
+          />
         </div>
       </div>
 
@@ -245,12 +263,12 @@ function Step1({
               className="h-21.5 rounded-2xl border border-border bg-surface animate-pulse"
             />
           ))
-        ) : templates.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <p className="text-base text-text-muted text-center py-8">
             {t("noTemplates")}
           </p>
         ) : (
-          templates.map((tmpl) => {
+          filtered.map((tmpl) => {
             const selected = form.templateId === tmpl.templateId;
             return (
               <button
@@ -297,7 +315,7 @@ function Step2({
 }) {
   const t = useTranslations("challenges");
   const template =
-    templates.find((tmpl) => tmpl.templateId === form.templateId) ?? templates[0];
+    templates.find((tmpl) => tmpl.templateId === form.templateId);
   const templateSteps = template?.steps ?? [];
   const [expandedStepId, setExpandedStepId] = useState<string | null>(null);
   const [equipmentOpen, setEquipmentOpen] = useState(false);
@@ -809,7 +827,7 @@ function Step6({
   const { user } = useAuth();
 
   const template =
-    templates.find((tmpl) => tmpl.templateId === form.templateId) ?? templates[0];
+    templates.find((tmpl) => tmpl.templateId === form.templateId);
   const templateSteps = template?.steps ?? [];
 
   const facilitatorUser = users.find((u) => u.id === form.facilitatorId);
@@ -1169,7 +1187,8 @@ export default function CreateChallengeWizard({
         const parsed = JSON.parse(saved);
         if (parsed.form) setForm((f) => ({ ...f, ...parsed.form, bannerUrl: "" }));
         if (parsed.location) setLocation(parsed.location);
-        if (parsed.step) setStep(parsed.step);
+        // A draft saved before a template was picked must resume at step 1
+        if (parsed.step) setStep(parsed.form?.templateId ? parsed.step : 1);
       } catch { /* ignore corrupt draft */ }
     }
   }, [circleId, isEdit]);
@@ -1344,6 +1363,7 @@ export default function CreateChallengeWizard({
             t("next")
           }
           onClick={next}
+          disabled={step === 1 && !isEdit && !form.templateId}
         />
       )}
     </div>
