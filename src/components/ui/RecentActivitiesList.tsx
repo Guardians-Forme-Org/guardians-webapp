@@ -82,9 +82,12 @@ export default function RecentActivitiesList({ thingId, filterStepId, userId }: 
   return (
     <div className="px-10 pb-7.5 flex flex-col gap-6 fade-up">
       {activities.map((record) => {
-        // New submissions carry everything in dataEnvelope (data echoes null)
+        // New submissions carry everything in dataEnvelope (data echoes null).
+        // A per-point reading lives on the anchor point itself — the template
+        // nests it there — so fall back to it before giving up on a title.
+        const envelope = record.dataEnvelope ?? record.data;
         const measurement =
-          record.dataEnvelope?.measurement ?? record.data?.measurement;
+          envelope?.measurement ?? envelope?.anchorPoints?.[0]?.measurement;
         const title = record.activity || (
           measurement?.value != null
             ? `${measurement.value} ${measurement.unitOfMeasure}`

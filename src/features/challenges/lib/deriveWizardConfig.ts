@@ -66,26 +66,9 @@ const DYNAMIC_BATCH_SIZE = 4;
 // itself — they come from the setup submission, never re-entered
 const ANCHOR_IDENTITY_NAMES = new Set(["ANCHORPOINTNAME", "LOCATION"]);
 
-// Data keys the BE nests under data.anchorPoint (Go AnchorPoint struct)
-// rather than at the top level of data
-export const ANCHOR_POINT_DATA_NAMES = new Set([
-  "MEASUREMENT",
-  "OPENINGHOURS",
-  "PERMISSIONOBTAINED",
-  "OPENED",
-  "WATERACCESS",
-  "SHADETYPE",
-  "ORIENTATION",
-  "NOTES",
-  "HIGHERRISKFLAG",
-  "DATECAPTURED",
-  "VULNERABLEFLAG",
-  "HABITATTYPE",
-]);
-
 // Field names that always have their own dedicated slot in the Go Data/
 // AnchorPoint struct (e.g. Capacity Measurement `json:"capacity"`) — never
-// eligible for the generic single-reading treatment (data.measurement),
+// eligible for the generic single-reading treatment (the point's measurement),
 // even when they're the only NUMBER field on the point (CH-008B
 // EXECUTION/COMPLETION: capacity is not a stand-in "new reading", it's its
 // own report field, same as litresCollected on the TRACKING step; CH-008A
@@ -143,6 +126,26 @@ export function preNormalizeAnchorFields(
     }
     return [f];
   });
+}
+
+// The names preNormalizeAnchorFields lifted out of a typeless "anchorPoint"
+// wrapper. Rendering needs them flat (they're ordinary wizard fields), but the
+// payload has to put them back inside the point — the template nested them, so
+// that's where they belong. Only the wrapper case is reported: the
+// LOCATION-with-nested-fields splice above is a genuine top-level location
+// (CH-016's "Choose site location"), not an anchor container.
+export function anchorWrappedNames(
+  fields: ApiTemplateFormField[],
+  anchorPointTracking?: boolean,
+): Set<string> {
+  const names = new Set<string>();
+  if (anchorPointTracking) return names;
+  for (const f of fields) {
+    for (const nested of unwrapAnchorFields(f) ?? []) {
+      if (nested.name) names.add(nested.name);
+    }
+  }
+  return names;
 }
 
 // The real per-visit data fields under an anchor reference can be nested at
