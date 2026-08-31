@@ -1,16 +1,16 @@
 {
   "title": "Felfedezés",
   "tabChallenges": "Kihívások",
-  "tabCircles": "Körök",
+  "tabCircles": "Jövő Őrzők",
   "searchChallenges": "Kihívások keresése a közelben",
-  "searchCircles": "Körök keresése a közelben",
-  "createCircle": "Kör létrehozása",
+  "searchCircles": "Jövő Őrzők keresése a közelben",
+  "createCircle": "Jövő Őrző kör létrehozása",
   "createChallenge": "Kihívás létrehozása",
   "loadingChallenges": "Kihívások betöltése…",
   "loadingCircles": "Körök betöltése…",
   "since": "{date} óta",
   "members": "{count} tag",
-  "circlePickerTitle": "Melyik körhöz szól ez a kihívás?",
-  "noResultsChallenges": "Nem találhatók kihívások erre: \"{query}\".",
-  "noResultsCircles": "Nem találhatók körök erre: \"{query}\"."
+  "circlePickerTitle": "Melyik körhöz tartozik ez a kihívás?",
+  "noResultsChallenges": "Nincs a keresésnek megfelelő kihívás \"{query}\".",
+  "noResultsCircles": "Nincs a keresésnek megfelelő kör: \"{query}\"."
 }
