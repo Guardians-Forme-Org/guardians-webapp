@@ -102,23 +102,63 @@ function unwrapAnchorFields(f: ApiTemplateFormField): ApiTemplateFormField[] | n
   return f.anchorPoint?.fields ?? f.fields ?? null;
 }
 
-// Flattens the two "wrapper reused for shaping, not point selection" shapes
-// into ordinary top-level fields — the typeless wrapper (unwrapAnchorFields)
-// and a typed LOCATION field carrying nested fields (CH-016's "Choose site
-// location": a real value to capture AND a data container, so it's kept —
-// stripped of `fields` so it renders as a plain location picker — with its
-// nested fields spliced in alongside it, rather than losing them the way a
-// FieldControl LOCATION render otherwise would). No-op on a tracking step,
-// where the wrapper/reference is handled later once anchorPoints is known.
-// Exported so buildDynamicPayload can apply the identical transform to the
-// raw stepForm before collecting values — otherwise rendering and payload
-// collection would disagree on which fields exist.
+// A non-addable GROUP/ITEM that isn't the anchor reference is a *display*
+// container, not a repeating entity: the BE regrouped fields that used to sit
+// flat at the top of a step into one card (CH-004/CH-008B/CH-011/CH-014/
+// CH-016's "siteMetadata", CH-015's "area") without giving the Go structs a
+// matching nested type. Its leaves still mean what they always meant — plain
+// top-level fields, each landing on its own Data/AnchorPoint slot — so splice
+// them in and drop the container. The container name itself has no
+// DataEnvelope slot at all, so keeping the nesting would just hand the BE a
+// key it drops on unmarshal; every leaf outside CH-014 does have one, and
+// CH-004's (volunteerHours, contributors) exist ONLY on DataEnvelope, never
+// on AnchorPoint. The anchor reference ("anchorPoint") is exempt — the wizard
+// adopts that container itself as the point selector.
+//
+// Leaf displayOrder is rebased onto the container's so the leaves stay
+// contiguous where the card sat instead of interleaving with the siblings
+// after it (CH-014: a container at order 1 holding leaves 1-9, with
+// volunteerHours at 2 and contributors at 3 behind it).
+function flattenContainerGroups(
+  fields: ApiTemplateFormField[],
+): ApiTemplateFormField[] {
+  return fields.flatMap((f) => {
+    if (
+      (f.type !== "GROUP" && f.type !== "ITEM") ||
+      f.addableInput ||
+      normalizeFieldName(f.name) === "ANCHORPOINT" ||
+      !f.fields?.length
+    )
+      return [f];
+    const leaves = [...f.fields].sort((a, b) => a.displayOrder - b.displayOrder);
+    return leaves.map((sub, i) => ({
+      ...sub,
+      displayOrder: f.displayOrder + (i + 1) / (leaves.length + 1),
+    }));
+  });
+}
+
+// Flattens the "container, not a value" shapes into ordinary top-level fields
+// — the display container (flattenContainerGroups), the typeless wrapper
+// (unwrapAnchorFields) and a typed LOCATION field carrying nested fields
+// (CH-016's "Choose site location": a real value to capture AND a data
+// container, so it's kept — stripped of `fields` so it renders as a plain
+// location picker — with its nested fields spliced in alongside it, rather
+// than losing them the way a FieldControl LOCATION render otherwise would).
+// Only the latter two are skipped on a tracking step, where the wrapper/
+// reference is handled later once anchorPoints is known; a display container
+// is never the reference, so it flattens either way.
+// Exported so buildDynamicPayload/buildSetupUpdatePayload can apply the
+// identical transform to the raw stepForm before collecting values —
+// otherwise rendering and payload collection disagree on which fields exist,
+// and a field the user filled in is silently dropped on submit.
 export function preNormalizeAnchorFields(
   fields: ApiTemplateFormField[],
   anchorPointTracking?: boolean,
 ): ApiTemplateFormField[] {
-  if (anchorPointTracking) return fields;
-  return fields.flatMap((f) => {
+  const flattened = flattenContainerGroups(fields);
+  if (anchorPointTracking) return flattened;
+  return flattened.flatMap((f) => {
     const unwrapped = unwrapAnchorFields(f);
     if (unwrapped) return unwrapped;
     if (f.type === "LOCATION" && f.fields?.length) {

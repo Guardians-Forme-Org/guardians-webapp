@@ -1728,6 +1728,14 @@ export default function LogEvidenceWizard({
     // own dedicated slot in the Go Data struct, so none of them are treated
     // as the generic reading — all go through the name-keyed loop by their
     // own field name.
+    // Same flattening deriveWizardConfig rendered from — a display container
+    // (siteMetadata/area) yields its leaves here too, so a field the user was
+    // shown and filled in is actually collected instead of being skipped as
+    // an unrecognised GROUP.
+    const normalizedStepForm = preNormalizeAnchorFields(
+      stepForm ?? [],
+      anchorPointTracking,
+    );
     const inlineDetailFields = setupStep.detailFields ?? [];
     const inlineNumberFields = inlineDetailFields.filter(
       (f) => f.type === "NUMBER" || f.type === "NUMERIC",
@@ -1764,9 +1772,22 @@ export default function LogEvidenceWizard({
     // with its own entry's mediaFileReferenceId so it travels as its own
     // multipart part — same idiom buildDynamicPayload's shapeEntry uses
     const entryMediaFiles: { file: File; mediaFileReferenceId: string }[] = [];
-    for (const field of [...detailFields, ...(stepForm ?? [])]) {
+    for (const field of [...detailFields, ...normalizedStepForm]) {
       if (!field.name || consumed.has(field.name)) continue;
-      if (!detailNames.has(field.name) && field.type === "GROUP") continue;
+      // The anchor reference container itself. deriveWizardConfig adopted it
+      // as the points field under the name "locations", so `consumed` doesn't
+      // catch it under the name the template still spells here — and the
+      // selection it stands for is already on anchorPoint. Every *other*
+      // GROUP/ITEM left at this point is real repeating data (CH-013/CH-015/
+      // CH-016's addable "species") and falls through to the shaping below;
+      // narrowed from "skip every non-detail GROUP", which also swallowed the
+      // display containers this step actually collects.
+      if (
+        !detailNames.has(field.name) &&
+        (field.type === "GROUP" || field.type === "ITEM") &&
+        normalizeFieldName(field.name) === "ANCHORPOINT"
+      )
+        continue;
       // Inline per-point fields (and their __unit companions) live in
       // entry.values; everything else in the shared dynamicValues bag
       const bag = inlineDetailFields.includes(field) ? entry?.values : dynamicValues;
@@ -1851,13 +1872,13 @@ export default function LogEvidenceWizard({
     // Submitting via the mark-complete screen implies the flag itself
     // (BE Data.Confirm / Data.Completed)
     if (shouldMarkComplete) {
-      const completionDetail = [...detailFields, ...(stepForm ?? [])].find(
+      const completionDetail = [...detailFields, ...normalizedStepForm].find(
         (f) => COMPLETION_NAMES.has(normalizeFieldName(f.name)),
       );
       if (completionDetail) extraData[completionDetail.name] = true;
     }
 
-    const imageField = stepForm?.find((f) => f.type === "IMAGE");
+    const imageField = normalizedStepForm.find((f) => f.type === "IMAGE");
     const mediaFile =
       (imageField
         ? (dynamicValues[imageField.name] as File | undefined)
