@@ -103,51 +103,75 @@ function unwrapAnchorFields(f: ApiTemplateFormField): ApiTemplateFormField[] | n
 }
 
 // A non-addable GROUP/ITEM that isn't the anchor reference is a *display*
-// container, not a repeating entity: the BE regrouped fields that used to sit
-// flat at the top of a step into one card (CH-004/CH-008B/CH-011/CH-014/
-// CH-016's "siteMetadata", CH-015's "area") without giving the Go structs a
-// matching nested type. Its leaves still mean what they always meant — plain
-// top-level fields, each landing on its own Data/AnchorPoint slot — so splice
-// them in and drop the container. The container name itself has no
-// DataEnvelope slot at all, so keeping the nesting would just hand the BE a
-// key it drops on unmarshal; every leaf outside CH-014 does have one, and
-// CH-004's (volunteerHours, contributors) exist ONLY on DataEnvelope, never
-// on AnchorPoint. The anchor reference ("anchorPoint") is exempt — the wizard
-// adopts that container itself as the point selector.
+// container: the BE regrouped fields that used to sit flat at the top of a
+// step into one labelled card (CH-004/CH-008B/CH-011/CH-014/CH-016's
+// "siteMetadata", CH-015's "area"). The card is kept — that grouping is the
+// point of the change — but it is presentation only. The Go structs never
+// grew a matching nested type: `siteMetadata` exists solely on
+// models.AnchorPoint (declared, never read), `area` on neither, while the
+// leaves have their own DataEnvelope slots and are what the impact
+// calculation actually consumes. So the container renders as one card and is
+// spread back to top-level keys at payload time — see spreadContainerEntry.
+export function isDisplayContainer(f: ApiTemplateFormField): boolean {
+  return (
+    (f.type === "GROUP" || f.type === "ITEM") &&
+    !f.addableInput &&
+    normalizeFieldName(f.name) !== "ANCHORPOINT" &&
+    !!f.fields?.length
+  );
+}
+
+// volunteerHours and contributors are wizard infrastructure, not ordinary
+// form fields: they drive vhFieldName/contribFieldName, their own screens and
+// the top-level payload envelope. A container that swallows one takes the
+// whole mechanism with it — CH-004's holds both, which left its step 2 with
+// no way to collect either and submitting volunteerHours: 0. Lift those two
+// out to the top level (where every other template puts them) and leave the
+// rest of the card intact; a container with nothing else left disappears.
 //
-// Leaf displayOrder is rebased onto the container's so the leaves stay
-// contiguous where the card sat instead of interleaving with the siblings
-// after it (CH-014: a container at order 1 holding leaves 1-9, with
-// volunteerHours at 2 and contributors at 3 behind it).
-function flattenContainerGroups(
+// A completion flag is deliberately NOT lifted. It would also work top-level,
+// but promoting it turns the card's toggle into a mark-complete screen and so
+// changes when the step marks itself complete (CH-008B step 2's "confirm") —
+// a workflow change, where this is only meant to stop data being dropped. Its
+// value still reaches the payload flat, like every other leaf.
+function liftKnownNamesFromContainers(
   fields: ApiTemplateFormField[],
 ): ApiTemplateFormField[] {
   return fields.flatMap((f) => {
-    if (
-      (f.type !== "GROUP" && f.type !== "ITEM") ||
-      f.addableInput ||
-      normalizeFieldName(f.name) === "ANCHORPOINT" ||
-      !f.fields?.length
-    )
-      return [f];
-    const leaves = [...f.fields].sort((a, b) => a.displayOrder - b.displayOrder);
-    return leaves.map((sub, i) => ({
-      ...sub,
-      displayOrder: f.displayOrder + (i + 1) / (leaves.length + 1),
-    }));
+    if (!isDisplayContainer(f)) return [f];
+    const leaves = [...(f.fields ?? [])].sort(
+      (a, b) => a.displayOrder - b.displayOrder,
+    );
+    const isKnown = (sub: ApiTemplateFormField) => {
+      const norm = normalizeFieldName(sub.name);
+      return VOLUNTEER_HOURS_NAMES.has(norm) || CONTRIBUTORS_NAMES.has(norm);
+    };
+    const lifted = leaves.filter(isKnown);
+    if (!lifted.length) return [f];
+    const rest = leaves.filter((sub) => !isKnown(sub));
+    // Lifted fields keep their own displayOrder-derived position relative to
+    // the container; the known-name screens are ordered by kind further down
+    // anyway, so only the container's own slot has to stay stable.
+    return [
+      ...(rest.length ? [{ ...f, fields: rest }] : []),
+      ...lifted.map((sub, i) => ({
+        ...sub,
+        displayOrder: f.displayOrder + (i + 1) / (lifted.length + 1),
+      })),
+    ];
   });
 }
 
 // Flattens the "container, not a value" shapes into ordinary top-level fields
-// — the display container (flattenContainerGroups), the typeless wrapper
-// (unwrapAnchorFields) and a typed LOCATION field carrying nested fields
-// (CH-016's "Choose site location": a real value to capture AND a data
-// container, so it's kept — stripped of `fields` so it renders as a plain
-// location picker — with its nested fields spliced in alongside it, rather
-// than losing them the way a FieldControl LOCATION render otherwise would).
-// Only the latter two are skipped on a tracking step, where the wrapper/
-// reference is handled later once anchorPoints is known; a display container
-// is never the reference, so it flattens either way.
+// — the typeless wrapper (unwrapAnchorFields) and a typed LOCATION field
+// carrying nested fields (CH-016's "Choose site location": a real value to
+// capture AND a data container, so it's kept — stripped of `fields` so it
+// renders as a plain location picker — with its nested fields spliced in
+// alongside it, rather than losing them the way a FieldControl LOCATION
+// render otherwise would). No-op on a tracking step, where the wrapper/
+// reference is handled later once anchorPoints is known.
+// A display container is NOT flattened here (it stays one card); only the
+// wizard's known-name fields are lifted out of it, on every step.
 // Exported so buildDynamicPayload/buildSetupUpdatePayload can apply the
 // identical transform to the raw stepForm before collecting values —
 // otherwise rendering and payload collection disagree on which fields exist,
@@ -156,9 +180,9 @@ export function preNormalizeAnchorFields(
   fields: ApiTemplateFormField[],
   anchorPointTracking?: boolean,
 ): ApiTemplateFormField[] {
-  const flattened = flattenContainerGroups(fields);
-  if (anchorPointTracking) return flattened;
-  return flattened.flatMap((f) => {
+  const lifted = liftKnownNamesFromContainers(fields);
+  if (anchorPointTracking) return lifted;
+  return lifted.flatMap((f) => {
     const unwrapped = unwrapAnchorFields(f);
     if (unwrapped) return unwrapped;
     if (f.type === "LOCATION" && f.fields?.length) {
@@ -517,6 +541,72 @@ export function shapeFieldValue(
     return val;
   }
   return val;
+}
+
+// ── Display containers: one card in, flat keys out ───────────────────────────
+// The card is a rendering decision (see isDisplayContainer); the payload has
+// to be flat, because the container name has no Data slot and every leaf does.
+// Rather than special-casing inside each builder's GROUP branch, both the
+// field list and the collected values are flattened up front, so all the
+// existing per-field shaping runs unchanged on the leaves.
+
+// Fields with each display container replaced by its leaves, in place.
+export function flattenContainersForPayload(
+  fields: ApiTemplateFormField[],
+): ApiTemplateFormField[] {
+  return fields.flatMap((f) =>
+    isDisplayContainer(f)
+      ? [...(f.fields ?? [])].sort((a, b) => a.displayOrder - b.displayOrder)
+      : [f],
+  );
+}
+
+// Values with each display container's single entry spread to the top level
+// (its `<name>__unit` companions included). A non-addable container renders as
+// exactly one entry, so entry[0] is the whole card. An existing top-level key
+// always wins — a leaf must never overwrite a real field of the same name.
+export function hoistContainerValues(
+  fields: ApiTemplateFormField[],
+  values: Record<string, unknown>,
+): Record<string, unknown> {
+  const hoisted: Record<string, unknown> = { ...values };
+  for (const f of fields) {
+    if (!isDisplayContainer(f)) continue;
+    const raw = values[f.name];
+    const entry = Array.isArray(raw)
+      ? (raw[0] as Record<string, unknown> | undefined)
+      : undefined;
+    delete hoisted[f.name];
+    if (!entry) continue;
+    for (const [k, v] of Object.entries(entry)) {
+      if (!(k in hoisted)) hoisted[k] = v;
+    }
+  }
+  return hoisted;
+}
+
+// The reverse, for view mode: the BE stores the leaves flat, but the card
+// reads one entry under the container's own name — without this a submitted
+// record reopens with an empty card.
+export function nestContainerValues(
+  fields: ApiTemplateFormField[],
+  values: Record<string, unknown>,
+): Record<string, unknown> {
+  const nested: Record<string, unknown> = { ...values };
+  for (const f of fields) {
+    if (!isDisplayContainer(f)) continue;
+    const entry: Record<string, unknown> = {};
+    for (const sub of f.fields ?? []) {
+      for (const key of [sub.name, `${sub.name}__unit`]) {
+        if (key in nested) {
+          entry[key] = nested[key];
+          delete nested[key];
+        }
+      }
+    }
+    if (Object.keys(entry).length) nested[f.name] = [entry];
+  }
+  return nested;
 }
 
 // Template names that differ from the Go Data struct json tags
