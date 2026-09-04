@@ -9,20 +9,12 @@ import LocationPicker, { type LocationResult } from "@/components/ui/LocationPic
 import { compressImage, MAX_UPLOAD_BYTES } from "@/lib/compressImage";
 import { useChallenge } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
-import { normalizeFieldName } from "../../lib/deriveWizardConfig";
+import { isPersonSelectField } from "../../lib/deriveWizardConfig";
 import { FieldGroup, SaveButton, ToggleCard } from "../shared";
 import type { ApiTemplateFormField } from "@/lib/types/challenges";
 
 export type DynamicValues = Record<string, unknown>;
 
-// Fields that always mean "pick a person", whatever type the template
-// declares — the same by-name rule contributors uses, and for the same
-// reason: the BE types these free-text (contributors is TEXT on some
-// templates and LIST on others, leadFacilitator LIST), so the declared type
-// carries no signal. Unlike contributors this is SINGLE-select:
-// DataEnvelope.LeadFacilitator is a plain string, and an array there would
-// fail json.Unmarshal and 400 the whole submission.
-const PERSON_SELECT_NAMES = new Set(["LEADFACILITATOR"]);
 
 // A required field counts as filled once it has a real value — MULTISELECT
 // needs a non-empty array, addable inputs need at least one non-blank
@@ -324,7 +316,7 @@ export function FieldControl({
   // ── Person picker ───────────────────────────────────────────────────
   // Checked before the type branches: the template declares leadFacilitator
   // LIST, which would otherwise render as a free-text textarea.
-  if (PERSON_SELECT_NAMES.has(normalizeFieldName(field.name))) {
+  if (isPersonSelectField(field.name)) {
     return (
       <PersonSelect
         field={field}

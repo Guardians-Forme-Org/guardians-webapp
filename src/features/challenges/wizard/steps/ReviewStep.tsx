@@ -3,7 +3,7 @@
 import { Leaf, Pencil } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { WizardStepType } from "../../stepFormConfig";
-import { normalizeFieldName } from "../../lib/deriveWizardConfig";
+import { isPersonSelectField, normalizeFieldName } from "../../lib/deriveWizardConfig";
 import { FileThumb, ReadOnlyField } from "../shared";
 import type { LogFormData } from "../types";
 import type { ApiTemplateFormField } from "@/lib/types/challenges";
@@ -238,6 +238,20 @@ function GroupEntryCard({
 
         if (sv === undefined || sv === null || sv === "") return null;
 
+        // A person field nested in the group (CH-012A/B step 1's
+        // leadFacilitator) — same chip as the top-level branch, so a uuid
+        // never reaches the screen
+        if (isPersonSelectField(sub.name) && typeof sv === "string") {
+          return (
+            <div key={sub.name} className="flex flex-col gap-1">
+              <p className="text-xs text-text-muted">{sub.label}</p>
+              <div className="flex flex-wrap gap-2">
+                <ContributorChip userId={sv} localUsers={users} />
+              </div>
+            </div>
+          );
+        }
+
         if (sub.type === "IMAGE") {
           return (
             <div key={sub.name} className="flex flex-col gap-1">
@@ -454,6 +468,10 @@ export default function ReviewStep({
               const isContributors =
                 normalizeFieldName(field.name) === "CONTRIBUTORS" ||
                 normalizeFieldName(field.name) === "CONTRIBUTORSLIST";
+              // Holds a user id, not free text — resolve it to the person's
+              // name and avatar rather than printing the raw uuid, the same
+              // way contributors does. One chip, since it's single-valued.
+              const isPerson = isPersonSelectField(field.name);
 
               // GROUP/ITEM: one card per entry, every filled sub-field labeled
               if (field.type === "GROUP" || field.type === "ITEM") {
@@ -484,6 +502,24 @@ export default function ReviewStep({
                           users={users}
                         />
                       ))}
+                    </div>
+                  </ReviewSection>
+                );
+              }
+
+              if (isPerson) {
+                const id = typeof value === "string" ? value : "";
+                if (!id) return null;
+                return (
+                  <ReviewSection
+                    key={field.name}
+                    label={field.label}
+                    stepIndex={stepIndex}
+                    onEdit={onGoToStep}
+                    showEdit={showEdit}
+                  >
+                    <div className="flex flex-wrap gap-2">
+                      <ContributorChip userId={id} localUsers={users} />
                     </div>
                   </ReviewSection>
                 );

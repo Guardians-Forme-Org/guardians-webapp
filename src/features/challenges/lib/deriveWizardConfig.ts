@@ -49,6 +49,17 @@ export const normalizeFieldName = (name: string | undefined) =>
 
 const VOLUNTEER_HOURS_NAMES = new Set(["VOLUNTEERHOURS", "VOLUNTEERSHOURS"]);
 const CONTRIBUTORS_NAMES = new Set(["CONTRIBUTORS"]);
+
+// Fields that hold a platform user id rather than free text, whatever type
+// the template declares — the same by-name rule contributors uses, since the
+// BE types these TEXT on some templates and LIST on others. Single-valued:
+// DataEnvelope.LeadFacilitator is a string, not a []string like Contributors.
+// Lives here so the input (FieldControl) and both review renderers agree on
+// what counts as a person field.
+const PERSON_SELECT_NAMES = new Set(["LEADFACILITATOR"]);
+
+export const isPersonSelectField = (name: string) =>
+  PERSON_SELECT_NAMES.has(normalizeFieldName(name));
 export const COMPLETION_NAMES = new Set([
   "CONFIRMCOMPLETION",
   "CONFIRMATION",
