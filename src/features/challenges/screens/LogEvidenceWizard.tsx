@@ -2746,6 +2746,7 @@ export default function LogEvidenceWizard({
                   update={updateBridge}
                   onNext={next}
                   nextLabel={nextLabel}
+                  field={ds.fields[0]}
                 />
               );
             }
@@ -2759,6 +2760,7 @@ export default function LogEvidenceWizard({
                   nextLabel={nextLabel}
                   members={members}
                   users={users}
+                  field={ds.fields[0]}
                 />
               );
             }

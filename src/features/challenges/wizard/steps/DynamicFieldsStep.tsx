@@ -1,14 +1,28 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, ChevronDown, X } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Camera, ChevronDown, ChevronRight, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Avatar from "@/components/ui/Avatar";
 import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
 import { compressImage, MAX_UPLOAD_BYTES } from "@/lib/compressImage";
+import { useChallenge } from "@/lib/hooks/challenges";
+import { useUsers } from "@/lib/hooks/users";
+import { normalizeFieldName } from "../../lib/deriveWizardConfig";
 import { FieldGroup, SaveButton, ToggleCard } from "../shared";
 import type { ApiTemplateFormField } from "@/lib/types/challenges";
 
 export type DynamicValues = Record<string, unknown>;
+
+// Fields that always mean "pick a person", whatever type the template
+// declares — the same by-name rule contributors uses, and for the same
+// reason: the BE types these free-text (contributors is TEXT on some
+// templates and LIST on others, leadFacilitator LIST), so the declared type
+// carries no signal. Unlike contributors this is SINGLE-select:
+// DataEnvelope.LeadFacilitator is a plain string, and an array there would
+// fail json.Unmarshal and 400 the whole submission.
+const PERSON_SELECT_NAMES = new Set(["LEADFACILITATOR"]);
 
 // A required field counts as filled once it has a real value — MULTISELECT
 // needs a non-empty array, addable inputs need at least one non-blank
@@ -45,6 +59,127 @@ type Props = {
   // prefilled from a prior submission and can be edited or added to
   resumeHint?: string;
 };
+
+// Single-select member picker — the contributors dropdown, minus the
+// multi-select. Self-contained on purpose: FieldControl reaches it from three
+// different parents (top-level field, GROUP sub-field, per-point field on the
+// setup-update card), none of which carry people, and the challenge id is
+// already in the route. useChallenge/useUsers are the same cached queries the
+// wizard runs, so this reads from the cache rather than refetching.
+function PersonSelect({
+  field,
+  value,
+  onChange,
+  compact,
+  error,
+}: {
+  field: ApiTemplateFormField;
+  value: unknown;
+  onChange: (value: unknown) => void;
+  compact?: boolean;
+  error?: string;
+}) {
+  const t = useTranslations("challenges");
+  const params = useParams();
+  const challengeId = typeof params?.id === "string" ? params.id : "";
+  const { data: challenge } = useChallenge(challengeId);
+  const { data: users = [] } = useUsers();
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const people = (challenge?.members ?? []).map((m) => {
+    const u = users.find((u) => u.id === m.userId);
+    return {
+      id: m.userId,
+      name:
+        (u &&
+          `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""}`.trim()) ||
+        m.userId,
+      avatarUrl: m.avatarUrl || u?.user_metadata.avatarUrl || "",
+      email: u?.email ?? "",
+    };
+  });
+
+  // One id, not an array. A value typed in before this was a picker (the
+  // field rendered as a textarea) is still a string — shown as-is so an
+  // existing submission reopens with what was written rather than blank.
+  const selectedId = typeof value === "string" ? value : "";
+  const selected = people.find((p) => p.id === selectedId);
+
+  const filtered = people.filter((p) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q);
+  });
+
+  return (
+    <FieldGroup
+      label={field.label}
+      hint={field.placeholder}
+      required={field.required}
+      compact={compact}
+      error={error}
+    >
+      {selectedId ? (
+        <div className="flex items-center gap-1.5 h-10 w-fit max-w-full bg-[#f5f5f5] border border-[rgba(26,26,24,0.14)] rounded-full pl-1 pr-2">
+          <Avatar src={selected?.avatarUrl} className="size-8 rounded-full shrink-0" />
+          <span className="text-sm text-text-primary truncate">
+            {selected?.name ?? selectedId}
+          </span>
+          <button
+            onClick={() => onChange("")}
+            className="text-[#8f8f8c] shrink-0"
+            aria-label={t("removeEntry")}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      ) : (
+        <div className="relative">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setOpen(true);
+            }}
+            onFocus={() => setOpen(true)}
+            onBlur={() => setTimeout(() => setOpen(false), 150)}
+            placeholder={field.placeholder ?? t("searchContributors")}
+            className="w-full min-w-0 h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 pr-10 text-base placeholder:text-[rgba(26,26,24,0.5)] outline-none"
+          />
+          <Search
+            size={16}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8f8f8c] pointer-events-none"
+          />
+          {open && filtered.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[rgba(26,26,24,0.14)] rounded-[8px] shadow-lg z-50 max-h-[220px] overflow-y-auto">
+              {filtered.map((p) => (
+                <button
+                  key={p.id}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    onChange(p.id);
+                    setSearch("");
+                    setOpen(false);
+                  }}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-[#f5f5f5]"
+                >
+                  <Avatar src={p.avatarUrl} className="size-8 rounded-full shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate text-text-primary">{p.name}</p>
+                    {p.email && <p className="text-xs text-[#8f8f8c] truncate">{p.email}</p>}
+                  </div>
+                  <ChevronRight size={16} className="text-[#8f8f8c] shrink-0" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </FieldGroup>
+  );
+}
 
 function RadioDot({ selected }: { selected: boolean }) {
   return selected ? (
@@ -104,7 +239,7 @@ function ImageField({
           : null;
 
   return (
-    <FieldGroup label={field.label} required={field.required} compact={compact} error={displayError ?? undefined}>
+    <FieldGroup label={field.label} hint={field.placeholder} required={field.required} compact={compact} error={displayError ?? undefined}>
       <input
         ref={ref}
         type="file"
@@ -186,12 +321,30 @@ export function FieldControl({
   const t = useTranslations("challenges");
   const activeUnit = unitValue ?? field.unitOfMeasureOptions?.[0]?.value;
 
+  // ── Person picker ───────────────────────────────────────────────────
+  // Checked before the type branches: the template declares leadFacilitator
+  // LIST, which would otherwise render as a free-text textarea.
+  if (PERSON_SELECT_NAMES.has(normalizeFieldName(field.name))) {
+    return (
+      <PersonSelect
+        field={field}
+        value={value}
+        onChange={onChange}
+        compact={compact}
+        error={error}
+      />
+    );
+  }
+
   // ── TOGGLE / BOOLEAN ────────────────────────────────────────────────
   if (field.type === "TOGGLE" || field.type === "BOOLEAN") {
     return (
       <ToggleCard
         label={field.label}
-        description=""
+        // The card's own sub-label is where a TOGGLE's placeholder belongs —
+        // the template writes them as prompts ("Do you have permission?"),
+        // and a toggle has no input to carry one
+        description={field.placeholder ?? ""}
         checked={(value as boolean) ?? false}
         onChange={() => onChange(!((value as boolean) ?? false))}
       />
@@ -201,7 +354,7 @@ export function FieldControl({
   // ── SELECT ──────────────────────────────────────────────────────────
   if (field.type === "SELECT") {
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
+      <FieldGroup label={field.label} hint={field.placeholder} required={field.required} compact={compact} error={error}>
         <div className="flex flex-col gap-2">
           {(field.options ?? []).length === 0 ? (
             <p className="text-sm text-text-muted py-2 px-1">{t("noOptionsAvailable")}</p>
@@ -230,7 +383,7 @@ export function FieldControl({
   if (field.type === "MULTISELECT") {
     const selected = (value as string[]) ?? [];
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
+      <FieldGroup label={field.label} hint={field.placeholder} required={field.required} compact={compact} error={error}>
         <div className="flex flex-col gap-2">
           {(field.options ?? []).map((opt) => {
             const isChecked = selected.includes(opt.value);
@@ -359,7 +512,7 @@ export function FieldControl({
   // ── DATE ────────────────────────────────────────────────────────────
   if (field.type === "DATE") {
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
+      <FieldGroup label={field.label} hint={field.placeholder} required={field.required} compact={compact} error={error}>
         <input
           type="date"
           value={(value as string) ?? ""}
@@ -379,7 +532,7 @@ export function FieldControl({
   // ── TIME ────────────────────────────────────────────────────────────
   if (field.type === "TIME") {
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
+      <FieldGroup label={field.label} hint={field.placeholder} required={field.required} compact={compact} error={error}>
         <input
           type="time"
           value={(value as string) ?? ""}
@@ -413,6 +566,7 @@ export function FieldControl({
         <LocationPicker
           defaultValue={loc?.formattedAddress}
           onSelect={(l) => onChange(l)}
+          placeholder={field.placeholder}
           showUseCurrent
           showMapPick
           initialCenter={loc ? { lat: loc.latitude, lng: loc.longitude } : null}
@@ -438,7 +592,7 @@ export function FieldControl({
   // ── LOCATION_LIST (not yet supported) ────────────────────────────────
   if (field.type === "LOCATION_LIST") {
     return (
-      <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
+      <FieldGroup label={field.label} hint={field.placeholder} required={field.required} compact={compact} error={error}>
         <p className="text-sm text-text-muted py-2 px-1">{t("locationListComingSoon")}</p>
       </FieldGroup>
     );
@@ -557,7 +711,7 @@ function GroupField({
   };
 
   return (
-    <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
+    <FieldGroup label={field.label} hint={field.placeholder} required={field.required} compact={compact} error={error}>
       <div className="flex flex-col gap-3">
         {entries.map((entry, i) => {
           const isExpanded = expanded.has(i);

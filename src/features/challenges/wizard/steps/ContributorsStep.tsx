@@ -7,6 +7,7 @@ import Avatar from "@/components/ui/Avatar";
 import { SaveButton } from "../shared";
 import type { ApiCircleChallengeMember } from "@/lib/types/circles";
 import type { LogFormData } from "../types";
+import type { ApiTemplateFormField } from "@/lib/types/challenges";
 
 type UserLike = {
   id: string;
@@ -21,9 +22,13 @@ type Props = {
   nextLabel: string;
   members: ApiCircleChallengeMember[];
   users: UserLike[];
+  // The template's own contributors field, on the BE-derived path — its label
+  // ("List Contributors") wins over the generic heading. The static path
+  // passes nothing and keeps the translated copy.
+  field?: ApiTemplateFormField;
 };
 
-export default function ContributorsStep({ form, update, onNext, nextLabel, members, users }: Props) {
+export default function ContributorsStep({ form, update, onNext, nextLabel, members, users, field }: Props) {
   const t = useTranslations("challenges");
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -52,7 +57,9 @@ export default function ContributorsStep({ form, update, onNext, nextLabel, memb
   return (
     <>
       <div className="px-5 mt-7 mb-6">
-        <h1 className="text-[32px] font-bold text-black">{t("contributorsHeading")}</h1>
+        <h1 className="text-[32px] font-bold text-black">
+          {field?.label || t("contributorsHeading")}
+        </h1>
       </div>
 
       <div className="flex flex-col gap-5 px-5">
@@ -90,7 +97,7 @@ export default function ContributorsStep({ form, update, onNext, nextLabel, memb
               onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
               onFocus={() => setOpen(true)}
               onBlur={() => setTimeout(() => setOpen(false), 150)}
-              placeholder={t("searchContributors")}
+              placeholder={field?.placeholder ?? t("searchContributors")}
               className="w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 pr-10 text-base placeholder:text-[rgba(26,26,24,0.5)] outline-none"
             />
             <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8f8f8c] pointer-events-none" />
