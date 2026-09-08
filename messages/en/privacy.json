@@ -1,6 +1,6 @@
 {
   "back": "Back",
-  "lastUpdated": "Last updated: {date}",
+  "lastUpdated": "Last Updated: {date}",
   "title": "Privacy Policy",
   "updatedOn": "29.06.2026",
   "sections": [
@@ -8,16 +8,17 @@
       "number": 1,
       "heading": "Introduction",
       "content": [
-        "Guardians of the Future places great importance on protecting your personal data and privacy. This Privacy Policy explains what personal data we collect when you use the Platform, for what purpose and on what legal basis we process it, how we store and protect it, and what rights you have in relation to that processing.",
-        "Personal data is processed in accordance with the United Kingdom's data protection regime (UK GDPR), the European Union's General Data Protection Regulation (GDPR), and all other applicable data protection legislation.",
-        "By using the Platform, you confirm that you have read this Privacy Policy and acknowledge that your personal data will be processed as described in it."
+        "The Guardians of the Future are committed to protecting your privacy and personal data.",
+        "This Privacy Policy explains how we collect, use, store, and protect personal information in connection with your use of the Guardians of the Future platform (hereafter Platform).",
+        "We process personal data in accordance with the UK GDPR, EU General Data Protection Regulation (GDPR), and other applicable data protection laws.",
+        "By using the Platform, you acknowledge that your personal information will be processed as described in this Policy."
       ]
     },
     {
       "number": 2,
       "heading": "Data Controller",
       "content": [
-        "The data controller responsible for processing your personal data is:"
+        "The data controller responsible for your personal data is:"
       ],
       "contactDetails": {
         "organisationName": "MIMÓZA Kommunikációs Kft.",
@@ -26,32 +27,32 @@
         "address": "1118 Budapest, Gombocz Zoltán utca 5. A. ép. Fsz. 2. ajtó"
       },
       "trailingContent": [
-        "For any questions relating to data protection, please contact us using the details above."
+        "For privacy-related questions, please contact us using the details above."
       ]
     },
     {
       "number": 3,
       "heading": "Personal Data We Collect",
       "content": [
-        "We may collect personal data in the following categories:"
+        "We may collect the following categories of personal data:"
       ],
       "lists": [
         {
-          "label": "Account data",
+          "label": "Account Information",
           "items": [
             "Full name",
             "Username",
             "Email address",
             "Password (stored in encrypted form)",
-            "Profile information you provide voluntarily"
+            "Profile information voluntarily provided by you"
           ]
         },
         {
-          "label": "Volunteering activity data",
+          "label": "Volunteer Participation Information",
           "items": [
-            "Volunteering activities",
+            "Volunteer activities",
             "Group memberships",
-            "Project participation data",
+            "Project participation records",
             "Event attendance",
             "Contributions made through the Platform"
           ]
@@ -59,13 +60,13 @@
         {
           "label": "Communications",
           "items": [
-            "Messages sent through contact forms",
+            "Messages submitted through contact forms",
             "Support requests",
             "Feedback and survey responses"
           ]
         },
         {
-          "label": "Technical data",
+          "label": "Technical Information",
           "items": [
             "IP address",
             "Browser type",
@@ -74,51 +75,59 @@
             "Usage logs",
             "Date and time of access"
           ]
+        },
+        {
+          "label": "Cookies and Similar Technologies",
+          "intro": "We may use cookies and similar technologies to improve functionality, security, and user experience."
         }
-      ],
-      "trailingContent": [
-        "Cookies and similar technologies",
-        "We may use cookies and similar technologies to improve functionality, security and the user experience."
       ]
     },
     {
       "number": 4,
       "heading": "How We Use Personal Data",
       "content": [
-        "We use personal data for the following purposes:"
+        "We use personal data to:"
       ],
       "lists": [
         {
           "items": [
-            "Providing access to the Platform",
-            "Managing volunteer participation",
-            "Facilitating collaboration between users",
-            "Informing you about updates and important notices",
-            "Responding to enquiries and support requests",
-            "Improving Platform functionality",
-            "Protecting users and maintaining the security of the Platform",
-            "Complying with legal obligations"
+            "Provide access to the Platform",
+            "Manage volunteer participation",
+            "Facilitate collaboration between users",
+            "Communicate updates and important notices",
+            "Respond to enquiries and support requests",
+            "Improve platform functionality",
+            "Protect users and maintain platform security",
+            "Comply with legal obligations"
           ]
         }
       ],
       "trailingContent": [
-        "We do not sell personal data to third parties, and we never make it public."
+        "We will not sell, nor will we ever disclose personal data to third parties."
       ]
     },
     {
       "number": 5,
       "heading": "Legal Bases for Processing",
       "content": [
-        "We process personal data on one or more of the following legal bases:"
+        "We process personal data under one or more of the following legal bases:"
       ],
       "lists": [
         {
-          "items": [
-            "Consent – where you voluntarily provide information or consent to specific processing activities.",
-            "Legitimate interest – to operate, improve and secure the Platform, and to support volunteer participation.",
-            "Contractual necessity – where processing is required to provide the services users request.",
-            "Legal obligation – where processing is required by applicable law."
-          ]
+          "label": "Consent",
+          "intro": "Where you voluntarily provide information or agree to specific processing activities."
+        },
+        {
+          "label": "Legitimate Interests",
+          "intro": "To operate, improve, and secure the Platform and support volunteer participation."
+        },
+        {
+          "label": "Contractual Necessity",
+          "intro": "Where processing is necessary to provide services requested by users."
+        },
+        {
+          "label": "Legal Obligations",
+          "intro": "Where we are required to process data under applicable laws."
         }
       ]
     },
@@ -126,42 +135,44 @@
       "number": 6,
       "heading": "Sharing Personal Data",
       "content": [
-        "We may share data with the following:"
+        "We may share information with:"
       ],
       "lists": [
         {
-          "label": "Service providers",
-          "intro": "Third-party service providers that help us operate the Platform, including:",
+          "label": "Service Providers",
+          "intro": "Third-party providers that help us operate the Platform, including:",
           "items": [
-            "Web hosting providers",
+            "Website hosting providers",
             "Cloud storage providers",
             "Email service providers",
             "Technical support providers"
           ],
           "note": {
-            "text": "These providers process data solely on our instructions and under appropriate contractual safeguards."
+            "text": "These providers process data only under our instructions and appropriate contractual safeguards."
           }
+        },
+        {
+          "label": "Legal Authorities",
+          "intro": "Where required by law, court order, safeguarding obligations, or legitimate protection of rights and safety."
+        },
+        {
+          "label": "Other Users",
+          "intro": "Certain profile information and participation information may be visible to other users as part of Platform functionality."
         }
-      ],
-      "trailingContent": [
-        "Authorities",
-        "Where required by law, court order, safeguarding obligations, or to protect legitimate interests and safety.",
-        "Other users",
-        "Certain profile and participation data may be visible to other users as part of the Platform's features."
       ]
     },
     {
       "number": 7,
       "heading": "International Data Transfers",
       "content": [
-        "Where we transfer personal data outside the United Kingdom or the European Economic Area (EEA), we ensure appropriate safeguards are in place, including:"
+        "Where personal data is transferred outside the United Kingdom or European Economic Area (EEA), we will ensure appropriate safeguards are in place, including:"
       ],
       "lists": [
         {
           "items": [
-            "Adequacy decisions",
-            "Standard Contractual Clauses (SCCs)",
-            "Other lawfully recognised transfer mechanisms"
+            "Adequacy decisions;",
+            "Standard Contractual Clauses (SCCs);",
+            "Other legally approved transfer mechanisms."
           ]
         }
       ]
@@ -170,23 +181,23 @@
       "number": 8,
       "heading": "Data Retention",
       "content": [
-        "We retain personal data only for as long as necessary for the following purposes:"
+        "We retain personal data only for as long as necessary to:"
       ],
       "lists": [
         {
           "items": [
-            "Providing the Platform's services",
-            "Meeting legal obligations",
-            "Resolving disputes",
-            "Maintaining safeguarding records where necessary"
+            "Provide Platform services;",
+            "Meet legal obligations;",
+            "Resolve disputes;",
+            "Maintain safeguarding records where required."
           ]
         },
         {
-          "intro": "In general:",
+          "intro": "Generally:",
           "items": [
-            "Data for active accounts is retained while the account remains active.",
+            "Active account data is retained while the account remains active.",
             "Inactive accounts may be deleted after 12 months of inactivity.",
-            "Legal and safeguarding records may be retained for longer where required by law."
+            "Legal and safeguarding records may be retained longer where required."
           ]
         }
       ]
@@ -195,7 +206,7 @@
       "number": 9,
       "heading": "Data Security",
       "content": [
-        "We apply appropriate technical and organisational measures to protect personal data, including:"
+        "We implement appropriate technical and organisational measures to protect personal data, including:"
       ],
       "lists": [
         {
@@ -211,59 +222,78 @@
     },
     {
       "number": 10,
-      "heading": "Your Rights Under the GDPR",
+      "heading": "Your GDPR Rights",
       "content": [
-        "Within the limits of applicable law, you have the right to:"
+        "Subject to applicable law, you have the right to:"
       ],
       "lists": [
         {
-          "items": [
-            "Access – request a copy of your personal data.",
-            "Rectification – request correction of inaccurate data.",
-            "Erasure – request deletion of your personal data.",
-            "Restriction – request that processing be restricted.",
-            "Data portability – request your data in a structured format.",
-            "Object – object to processing based on legitimate interest.",
-            "Withdraw consent – withdraw your consent at any time where processing is based on it."
-          ]
+          "label": "Access",
+          "intro": "Request a copy of your personal data."
+        },
+        {
+          "label": "Rectification",
+          "intro": "Request correction of inaccurate information."
+        },
+        {
+          "label": "Erasure",
+          "intro": "Request deletion of personal data."
+        },
+        {
+          "label": "Restriction",
+          "intro": "Request restriction of processing."
+        },
+        {
+          "label": "Data Portability",
+          "intro": "Receive your personal data in a structured format."
+        },
+        {
+          "label": "Objection",
+          "intro": "Object to processing based on legitimate interests."
+        },
+        {
+          "label": "Withdraw Consent",
+          "intro": "Withdraw consent at any time where processing relies on consent."
         }
       ],
       "trailingContent": [
-        "To exercise your rights, please contact us."
+        "To exercise any of these rights, please contact us."
       ]
     },
     {
       "number": 11,
-      "heading": "Protection of Children's Data",
+      "heading": "Children's Privacy",
       "content": [
-        "The Platform is intended for adults. Where minors take part in using the Platform, parental or legal guardian consent may be required in accordance with applicable law. Where minors or vulnerable persons are involved, we apply additional safeguarding measures."
+        "The Platform is intended primarily for adults.",
+        "Where minors participate, parental or legal guardian consent may be required in accordance with applicable laws.",
+        "We take additional safeguarding measures where children or vulnerable individuals are involved."
       ]
     },
     {
       "number": 12,
-      "heading": "Safeguarding and Security",
+      "heading": "Safeguarding and Protection",
       "content": [
-        "In order to maintain a safe environment, we may process personal data for the following purposes:"
+        "To maintain a safe environment, we may process personal information necessary to:"
       ],
       "lists": [
         {
           "items": [
-            "Investigating safeguarding concerns",
-            "Enforcing our code of conduct",
-            "Protecting participants from harm",
-            "Complying with legal reporting obligations"
+            "Investigate safeguarding concerns;",
+            "Enforce our Code of Conduct;",
+            "Protect participants from harm;",
+            "Comply with legal reporting obligations."
           ]
         }
       ],
       "trailingContent": [
-        "Such processing is limited to what is necessary and proportionate."
+        "Such processing will be limited to what is necessary and proportionate."
       ]
     },
     {
       "number": 13,
       "heading": "Cookies",
       "content": [
-        "The Platform may use cookies and similar technologies for the following purposes:"
+        "The Platform may use cookies and similar technologies for:"
       ],
       "lists": [
         {
@@ -277,30 +307,32 @@
         }
       ],
       "trailingContent": [
-        "Users can manage their cookie preferences through their browser settings, where applicable."
+        "Users may manage cookie preferences through browser settings where applicable."
       ]
     },
     {
       "number": 14,
       "heading": "Complaints",
       "content": [
-        "If you believe your personal data has been processed unlawfully, you have the right to lodge a complaint with the competent supervisory authority.",
-        "In the European Union, you may contact your National Data Protection Authority.",
-        "In the United Kingdom, complaints may be directed to the Information Commissioner's Office (ICO)."
+        "If you believe your personal data has been processed unlawfully, you have the right to lodge a complaint with your local supervisory authority.",
+        "If located within the European Union, you may contact your national Data Protection Authority.",
+        "If located in the United Kingdom, complaints may be directed to the Information Commissioner's Office (ICO)."
       ]
     },
     {
       "number": 15,
       "heading": "Changes to This Privacy Policy",
       "content": [
-        "We may update this Privacy Policy from time to time. Changes will be published on the Platform with an updated date. Continued use of the Platform after publication constitutes acceptance of the updated Policy."
+        "We may update this Privacy Policy from time to time.",
+        "Any changes will be published on the Platform with an updated revision date.",
+        "Continued use of the Platform after publication constitutes acknowledgment of the updated Policy."
       ]
     },
     {
       "number": 16,
       "heading": "Contact",
       "content": [
-        "For all data protection enquiries:"
+        "For all privacy-related enquiries:"
       ],
       "contactDetails": {
         "organisationName": "MIMÓZA Kommunikációs Kft.",

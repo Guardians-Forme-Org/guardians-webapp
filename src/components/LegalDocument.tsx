@@ -12,7 +12,8 @@ type LegalNote = {
 type LegalList = {
   label?: string;
   intro?: string;
-  items: string[];
+  /** Omitted for blocks that are just a sub-heading and a description. */
+  items?: string[];
   note?: LegalNote;
 };
 
@@ -96,16 +97,18 @@ export default function LegalDocument({ namespace }: { namespace: string }) {
                       {list.intro}
                     </p>
                   )}
-                  <ul className="flex flex-col gap-1.5 pl-5">
-                    {list.items.map((item, ii) => (
-                      <li
-                        key={ii}
-                        className="text-sm text-[#444] leading-relaxed list-disc"
-                      >
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
+                  {list.items?.length ? (
+                    <ul className="flex flex-col gap-1.5 pl-5">
+                      {list.items.map((item, ii) => (
+                        <li
+                          key={ii}
+                          className="text-sm text-[#444] leading-relaxed list-disc"
+                        >
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                   {list.note && (
                     <div className="flex flex-col gap-1">
                       <p className="text-sm text-[#444] leading-relaxed">
