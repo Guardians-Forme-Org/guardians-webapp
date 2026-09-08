@@ -180,7 +180,7 @@ export default function LoginPage() {
             {t("termsOfService")}
           </Link>{" "}
           {t("and")}{" "}
-          <Link href="/terms" className="text-[#3875e9] underline">
+          <Link href="/privacy" className="text-[#3875e9] underline">
             {t("privacyPolicy")}
           </Link>
         </p>

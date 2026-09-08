@@ -14,6 +14,8 @@ export const namespaces = [
   "circles",
   "challenges",
   "profile",
+  "terms",
+  "privacy",
 ] as const;
 
 export type Namespace = (typeof namespaces)[number];

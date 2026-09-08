@@ -1,0 +1,313 @@
+{
+  "back": "Vissza",
+  "lastUpdated": "Utolsó frissítés: {date}",
+  "title": "Adatvédelmi Szabályzat",
+  "updatedOn": "2026.06.29.",
+  "sections": [
+    {
+      "number": 1,
+      "heading": "Bevezetés",
+      "content": [
+        "A Guardians of the Future számára kiemelten fontos az Ön személyes adatainak és magánéletének védelme. Jelen Adatvédelmi Szabályzat bemutatja, hogy a Platform használata során milyen személyes adatokat gyűjtünk, milyen célból és jogalapon kezeljük azokat, hogyan tároljuk és védjük őket, valamint milyen jogok illetik meg Önt az adatkezeléssel kapcsolatban.",
+        "A személyes adatok kezelése az Egyesült Királyság adatvédelmi szabályozásával (UK GDPR), az Európai Unió Általános Adatvédelmi Rendeletével (GDPR), valamint minden egyéb alkalmazandó adatvédelmi jogszabállyal összhangban történik.",
+        "A Platform használatával Ön megerősíti, hogy megismerte jelen Adatvédelmi Szabályzat tartalmát, és tudomásul veszi, hogy személyes adatait az abban foglaltak szerint kezeljük."
+      ]
+    },
+    {
+      "number": 2,
+      "heading": "Adatkezelő",
+      "content": [
+        "A személyes adatai kezeléséért felelős adatkezelő:"
+      ],
+      "contactDetails": {
+        "organisationName": "MIMÓZA Kommunikációs Kft.",
+        "email": "info@mimoza.hu",
+        "website": "https://www.mimoza.hu/",
+        "address": "1118 Budapest, Gombocz Zoltán utca 5. A. ép. Fsz. 2. ajtó"
+      },
+      "trailingContent": [
+        "Adatvédelemmel kapcsolatos kérdéseivel forduljon hozzánk a fenti elérhetőségeken."
+      ]
+    },
+    {
+      "number": 3,
+      "heading": "Az általunk gyűjtött személyes adatok",
+      "content": [
+        "Az alábbi kategóriákba tartozó személyes adatokat gyűjthetjük:"
+      ],
+      "lists": [
+        {
+          "label": "Fiókadatok",
+          "items": [
+            "Teljes név",
+            "Felhasználónév",
+            "E-mail cím",
+            "Jelszó (titkosított formában tárolva)",
+            "Ön által önkéntesen megadott profiladatok"
+          ]
+        },
+        {
+          "label": "Önkéntes tevékenységre vonatkozó adatok",
+          "items": [
+            "Önkéntes tevékenységek",
+            "Csoporttagságok",
+            "Projektrészvételi adatok",
+            "Eseményeken való részvétel",
+            "A Platformon keresztül nyújtott hozzájárulások"
+          ]
+        },
+        {
+          "label": "Kommunikáció",
+          "items": [
+            "Kapcsolatfelvételi űrlapokon keresztül küldött üzenetek",
+            "Támogatási kérelmek",
+            "Visszajelzések és felmérésre adott válaszok"
+          ]
+        },
+        {
+          "label": "Technikai adatok",
+          "items": [
+            "IP-cím",
+            "Böngésző típusa",
+            "Eszközadatok",
+            "Operációs rendszer",
+            "Használati naplók",
+            "A hozzáférés dátuma és időpontja"
+          ]
+        }
+      ],
+      "trailingContent": [
+        "Sütik és hasonló technológiák",
+        "Sütiket és hasonló technológiákat alkalmazhatunk a funkcionalitás, a biztonság és a felhasználói élmény javítása érdekében."
+      ]
+    },
+    {
+      "number": 4,
+      "heading": "A személyes adatok felhasználásának módja",
+      "content": [
+        "A személyes adatokat az alábbi célokra használjuk:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "A Platformhoz való hozzáférés biztosítása",
+            "Az önkéntes részvétel kezelése",
+            "A felhasználók közötti együttműködés elősegítése",
+            "Frissítésekről és fontos értesítésekről való tájékoztatás",
+            "Megkeresésekre és támogatási kérelmekre való válaszadás",
+            "A platform funkcionalitásának fejlesztése",
+            "A felhasználók védelme és a platform biztonságának fenntartása",
+            "Jogi kötelezettségeknek való megfelelés"
+          ]
+        }
+      ],
+      "trailingContent": [
+        "Személyes adatokat harmadik felek részére nem értékesítünk, és soha nem hozunk nyilvánosságra."
+      ]
+    },
+    {
+      "number": 5,
+      "heading": "Az adatkezelés jogalapjai",
+      "content": [
+        "A személyes adatokat az alábbi jogalapok egyike vagy több alapján kezeljük:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Hozzájárulás – ha Ön önkéntesen ad meg információt, vagy hozzájárul bizonyos adatkezelési tevékenységekhez.",
+            "Jogos érdek – a Platform működtetése, fejlesztése és biztonságának megőrzése, valamint az önkéntes részvétel támogatása érdekében.",
+            "Szerződéses szükségesség – ha az adatkezelés a felhasználók által kért szolgáltatások nyújtásához szükséges.",
+            "Jogi kötelezettség – ha az adatkezelést alkalmazandó jogszabály írja elő."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "heading": "Személyes adatok megosztása",
+      "content": [
+        "Adatokat megoszthatunk az alábbiakkal:"
+      ],
+      "lists": [
+        {
+          "label": "Szolgáltatók",
+          "intro": "Harmadik fél szolgáltatók, amelyek segítenek a Platform üzemeltetésében, ideértve:",
+          "items": [
+            "Webtárhely-szolgáltatókat",
+            "Felhőalapú tárolási szolgáltatókat",
+            "E-mail szolgáltatókat",
+            "Technikai támogatást nyújtókat"
+          ],
+          "note": {
+            "text": "Ezek a szolgáltatók az adatokat kizárólag utasításaink szerint és megfelelő szerződéses garanciák mellett kezelik."
+          }
+        }
+      ],
+      "trailingContent": [
+        "Hatóságok",
+        "Amennyiben jogszabály, bírósági végzés, gyermekvédelmi kötelezettség vagy jogos érdekek és biztonság védelme megköveteli.",
+        "Más felhasználók",
+        "Bizonyos profil- és részvételi adatok láthatók lehetnek más felhasználók számára a Platform funkcióinak részeként."
+      ]
+    },
+    {
+      "number": 7,
+      "heading": "Nemzetközi adattovábbítás",
+      "content": [
+        "Amennyiben személyes adatokat az Egyesült Királyságon vagy az Európai Gazdasági Térségen (EGT) kívülre továbbítunk, gondoskodunk a megfelelő garanciákról, ideértve:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Megfelelőségi határozatokat",
+            "Általános Szerződési Feltételeket (SCC)",
+            "Egyéb jogszerűen elfogadott adattovábbítási mechanizmusokat"
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "heading": "Adatmegőrzés",
+      "content": [
+        "A személyes adatokat csak a szükséges ideig őrizzük meg az alábbi célokból:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "A Platform szolgáltatásainak nyújtása",
+            "Jogi kötelezettségek teljesítése",
+            "Jogviták rendezése",
+            "Gyermekvédelmi nyilvántartások vezetése, ahol szükséges"
+          ]
+        },
+        {
+          "intro": "Általánosságban:",
+          "items": [
+            "Az aktív fiókok adatait a fiók aktív állapotában megőrizzük.",
+            "Az inaktív fiókokat 12 hónap inaktivitás után törölhetjük.",
+            "A jogi és gyermekvédelmi nyilvántartásokat hosszabb ideig is megőrizhetjük, ha ezt jogszabály előírja."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "heading": "Adatbiztonság",
+      "content": [
+        "Megfelelő technikai és szervezési intézkedéseket alkalmazunk a személyes adatok védelme érdekében, ideértve:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Hozzáférés-szabályozást",
+            "Titkosítást",
+            "Biztonságos tárhely környezetet",
+            "Jelszóvédelmet",
+            "Rendszeres biztonsági felülvizsgálatokat"
+          ]
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "heading": "Az Ön GDPR szerinti jogai",
+      "content": [
+        "Az alkalmazandó jog keretei között Önnek joga van:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Hozzáférés – kérheti személyes adatai másolatát.",
+            "Helyesbítés – kérheti a pontatlan adatok javítását.",
+            "Törlés – kérheti személyes adatai törlését.",
+            "Korlátozás – kérheti az adatkezelés korlátozását.",
+            "Adathordozhatóság – kérheti adatai strukturált formátumban való átadását.",
+            "Tiltakozás – tiltakozhat a jogos érdeken alapuló adatkezelés ellen.",
+            "Hozzájárulás visszavonása – bármikor visszavonhatja hozzájárulását, ha az adatkezelés azon alapul."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "Jogai gyakorlásához kérjük, vegye fel velünk a kapcsolatot."
+      ]
+    },
+    {
+      "number": 11,
+      "heading": "Gyermekek adatainak védelme",
+      "content": [
+        "A Platform felnőttek számára készült. Amennyiben kiskorúak vesznek részt a Platform használatában, az alkalmazandó jogszabályoknak megfelelően szülői vagy törvényes gondviselői hozzájárulás szükséges lehet. Kiskorúak vagy sérülékeny személyek érintettsége esetén további gyermekvédelmi intézkedéseket alkalmazunk."
+      ]
+    },
+    {
+      "number": 12,
+      "heading": "Védelem és biztonság",
+      "content": [
+        "A biztonságos környezet fenntartása érdekében az alábbi célokból kezelhetünk személyes adatokat:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Adatvédelmi aggályok kivizsgálása",
+            "Magatartási kódexünk betartatása",
+            "A résztvevők ártalmaktól való védelme",
+            "Jogi bejelentési kötelezettségeknek való megfelelés"
+          ]
+        }
+      ],
+      "trailingContent": [
+        "Az ilyen adatkezelés a szükséges és arányos mértékre korlátozódik."
+      ]
+    },
+    {
+      "number": 13,
+      "heading": "Sütik",
+      "content": [
+        "A Platform sütiket és hasonló technológiákat alkalmazhat az alábbi célokra:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Hitelesítés",
+            "Biztonság",
+            "Munkamenet-kezelés",
+            "Analitika",
+            "Teljesítménymonitorozás"
+          ]
+        }
+      ],
+      "trailingContent": [
+        "A felhasználók a böngésző beállításain keresztül kezelhetik a sütikkel kapcsolatos preferenciáikat, ahol ez alkalmazható."
+      ]
+    },
+    {
+      "number": 14,
+      "heading": "Panaszok",
+      "content": [
+        "Ha úgy véli, hogy személyes adatait jogellenesen kezelték, jogában áll panaszt tenni az illetékes felügyeleti hatóságnál.",
+        "Az Európai Unióban a Nemzeti Adatvédelmi Hatósághoz fordulhatnak.",
+        "Az Egyesült Királyságban a panaszok az Information Commissioner's Office-hoz (ICO) irányíthatók."
+      ]
+    },
+    {
+      "number": 15,
+      "heading": "Az Adatvédelmi Szabályzat módosításai",
+      "content": [
+        "Jelen Adatvédelmi Szabályzatot időről időre frissíthetjük. A változásokat a Platformon tesszük közzé, frissített dátummal. A Platform közzétételt követő további használata a frissített Szabályzat elfogadását jelenti."
+      ]
+    },
+    {
+      "number": 16,
+      "heading": "Kapcsolat",
+      "content": [
+        "Adatvédelemmel kapcsolatos minden megkeresés esetén:"
+      ],
+      "contactDetails": {
+        "organisationName": "MIMÓZA Kommunikációs Kft.",
+        "email": "info@mimoza.hu",
+        "website": "https://www.mimoza.hu/",
+        "address": "1118 Budapest, Gombocz Zoltán utca 5. A. ép. Fsz. 2. ajtó"
+      }
+    }
+  ]
+}

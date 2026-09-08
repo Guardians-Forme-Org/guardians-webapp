@@ -1,0 +1,279 @@
+{
+  "back": "Vissza",
+  "lastUpdated": "Hatálybalépés / Utolsó frissítés: {date}",
+  "title": "Általános Szerződési Feltételek",
+  "updatedOn": "2026. július 31.",
+  "sections": [
+    {
+      "number": 1,
+      "heading": "Bevezetés",
+      "content": [
+        "Üdvözöljük a Guardians of the Future platformon (a továbbiakban: Platform).",
+        "Jelen Általános Szerződési Feltételek (a továbbiakban: Feltételek) szabályozzák a Platformhoz való hozzáférés és annak használatának feltételeit. A Platformon történő regisztrációval, bejelentkezéssel vagy használattal Ön elfogadja a jelen Feltételek rendelkezéseit.",
+        "Amennyiben a Feltételeket nem fogadja el, kérjük, ne használja a Platformot."
+      ]
+    },
+    {
+      "number": 2,
+      "heading": "A Platform célja",
+      "content": [
+        "A Platform egy pilotprogram keretében működő közösségi felület, amely önkéntesek, résztvevők és közösségi csoportok együttműködését támogatja társadalmi és környezeti értéket teremtő kezdeményezések szervezésében, koordinálásában és dokumentálásában.",
+        "A Platform kizárólag közösségi együttműködési célokat szolgál."
+      ]
+    },
+    {
+      "number": 3,
+      "heading": "A használat feltételei",
+      "content": [
+        "A Platform használatához Önnek:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "be kell töltenie a 18. életévét;",
+            "a regisztráció során valós és pontos adatokat kell megadnia;",
+            "be kell tartania a jelen Feltételeket, valamint az alkalmazandó jogszabályokat."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "Fenntartjuk a jogot arra, hogy a Feltételeket megszegő felhasználók hozzáférését ideiglenesen vagy véglegesen korlátozzuk, illetve megszüntessük."
+      ]
+    },
+    {
+      "number": 4,
+      "heading": "Önkéntes részvétel",
+      "content": [
+        "A Platformon keresztül végzett részvétel minden esetben önkéntes.",
+        "A jelen Feltételek nem hoznak létre:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "munkaviszonyt;",
+            "megbízási vagy vállalkozási jogviszonyt;",
+            "társasági jogviszonyt;",
+            "képviseleti vagy ügynöki kapcsolatot"
+          ]
+        }
+      ],
+      "trailingContent": [
+        "a Platform és annak felhasználói között.",
+        "Az önkéntesek saját döntésük alapján, saját felelősségükre vesznek részt a Platformon szervezett tevékenységekben."
+      ]
+    },
+    {
+      "number": 5,
+      "heading": "A felhasználók kötelezettségei",
+      "content": [
+        "A Platform használata során a felhasználók vállalják, hogy:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "tisztelettel bánnak más résztvevőkkel;",
+            "betartják a gyermek- és sérülékeny személyek védelmére (Safeguarding) vonatkozó előírásokat;",
+            "tiszteletben tartják a helyi jogszabályokat;",
+            "valós adatokat szolgáltatnak;",
+            "a Platformot kizárólag jogszerű és etikus célokra használják;",
+            "tiszteletben tartják mások magánéletét és emberi méltóságát."
+          ]
+        },
+        {
+          "intro": "A felhasználók különösen nem jogosultak:",
+          "items": [
+            "másokat zaklatni, megfélemlíteni, fenyegetni vagy hátrányosan megkülönböztetni;",
+            "jogellenes, sértő, félrevezető vagy káros tartalmat közzétenni;",
+            "más személynek kiadni magukat vagy másokat félrevezetően képviselni;",
+            "jogosulatlan hozzáférést megkísérelni a Platform rendszereihez vagy felhasználói fiókjaihoz;",
+            "kéretlen kereskedelmi üzenetek vagy engedély nélküli adománygyűjtés céljára használni a Platformot."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "heading": "Biztonság és védelem (Safeguarding)",
+      "content": [
+        "A résztvevők biztonsága és jólléte kiemelt fontosságú.",
+        "Minden felhasználó köteles betartani a Platform Safeguarding Szabályzatát és Etikai Kódexét.",
+        "Amennyiben biztonsági vagy védelmi aggály merül fel, a Platform jogosult:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "kivizsgálni a bejelentéseket;",
+            "korlátozni a részvételt;",
+            "felfüggeszteni vagy törölni a felhasználói fiókot;",
+            "jogszabályi kötelezettség esetén értesíteni az illetékes hatóságokat."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "heading": "Felhasználói tartalmak",
+      "content": [
+        "A felhasználók megőrzik a Platformra feltöltött tartalmak tulajdonjogát.",
+        "A tartalom feltöltésével ugyanakkor nem kizárólagos, világszerte érvényes, díjmentes felhasználási engedélyt biztosítanak a Platform részére annak érdekében, hogy a Platform:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "a tartalmat tárolja;",
+            "megjelenítse;",
+            "feldolgozza;",
+            "a Platformon belül megossza,"
+          ]
+        }
+      ],
+      "trailingContent": [
+        "amennyiben ez a Platform működtetéséhez és fejlesztéséhez szükséges.",
+        "A felhasználó felelős azért, hogy a feltöltött tartalom közzétételére megfelelő jogosultsággal rendelkezzen."
+      ]
+    },
+    {
+      "number": 8,
+      "heading": "Szellemi tulajdon",
+      "content": [
+        "Eltérő jelölés hiányában a Jövő Őrzők Platformon közzétett saját tartalmak – beleértve az útmutatókat, oktatási anyagokat, Kihívás-leírásokat, sablonokat, űrlapokat, grafikákat és egyéb eredeti tartalmakat – a Creative Commons Nevezd meg! – Ne add el! – Így add tovább! 4.0 Nemzetközi Licenc (CC BY-NC-SA 4.0) feltételei szerint használhatók."
+      ],
+      "lists": [
+        {
+          "intro": "A licenc alapján Ön jogosult:",
+          "items": [
+            "a tartalmak másolására és megosztására;",
+            "azok átdolgozására, továbbfejlesztésére és felhasználására;"
+          ]
+        },
+        {
+          "intro": "feltéve, hogy:",
+          "items": [
+            "megfelelő módon feltünteti a Jövő Őrzőket mint forrást;",
+            "a tartalmat nem használja fel kereskedelmi célra;",
+            "az átdolgozott változatot ugyanilyen licenc alatt teszi közzé."
+          ],
+          "note": {
+            "text": "A licenc teljes szövege az alábbi oldalon érhető el:",
+            "href": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+          }
+        },
+        {
+          "label": "Kivételek",
+          "intro": "A Creative Commons licenc nem terjed ki az alábbi elemekre:",
+          "items": [
+            "a Guardians of the Future elnevezésre;",
+            "a Jövő Őrzők elnevezésre;",
+            "a logókra, védjegyekre, arculati elemekre és vizuális megjelenésre;",
+            "a Platformon megjelenő harmadik féltől származó tartalmakra;",
+            "minden olyan tartalomra, amelynél ettől eltérő licenc vagy felhasználási feltétel szerepel."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "Ezek az elemek továbbra is jogosultjuk szellemi tulajdonát képezik, és azok felhasználása, másolása vagy megjelenítése kizárólag előzetes írásbeli engedéllyel történhet, kivéve, ha azt jogszabály másként lehetővé teszi.",
+        "A jelen Felhasználási Feltételek nem biztosítanak jogot a Guardians of the Future vagy a Jövő Őrzők név, logó, arculat vagy márka olyan használatára, amely hivatalos kapcsolat, partnerség, támogatás vagy jóváhagyás látszatát keltheti."
+      ]
+    },
+    {
+      "number": 9,
+      "heading": "A pilotprogram sajátosságai",
+      "content": [
+        "A Platform jelenleg pilotprogramként működik.",
+        "A felhasználók tudomásul veszik, hogy:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "a funkciók változhatnak;",
+            "előfordulhat szolgáltatáskiesés;",
+            "hibák vagy technikai problémák jelentkezhetnek;",
+            "az adatstruktúrák és működési folyamatok módosulhatnak."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "A Platform az aktuálisan rendelkezésre álló állapotában kerül biztosításra („as available”), folyamatos rendelkezésre állására nem vállalunk garanciát."
+      ]
+    },
+    {
+      "number": 10,
+      "heading": "Felelősség korlátozása",
+      "content": [
+        "A jogszabályok által megengedett legteljesebb mértékben a Platform és üzemeltetői nem vállalnak felelősséget különösen:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "közvetett vagy következményes károkért;",
+            "elmaradt lehetőségekért;",
+            "adatvesztésért;",
+            "a Platformon elérhető információk alapján meghozott személyes döntések következményeiért;",
+            "más felhasználók magatartásáért vagy mulasztásáért."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "A Platformon keresztül szervezett tevékenységekben mindenki saját felelősségére vesz részt."
+      ]
+    },
+    {
+      "number": 11,
+      "heading": "Adatvédelem",
+      "content": [
+        "A személyes adatok kezelésére az Adatvédelmi Szabályzat rendelkezései irányadók.",
+        "A Platform használatával Ön tudomásul veszi, hogy személyes adatait az Adatvédelmi Szabályzatban foglaltak szerint kezeljük."
+      ]
+    },
+    {
+      "number": 12,
+      "heading": "A felhasználói fiók felfüggesztése vagy megszüntetése",
+      "content": [
+        "A Platform jogosult a felhasználói hozzáférést felfüggeszteni vagy megszüntetni, amennyiben:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "a felhasználó megsérti a jelen Feltételeket;",
+            "safeguarding jellegű aggály merül fel;",
+            "csalás vagy visszaélés gyanúja áll fenn;",
+            "a további részvétel veszélyezteti a közösséget vagy a Platform működését."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "A felhasználó a Platform használatát bármikor megszüntetheti."
+      ]
+    },
+    {
+      "number": 13,
+      "heading": "A Feltételek módosítása",
+      "content": [
+        "Fenntartjuk a jogot a jelen Feltételek időszakos módosítására.",
+        "A módosított változatot a Platformon tesszük közzé.",
+        "A módosítás hatálybalépését követő további használat a módosított Feltételek elfogadásának minősül."
+      ]
+    },
+    {
+      "number": 14,
+      "heading": "Irányadó jog és joghatóság",
+      "content": [
+        "Jelen Feltételekre Magyarország joga irányadó.",
+        "Az esetleges jogviták elbírálására – amennyiben jogszabály eltérően nem rendelkezik – a hatáskörrel és illetékességgel rendelkező magyar bíróságok jogosultak."
+      ]
+    },
+    {
+      "number": 15,
+      "heading": "Kapcsolat",
+      "content": [
+        "Amennyiben a jelen Feltételekkel kapcsolatban kérdése merül fel, az alábbi elérhetőségeken veheti fel velünk a kapcsolatot:"
+      ],
+      "contactDetails": {
+        "organisationName": "MIMÓZA Kommunikációs Kft.",
+        "email": "info@mimoza.hu",
+        "website": "https://www.mimoza.hu/",
+        "address": "1118 Budapest, Gombocz Zoltán utca 5. A épület, földszint 2."
+      }
+    }
+  ]
+}
