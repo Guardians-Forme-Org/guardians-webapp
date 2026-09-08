@@ -1,0 +1,25 @@
+# Crowdin configuration — https://support.crowdin.com/configuration-file/
+#
+# Credentials are read from the environment so nothing secret lives in the repo:
+#   CROWDIN_PROJECT_ID      numeric project id (Crowdin → project → Tools → API)
+#   CROWDIN_PERSONAL_TOKEN  personal access token with Manager scope
+#
+# English is the single source of truth. Every other locale directory under
+# messages/ is written by Crowdin — translators never touch this repo.
+
+project_id_env: CROWDIN_PROJECT_ID
+api_token_env: CROWDIN_PERSONAL_TOKEN
+
+base_path: "."
+
+# Files show in Crowdin by bare name (challenges.json), not by repo path
+# (messages/en/challenges.json). Translators see a clean list; the mapping below
+# still writes them back to the right directory.
+preserve_hierarchy: false
+
+files:
+  - source: /messages/en/*.json
+    translation: /messages/%two_letters_code%/%original_file_name%
+    ignore:
+      # An empty object — there is nothing in it to translate.
+      - /messages/en/splash.json
