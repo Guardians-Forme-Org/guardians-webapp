@@ -8,7 +8,8 @@
       "number": 1,
       "heading": "Bevezetés",
       "content": [
-        "A Guardians of the Future számára kiemelten fontos az Ön személyes adatainak és magánéletének védelme. Jelen Adatvédelmi Szabályzat bemutatja, hogy a Platform használata során milyen személyes adatokat gyűjtünk, milyen célból és jogalapon kezeljük azokat, hogyan tároljuk és védjük őket, valamint milyen jogok illetik meg Önt az adatkezeléssel kapcsolatban.",
+        "A Guardians of the Future számára kiemelten fontos az Ön személyes adatainak és magánéletének védelme.",
+        "Jelen Adatvédelmi Szabályzat bemutatja, hogy a Platform használata során milyen személyes adatokat gyűjtünk, milyen célból és jogalapon kezeljük azokat, hogyan tároljuk és védjük őket, valamint milyen jogok illetik meg Önt az adatkezeléssel kapcsolatban.",
         "A személyes adatok kezelése az Egyesült Királyság adatvédelmi szabályozásával (UK GDPR), az Európai Unió Általános Adatvédelmi Rendeletével (GDPR), valamint minden egyéb alkalmazandó adatvédelmi jogszabállyal összhangban történik.",
         "A Platform használatával Ön megerősíti, hogy megismerte jelen Adatvédelmi Szabályzat tartalmát, és tudomásul veszi, hogy személyes adatait az abban foglaltak szerint kezeljük."
       ]
@@ -74,11 +75,11 @@
             "Használati naplók",
             "A hozzáférés dátuma és időpontja"
           ]
+        },
+        {
+          "label": "Sütik és hasonló technológiák",
+          "intro": "Sütiket és hasonló technológiákat alkalmazhatunk a funkcionalitás, a biztonság és a felhasználói élmény javítása érdekében."
         }
-      ],
-      "trailingContent": [
-        "Sütik és hasonló technológiák",
-        "Sütiket és hasonló technológiákat alkalmazhatunk a funkcionalitás, a biztonság és a felhasználói élmény javítása érdekében."
       ]
     },
     {
@@ -113,12 +114,20 @@
       ],
       "lists": [
         {
-          "items": [
-            "Hozzájárulás – ha Ön önkéntesen ad meg információt, vagy hozzájárul bizonyos adatkezelési tevékenységekhez.",
-            "Jogos érdek – a Platform működtetése, fejlesztése és biztonságának megőrzése, valamint az önkéntes részvétel támogatása érdekében.",
-            "Szerződéses szükségesség – ha az adatkezelés a felhasználók által kért szolgáltatások nyújtásához szükséges.",
-            "Jogi kötelezettség – ha az adatkezelést alkalmazandó jogszabály írja elő."
-          ]
+          "label": "Hozzájárulás",
+          "intro": "ha Ön önkéntesen ad meg információt, vagy hozzájárul bizonyos adatkezelési tevékenységekhez."
+        },
+        {
+          "label": "Jogos érdek",
+          "intro": "a Platform működtetése, fejlesztése és biztonságának megőrzése, valamint az önkéntes részvétel támogatása érdekében."
+        },
+        {
+          "label": "Szerződéses szükségesség",
+          "intro": "ha az adatkezelés a felhasználók által kért szolgáltatások nyújtásához szükséges."
+        },
+        {
+          "label": "Jogi kötelezettség",
+          "intro": "ha az adatkezelést alkalmazandó jogszabály írja elő."
         }
       ]
     },
@@ -141,13 +150,15 @@
           "note": {
             "text": "Ezek a szolgáltatók az adatokat kizárólag utasításaink szerint és megfelelő szerződéses garanciák mellett kezelik."
           }
+        },
+        {
+          "label": "Hatóságok",
+          "intro": "Amennyiben jogszabály, bírósági végzés, gyermekvédelmi kötelezettség vagy jogos érdekek és biztonság védelme megköveteli."
+        },
+        {
+          "label": "Más felhasználók",
+          "intro": "Bizonyos profil- és részvételi adatok láthatók lehetnek más felhasználók számára a Platform funkcióinak részeként."
         }
-      ],
-      "trailingContent": [
-        "Hatóságok",
-        "Amennyiben jogszabály, bírósági végzés, gyermekvédelmi kötelezettség vagy jogos érdekek és biztonság védelme megköveteli.",
-        "Más felhasználók",
-        "Bizonyos profil- és részvételi adatok láthatók lehetnek más felhasználók számára a Platform funkcióinak részeként."
       ]
     },
     {
@@ -217,15 +228,32 @@
       ],
       "lists": [
         {
-          "items": [
-            "Hozzáférés – kérheti személyes adatai másolatát.",
-            "Helyesbítés – kérheti a pontatlan adatok javítását.",
-            "Törlés – kérheti személyes adatai törlését.",
-            "Korlátozás – kérheti az adatkezelés korlátozását.",
-            "Adathordozhatóság – kérheti adatai strukturált formátumban való átadását.",
-            "Tiltakozás – tiltakozhat a jogos érdeken alapuló adatkezelés ellen.",
-            "Hozzájárulás visszavonása – bármikor visszavonhatja hozzájárulását, ha az adatkezelés azon alapul."
-          ]
+          "label": "Hozzáférés",
+          "intro": "kérheti személyes adatai másolatát."
+        },
+        {
+          "label": "Helyesbítés",
+          "intro": "kérheti a pontatlan adatok javítását."
+        },
+        {
+          "label": "Törlés",
+          "intro": "kérheti személyes adatai törlését."
+        },
+        {
+          "label": "Korlátozás",
+          "intro": "kérheti az adatkezelés korlátozását."
+        },
+        {
+          "label": "Adathordozhatóság",
+          "intro": "kérheti adatai strukturált formátumban való átadását."
+        },
+        {
+          "label": "Tiltakozás",
+          "intro": "tiltakozhat a jogos érdeken alapuló adatkezelés ellen."
+        },
+        {
+          "label": "Hozzájárulás visszavonása",
+          "intro": "bármikor visszavonhatja hozzájárulását, ha az adatkezelés azon alapul."
         }
       ],
       "trailingContent": [
@@ -236,7 +264,9 @@
       "number": 11,
       "heading": "Gyermekek adatainak védelme",
       "content": [
-        "A Platform felnőttek számára készült. Amennyiben kiskorúak vesznek részt a Platform használatában, az alkalmazandó jogszabályoknak megfelelően szülői vagy törvényes gondviselői hozzájárulás szükséges lehet. Kiskorúak vagy sérülékeny személyek érintettsége esetén további gyermekvédelmi intézkedéseket alkalmazunk."
+        "A Platform felnőttek számára készült.",
+        "Amennyiben kiskorúak vesznek részt a Platform használatában, az alkalmazandó jogszabályoknak megfelelően szülői vagy törvényes gondviselői hozzájárulás szükséges lehet.",
+        "Kiskorúak vagy sérülékeny személyek érintettsége esetén további gyermekvédelmi intézkedéseket alkalmazunk."
       ]
     },
     {
@@ -293,7 +323,9 @@
       "number": 15,
       "heading": "Az Adatvédelmi Szabályzat módosításai",
       "content": [
-        "Jelen Adatvédelmi Szabályzatot időről időre frissíthetjük. A változásokat a Platformon tesszük közzé, frissített dátummal. A Platform közzétételt követő további használata a frissített Szabályzat elfogadását jelenti."
+        "Jelen Adatvédelmi Szabályzatot időről időre frissíthetjük.",
+        "A változásokat a Platformon tesszük közzé, frissített dátummal.",
+        "A Platform közzétételt követő további használata a frissített Szabályzat elfogadását jelenti."
       ]
     },
     {
