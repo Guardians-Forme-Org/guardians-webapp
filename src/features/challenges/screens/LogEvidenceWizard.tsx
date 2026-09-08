@@ -34,6 +34,9 @@ import {
   deriveWizardConfig,
   findAnchorLeaves,
   findAnchorReference,
+  flattenContainersForPayload,
+  hoistContainerValues,
+  nestContainerValues,
   normalizeFieldName,
   preNormalizeAnchorFields,
   shapeFieldValue,
@@ -810,7 +813,10 @@ function activityToDynamic(
     result[contribFieldName] = activity.contributors;
   }
 
-  return result;
+  // The BE stores a display container's leaves flat (that's how they were
+  // submitted), but the card reads one entry under the container's own name —
+  // gather them back or reopening a submission shows an empty card.
+  return nestContainerValues(fields, result);
 }
 
 type Props = { challengeId: string; stepId: string; viewId?: string };
@@ -1728,6 +1734,16 @@ export default function LogEvidenceWizard({
     // own dedicated slot in the Go Data struct, so none of them are treated
     // as the generic reading — all go through the name-keyed loop by their
     // own field name.
+    // A display container (siteMetadata/area) renders as one card but submits
+    // flat — its leaves have the Data slots, the container name has none. Both
+    // the field list and the values are flattened here so every field the user
+    // was shown is collected, by the same per-field shaping as any other.
+    const renderedStepForm = preNormalizeAnchorFields(
+      stepForm ?? [],
+      anchorPointTracking,
+    );
+    const normalizedStepForm = flattenContainersForPayload(renderedStepForm);
+    const collectedValues = hoistContainerValues(renderedStepForm, dynamicValues);
     const inlineDetailFields = setupStep.detailFields ?? [];
     const inlineNumberFields = inlineDetailFields.filter(
       (f) => f.type === "NUMBER" || f.type === "NUMERIC",
@@ -1764,12 +1780,26 @@ export default function LogEvidenceWizard({
     // with its own entry's mediaFileReferenceId so it travels as its own
     // multipart part — same idiom buildDynamicPayload's shapeEntry uses
     const entryMediaFiles: { file: File; mediaFileReferenceId: string }[] = [];
-    for (const field of [...detailFields, ...(stepForm ?? [])]) {
+    for (const field of [...detailFields, ...normalizedStepForm]) {
       if (!field.name || consumed.has(field.name)) continue;
-      if (!detailNames.has(field.name) && field.type === "GROUP") continue;
+      // The anchor reference container itself. deriveWizardConfig adopted it
+      // as the points field under the name "locations", so `consumed` doesn't
+      // catch it under the name the template still spells here — and the
+      // selection it stands for is already on anchorPoint. Every *other*
+      // GROUP/ITEM left at this point is real repeating data (CH-013/CH-015/
+      // CH-016's addable "species") and falls through to the shaping below;
+      // narrowed from "skip every non-detail GROUP", which also swallowed the
+      // display containers this step actually collects.
+      if (
+        !detailNames.has(field.name) &&
+        (field.type === "GROUP" || field.type === "ITEM") &&
+        normalizeFieldName(field.name) === "ANCHORPOINT"
+      )
+        continue;
       // Inline per-point fields (and their __unit companions) live in
-      // entry.values; everything else in the shared dynamicValues bag
-      const bag = inlineDetailFields.includes(field) ? entry?.values : dynamicValues;
+      // entry.values; everything else in the shared dynamicValues bag (with
+      // any display container already spread flat into it)
+      const bag = inlineDetailFields.includes(field) ? entry?.values : collectedValues;
       const val = bag?.[field.name];
       if (val === undefined || val === null || val === "") continue;
       if (field.type === "IMAGE" || val instanceof File) {
@@ -1851,16 +1881,16 @@ export default function LogEvidenceWizard({
     // Submitting via the mark-complete screen implies the flag itself
     // (BE Data.Confirm / Data.Completed)
     if (shouldMarkComplete) {
-      const completionDetail = [...detailFields, ...(stepForm ?? [])].find(
+      const completionDetail = [...detailFields, ...normalizedStepForm].find(
         (f) => COMPLETION_NAMES.has(normalizeFieldName(f.name)),
       );
       if (completionDetail) extraData[completionDetail.name] = true;
     }
 
-    const imageField = stepForm?.find((f) => f.type === "IMAGE");
+    const imageField = normalizedStepForm.find((f) => f.type === "IMAGE");
     const mediaFile =
       (imageField
-        ? (dynamicValues[imageField.name] as File | undefined)
+        ? (collectedValues[imageField.name] as File | undefined)
         : undefined) ?? detailImage;
     // Tagged with the same id stamped onto anchorPoint above, so this
     // reading's photo can be correlated back to the point it belongs to —
@@ -1935,7 +1965,12 @@ export default function LogEvidenceWizard({
     // "Choose site location") — collection must agree with what was
     // actually rendered, or spliced-in fields (species, mediaFile, …) would
     // be silently dropped here even though the user filled them in.
-    const normalizedStepForm = preNormalizeAnchorFields(stepForm ?? [], anchorPointTracking);
+    // A display container (CH-011's siteMetadata) rendered as one card; its
+    // leaves carry the Data slots, so both the fields and the values it holds
+    // are spread flat before collection.
+    const renderedStepForm = preNormalizeAnchorFields(stepForm ?? [], anchorPointTracking);
+    const normalizedStepForm = flattenContainersForPayload(renderedStepForm);
+    const collectedValues = hoistContainerValues(renderedStepForm, dynamicValues);
     // Which of those flattened fields came out of a typeless "anchorPoint"
     // wrapper — the template nests them under the point, so the payload does
     // too, however flat they had to be rendered. (CH-004's composting log.)
@@ -1996,7 +2031,7 @@ export default function LogEvidenceWizard({
     for (const field of normalizedStepForm) {
       if (knownNames.has(field.name)) continue;
       if (field.type === "IMAGE") continue;
-      const val = dynamicValues[field.name];
+      const val = collectedValues[field.name];
       if (val === undefined || val === null || val === "") continue;
 
       // GROUP/ITEM fields hold an array of sub-form entry objects. A
@@ -2228,7 +2263,7 @@ export default function LogEvidenceWizard({
       if (val instanceof File) continue;
 
       const unit =
-        (dynamicValues[`${field.name}__unit`] as string) ??
+        (collectedValues[`${field.name}__unit`] as string) ??
         field.unitOfMeasureOptions?.[0]?.value;
 
       // A plain, non-addable LOCATION field named "anchorPoint" (CH-014/
@@ -2342,7 +2377,7 @@ export default function LogEvidenceWizard({
     const imageField =
       normalizedStepForm.find((f) => f.type === "IMAGE") ??
       normalizedStepForm.find((f) => f.type === "FILE");
-    const imageValue = imageField ? dynamicValues[imageField.name] : undefined;
+    const imageValue = imageField ? collectedValues[imageField.name] : undefined;
     const topLevelMediaFile = imageValue instanceof File ? imageValue : undefined;
     const mediaFile = topLevelMediaFile ?? groupMediaFiles[0]?.file;
     // Every uploaded file, each tagged with its own mediaFileReferenceId —
@@ -2711,6 +2746,7 @@ export default function LogEvidenceWizard({
                   update={updateBridge}
                   onNext={next}
                   nextLabel={nextLabel}
+                  field={ds.fields[0]}
                 />
               );
             }
@@ -2724,6 +2760,7 @@ export default function LogEvidenceWizard({
                   nextLabel={nextLabel}
                   members={members}
                   users={users}
+                  field={ds.fields[0]}
                 />
               );
             }

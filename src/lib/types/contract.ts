@@ -134,9 +134,12 @@ export interface AnchorPoint {
   priorityLevel?: string;
   waterSourceTypeConnected?: string;
   droughtReliability?: string;
+  opensAt?: string;
+  closedAt?: string;
   mediaFileReferenceId: string;
   location: Location | null;
   region: Location | null;
+  suburb: Location | null;
   mediaFile: MediaFile | null;
   actionPhoto: MediaFile | null;
   dateRegistered?: string; // ISO 8601
@@ -155,9 +158,12 @@ export interface AnchorPoint {
   metaData?: unknown;
   categories?: unknown[];
   communicationChannel?: unknown[];
+  mulchingType?: string[];
+  techniquesCovered?: string[];
   boundary?: unknown;
   habitatType?: unknown;
   siteMetadata?: unknown;
+  compostIncluded?: boolean;
   opened?: boolean;
   waterAccess?: boolean;
   higherRiskFlag?: boolean;
@@ -187,7 +193,6 @@ export interface AnchorPoint {
   treesPlanted?: Measurement;
   plantsAdapted?: Measurement;
   measurement: Measurement | null;
-  openingHours?: Measurement;
   assignedVolunteers?: Measurement;
   vulnerableMembers?: Measurement;
   litresApplied?: Measurement;
@@ -306,6 +311,14 @@ export interface DataEnvelope {
   consentMethod?: string;
   outreachMethod?: string;
   outreachMethods?: unknown[];
+  institutionType?: string;
+  verificationMethod?: string;
+  dateVerified?: string; // ISO 8601
+  // Go tag is confirmAccessible; CH-014's template field is
+  // "confirmedAccessible" — the names don't currently meet
+  confirmAccessible?: boolean;
+  openingHour?: string;
+  closingHour?: string;
   caption?: string;
   category?: unknown[];
   notes?: string;
