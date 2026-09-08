@@ -1,0 +1,50 @@
+name: Crowdin sync
+
+# Pushes English source strings up to Crowdin, and opens a PR whenever
+# translators have finished work there. Translators never touch this repo.
+
+on:
+  push:
+    branches: [development]
+    paths:
+      - messages/en/**
+      - crowdin.yml
+  schedule:
+    # Monday 06:00 UTC — picks up translation work done during the week.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: crowdin-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synchronise:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # Always work from the integration branch. Scheduled and manual runs
+      # are dispatched from the default branch, which is not where
+      # translations belong.
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+
+      - uses: crowdin/github-action@v3
+        with:
+          config: crowdin.yml
+          upload_sources: true
+          # Left off deliberately: the repo must never overwrite work done in
+          # Crowdin. Seeding existing translations is a one-off, see docs.
+          upload_translations: false
+          download_translations: true
+          localization_branch_name: chore/crowdin-translations
+          create_pull_request: true
+          pull_request_title: "chore(i18n): sync translations from Crowdin"
+          pull_request_base_branch_name: development
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
