@@ -1,10 +1,16 @@
 "use client";
 
-import { type LucideIcon, ArrowRight, ArrowLeft, Leaf, Waves } from "lucide-react";
+import {
+  type LucideIcon,
+  ArrowRight,
+  ArrowLeft,
+  Leaf,
+  Waves,
+} from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { getToken } from "@/lib/auth";
 import { useTranslations } from "next-intl";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -51,6 +57,61 @@ function SlideIcon({
       <Comp size={40} className="text-white" strokeWidth={1.5} />
     </div>
   );
+}
+
+// ── Title sizing ───────────────────────────────────────────────────────────────
+
+const TITLE_MAX_PX = 60;
+const TITLE_MIN_PX = 32;
+
+// useLayoutEffect warns during SSR; the title would flash at the wrong size with
+// a plain useEffect, so prefer the layout pass on the client only.
+const useBrowserLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/**
+ * Sizes a heading down until its longest line fits the container.
+ *
+ * Translated titles differ enormously in length — Hungarian "Cselekedjetek" is
+ * over four times the width of the English "Act" — so a fixed or viewport-based
+ * size either clips the long ones or needlessly shrinks the short ones.
+ */
+function useFitTitle(text: string) {
+  const ref = useRef<HTMLHeadingElement>(null);
+  const [fontSize, setFontSize] = useState(TITLE_MAX_PX);
+
+  useBrowserLayoutEffect(() => {
+    const fit = () => {
+      const el = ref.current;
+      if (!el) return;
+
+      el.style.fontSize = `${TITLE_MAX_PX}px`;
+      const available = el.clientWidth;
+      const needed = el.scrollWidth;
+
+      let size = TITLE_MAX_PX;
+      if (needed > available && available > 0) {
+        // Scale by the overflow ratio first, then trim — a couple of reflows
+        // instead of stepping down a pixel at a time.
+        size = Math.max(
+          TITLE_MIN_PX,
+          Math.floor((TITLE_MAX_PX * available) / needed),
+        );
+        el.style.fontSize = `${size}px`;
+        while (size > TITLE_MIN_PX && el.scrollWidth > el.clientWidth) {
+          size -= 1;
+          el.style.fontSize = `${size}px`;
+        }
+      }
+      setFontSize(size);
+    };
+
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [text]);
+
+  return { ref, fontSize };
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -101,6 +162,9 @@ export default function OnboardingPage() {
   ];
 
   const slide = slides[idx];
+  const { ref: titleRef, fontSize: titleFontSize } = useFitTitle(
+    slide.title.join("\n"),
+  );
 
   const destination = getToken() ? "/home" : "/get-started";
 
@@ -171,7 +235,11 @@ export default function OnboardingPage() {
           className="w-8 h-8 object-contain"
           style={{ filter: "brightness(0) invert(1) opacity(0.9)" }}
         />
-        <button onClick={skip} aria-label={tCommon("skip")} className="text-white/60 text-base font-medium">
+        <button
+          onClick={skip}
+          aria-label={tCommon("skip")}
+          className="text-white/60 text-base font-medium"
+        >
           {tCommon("skip")}
         </button>
       </div>
@@ -182,7 +250,11 @@ export default function OnboardingPage() {
           <SlideIcon slide={slide} position="before-text" />
         )}
 
-        <h1 className="text-[60px] font-bold text-white leading-[1.05]">
+        <h1
+          ref={titleRef}
+          style={{ fontSize: `${titleFontSize}px` }}
+          className="font-bold text-white leading-[1.05]"
+        >
           {slide.title[0]}
           <br />
           {slide.title[1]}
