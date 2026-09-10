@@ -615,7 +615,16 @@ export function nestContainerValues(
         }
       }
     }
-    if (Object.keys(entry).length) nested[f.name] = [entry];
+    // A caller may already have put something in this container that never
+    // existed as a top-level leaf — activityToDynamic's media-file hydration
+    // drops the submission's photo straight into the container's IMAGE
+    // subfield. Merge rather than assign, or gathering the flat leaves would
+    // throw that away.
+    const existing = Array.isArray(nested[f.name])
+      ? ((nested[f.name] as Record<string, unknown>[])[0] ?? {})
+      : {};
+    const merged = { ...existing, ...entry };
+    if (Object.keys(merged).length) nested[f.name] = [merged];
   }
   return nested;
 }
