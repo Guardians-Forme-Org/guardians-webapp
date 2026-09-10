@@ -754,10 +754,25 @@ function activityToDynamic(
     | { url?: string }
     | { url?: string }[]
     | undefined;
+  // A photo captured by an IMAGE field that the FE attached to an anchor-point
+  // entry for transport (mediaFileReferenceId) comes back on the point itself,
+  // not at the envelope's top level — CH-022's water-source image is the only
+  // photo in its step yet lands on anchorPoints[0].mediaFile. Fall back to it
+  // so the field it was entered under can show it again. Skipped when the
+  // anchor reference has its own IMAGE detail field, which already reads the
+  // point's photo into the point card (see imageDetailFields above) and would
+  // otherwise render the same image twice.
+  const anchorConsumesPhoto = nestedDetailFields.some((f) => f.type === "IMAGE");
+  const anchorPointPhoto =
+    !anchorConsumesPhoto && Array.isArray(data.anchorPoints)
+      ? (data.anchorPoints[0] as { mediaFile?: { url?: string } } | undefined)
+          ?.mediaFile
+      : undefined;
   const firstMediaFile = data.mediaFiles?.find((m) => m.url)
     ?? (Array.isArray(mediaFileSingle)
       ? mediaFileSingle.find((m) => m.url)
-      : mediaFileSingle);
+      : mediaFileSingle)
+    ?? anchorPointPhoto;
   if (firstMediaFile?.url) {
     // Prefer a top-level IMAGE field; older templates have one. CH-015's
     // current template nests each photo inside a GROUP/ITEM entry instead —
