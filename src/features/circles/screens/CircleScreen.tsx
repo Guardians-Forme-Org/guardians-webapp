@@ -278,9 +278,9 @@ export default function CircleScreen({ circleId }: Props) {
                     }
                     joinCircle.mutate({ circleId, userId: user.id });
                   }}
-                  className={`px-5 h-10 text-base font-semibold rounded-full text-white transition-all shadow-[0_2px_10px_rgba(0,0,0,0.15)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                  className={`px-5 h-10 whitespace-nowrap text-base font-semibold rounded-full text-white transition-all shadow-[0_2px_10px_rgba(0,0,0,0.15)] disabled:opacity-60 disabled:cursor-not-allowed ${
                     isMember
-                      ? "bg-[#333] w-36"
+                      ? "bg-[#333] min-w-36"
                       : "bg-linear-to-r from-[#008000] to-[#129612]"
                   }`}
                 >
