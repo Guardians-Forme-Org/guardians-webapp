@@ -389,6 +389,14 @@ function activityToDynamic(
   // reference by findAnchorReference below instead of yielding its flattened
   // fields (measurement, description) directly.
   const fields = preNormalizeAnchorFields(stepForm ?? [], anchorPointTracking);
+  // A display container ("siteMetadata", "area") is submitted flat: the payload
+  // path runs flattenContainersForPayload/hoistContainerValues over this same
+  // form, so the envelope carries the container's *leaves* at the top level and
+  // never a key under the container's own name. Reading back over `fields`
+  // alone therefore looks up a key the BE never stores and leaves every such
+  // card blank on reopen — mirror the submit-side flatten here and let
+  // nestContainerValues fold the leaves into the card again at the end.
+  const readableFields = flattenContainersForPayload(fields);
   // Fields the wrapper owns were submitted inside data.anchorPoints[0], not at
   // the top level (see buildDynamicPayload) — read them back from there
   const wrappedNames = anchorWrappedNames(stepForm ?? [], anchorPointTracking);
@@ -398,7 +406,7 @@ function activityToDynamic(
 
   // Generic reverse of buildDynamicPayload: captured fields were merged into
   // data under their raw template field names
-  for (const field of fields) {
+  for (const field of readableFields) {
     if (field.name === vhFieldName || field.name === contribFieldName) continue;
     // IMAGE fields are hydrated below from data.mediaFile(s) — when a
     // template names its IMAGE field "mediaFile" (CH-015), data.mediaFile is
@@ -746,10 +754,25 @@ function activityToDynamic(
     | { url?: string }
     | { url?: string }[]
     | undefined;
+  // A photo captured by an IMAGE field that the FE attached to an anchor-point
+  // entry for transport (mediaFileReferenceId) comes back on the point itself,
+  // not at the envelope's top level — CH-022's water-source image is the only
+  // photo in its step yet lands on anchorPoints[0].mediaFile. Fall back to it
+  // so the field it was entered under can show it again. Skipped when the
+  // anchor reference has its own IMAGE detail field, which already reads the
+  // point's photo into the point card (see imageDetailFields above) and would
+  // otherwise render the same image twice.
+  const anchorConsumesPhoto = nestedDetailFields.some((f) => f.type === "IMAGE");
+  const anchorPointPhoto =
+    !anchorConsumesPhoto && Array.isArray(data.anchorPoints)
+      ? (data.anchorPoints[0] as { mediaFile?: { url?: string } } | undefined)
+          ?.mediaFile
+      : undefined;
   const firstMediaFile = data.mediaFiles?.find((m) => m.url)
     ?? (Array.isArray(mediaFileSingle)
       ? mediaFileSingle.find((m) => m.url)
-      : mediaFileSingle);
+      : mediaFileSingle)
+    ?? anchorPointPhoto;
   if (firstMediaFile?.url) {
     // Prefer a top-level IMAGE field; older templates have one. CH-015's
     // current template nests each photo inside a GROUP/ITEM entry instead —
@@ -2926,14 +2949,33 @@ export default function LogEvidenceWizard({
                                 return { entryTitle: "", rows: [] };
                               return { entryTitle: entry?.selected ?? "", rows: detailRows };
                             }
+                            // A point registered at region level has its
+                            // address under `region`, not `location` (CH-022) —
+                            // fall back so the card still says where it is.
+                            const pointAddress =
+                              point.location?.formattedAddress ??
+                              point.region?.formattedAddress;
                             return {
                               entryTitle: point.name,
                               rows: [
-                                ...(point.location?.formattedAddress
+                                ...(pointAddress
                                   ? [
                                       {
                                         label: t("locationLabel"),
-                                        value: point.location.formattedAddress,
+                                        value: pointAddress,
+                                      },
+                                    ]
+                                  : []),
+                                // A pure-reference anchor (no detail fields of
+                                // its own — CH-022's leafless anchorPoint
+                                // GROUP) would otherwise contribute no rows at
+                                // all and the whole card would be dropped; its
+                                // photo is the only thing submitted against it.
+                                ...(point.mediaFile?.url
+                                  ? [
+                                      {
+                                        label: t("photoLabel"),
+                                        image: point.mediaFile.url,
                                       },
                                     ]
                                   : []),

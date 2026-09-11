@@ -438,7 +438,14 @@ export default function ReviewStep({
         {impact && <ImpactCard impact={impact} />}
 
         {/* ── Setup-update entry (point registered during setup) ──────────── */}
-        {dynamicConfig?.setupUpdate && dynamicConfig.setupUpdate.rows.length > 0 && (
+        {/* A selected point is worth showing even when it carries no readings
+            of its own — a pure-reference anchor (CH-022) has no detail fields,
+            so requiring rows here dropped the whole card and the submission
+            looked like it had no location at all. entryTitle is the point's
+            name; an empty title still means nothing was resolved. */}
+        {dynamicConfig?.setupUpdate &&
+          (dynamicConfig.setupUpdate.rows.length > 0 ||
+            !!dynamicConfig.setupUpdate.entryTitle) && (
           <ReviewSection
             label={dynamicConfig.setupUpdate.label}
             stepIndex={dynamicConfig.setupUpdate.stepIndex}

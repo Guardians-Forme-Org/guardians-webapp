@@ -113,6 +113,10 @@ export type ChallengeSetupLocation = {
 export type ChallengeSetupAnchorPoint = {
   name: string;
   location?: ChallengeSetupLocation;
+  // A point registered at region level (CH-022, per Tshaks 2026-09-10: "any
+  // location within it is still a valid anchor") carries its geography here
+  // with `location` left null — read both when showing where a point is.
+  region?: ChallengeSetupLocation | null;
   higherRiskFlag?: boolean;
   measurement?: { value: number; unitOfMeasure: string };
   mediaFileReferenceId?: string;
