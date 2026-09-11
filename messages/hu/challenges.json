@@ -1,5 +1,6 @@
 {
   "showMore": "Több megjelenítés",
+  "TEST WORD": "TEST WORD",
   "showLess": "Kevesebb megjelenítés",
   "progress": "Teljesítés",
   "facilitator": "Facilitátor",
@@ -77,6 +78,7 @@
   "removeEntry": "Bejegyzés törlése",
   "newReading": "Új mérés",
   "lastReading": "Előző mérés: {value}",
+  "noAnchorPoints": "No anchor points registered yet — complete the registration step first.",
   "update": "Frissítés",
   "upload": "Feltöltés",
   "optionalBadge": "opcionális",
@@ -113,7 +115,7 @@
   "impactSection": "Hatás",
   "regionSection": "Régió",
   "locationLabel": "Helyszín",
-  "photoLabel": "Fotó",
+  "photoLabel": "Photo",
   "contributorsSection": "Közreműködők",
   "membersLabel": "Tagok",
   "siteDetailsSection": "Helyszín adatai",
