@@ -73,6 +73,14 @@ import { initForm, type LogFormData } from "../wizard/types";
 const STORAGE_KEY = (challengeId: string, stepId: string) =>
   `log-evidence-draft-${challengeId}-${stepId}`;
 
+// The localStorage draft can't carry a File (see stripFiles), so leaving the
+// wizard and coming back restored every typed value but dropped the photo the
+// user had just picked. This keeps the last dynamic values — Files intact —
+// for the duration of the tab, and the restore below prefers it: strictly more
+// complete than the serialized copy, which stays the cross-reload fallback.
+// Dropped along with the draft once the step is submitted.
+const memoryDrafts = new Map<string, DynamicValues>();
+
 // File objects aren't JSON-serializable — JSON.stringify silently turns one
 // into "{}" (Files have no own enumerable properties). Saved verbatim inside
 // a GROUP entry (e.g. an anchor point's photo subfield), that corrupts the
@@ -1023,7 +1031,10 @@ export default function LogEvidenceWizard({
   const members = challenge?.members ?? [];
 
   const draftKey = STORAGE_KEY(challengeId, stepId);
-  const clearDraft = () => localStorage.removeItem(draftKey);
+  const clearDraft = () => {
+    memoryDrafts.delete(draftKey);
+    localStorage.removeItem(draftKey);
+  };
 
   // ── Draft: static path ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -1048,6 +1059,13 @@ export default function LogEvidenceWizard({
   // ── Draft: dynamic path ────────────────────────────────────────────────────
   useEffect(() => {
     if (viewId || !isDerived) return;
+    // The in-tab snapshot still holds the Files the serialized draft had to
+    // drop, so it wins outright when this step was open earlier in the session
+    const remembered = memoryDrafts.get(draftKey);
+    if (remembered) {
+      setDynamicValues(remembered);
+      return;
+    }
     const saved = localStorage.getItem(draftKey);
     if (!saved) return;
     try {
@@ -1060,6 +1078,7 @@ export default function LogEvidenceWizard({
 
   useEffect(() => {
     if (viewId || !isDerived) return;
+    memoryDrafts.set(draftKey, dynamicValues);
     // Exclude File values (not serializable) — including ones nested inside
     // a GROUP entry's array (e.g. an anchor point's photo subfield)
     const serializable: DynamicValues = {};
