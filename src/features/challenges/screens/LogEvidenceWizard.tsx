@@ -81,6 +81,10 @@ const STORAGE_KEY = (challengeId: string, stepId: string) =>
 // Dropped along with the draft once the step is submitted.
 const memoryDrafts = new Map<string, DynamicValues>();
 
+// CH-012B KnowledgeSharingAction — see disabledFields
+const COMPOST_TOGGLE_FIELD = "compostIncluded";
+const COMPOST_MASS_FIELD = "compostMassKg";
+
 // File objects aren't JSON-serializable — JSON.stringify silently turns one
 // into "{}" (Files have no own enumerable properties). Saved verbatim inside
 // a GROUP entry (e.g. an anchor point's photo subfield), that corrupts the
@@ -1035,7 +1039,16 @@ export default function LogEvidenceWizard({
   // ── Dynamic form state ─────────────────────────────────────────────────────
   const [dynamicValues, setDynamicValues] = useState<DynamicValues>({});
   const updateDynamic = (name: string, value: unknown) =>
-    setDynamicValues((prev) => ({ ...prev, [name]: value }));
+    setDynamicValues((prev) => {
+      const next = { ...prev, [name]: value };
+      // Turning the compost toggle back off drops whatever mass was typed
+      // while it was on — a greyed-out field is still collected at payload
+      // time, so the value would otherwise submit against a session that
+      // reports no composting at all.
+      if (name === COMPOST_TOGGLE_FIELD && value !== true)
+        delete next[COMPOST_MASS_FIELD];
+      return next;
+    });
 
   const currentStep = isDerived
     ? derivedConfig?.steps[step - 1]
@@ -1283,10 +1296,21 @@ export default function LogEvidenceWizard({
     else if (k === "contributors") updateDynamic(contribFieldName, v);
   };
 
-  // CH-015 only: one measurement per submission — filling an area field
-  // disables the trees count field and vice versa
+  // Fields another answer rules out, mapped to the reason shown under them:
+  //   • CH-015: one measurement per submission — filling an area field
+  //     disables the trees count field and vice versa
+  //   • the compost gate below
   const disabledFields = useMemo(() => {
-    const disabled = new Set<string>();
+    const disabled = new Map<string, string>();
+
+    // CH-012B: compost mass is only meaningful when the session actually
+    // included composting. The template ships the toggle and the mass field
+    // as two independent fields with no conditional metadata of any kind, so
+    // the dependency only exists if the FE enforces it — matched on the
+    // field names, which no other template uses.
+    if (dynamicValues[COMPOST_TOGGLE_FIELD] !== true)
+      disabled.set(COMPOST_MASS_FIELD, t("compostMassDisabledHint"));
+
     if (challenge?.challengeCode !== "CH-015" || !stepForm) return disabled;
     const knownNames = new Set([
       vhFieldName,
@@ -1307,10 +1331,11 @@ export default function LogEvidenceWizard({
     const countFields = numeric.filter(
       (f) => !f.unitOfMeasureOptions?.length && f.name.includes("COUNT"),
     );
+    const hint = t("oneMeasurementHint");
     if (areaFields.some((f) => filled(f.name)))
-      countFields.forEach((f) => disabled.add(f.name));
+      countFields.forEach((f) => disabled.set(f.name, hint));
     else if (countFields.some((f) => filled(f.name)))
-      areaFields.forEach((f) => disabled.add(f.name));
+      areaFields.forEach((f) => disabled.set(f.name, hint));
     return disabled;
   }, [
     challenge?.challengeCode,
@@ -1318,6 +1343,7 @@ export default function LogEvidenceWizard({
     dynamicValues,
     vhFieldName,
     contribFieldName,
+    t,
   ]);
 
   // ── Payload builders ───────────────────────────────────────────────────────
@@ -2787,7 +2813,6 @@ export default function LogEvidenceWizard({
                   onNext={next}
                   nextLabel={nextLabel}
                   disabledFields={disabledFields}
-                  disabledHint={t("oneMeasurementHint")}
                   resumeHint={showResumeHint ? t("resumeAnchorPointsHint") : undefined}
                 />
               );

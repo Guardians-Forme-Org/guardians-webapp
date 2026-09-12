@@ -44,9 +44,10 @@ type Props = {
   update: (name: string, value: unknown) => void;
   onNext: () => void;
   nextLabel: string;
-  // Fields greyed out because a mutually exclusive field is filled
-  disabledFields?: Set<string>;
-  disabledHint?: string;
+  // Fields greyed out because another field's value rules them out — a
+  // mutually exclusive measurement, or a toggle the field depends on.
+  // Keyed by field name, valued with the reason shown under the field.
+  disabledFields?: Map<string, string>;
   // Shown above the fields — e.g. explaining that entries below were
   // prefilled from a prior submission and can be edited or added to
   resumeHint?: string;
@@ -783,7 +784,7 @@ function GroupField({
   );
 }
 
-export default function DynamicFieldsStep({ fields, values, update, onNext, nextLabel, disabledFields, disabledHint, resumeHint }: Props) {
+export default function DynamicFieldsStep({ fields, values, update, onNext, nextLabel, disabledFields, resumeHint }: Props) {
   const t = useTranslations("challenges");
   // Continue stays clickable rather than disabled — tapping it while a
   // required field is still empty reveals exactly which one(s) inline, and
@@ -793,8 +794,8 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
   const [showErrors, setShowErrors] = useState(false);
   const fieldRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // Fields greyed out by a mutually exclusive field don't block Next —
-  // they're not the ones the user is meant to fill in right now.
+  // Greyed-out fields don't block Next — they're not the ones the user is
+  // meant to fill in right now.
   const missingFields = fields.filter(
     (field) =>
       field.required &&
@@ -834,7 +835,7 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
                   onChange={(v) => update(field.name, v)}
                   onUnitChange={(u) => update(`${field.name}__unit`, u)}
                   disabled={disabledFields?.has(field.name) ?? false}
-                  disabledHint={disabledHint}
+                  disabledHint={disabledFields?.get(field.name)}
                   error={error}
                 />
               )}
