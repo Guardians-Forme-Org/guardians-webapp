@@ -64,7 +64,14 @@ import SiteDetailsStep from "../wizard/steps/SiteDetailsStep";
 import VolunteerHoursStep from "../wizard/steps/VolunteerHoursStep";
 import { initForm, type LogFormData } from "../wizard/types";
 
-const STORAGE_KEY = (stepId: string) => `log-evidence-draft-${stepId}`;
+// stepId alone is not unique across templates — CH-017 and CH-022 both name
+// step one "regionRegistration", "completion" is shared by eight challenges,
+// "registration"/"survivalAssessment" by three each. Keyed on the step alone,
+// a draft restored straight into the matching step of a different challenge
+// (a region prefilled from elsewhere, a stale photo on a step where none was
+// picked). The challenge id scopes it to the submission it belongs to.
+const STORAGE_KEY = (challengeId: string, stepId: string) =>
+  `log-evidence-draft-${challengeId}-${stepId}`;
 
 // File objects aren't JSON-serializable — JSON.stringify silently turns one
 // into "{}" (Files have no own enumerable properties). Saved verbatim inside
@@ -1015,10 +1022,13 @@ export default function LogEvidenceWizard({
     nextStepKind === "review" ? t("review") : tCommon("continue");
   const members = challenge?.members ?? [];
 
+  const draftKey = STORAGE_KEY(challengeId, stepId);
+  const clearDraft = () => localStorage.removeItem(draftKey);
+
   // ── Draft: static path ─────────────────────────────────────────────────────
   useEffect(() => {
     if (viewId || isDerived) return;
-    const saved = localStorage.getItem(STORAGE_KEY(stepId));
+    const saved = localStorage.getItem(draftKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -1027,18 +1037,18 @@ export default function LogEvidenceWizard({
         /* ignore */
       }
     }
-  }, [stepId, viewId, isDerived]);
+  }, [draftKey, viewId, isDerived]);
 
   useEffect(() => {
     if (viewId || isDerived) return;
     const { evidenceFiles: _files, ...serializable } = form;
-    localStorage.setItem(STORAGE_KEY(stepId), JSON.stringify(serializable));
-  }, [form, stepId, viewId, isDerived]);
+    localStorage.setItem(draftKey, JSON.stringify(serializable));
+  }, [form, draftKey, viewId, isDerived]);
 
   // ── Draft: dynamic path ────────────────────────────────────────────────────
   useEffect(() => {
     if (viewId || !isDerived) return;
-    const saved = localStorage.getItem(STORAGE_KEY(stepId));
+    const saved = localStorage.getItem(draftKey);
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved);
@@ -1046,7 +1056,7 @@ export default function LogEvidenceWizard({
     } catch {
       /* ignore */
     }
-  }, [stepId, viewId, isDerived]);
+  }, [draftKey, viewId, isDerived]);
 
   useEffect(() => {
     if (viewId || !isDerived) return;
@@ -1057,11 +1067,8 @@ export default function LogEvidenceWizard({
       if (v instanceof File) continue;
       serializable[k] = stripFiles(v);
     }
-    localStorage.setItem(
-      STORAGE_KEY(stepId),
-      JSON.stringify({ dynamic: serializable }),
-    );
-  }, [dynamicValues, stepId, viewId, isDerived]);
+    localStorage.setItem(draftKey, JSON.stringify({ dynamic: serializable }));
+  }, [dynamicValues, draftKey, viewId, isDerived]);
 
   // ── View mode: apply the submission fetched above — refresh and shared ─────
   // links work too. Only applied while still in view mode so it can't
@@ -2453,7 +2460,7 @@ export default function LogEvidenceWizard({
 
   // ── Submission ─────────────────────────────────────────────────────────────
   const onSuccess = (data?: SubmitEvidenceResponse) => {
-    localStorage.removeItem(STORAGE_KEY(stepId));
+    clearDraft();
     setImpactMessage(data?.impactSummary?.impact?.summary ?? null);
     if (shouldMarkComplete && stepMeta && challenge) {
       markStepComplete.mutate({
@@ -2624,7 +2631,7 @@ export default function LogEvidenceWizard({
         },
         {
           onSuccess: (data) => {
-            localStorage.removeItem(STORAGE_KEY(stepId));
+            clearDraft();
             setImpactMessage(data?.impactSummary?.impact?.summary ?? null);
             setSubmitted(true);
           },
