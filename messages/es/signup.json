@@ -1,0 +1,69 @@
+{
+  "step1": {
+    "title1": "Let us",
+    "title2": "authenticate you",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "Enter phone number",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Create a password",
+    "confirmLabel": "Confirm Password",
+    "confirmPlaceholder": "Repeat your password",
+    "subtitle": "Provide your <strong>mobile number</strong> or <strong>email</strong> and choose a password.",
+    "bodyPart1": "Provide your ",
+    "bodyMobile": "mobile number",
+    "bodyOr": " or ",
+    "bodyEmail": "email",
+    "bodyPart2": " and choose a password.",
+    "bodyEmailRequired": "An email address is required to verify your account."
+  },
+  "step2": {
+    "title1": "Tell us more",
+    "title2": "about yourself",
+    "firstNameLabel": "First Name",
+    "firstNamePlaceholder": "What's your first name",
+    "lastNameLabel": "Last Name",
+    "lastNamePlaceholder": "What's your last name",
+    "regionLabel": "Region",
+    "locationPlaceholder": "Search for your location",
+    "selectLocation": "Select a location"
+  },
+  "step3": {
+    "noImage": "No image selected",
+    "uploadImage": "Upload Image",
+    "remove": "Remove",
+    "confirm": "Confirm",
+    "creating": "Creating account…",
+    "skipForNow": "Skip for now"
+  },
+  "step4": {
+    "title": "Check your email",
+    "subtitle": "Welcome to\nGuardians of the Future",
+    "emailSent": "We sent a confirmation link to",
+    "emailInstruction": "Click the link to verify your account, then come back to log in."
+  },
+  "ageGate": {
+    "title1": "Before we",
+    "title2": "begin",
+    "body": "You must be 18 years or older to join Guardians of the Future.",
+    "confirm": "Yes, I'm 18 or older",
+    "deny": "No, I'm under 18",
+    "blockedTitle": "Sorry, you're not eligible",
+    "blockedBody": "You must be 18 years or older to create an account.",
+    "blockedBack": "Go back"
+  },
+  "termsAndConditions": "Terms and Condition",
+  "gotfName": "Guardians of the Future",
+  "errors": {
+    "credentialsRequired": "Please enter an email or phone number.",
+    "emailRequired": "Please enter your email address.",
+    "passwordRequired": "Please create a password.",
+    "passwordMismatch": "Passwords do not match.",
+    "firstNameRequired": "Please enter your first name.",
+    "lastNameRequired": "Please enter your last name.",
+    "locationRequired": "Please select your location.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "emailAlreadyExists": "An account with this email already exists."
+  }
+}
