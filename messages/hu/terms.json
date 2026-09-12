@@ -136,43 +136,8 @@
       "number": 8,
       "heading": "Szellemi tulajdon",
       "content": [
-        "Eltérő jelölés hiányában a Jövő Őrzők Platformon közzétett saját tartalmak – beleértve az útmutatókat, oktatási anyagokat, Kihívás-leírásokat, sablonokat, űrlapokat, grafikákat és egyéb eredeti tartalmakat – a Creative Commons Nevezd meg! – Ne add el! – Így add tovább! 4.0 Nemzetközi Licenc (CC BY-NC-SA 4.0) feltételei szerint használhatók."
-      ],
-      "lists": [
-        {
-          "intro": "A licenc alapján Ön jogosult:",
-          "items": [
-            "a tartalmak másolására és megosztására;",
-            "azok átdolgozására, továbbfejlesztésére és felhasználására;"
-          ]
-        },
-        {
-          "intro": "feltéve, hogy:",
-          "items": [
-            "megfelelő módon feltünteti a Jövő Őrzőket mint forrást;",
-            "a tartalmat nem használja fel kereskedelmi célra;",
-            "az átdolgozott változatot ugyanilyen licenc alatt teszi közzé."
-          ],
-          "note": {
-            "text": "A licenc teljes szövege az alábbi oldalon érhető el:",
-            "href": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
-          }
-        },
-        {
-          "label": "Kivételek",
-          "intro": "A Creative Commons licenc nem terjed ki az alábbi elemekre:",
-          "items": [
-            "a Guardians of the Future elnevezésre;",
-            "a Jövő Őrzők elnevezésre;",
-            "a logókra, védjegyekre, arculati elemekre és vizuális megjelenésre;",
-            "a Platformon megjelenő harmadik féltől származó tartalmakra;",
-            "minden olyan tartalomra, amelynél ettől eltérő licenc vagy felhasználási feltétel szerepel."
-          ]
-        }
-      ],
-      "trailingContent": [
-        "Ezek az elemek továbbra is jogosultjuk szellemi tulajdonát képezik, és azok felhasználása, másolása vagy megjelenítése kizárólag előzetes írásbeli engedéllyel történhet, kivéve, ha azt jogszabály másként lehetővé teszi.",
-        "A jelen Felhasználási Feltételek nem biztosítanak jogot a Guardians of the Future vagy a Jövő Őrzők név, logó, arculat vagy márka olyan használatára, amely hivatalos kapcsolat, partnerség, támogatás vagy jóváhagyás látszatát keltheti."
+        "Eltérő jelölés hiányában a Jövő Őrzők Platformon közzétett saját tartalmak – beleértve az útmutatókat, oktatási anyagokat, Kihívás-leírásokat, sablonokat, űrlapokat, grafikákat és egyéb eredeti tartalmakat – a Creative Commons Nevezd meg! – Ne add el! – Így add tovább! 4.0 Nemzetközi Licenc (CC BY-NC-SA 4.0) feltételei szerint használhatók.",
+        "Users may not copy, distribute, or modify Platform materials without permission."
       ]
     },
     {
@@ -193,7 +158,8 @@
         }
       ],
       "trailingContent": [
-        "A Platform az aktuálisan rendelkezésre álló állapotában kerül biztosításra („as available”), folyamatos rendelkezésre állására nem vállalunk garanciát."
+        "A Platform az aktuálisan rendelkezésre álló állapotában kerül biztosításra („as available”), folyamatos rendelkezésre állására nem vállalunk garanciát.",
+        "No guarantee is made regarding uninterrupted availability."
       ]
     },
     {
