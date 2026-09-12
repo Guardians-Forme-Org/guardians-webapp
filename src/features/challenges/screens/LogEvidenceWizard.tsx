@@ -412,6 +412,21 @@ function activityToDynamic(
   // card blank on reopen — mirror the submit-side flatten here and let
   // nestContainerValues fold the leaves into the card again at the end.
   const readableFields = flattenContainersForPayload(fields);
+  // An addable register nested in the anchor reference (CH-019's trees) is
+  // promoted to a screen of its own by deriveWizardConfig and submitted on
+  // the point — it never appears at the top of stepForm, so the loop below
+  // would neither find the field nor look in the right place for its value.
+  // Same promotion rule, so the two stay in step.
+  const pointRegisters = fields.flatMap((f) =>
+    f.type === "GROUP" &&
+    !f.addableInput &&
+    normalizeFieldName(f.name) === "ANCHORPOINT"
+      ? (f.fields ?? []).filter(
+          (sub) => (sub.type === "GROUP" || sub.type === "ITEM") && sub.addableInput,
+        )
+      : [],
+  );
+  const pointRegisterNames = new Set(pointRegisters.map((f) => f.name));
   // Fields the wrapper owns were submitted inside data.anchorPoints[0], not at
   // the top level (see buildDynamicPayload) — read them back from there
   const wrappedNames = anchorWrappedNames(stepForm ?? [], anchorPointTracking);
@@ -421,7 +436,7 @@ function activityToDynamic(
 
   // Generic reverse of buildDynamicPayload: captured fields were merged into
   // data under their raw template field names
-  for (const field of readableFields) {
+  for (const field of [...readableFields, ...pointRegisters]) {
     if (field.name === vhFieldName || field.name === contribFieldName) continue;
     // IMAGE fields are hydrated below from data.mediaFile(s) — when a
     // template names its IMAGE field "mediaFile" (CH-015), data.mediaFile is
@@ -435,7 +450,13 @@ function activityToDynamic(
     // silently show blank data. Addable (CH-011) keeps every entry; a
     // non-addable single-point field takes just the first.
     const raw =
-      (wrappedNames.has(field.name) ? wrappedPoint?.[field.name] : undefined) ??
+      (wrappedNames.has(field.name) || pointRegisterNames.has(field.name)
+        ? wrappedPoint?.[field.name]
+        : undefined) ??
+      // Pre-2026-08-15 submissions stored the point singular
+      (pointRegisterNames.has(field.name)
+        ? (data.anchorPoint as Record<string, unknown> | undefined)?.[field.name]
+        : undefined) ??
       data[field.name] ??
       (normalizeFieldName(field.name) === "ANCHORPOINT" && Array.isArray(data.anchorPoints)
         ? field.addableInput

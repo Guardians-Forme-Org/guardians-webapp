@@ -388,6 +388,19 @@ export function deriveWizardConfig(
     );
     if (refGroup) {
       const directLeaves = usableLeaves(refGroup);
+      // An addable GROUP/ITEM nested under the reference is a register kept
+      // *at* the selected point — CH-019 TreesAdoption's "trees" (id, name,
+      // healthStatus, photo per tree). usableLeaves counts only real leaves,
+      // so a reference whose sole child is one of these reads as a pure
+      // reference and had its `fields` dropped with the adoption below,
+      // taking the step's entire data entry with it. Promoted alongside the
+      // leaves, it renders as its own entry-card screen and submits as
+      // anchorPoint.<name> (models.AnchorPoint.Trees) like any other nested
+      // field. Kept out of the isPureReference test on purpose: whether the
+      // reference is adopted at all stays exactly as it was.
+      const nestedRegisters = (refGroup.fields ?? []).filter(
+        (f) => (f.type === "GROUP" || f.type === "ITEM") && f.addableInput,
+      );
       const isPureReference = directLeaves.length === 0;
       if (isPureReference || anchorPoints.length) {
         pointsField = {
@@ -400,7 +413,7 @@ export function deriveWizardConfig(
         selectionOnly = true;
         sorted[sorted.indexOf(refGroup)] = pointsField;
 
-        anchorDetailFields.push(...directLeaves);
+        anchorDetailFields.push(...directLeaves, ...nestedRegisters);
         if (normStepType === "COMPLETION") {
           for (const sub of (refGroup.fields ?? []).filter(
             (f) => f.type === "GROUP",
