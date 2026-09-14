@@ -100,7 +100,8 @@ export default function RecentActivitiesList({ thingId, filterStepId, userId }: 
           hour: "numeric",
           minute: "2-digit",
         });
-        const avatars = record.contributors.slice(0, 2).map((id) =>
+        // BE omits contributors entirely when a submission has none
+        const avatars = (record.contributors ?? []).slice(0, 2).map((id) =>
           avatarMap.get(id) ?? null
         );
         const isClickable = !!authUser;
