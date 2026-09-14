@@ -36,7 +36,8 @@ export type ApiRecentActivity = {
   thingId: string;
   thingUUID: string;
   submittedBy: string;
-  contributors: string[];
+  // json:"contributors,omitempty" on the BE — absent when none were picked
+  contributors?: string[];
   // Null on new submissions — the FE sends only dataEnvelope now, and the BE
   // echoes back what it received
   data: ApiActivityData | null;

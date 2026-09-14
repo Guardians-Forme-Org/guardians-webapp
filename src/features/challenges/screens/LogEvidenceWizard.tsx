@@ -134,7 +134,7 @@ function activityToForm(activity: ApiRecentActivity): LogFormData {
       activity.volunteerHours?.value != null
         ? String(activity.volunteerHours.value)
         : "",
-    contributors: activity.contributors,
+    contributors: activity.contributors ?? [],
   };
 }
 
