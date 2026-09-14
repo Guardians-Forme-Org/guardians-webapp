@@ -64,7 +64,26 @@ import SiteDetailsStep from "../wizard/steps/SiteDetailsStep";
 import VolunteerHoursStep from "../wizard/steps/VolunteerHoursStep";
 import { initForm, type LogFormData } from "../wizard/types";
 
-const STORAGE_KEY = (stepId: string) => `log-evidence-draft-${stepId}`;
+// stepId alone is not unique across templates — CH-017 and CH-022 both name
+// step one "regionRegistration", "completion" is shared by eight challenges,
+// "registration"/"survivalAssessment" by three each. Keyed on the step alone,
+// a draft restored straight into the matching step of a different challenge
+// (a region prefilled from elsewhere, a stale photo on a step where none was
+// picked). The challenge id scopes it to the submission it belongs to.
+const STORAGE_KEY = (challengeId: string, stepId: string) =>
+  `log-evidence-draft-${challengeId}-${stepId}`;
+
+// The localStorage draft can't carry a File (see stripFiles), so leaving the
+// wizard and coming back restored every typed value but dropped the photo the
+// user had just picked. This keeps the last dynamic values — Files intact —
+// for the duration of the tab, and the restore below prefers it: strictly more
+// complete than the serialized copy, which stays the cross-reload fallback.
+// Dropped along with the draft once the step is submitted.
+const memoryDrafts = new Map<string, DynamicValues>();
+
+// CH-012B KnowledgeSharingAction — see disabledFields
+const COMPOST_TOGGLE_FIELD = "compostIncluded";
+const COMPOST_MASS_FIELD = "compostMassKg";
 
 // File objects aren't JSON-serializable — JSON.stringify silently turns one
 // into "{}" (Files have no own enumerable properties). Saved verbatim inside
@@ -397,6 +416,21 @@ function activityToDynamic(
   // card blank on reopen — mirror the submit-side flatten here and let
   // nestContainerValues fold the leaves into the card again at the end.
   const readableFields = flattenContainersForPayload(fields);
+  // An addable register nested in the anchor reference (CH-019's trees) is
+  // promoted to a screen of its own by deriveWizardConfig and submitted on
+  // the point — it never appears at the top of stepForm, so the loop below
+  // would neither find the field nor look in the right place for its value.
+  // Same promotion rule, so the two stay in step.
+  const pointRegisters = fields.flatMap((f) =>
+    f.type === "GROUP" &&
+    !f.addableInput &&
+    normalizeFieldName(f.name) === "ANCHORPOINT"
+      ? (f.fields ?? []).filter(
+          (sub) => (sub.type === "GROUP" || sub.type === "ITEM") && sub.addableInput,
+        )
+      : [],
+  );
+  const pointRegisterNames = new Set(pointRegisters.map((f) => f.name));
   // Fields the wrapper owns were submitted inside data.anchorPoints[0], not at
   // the top level (see buildDynamicPayload) — read them back from there
   const wrappedNames = anchorWrappedNames(stepForm ?? [], anchorPointTracking);
@@ -406,7 +440,7 @@ function activityToDynamic(
 
   // Generic reverse of buildDynamicPayload: captured fields were merged into
   // data under their raw template field names
-  for (const field of readableFields) {
+  for (const field of [...readableFields, ...pointRegisters]) {
     if (field.name === vhFieldName || field.name === contribFieldName) continue;
     // IMAGE fields are hydrated below from data.mediaFile(s) — when a
     // template names its IMAGE field "mediaFile" (CH-015), data.mediaFile is
@@ -420,7 +454,13 @@ function activityToDynamic(
     // silently show blank data. Addable (CH-011) keeps every entry; a
     // non-addable single-point field takes just the first.
     const raw =
-      (wrappedNames.has(field.name) ? wrappedPoint?.[field.name] : undefined) ??
+      (wrappedNames.has(field.name) || pointRegisterNames.has(field.name)
+        ? wrappedPoint?.[field.name]
+        : undefined) ??
+      // Pre-2026-08-15 submissions stored the point singular
+      (pointRegisterNames.has(field.name)
+        ? (data.anchorPoint as Record<string, unknown> | undefined)?.[field.name]
+        : undefined) ??
       data[field.name] ??
       (normalizeFieldName(field.name) === "ANCHORPOINT" && Array.isArray(data.anchorPoints)
         ? field.addableInput
@@ -999,7 +1039,16 @@ export default function LogEvidenceWizard({
   // ── Dynamic form state ─────────────────────────────────────────────────────
   const [dynamicValues, setDynamicValues] = useState<DynamicValues>({});
   const updateDynamic = (name: string, value: unknown) =>
-    setDynamicValues((prev) => ({ ...prev, [name]: value }));
+    setDynamicValues((prev) => {
+      const next = { ...prev, [name]: value };
+      // Turning the compost toggle back off drops whatever mass was typed
+      // while it was on — a greyed-out field is still collected at payload
+      // time, so the value would otherwise submit against a session that
+      // reports no composting at all.
+      if (name === COMPOST_TOGGLE_FIELD && value !== true)
+        delete next[COMPOST_MASS_FIELD];
+      return next;
+    });
 
   const currentStep = isDerived
     ? derivedConfig?.steps[step - 1]
@@ -1015,10 +1064,16 @@ export default function LogEvidenceWizard({
     nextStepKind === "review" ? t("review") : tCommon("continue");
   const members = challenge?.members ?? [];
 
+  const draftKey = STORAGE_KEY(challengeId, stepId);
+  const clearDraft = () => {
+    memoryDrafts.delete(draftKey);
+    localStorage.removeItem(draftKey);
+  };
+
   // ── Draft: static path ─────────────────────────────────────────────────────
   useEffect(() => {
     if (viewId || isDerived) return;
-    const saved = localStorage.getItem(STORAGE_KEY(stepId));
+    const saved = localStorage.getItem(draftKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -1027,18 +1082,25 @@ export default function LogEvidenceWizard({
         /* ignore */
       }
     }
-  }, [stepId, viewId, isDerived]);
+  }, [draftKey, viewId, isDerived]);
 
   useEffect(() => {
     if (viewId || isDerived) return;
     const { evidenceFiles: _files, ...serializable } = form;
-    localStorage.setItem(STORAGE_KEY(stepId), JSON.stringify(serializable));
-  }, [form, stepId, viewId, isDerived]);
+    localStorage.setItem(draftKey, JSON.stringify(serializable));
+  }, [form, draftKey, viewId, isDerived]);
 
   // ── Draft: dynamic path ────────────────────────────────────────────────────
   useEffect(() => {
     if (viewId || !isDerived) return;
-    const saved = localStorage.getItem(STORAGE_KEY(stepId));
+    // The in-tab snapshot still holds the Files the serialized draft had to
+    // drop, so it wins outright when this step was open earlier in the session
+    const remembered = memoryDrafts.get(draftKey);
+    if (remembered) {
+      setDynamicValues(remembered);
+      return;
+    }
+    const saved = localStorage.getItem(draftKey);
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved);
@@ -1046,10 +1108,11 @@ export default function LogEvidenceWizard({
     } catch {
       /* ignore */
     }
-  }, [stepId, viewId, isDerived]);
+  }, [draftKey, viewId, isDerived]);
 
   useEffect(() => {
     if (viewId || !isDerived) return;
+    memoryDrafts.set(draftKey, dynamicValues);
     // Exclude File values (not serializable) — including ones nested inside
     // a GROUP entry's array (e.g. an anchor point's photo subfield)
     const serializable: DynamicValues = {};
@@ -1057,11 +1120,8 @@ export default function LogEvidenceWizard({
       if (v instanceof File) continue;
       serializable[k] = stripFiles(v);
     }
-    localStorage.setItem(
-      STORAGE_KEY(stepId),
-      JSON.stringify({ dynamic: serializable }),
-    );
-  }, [dynamicValues, stepId, viewId, isDerived]);
+    localStorage.setItem(draftKey, JSON.stringify({ dynamic: serializable }));
+  }, [dynamicValues, draftKey, viewId, isDerived]);
 
   // ── View mode: apply the submission fetched above — refresh and shared ─────
   // links work too. Only applied while still in view mode so it can't
@@ -1236,10 +1296,21 @@ export default function LogEvidenceWizard({
     else if (k === "contributors") updateDynamic(contribFieldName, v);
   };
 
-  // CH-015 only: one measurement per submission — filling an area field
-  // disables the trees count field and vice versa
+  // Fields another answer rules out, mapped to the reason shown under them:
+  //   • CH-015: one measurement per submission — filling an area field
+  //     disables the trees count field and vice versa
+  //   • the compost gate below
   const disabledFields = useMemo(() => {
-    const disabled = new Set<string>();
+    const disabled = new Map<string, string>();
+
+    // CH-012B: compost mass is only meaningful when the session actually
+    // included composting. The template ships the toggle and the mass field
+    // as two independent fields with no conditional metadata of any kind, so
+    // the dependency only exists if the FE enforces it — matched on the
+    // field names, which no other template uses.
+    if (dynamicValues[COMPOST_TOGGLE_FIELD] !== true)
+      disabled.set(COMPOST_MASS_FIELD, t("compostMassDisabledHint"));
+
     if (challenge?.challengeCode !== "CH-015" || !stepForm) return disabled;
     const knownNames = new Set([
       vhFieldName,
@@ -1260,10 +1331,11 @@ export default function LogEvidenceWizard({
     const countFields = numeric.filter(
       (f) => !f.unitOfMeasureOptions?.length && f.name.includes("COUNT"),
     );
+    const hint = t("oneMeasurementHint");
     if (areaFields.some((f) => filled(f.name)))
-      countFields.forEach((f) => disabled.add(f.name));
+      countFields.forEach((f) => disabled.set(f.name, hint));
     else if (countFields.some((f) => filled(f.name)))
-      areaFields.forEach((f) => disabled.add(f.name));
+      areaFields.forEach((f) => disabled.set(f.name, hint));
     return disabled;
   }, [
     challenge?.challengeCode,
@@ -1271,6 +1343,7 @@ export default function LogEvidenceWizard({
     dynamicValues,
     vhFieldName,
     contribFieldName,
+    t,
   ]);
 
   // ── Payload builders ───────────────────────────────────────────────────────
@@ -2453,7 +2526,7 @@ export default function LogEvidenceWizard({
 
   // ── Submission ─────────────────────────────────────────────────────────────
   const onSuccess = (data?: SubmitEvidenceResponse) => {
-    localStorage.removeItem(STORAGE_KEY(stepId));
+    clearDraft();
     setImpactMessage(data?.impactSummary?.impact?.summary ?? null);
     if (shouldMarkComplete && stepMeta && challenge) {
       markStepComplete.mutate({
@@ -2624,7 +2697,7 @@ export default function LogEvidenceWizard({
         },
         {
           onSuccess: (data) => {
-            localStorage.removeItem(STORAGE_KEY(stepId));
+            clearDraft();
             setImpactMessage(data?.impactSummary?.impact?.summary ?? null);
             setSubmitted(true);
           },
@@ -2740,7 +2813,6 @@ export default function LogEvidenceWizard({
                   onNext={next}
                   nextLabel={nextLabel}
                   disabledFields={disabledFields}
-                  disabledHint={t("oneMeasurementHint")}
                   resumeHint={showResumeHint ? t("resumeAnchorPointsHint") : undefined}
                 />
               );
