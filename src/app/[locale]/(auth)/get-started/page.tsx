@@ -3,6 +3,7 @@
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import LocalePill from "@/components/ui/LocalePill";
 
 export default function GetStartedPage() {
   const t = useTranslations("get-started");
@@ -12,6 +13,7 @@ export default function GetStartedPage() {
     <div className="min-h-dvh flex flex-col bg-white">
       {/* Hero */}
       <div className="relative flex-1 overflow-hidden flex items-center justify-center bg-[#013818]">
+        <LocalePill className="absolute top-8 right-8 z-20 text-white/70" />
         <img
           src="/images/get-started.png"
           alt=""
