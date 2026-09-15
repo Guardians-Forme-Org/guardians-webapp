@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { getToken } from "@/lib/auth";
+import LocalePill from "@/components/ui/LocalePill";
 import { useTranslations } from "next-intl";
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
 
@@ -235,13 +236,16 @@ export default function OnboardingPage() {
           className="w-8 h-8 object-contain"
           style={{ filter: "brightness(0) invert(1) opacity(0.9)" }}
         />
-        <button
-          onClick={skip}
-          aria-label={tCommon("skip")}
-          className="text-white/60 text-base font-medium"
-        >
-          {tCommon("skip")}
-        </button>
+        <div className="flex items-center gap-5">
+          <LocalePill className="text-white/60" />
+          <button
+            onClick={skip}
+            aria-label={tCommon("skip")}
+            className="text-white/60 text-base font-medium"
+          >
+            {tCommon("skip")}
+          </button>
+        </div>
       </div>
 
       {/* Slide content */}

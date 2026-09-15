@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Eye, EyeOff, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import LocalePill from "@/components/ui/LocalePill";
 
 type Mode = "mobile" | "email";
 
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { mutate: login, isPending } = useLogin();
   const t = useTranslations("login");
+  const tCommon = useTranslations("common");
 
   const [mode, setMode] = useState<Mode>("email");
   const [credential, setCredential] = useState("");
@@ -67,13 +69,16 @@ export default function LoginPage() {
             className="w-8 h-8 object-contain"
             style={{ filter: "brightness(0) invert(1) opacity(0.8)" }}
           />
-          <button
-            onClick={() => router.push("/get-started")}
-            aria-label="Close"
-            className="text-white/60"
-          >
-            <X size={22} />
-          </button>
+          <div className="flex items-center gap-5">
+            <LocalePill className="text-white/60" />
+            <button
+              onClick={() => router.push("/get-started")}
+              aria-label={tCommon("close")}
+              className="text-white/60"
+            >
+              <X size={22} />
+            </button>
+          </div>
         </div>
 
         {/* Wordmark */}

@@ -3,12 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import LocalePill from "@/components/ui/LocalePill";
 import { X, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useRegister } from "@/lib/hooks/auth";
 import { useUsers } from "@/lib/hooks/users";
 import { compressImage } from "@/lib/compressImage";
-import LocationPicker, { type LocationResult } from "@/components/ui/LocationPicker";
+import LocationPicker, {
+  type LocationResult,
+} from "@/components/ui/LocationPicker";
 import Text from "@/components/ui/Text";
 
 // Toggle: switch to false once the API-based duplicate check is ready
@@ -40,7 +43,15 @@ const initForm: FormData = {
 
 // ── Shared primitives ──────────────────────────────────────────────────────────
 
-function ProgressBar({ filled, total = 4, onGoToStep }: { filled: number; total?: number; onGoToStep?: (step: number) => void }) {
+function ProgressBar({
+  filled,
+  total = 4,
+  onGoToStep,
+}: {
+  filled: number;
+  total?: number;
+  onGoToStep?: (step: number) => void;
+}) {
   return (
     <div className="flex gap-2.5">
       {Array.from({ length: total }).map((_, i) => {
@@ -55,19 +66,40 @@ function ProgressBar({ filled, total = 4, onGoToStep }: { filled: number; total?
             aria-label={`Go to step ${targetStep}`}
           />
         ) : (
-          <div key={i} className={`flex-1 h-2 rounded-full ${isFilled ? "bg-gotf-green" : "bg-[#ccc]"}`} />
+          <div
+            key={i}
+            className={`flex-1 h-2 rounded-full ${isFilled ? "bg-gotf-green" : "bg-[#ccc]"}`}
+          />
         );
       })}
     </div>
   );
 }
 
-function AuthHeader({ progress, onClose, onGoToStep }: { progress: number; onClose: () => void; onGoToStep?: (step: number) => void }) {
+function AuthHeader({
+  progress,
+  onClose,
+  onGoToStep,
+}: {
+  progress: number;
+  onClose: () => void;
+  onGoToStep?: (step: number) => void;
+}) {
   return (
     <div className="px-10 pt-8">
       <div className="flex items-center justify-between mb-6">
-        <img src="/images/Guardians Logo-logo.png" alt="" className="w-8 h-8 object-contain" />
-        <button onClick={onClose} aria-label="Close" className="text-text-muted"><X size={22} /></button>
+        <img
+          src="/images/Guardians Logo-logo.png"
+          alt=""
+          className="w-8 h-8 object-contain"
+        />
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="text-text-muted"
+        >
+          <X size={22} />
+        </button>
       </div>
       <ProgressBar filled={progress} onGoToStep={onGoToStep} />
     </div>
@@ -113,7 +145,13 @@ function TermsFooter() {
 
 // ── Age Gate ──────────────────────────────────────────────────────────────────
 
-function AgeGate({ onConfirm, onClose }: { onConfirm: () => void; onClose: () => void }) {
+function AgeGate({
+  onConfirm,
+  onClose,
+}: {
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
   const t = useTranslations("signup");
   const [blocked, setBlocked] = useState(false);
 
@@ -121,8 +159,18 @@ function AgeGate({ onConfirm, onClose }: { onConfirm: () => void; onClose: () =>
     return (
       <div className="flex flex-col min-h-dvh bg-white px-10 pt-10">
         <div className="flex items-center justify-between mb-16">
-          <img src="/images/Guardians Logo-logo.png" alt="" className="w-8 h-8 object-contain" />
-          <button onClick={onClose} aria-label="Close" className="text-text-muted"><X size={22} /></button>
+          <img
+            src="/images/Guardians Logo-logo.png"
+            alt=""
+            className="w-8 h-8 object-contain"
+          />
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="text-text-muted"
+          >
+            <X size={22} />
+          </button>
         </div>
 
         <div className="flex flex-col gap-4">
@@ -150,13 +198,28 @@ function AgeGate({ onConfirm, onClose }: { onConfirm: () => void; onClose: () =>
   return (
     <div className="flex flex-col min-h-dvh bg-white px-10 pt-10">
       <div className="flex items-center justify-between mb-16">
-        <img src="/images/Guardians Logo-logo.png" alt="" className="w-8 h-8 object-contain" />
-        <button onClick={onClose} aria-label="Close" className="text-text-muted"><X size={22} /></button>
+        <img
+          src="/images/Guardians Logo-logo.png"
+          alt=""
+          className="w-8 h-8 object-contain"
+        />
+        <div className="flex items-center gap-5">
+          <LocalePill className="text-text-muted" />
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="text-text-muted"
+          >
+            <X size={22} />
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-4">
         <h1 className="text-[32px] font-bold text-black leading-tight">
-          {t("ageGate.title1")}<br />{t("ageGate.title2")}
+          {t("ageGate.title1")}
+          <br />
+          {t("ageGate.title2")}
         </h1>
         <p className="text-[18px] text-[#808080] leading-relaxed">
           {t("ageGate.body")}
@@ -207,16 +270,24 @@ function Step1({
       <AuthHeader progress={1} onClose={onClose} onGoToStep={onGoToStep} />
       <div className="px-10 mt-7 mb-8">
         <h1 className="text-[32px] font-bold text-black leading-tight">
-          {t("step1.title1")}<br />{t("step1.title2")}
+          {t("step1.title1")}
+          <br />
+          {t("step1.title2")}
         </h1>
         <p className="text-[18px] text-black mt-4 leading-relaxed">
-          {t("step1.bodyPart1")}<strong>{t("step1.bodyMobile")}</strong>{t("step1.bodyOr")}<strong>{t("step1.bodyEmail")}</strong>{t("step1.bodyPart2")}
+          {t("step1.bodyPart1")}
+          <strong>{t("step1.bodyMobile")}</strong>
+          {t("step1.bodyOr")}
+          <strong>{t("step1.bodyEmail")}</strong>
+          {t("step1.bodyPart2")}
         </p>
       </div>
 
       <div className="flex flex-col gap-5 px-10">
         <div className="flex flex-col gap-2">
-          <label className="text-base font-medium text-text-primary tracking-[0.16px]">{t("step1.phoneLabel")}</label>
+          <label className="text-base font-medium text-text-primary tracking-[0.16px]">
+            {t("step1.phoneLabel")}
+          </label>
           <input
             type="tel"
             value={form.phone}
@@ -230,7 +301,8 @@ function Step1({
 
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            {t("step1.emailLabel")}<span className="text-red-500 ml-0.5">*</span>
+            {t("step1.emailLabel")}
+            <span className="text-red-500 ml-0.5">*</span>
           </label>
           <input
             type="email"
@@ -245,7 +317,8 @@ function Step1({
 
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            {t("step1.passwordLabel")}<span className="text-red-500 ml-0.5">*</span>
+            {t("step1.passwordLabel")}
+            <span className="text-red-500 ml-0.5">*</span>
           </label>
           <div className="relative">
             <input
@@ -255,7 +328,11 @@ function Step1({
               placeholder={t("step1.passwordPlaceholder")}
               className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
             />
-            <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted">
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted"
+            >
               {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
@@ -263,7 +340,8 @@ function Step1({
 
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            {t("step1.confirmLabel")}<span className="text-red-500 ml-0.5">*</span>
+            {t("step1.confirmLabel")}
+            <span className="text-red-500 ml-0.5">*</span>
           </label>
           <div className="relative">
             <input
@@ -273,7 +351,11 @@ function Step1({
               placeholder={t("step1.confirmPlaceholder")}
               className="w-full h-[60px] border border-[#d9d9d9] rounded-[8px] px-4 pr-12 text-base placeholder:text-[#bfbfbf] outline-none"
             />
-            <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted">
+            <button
+              type="button"
+              onClick={() => setShowConfirm((v) => !v)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted"
+            >
               {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
@@ -311,14 +393,17 @@ function Step2({
       <AuthHeader progress={2} onClose={onClose} onGoToStep={onGoToStep} />
       <div className="px-10 mt-7 mb-8">
         <h1 className="text-[32px] font-bold text-black leading-tight">
-          {t("step2.title1")}<br />{t("step2.title2")}
+          {t("step2.title1")}
+          <br />
+          {t("step2.title2")}
         </h1>
       </div>
 
       <div className="flex flex-col gap-7 px-10">
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            {t("step2.firstNameLabel")}<span className="text-red-500 ml-0.5">*</span>
+            {t("step2.firstNameLabel")}
+            <span className="text-red-500 ml-0.5">*</span>
           </label>
           <input
             type="text"
@@ -330,7 +415,8 @@ function Step2({
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            {t("step2.lastNameLabel")}<span className="text-red-500 ml-0.5">*</span>
+            {t("step2.lastNameLabel")}
+            <span className="text-red-500 ml-0.5">*</span>
           </label>
           <input
             type="text"
@@ -342,7 +428,8 @@ function Step2({
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            {t("step2.regionLabel")}<span className="text-red-500 ml-0.5">*</span>
+            {t("step2.regionLabel")}
+            <span className="text-red-500 ml-0.5">*</span>
           </label>
           <LocationPicker
             defaultValue={form.location?.formattedAddress ?? ""}
@@ -369,10 +456,14 @@ function Step2({
                 />
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                   <div className="size-10 rounded-full bg-white shadow-sm flex items-center justify-center">
-                    <Text variant="caption" className="text-gotf-green text-xl">📍</Text>
+                    <Text variant="caption" className="text-gotf-green text-xl">
+                      📍
+                    </Text>
                   </div>
                   <div className="bg-white/90 rounded-full px-3 py-1">
-                    <Text variant="caption" className="text-text-subheading">{t("step2.selectLocation")}</Text>
+                    <Text variant="caption" className="text-text-subheading">
+                      {t("step2.selectLocation")}
+                    </Text>
                   </div>
                 </div>
               </>
@@ -424,7 +515,11 @@ function Step3({
       <div className="flex justify-center mt-7 mb-5 px-10">
         <div className="w-[322px] h-[322px] rounded-[16px] overflow-hidden bg-surface border border-border flex items-center justify-center">
           {form.imagePreview ? (
-            <img src={form.imagePreview} alt="Profile" className="w-full h-full object-cover" />
+            <img
+              src={form.imagePreview}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
           ) : (
             <div className="flex flex-col items-center gap-3 text-text-muted">
               <ImageIcon size={44} strokeWidth={1.2} />
@@ -434,13 +529,25 @@ function Step3({
         </div>
       </div>
 
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+      />
 
       <div className="bg-[#eee] mx-2.5 rounded-[10px] px-10 pt-10 pb-[70px] flex flex-col gap-2.5 mt-auto">
-        <button onClick={() => fileRef.current?.click()} className="w-full h-14 bg-white rounded-full text-lg font-medium text-[#1e1e1e]">
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="w-full h-14 bg-white rounded-full text-lg font-medium text-[#1e1e1e]"
+        >
           {t("step3.uploadImage")}
         </button>
-        <button onClick={() => onChange("imagePreview", "")} className="w-full h-14 bg-white rounded-full text-lg font-medium text-[#1e1e1e]">
+        <button
+          onClick={() => onChange("imagePreview", "")}
+          className="w-full h-14 bg-white rounded-full text-lg font-medium text-[#1e1e1e]"
+        >
           {t("step3.remove")}
         </button>
         <button
@@ -478,7 +585,11 @@ function Step4({ onDone, email }: { onDone: () => void; email: string }) {
       />
 
       <div className="relative z-10 flex flex-col items-center text-center gap-4 px-10">
-        <img src="/images/Guardians Logo-logo.png" alt="" className="w-12 h-12 object-contain mb-2" />
+        <img
+          src="/images/Guardians Logo-logo.png"
+          alt=""
+          className="w-12 h-12 object-contain mb-2"
+        />
         <h1 className="text-[32px] font-bold text-black">{t("step4.title")}</h1>
         <p className="text-xl font-medium text-[#808080] leading-snug whitespace-pre-line">
           {t("step4.subtitle")}
@@ -496,7 +607,10 @@ function Step4({ onDone, email }: { onDone: () => void; email: string }) {
       </div>
 
       <div className="absolute bottom-10 left-0 right-0 px-5">
-        <button onClick={onDone} className="w-full h-14 bg-black text-white rounded-full text-base font-medium">
+        <button
+          onClick={onDone}
+          className="w-full h-14 bg-black text-white rounded-full text-base font-medium"
+        >
           {tCommon("done")}
         </button>
       </div>
@@ -525,20 +639,40 @@ export default function SignUpPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.form) setForm((f) => ({ ...f, ...parsed.form, password: "", confirmPassword: "", imagePreview: "" }));
+        if (parsed.form)
+          setForm((f) => ({
+            ...f,
+            ...parsed.form,
+            password: "",
+            confirmPassword: "",
+            imagePreview: "",
+          }));
         if (parsed.step) setStep(parsed.step);
-      } catch { /* ignore corrupt draft */ }
+      } catch {
+        /* ignore corrupt draft */
+      }
     }
   }, []);
 
   // Persist draft (strip passwords and blob URL)
   useEffect(() => {
-    const { password: _pw, confirmPassword: _cpw, imagePreview: _img, ...serializable } = form;
-    localStorage.setItem(SIGNUP_DRAFT_KEY, JSON.stringify({ form: serializable, step }));
+    const {
+      password: _pw,
+      confirmPassword: _cpw,
+      imagePreview: _img,
+      ...serializable
+    } = form;
+    localStorage.setItem(
+      SIGNUP_DRAFT_KEY,
+      JSON.stringify({ form: serializable, step }),
+    );
   }, [form, step]);
 
   const next = () => setStep((s) => s + 1);
-  const close = () => { localStorage.removeItem(SIGNUP_DRAFT_KEY); router.push("/get-started"); };
+  const close = () => {
+    localStorage.removeItem(SIGNUP_DRAFT_KEY);
+    router.push("/get-started");
+  };
   const updateForm = (field: keyof FormData, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
   const updateLocation = (place: LocationResult) =>
@@ -609,9 +743,14 @@ export default function SignUpPage() {
     register(
       { data: payload, avatarFile: avatarFile ?? undefined },
       {
-        onSuccess: () => { localStorage.removeItem(SIGNUP_DRAFT_KEY); next(); },
+        onSuccess: () => {
+          localStorage.removeItem(SIGNUP_DRAFT_KEY);
+          next();
+        },
         onError: (err) => {
-          toast.error(err instanceof Error ? err.message : t("errors.registrationFailed"));
+          toast.error(
+            err instanceof Error ? err.message : t("errors.registrationFailed"),
+          );
           setStep(1);
         },
       },
@@ -632,7 +771,16 @@ export default function SignUpPage() {
       />
     );
   if (step === 2)
-    return <Step2 form={form} onChange={updateForm} onLocationSelect={updateLocation} onNext={handleStep2Next} onClose={close} onGoToStep={setStep} />;
+    return (
+      <Step2
+        form={form}
+        onChange={updateForm}
+        onLocationSelect={updateLocation}
+        onNext={handleStep2Next}
+        onClose={close}
+        onGoToStep={setStep}
+      />
+    );
   if (step === 3)
     return (
       <Step3
