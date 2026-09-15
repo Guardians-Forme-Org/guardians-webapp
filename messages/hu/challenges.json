@@ -145,7 +145,7 @@
   "locationPhotosLocation": "Helyszín",
   "plantingPhotoLabel2": "Fotó az ültetésről",
   "plantingPhotoHint": "Fotó az ültetett fajokról",
-  "beforePhoto": "Előtte fotó",
+  "beforePhoto": "Ilyen volt",
   "beforePhotoHint": "Jól látható fotó a területről a munka megkezdése előtt",
   "impactDescription": "Hatás leírása",
   "impactDescPlaceholder": "A végzett munka hatásának bemutatása",
@@ -154,8 +154,8 @@
   "addIntervention": "Beavatkozás rögzítése",
   "interventionsLabel": "Beavatkozások",
   "measurementType": "Mérés típusa",
-  "guardian": "Őrző",
-  "guardians": "Őrzők",
+  "guardian": "Jövő Őrző",
+  "guardians": "Jövő Őrzők",
   "sdgSupportText": "A {name} egy kihívás, amely a {sdgTitle} fenntartható fejlődési célt támogatja.",
   "siteDescriptionHeading": "Helyszín leírása",
   "siteConditionHint": "A helyszín kiinduló állapotának bemutatása (felszín, növényzet, hulladék stb.)",
@@ -200,5 +200,6 @@
   "searchContributors": "Közreműködők keresése",
   "addFile": "Fájl hozzáadása",
   "fileUploadHint": "Válassz képeket, PDF-eket és CSV-ket a telefonodról",
-  "fileTooLarge": "A(z) {name} fájl túl nagy — a fájlok mérete legfeljebb 1 MB lehet"
+  "fileTooLarge": "A(z) {name} fájl túl nagy — a fájlok mérete legfeljebb 1 MB lehet",
+  "inviteSubtitle": "Másold ki a linket, és oszd meg, hogy másokat is meghívj a kihívásra"
 }
