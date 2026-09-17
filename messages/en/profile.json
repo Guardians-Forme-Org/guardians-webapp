@@ -22,7 +22,7 @@
   "circleUnit": "Circle {unit}",
   "verified": "Verified",
   "mostRecent": "Most recent: {summary}",
-  "theTrace": "The Trace",
+  "theTrace": "Marks",
   "contributionMarkers": "Contribution markers",
   "noMarkersEarned": "Not yet earned",
   "logOut": "Log Out",
@@ -34,6 +34,6 @@
   "markerWitness": "Witness",
   "markerOriginator": "Originator",
   "markerMultiplier": "Multiplier",
-  "replayIntro": "Welcome",
+  "replayIntro": "Guardian's Narrative",
   "termsAndConditions": "Terms & Conditions"
 }
