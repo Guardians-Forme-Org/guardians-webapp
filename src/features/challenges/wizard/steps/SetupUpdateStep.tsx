@@ -91,7 +91,9 @@ export default function SetupUpdateStep({
       : undefined;
   const otherFields = detailFields.filter((f) => f !== primaryField);
 
-  const pointMissing = !selectionOnly && !!pointsField.required && !entry?.selected;
+  // Picking a point is the step's purpose, so it's required whenever there is
+  // one to pick — pointsField.required is hardcoded false by deriveWizardConfig.
+  const pointMissing = anchorPoints.length > 0 && !entry?.selected;
   const missingDetailFields = selectionOnly
     ? []
     : [...(primaryField ? [primaryField] : []), ...otherFields].filter(
@@ -129,7 +131,10 @@ export default function SetupUpdateStep({
   return (
     <>
       <div className="flex flex-col gap-5 px-5 mt-7 flex-1">
-        <FieldGroup label={pointsField.label} required={pointsField.required}>
+        <FieldGroup
+          label={pointsField.label}
+          required={pointsField.required || anchorPoints.length > 0}
+        >
           <div className="flex flex-col gap-3">
             {anchorPoints.length === 0 && (
               <p className="text-sm text-text-muted">{t("noAnchorPoints")}</p>

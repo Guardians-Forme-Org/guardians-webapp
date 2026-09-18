@@ -38,6 +38,28 @@ export function isFieldFilled(field: ApiTemplateFormField, value: unknown): bool
   return value !== undefined && value !== null && value !== "";
 }
 
+// Blocks Continue: a non-addable GROUP is a wrapper whose leaves govern
+// (BE ships them required:false), and a started entry must be completed.
+export function isFieldMissing(field: ApiTemplateFormField, value: unknown): boolean {
+  if (field.type === "GROUP" || field.type === "ITEM") {
+    const entries = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
+    const subFields = field.fields ?? [];
+    const entryMissing = (entry: Record<string, unknown>) =>
+      subFields.some((sub) => isFieldMissing(sub, entry[sub.name]));
+
+    if (!field.addableInput) {
+      const entry = entries[0] ?? {};
+      if (field.required && !entryHasData(entry)) return true;
+      return entryMissing(entry);
+    }
+    const started = entries.filter(entryHasData);
+    if (!started.length) return !!field.required;
+    return started.some(entryMissing);
+  }
+  if (!field.required) return false;
+  return !isFieldFilled(field, value);
+}
+
 type Props = {
   fields: ApiTemplateFormField[];
   values: DynamicValues;
@@ -619,16 +641,16 @@ function GroupField({
   update,
   compact,
   error,
+  showErrors,
 }: {
   field: ApiTemplateFormField;
   value: unknown;
   update: (name: string, value: unknown) => void;
   compact?: boolean;
-  // Required-but-incomplete flag from the step's tap-to-reveal validation —
-  // flagged on the group as a whole (no entry, or an entry missing one of
-  // its own required subfields) rather than diving into which subfield of
-  // which entry.
+  // Required-but-incomplete flag from the step's tap-to-reveal validation
   error?: string;
+  // Reveals the same error per subfield, so the card says which field is missing
+  showErrors?: boolean;
 }) {
   const t = useTranslations("challenges");
   // Entries that arrive already filled — reopening the setup step, where the
@@ -658,6 +680,10 @@ function GroupField({
   const nameField = subFields.find((f) => f.type === "TEXT");
   const entries: Record<string, unknown>[] =
     Array.isArray(value) && value.length ? (value as Record<string, unknown>[]) : [{}];
+
+  // A collapsed card would hide the field the error points at, so it stays open
+  const entryMissing = (entry: Record<string, unknown>) =>
+    subFields.some((sub) => isFieldMissing(sub, entry[sub.name]));
 
   const setEntry = (i: number, patch: Record<string, unknown>) => {
     settled.current = true;
@@ -707,7 +733,7 @@ function GroupField({
     <FieldGroup label={field.label} hint={field.placeholder} required={field.required} compact={compact} error={error}>
       <div className="flex flex-col gap-3">
         {entries.map((entry, i) => {
-          const isExpanded = expanded.has(i);
+          const isExpanded = expanded.has(i) || (!!showErrors && entryMissing(entry));
           const title = ((nameField ? entry[nameField.name] : "") as string) || `#${i + 1}`;
           return (
             <div key={i} className="border border-[rgba(26,26,24,0.14)] rounded-[12px] overflow-hidden">
@@ -743,14 +769,20 @@ function GroupField({
               </div>
               {isExpanded && (
                 <div className="px-4 pb-4 flex flex-col gap-5">
-                  {subFields.map((sub) =>
-                    sub.type === "GROUP" || sub.type === "ITEM" ? (
+                  {subFields.map((sub) => {
+                    const subError =
+                      showErrors && isFieldMissing(sub, entry[sub.name])
+                        ? t("required")
+                        : undefined;
+                    return sub.type === "GROUP" || sub.type === "ITEM" ? (
                       <GroupField
                         key={sub.name}
                         field={sub}
                         value={entry[sub.name]}
                         update={(name, v) => setEntry(i, { [name]: v })}
                         compact
+                        error={subError}
+                        showErrors={showErrors}
                       />
                     ) : (
                       <FieldControl
@@ -760,9 +792,10 @@ function GroupField({
                         unitValue={entry[`${sub.name}__unit`] as string | undefined}
                         onChange={(v) => setEntry(i, { [sub.name]: v })}
                         onUnitChange={(u) => setEntry(i, { [`${sub.name}__unit`]: u })}
+                        error={subError}
                       />
-                    ),
-                  )}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -798,9 +831,8 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
   // meant to fill in right now.
   const missingFields = fields.filter(
     (field) =>
-      field.required &&
       !(disabledFields?.has(field.name) ?? false) &&
-      !isFieldFilled(field, values[field.name]),
+      isFieldMissing(field, values[field.name]),
   );
   const missingNames = new Set(missingFields.map((f) => f.name));
 
@@ -826,7 +858,13 @@ export default function DynamicFieldsStep({ fields, values, update, onNext, next
           return (
             <div key={field.name} ref={(el) => { fieldRefs.current[field.name] = el; }}>
               {field.type === "GROUP" || field.type === "ITEM" ? (
-                <GroupField field={field} value={values[field.name]} update={update} error={error} />
+                <GroupField
+                  field={field}
+                  value={values[field.name]}
+                  update={update}
+                  error={error}
+                  showErrors={showErrors}
+                />
               ) : (
                 <FieldControl
                   field={field}

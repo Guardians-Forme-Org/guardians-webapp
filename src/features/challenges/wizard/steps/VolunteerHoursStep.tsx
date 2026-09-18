@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { SaveButton } from "../shared";
 import type { LogFormData } from "../types";
@@ -19,6 +21,18 @@ type Props = {
 
 export default function VolunteerHoursStep({ form, update, onNext, nextLabel, field }: Props) {
   const t = useTranslations("challenges");
+  // Templates mark this required; the static path has no field and the rule is app-wide.
+  const required = field?.required ?? true;
+  const [showError, setShowError] = useState(false);
+  const missing = required && form.volunteerHours.trim() === "";
+
+  const handleNext = () => {
+    if (missing) {
+      setShowError(true);
+      return;
+    }
+    onNext();
+  };
 
   return (
     <>
@@ -30,7 +44,11 @@ export default function VolunteerHoursStep({ form, update, onNext, nextLabel, fi
       </div>
 
       <div className="flex flex-col gap-5 px-5">
-        <div className="flex items-center border border-[rgba(26,26,24,0.28)] rounded-[8px] overflow-hidden">
+        <div
+          className={`flex items-center border rounded-[8px] overflow-hidden ${
+            showError && missing ? "border-[#e24b4a]" : "border-[rgba(26,26,24,0.28)]"
+          }`}
+        >
           <input
             type="number"
             inputMode="decimal"
@@ -44,10 +62,16 @@ export default function VolunteerHoursStep({ form, update, onNext, nextLabel, fi
             <span className="text-base font-semibold text-text-primary">{t("hoursUnit")}</span>
           </div>
         </div>
+        {showError && missing && (
+          <div className="flex items-center gap-1 text-[#a32d2d] -mt-3">
+            <AlertTriangle size={13} />
+            <span className="text-xs">{t("required")}</span>
+          </div>
+        )}
       </div>
 
       <div className="flex-1" />
-      <SaveButton label={nextLabel} onClick={onNext} />
+      <SaveButton label={nextLabel} onClick={handleNext} />
     </>
   );
 }
