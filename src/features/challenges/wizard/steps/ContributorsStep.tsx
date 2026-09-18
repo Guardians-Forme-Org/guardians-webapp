@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, Search, X } from "lucide-react";
+import { AlertTriangle, ChevronRight, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Avatar from "@/components/ui/Avatar";
 import { SaveButton } from "../shared";
@@ -32,6 +32,18 @@ export default function ContributorsStep({ form, update, onNext, nextLabel, memb
   const t = useTranslations("challenges");
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  // Templates mark this required; the static path has no field and the rule is app-wide.
+  const required = field?.required ?? true;
+  const [showError, setShowError] = useState(false);
+  const missing = required && form.contributors.length === 0;
+
+  const handleNext = () => {
+    if (missing) {
+      setShowError(true);
+      return;
+    }
+    onNext();
+  };
 
   const people = members.map((m) => {
     const u = users.find((u) => u.id === m.userId);
@@ -98,7 +110,9 @@ export default function ContributorsStep({ form, update, onNext, nextLabel, memb
               onFocus={() => setOpen(true)}
               onBlur={() => setTimeout(() => setOpen(false), 150)}
               placeholder={field?.placeholder ?? t("searchContributors")}
-              className="w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 pr-10 text-base placeholder:text-[rgba(26,26,24,0.5)] outline-none"
+              className={`w-full h-[44px] border rounded-[8px] px-3 pr-10 text-base placeholder:text-[rgba(26,26,24,0.5)] outline-none ${
+                showError && missing ? "border-[#e24b4a]" : "border-[rgba(26,26,24,0.28)]"
+              }`}
             />
             <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8f8f8c] pointer-events-none" />
 
@@ -135,11 +149,18 @@ export default function ContributorsStep({ form, update, onNext, nextLabel, memb
               </div>
             )}
           </div>
+
+          {showError && missing && (
+            <div className="flex items-center gap-1 text-[#a32d2d]">
+              <AlertTriangle size={13} />
+              <span className="text-xs">{t("required")}</span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="flex-1" />
-      <SaveButton label={nextLabel} onClick={onNext} />
+      <SaveButton label={nextLabel} onClick={handleNext} />
     </>
   );
 }
