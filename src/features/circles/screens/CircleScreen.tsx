@@ -361,7 +361,7 @@ export default function CircleScreen({ circleId }: Props) {
           <p className="px-10 pt-7.5 pb-5 text-xl font-bold text-text-subheading">
             {t("recentActivities")}
           </p>
-          <RecentActivitiesList thingId={circle.circleId} />
+          <RecentActivitiesList circleId={circle.circleId} />
         </div>
 
         {/* Description */}

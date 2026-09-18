@@ -13,6 +13,16 @@ export function useRecentActivities(thingId: string, limit = DEFAULT_ACTIVITIES_
   });
 }
 
+export function useCircleRecentActivities(circleId: string, limit = DEFAULT_ACTIVITIES_LIMIT) {
+  return useQuery({
+    queryKey: ["circleRecentActivities", circleId, limit],
+    queryFn: () =>
+      api.get<ApiRecentActivity[]>(`/circleRecentActivities/${circleId}?limit=${limit}`),
+    enabled: !!circleId,
+    placeholderData: keepPreviousData,
+  });
+}
+
 export function useUserRecentActivities(userId: string, limit = DEFAULT_ACTIVITIES_LIMIT) {
   return useQuery({
     queryKey: ["userRecentActivities", userId, limit],
