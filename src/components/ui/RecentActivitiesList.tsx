@@ -1,6 +1,10 @@
 "use client";
 
-import { useRecentActivities, useUserRecentActivities } from "@/lib/hooks/activities";
+import {
+  useCircleRecentActivities,
+  useRecentActivities,
+  useUserRecentActivities,
+} from "@/lib/hooks/activities";
 import Avatar from "@/components/ui/Avatar";
 import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,8 +14,9 @@ import { useMemo, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 
 type Props =
-  | { thingId: string; filterStepId?: string; userId?: never }
-  | { userId: string; filterStepId?: never; thingId?: never };
+  | { thingId: string; filterStepId?: string; userId?: never; circleId?: never }
+  | { userId: string; filterStepId?: never; thingId?: never; circleId?: never }
+  | { circleId: string; filterStepId?: never; thingId?: never; userId?: never };
 
 const LIMIT_STEPS = [3, 6, 10, 20, 50, 100];
 
@@ -22,12 +27,18 @@ function formatStepId(stepId: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export default function RecentActivitiesList({ thingId, filterStepId, userId }: Props) {
+export default function RecentActivitiesList({ thingId, filterStepId, userId, circleId }: Props) {
   const [limitIndex, setLimitIndex] = useState(0);
   const limit = LIMIT_STEPS[limitIndex];
   const thing = useRecentActivities(thingId ?? "", limit);
   const user = useUserRecentActivities(userId ?? "", limit);
-  const { data: rawActivities = [], isLoading, isFetching, error } = thingId ? thing : user;
+  const circle = useCircleRecentActivities(circleId ?? "", limit);
+  const {
+    data: rawActivities = [],
+    isLoading,
+    isFetching,
+    error,
+  } = thingId ? thing : circleId ? circle : user;
   // More items may exist when the API filled the requested window
   const hasMore = rawActivities.length >= limit && limitIndex < LIMIT_STEPS.length - 1;
   const activities = filterStepId
