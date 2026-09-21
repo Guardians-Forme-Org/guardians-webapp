@@ -40,7 +40,7 @@ export default function VolunteerHoursStep({ form, update, onNext, nextLabel, fi
         <h1 className="text-[32px] font-bold text-black">
           {field?.label || t("volunteerHoursLabel")}
         </h1>
-        <p className="text-base text-text-muted mt-1">{t("volunteerHoursQuestion")}</p>
+        {/* <p className="text-base text-text-muted mt-1">{t("volunteerHoursQuestion")}</p> */}
       </div>
 
       <div className="flex flex-col gap-5 px-5">
