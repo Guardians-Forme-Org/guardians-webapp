@@ -54,7 +54,7 @@ export function calcChallengeProgress(challenge: {
   steps: number;
   currentStep: number;
   challengeSteps?: Array<{ isCompleted: boolean; required?: boolean }> | null;
-}): { percent: number; completedCount: number } {
+}): { percent: number; completedCount: number; total: number } {
   const steps = challenge.challengeSteps;
   // Toggle in config.json — flip off if required-only progress needs to be
   // compared against the old all-steps behavior.
@@ -62,12 +62,13 @@ export function calcChallengeProgress(challenge: {
     appConfig.progressRequiredStepsOnly && !!steps?.some((s) => s.required === true);
   const countedSteps = hasRequiredSteps ? steps!.filter((s) => s.required === true) : steps;
   const total = countedSteps?.length ? countedSteps.length : challenge.steps;
-  if (total <= 0) return { percent: 0, completedCount: 0 };
+  if (total <= 0) return { percent: 0, completedCount: 0, total: 0 };
   const completedCount = countedSteps?.length
     ? countedSteps.filter((s) => s.isCompleted).length
     : challenge.currentStep;
   return {
     percent: Math.min(100, Math.round((completedCount / total) * 100)),
     completedCount,
+    total,
   };
 }
