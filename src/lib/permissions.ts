@@ -20,6 +20,8 @@ const WHITELISTED_EMAILS_BY_ENV: Record<AppEnv, string[]> = {
     "nhlanhlacliq@gmail.com",
     "contato@salve.games",
     "phonti@gmail.com",
+    "magomola@gmail.com",
+    "majorosanita@gmail.com"
   ],
   staging: [
     "tnemalili@gmail.com",
@@ -28,6 +30,8 @@ const WHITELISTED_EMAILS_BY_ENV: Record<AppEnv, string[]> = {
     "nhlanhlacliq@gmail.com",
     "contato@salve.games",
     "phonti@gmail.com",
+    "magomola@gmail.com",
+    "majorosanita@gmail.com"
   ],
   production: [
     "tnemalili@gmail.com",
@@ -36,6 +40,8 @@ const WHITELISTED_EMAILS_BY_ENV: Record<AppEnv, string[]> = {
     "nhlanhlacliq@gmail.com",
     "contato@salve.games",
     "phonti@gmail.com",
+    "magomola@gmail.com",
+    "majorosanita@gmail.com"
   ],
 };
 
