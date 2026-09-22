@@ -12,7 +12,8 @@ type Props = {
 
 export default function ChallengeCard({ challenge }: Props) {
   const t = useTranslations("home");
-  const { percent: progress, completedCount } = calcChallengeProgress(challenge);
+  // Same denominator as the bar; the BE's challenge.steps is 3 on every challenge
+  const { percent: progress, completedCount, total: stepTotal } = calcChallengeProgress(challenge);
 
   const location = challenge.location?.city
     ? [challenge.location.city, challenge.location.province].filter(Boolean).join(", ")
@@ -56,7 +57,7 @@ export default function ChallengeCard({ challenge }: Props) {
           />
         </div>
         <Text variant="caption" className="text-text-muted">
-          {t("stepCount", { current: completedCount, total: challenge.steps })}
+          {t("stepCount", { current: completedCount, total: stepTotal })}
         </Text>
       </div>
     </Link>
