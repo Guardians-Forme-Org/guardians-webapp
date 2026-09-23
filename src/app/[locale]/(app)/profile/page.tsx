@@ -76,7 +76,7 @@ function aggregateUserCircleImpact(circles: ApiCircle[], locale: string): ApiImp
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, logout, loginData, loading, refreshProfile } = useAuth();
+  const { user, isMinor, logout, loginData, loading, refreshProfile } = useAuth();
 
   // Impact, counts and markers are fetched by the auth provider, which stays
   // mounted across navigation — without this, opening the profile shows
@@ -220,9 +220,11 @@ export default function ProfilePage() {
           <h1 className="text-[32px] font-bold text-black leading-tight">
             {fullName}
           </h1>
-          <button onClick={() => router.push("/profile/edit")} aria-label={t("editProfile")} className="p-1 mt-1 shrink-0">
-            <Pencil size={16} className="text-text-muted" />
-          </button>
+          {!isMinor && (
+            <button onClick={() => router.push("/profile/edit")} aria-label={t("editProfile")} className="p-1 mt-1 shrink-0">
+              <Pencil size={16} className="text-text-muted" />
+            </button>
+          )}
         </div>
         <p className="text-base font-medium text-text-muted mt-0.5">{t("guardian")}</p>
         <RoleBadge roles={computeGlobalRoles(user?.id, user?.email, loginData)} />
@@ -508,18 +510,20 @@ export default function ProfilePage() {
 
       {/* Settings list */}
       <div className="border-t border-progress-track">
-        <button
-          onClick={() => router.push("/profile/edit")}
-          className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track"
-        >
-          <div className="flex items-center gap-3">
-            <User size={18} className="text-text-muted" />
-            <span className="text-base font-medium text-black">
-              {tCommon("accountDetails")}
-            </span>
-          </div>
-          <ChevronRight size={20} className="text-text-muted" />
-        </button>
+        {!isMinor && (
+          <button
+            onClick={() => router.push("/profile/edit")}
+            className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track"
+          >
+            <div className="flex items-center gap-3">
+              <User size={18} className="text-text-muted" />
+              <span className="text-base font-medium text-black">
+                {tCommon("accountDetails")}
+              </span>
+            </div>
+            <ChevronRight size={20} className="text-text-muted" />
+          </button>
+        )}
 
         {/* Notifications — pending endpoint */}
         {/* <button className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track">

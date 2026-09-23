@@ -11,6 +11,7 @@ import { useCreateChallenge, useUpdateChallenge, useTemplates } from "@/lib/hook
 import { useCircle } from "@/lib/hooks/circles";
 import { compressImage } from "@/lib/compressImage";
 import { useUsers } from "@/lib/hooks/users";
+import { isMinorUser } from "@/lib/permissions";
 import type { AuthUser } from "@/lib/types/auth";
 import type { ApiChallenge, ApiTemplate } from "@/lib/types/challenges";
 import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
@@ -601,7 +602,7 @@ function Step4({
   const [search, setSearch] = useState("");
 
   const memberIds = new Set(circleMembers.map((m) => m.userId));
-  const memberUsers = users.filter((u) => memberIds.has(u.id));
+  const memberUsers = users.filter((u) => memberIds.has(u.id) && !isMinorUser(u));
 
   // Pin current user first, then alphabetical
   const sorted = [

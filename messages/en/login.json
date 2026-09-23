@@ -29,6 +29,7 @@
   "forgotPasswordBackToLogin": "Back to login",
   "forgotPasswordErrorEmail": "Please enter your email address.",
   "forgotPasswordErrorGeneric": "Something went wrong. Please try again.",
+  "forgotPasswordMinor": "This account is managed by your school. Ask your teacher to reset your password.",
   "resetPasswordTitle1": "Create a new",
   "resetPasswordTitle2": "password",
   "resetPasswordLabel": "New password",
