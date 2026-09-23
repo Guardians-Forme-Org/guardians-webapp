@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { useAssignCircleLead, useJoinCircle } from "@/lib/hooks/circles";
 import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
-import { canManageCircle, isWhitelisted } from "@/lib/permissions";
+import { canManageCircle, isMinorUser, isWhitelisted } from "@/lib/permissions";
 import { useUsers } from "@/lib/hooks/users";
 import type {
   ApiCircle,
@@ -131,7 +131,7 @@ type Props = { circleId: string };
 export default function CircleScreen({ circleId }: Props) {
   const t = useTranslations("circles");
   const locale = useLocale();
-  const { user } = useAuth();
+  const { user, isMinor } = useAuth();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [showLeadPicker, setShowLeadPicker] = useState(false);
@@ -266,6 +266,8 @@ export default function CircleScreen({ circleId }: Props) {
           {(() => {
             const isPending = joinCircle.isPending;
             const isDisabled = isMember || isPending;
+            // Minors are enrolled by an admin and can't join anything themselves.
+            if (isMinor && !isMember) return null;
             return (
               <div className="mt-3 mb-6 flex items-center gap-3 flex-wrap">
                 <button
@@ -390,8 +392,8 @@ export default function CircleScreen({ circleId }: Props) {
             : [lead?.firstName, lead?.lastName].filter(Boolean).join(" ") || lead?.name || "";
           const leadAvatar = lead?.avatarUrl || leadUser?.user_metadata?.avatarUrl;
           const filtered = users.filter((u) =>
-            !leadSearch ||
-            `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""} ${u.email ?? ""}`.toLowerCase().includes(leadSearch.toLowerCase())
+            !isMinorUser(u) && (!leadSearch ||
+            `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""} ${u.email ?? ""}`.toLowerCase().includes(leadSearch.toLowerCase()))
           );
 
           return (

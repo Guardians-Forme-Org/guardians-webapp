@@ -9,6 +9,7 @@ import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateCircle, useUpdateCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
+import { isMinorUser } from "@/lib/permissions";
 import { compressImage } from "@/lib/compressImage";
 import type { AuthUser } from "@/lib/types/auth";
 import type { ApiCircle, CreateCircleResponse } from "@/lib/types/circles";
@@ -212,7 +213,8 @@ function Step1({
   onRemoveLead: () => void;
 }) {
   const t = useTranslations("circles");
-  const { data: users = [] } = useUsers();
+  const { data: allUsers = [] } = useUsers();
+  const users = allUsers.filter((u) => !isMinorUser(u));
   const [showDropdown, setShowDropdown] = useState(false);
 
   const query = form.leads.trim().toLowerCase();

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { useForgotPassword } from "@/lib/hooks/auth";
 import { isGenericApiError } from "@/lib/api";
+import { isMinorAlias } from "@/lib/permissions";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -20,6 +21,11 @@ export default function ForgotPasswordPage() {
   const handleSubmit = () => {
     if (!email.trim()) {
       toast.error(t("forgotPasswordErrorEmail"));
+      return;
+    }
+    // Minor aliases can't receive mail; their passwords are reset by an admin.
+    if (isMinorAlias(email)) {
+      toast.error(t("forgotPasswordMinor"));
       return;
     }
     forgotPassword(

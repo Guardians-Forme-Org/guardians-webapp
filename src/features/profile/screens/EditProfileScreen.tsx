@@ -42,7 +42,7 @@ export default function EditProfileScreen() {
   const t = useTranslations("profile");
   const tCommon = useTranslations("common");
   const router = useRouter();
-  const { user, loginData, patchUserMetadata } = useAuth();
+  const { user, isMinor, loginData, patchUserMetadata } = useAuth();
   const updateUser = useUpdateUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,6 +65,11 @@ export default function EditProfileScreen() {
   const [avatarPreview, setAvatarPreview] = useState(resolvedAvatarUrl);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [cachedAvatarFile, setCachedAvatarFile] = useState<File | null>(null);
+
+  // Minor accounts are managed by an admin; send them back if they land here by URL.
+  useEffect(() => {
+    if (isMinor) router.replace("/profile");
+  }, [isMinor, router]);
 
   // Pre-fetch and compress the current avatar so the backend always receives a file on save
   useEffect(() => {

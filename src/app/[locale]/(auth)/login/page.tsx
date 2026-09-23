@@ -8,6 +8,7 @@ import { Eye, EyeOff, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import LocalePill from "@/components/ui/LocalePill";
+import { expandMinorAlias } from "@/lib/permissions";
 
 type Mode = "mobile" | "email";
 
@@ -28,7 +29,7 @@ export default function LoginPage() {
       return;
     }
     login(
-      { emailOrMobile: credential.trim(), password },
+      { emailOrMobile: expandMinorAlias(credential.trim()), password },
       {
         onSuccess: () => {
           const returnTo = sessionStorage.getItem("guardians_return_to");

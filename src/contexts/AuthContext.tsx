@@ -16,6 +16,7 @@ import type {
   UserMetadata,
 } from "@/lib/types/auth";
 import { useUserMetadata } from "@/lib/hooks/users";
+import { isMinorToken } from "@/lib/permissions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
@@ -32,6 +33,7 @@ import {
 type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
+  isMinor: boolean;
   preferredLanguage: Language | null;
   loginData: LoginData | null;
   loading: boolean;
@@ -277,6 +279,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         token,
+        isMinor: isMinorToken(token),
         preferredLanguage,
         loginData,
         loading,

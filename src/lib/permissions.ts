@@ -56,6 +56,39 @@ export function isWhitelisted(email: string | null | undefined): boolean {
   );
 }
 
+// ── Minor accounts ────────────────────────────────────────────────────────────
+// Seeded with app_metadata.minor = true. /login returns app_metadata as {} (the
+// BE's Supabase client drops it), so read it from the access token's claims.
+
+export const MINOR_ALIAS_DOMAIN = "theguardians.world";
+
+export function isMinorToken(token: string | null | undefined): boolean {
+  if (!token) return false;
+  try {
+    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const claims = JSON.parse(atob(payload)) as { app_metadata?: { minor?: unknown } };
+    return claims.app_metadata?.minor === true;
+  } catch {
+    return false;
+  }
+}
+
+export function isMinorUser(user: { app_metadata?: Record<string, unknown> } | null | undefined): boolean {
+  return user?.app_metadata?.minor === true;
+}
+
+// Minors log in as "first.last@school"; complete the domain so they don't have
+// to type it. Real emails always have a dot in the domain, so they pass through.
+export function expandMinorAlias(credential: string): string {
+  const at = credential.lastIndexOf("@");
+  if (at === -1 || credential.slice(at + 1).includes(".")) return credential;
+  return `${credential}.${MINOR_ALIAS_DOMAIN}`.toLowerCase();
+}
+
+export function isMinorAlias(email: string): boolean {
+  return expandMinorAlias(email.trim()).toLowerCase().endsWith(`.${MINOR_ALIAS_DOMAIN}`);
+}
+
 type CircleRef = {
   createdBy?: string;
   circleLead?: unknown;

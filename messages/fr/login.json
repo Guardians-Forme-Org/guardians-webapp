@@ -29,6 +29,7 @@
   "forgotPasswordBackToLogin": "Retour à la connexion",
   "forgotPasswordErrorEmail": "Veuillez entrer votre adresse e-mail.",
   "forgotPasswordErrorGeneric": "Une erreur s'est produite. Veuillez réessayer.",
+  "forgotPasswordMinor": "Ce compte est géré par ton école. Demande à ton enseignant de réinitialiser ton mot de passe.",
   "resetPasswordTitle1": "Créer un nouveau",
   "resetPasswordTitle2": "mot de passe",
   "resetPasswordLabel": "Nouveau mot de passe",

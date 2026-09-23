@@ -310,7 +310,7 @@ type Props = { challengeId: string };
 export default function ChallengeScreen({ challengeId }: Props) {
   const t = useTranslations("challenges");
   const locale = useLocale();
-  const { user } = useAuth();
+  const { user, isMinor } = useAuth();
   const router = useRouter();
   const [tab, setTab] = useState<"home" | "activities">("home");
   const joinChallenge = useJoinChallenge();
@@ -476,6 +476,8 @@ export default function ChallengeScreen({ challengeId }: Props) {
               {(() => {
                 const isPending = joinChallenge.isPending;
                 const isDisabled = isMember || isPending;
+                // Minors are enrolled by an admin and can't join anything themselves.
+                if (isMinor && !isMember) return null;
                 return (
                   <button
                     disabled={isDisabled}
