@@ -1,7 +1,7 @@
 {
   "step1": {
-    "title1": "Kezdjük",
-    "title2": "a bejelentkezéssel.",
+    "title1": "Let's",
+    "title2": "get you signed in",
     "phoneLabel": "Telefonszám",
     "phonePlaceholder": "Add meg a telefonszámod",
     "emailLabel": "E-mail cím",
@@ -15,7 +15,8 @@
     "bodyMobile": "mobilszámod",
     "bodyOr": " vagy az ",
     "bodyEmail": "e-mail címed",
-    "bodyPart2": ", és válassz egy jelszót."
+    "bodyPart2": ", és válassz egy jelszót.",
+    "bodyEmailRequired": "An email address is required to verify your account."
   },
   "step2": {
     "title1": "Néhány szót",
@@ -38,14 +39,14 @@
   },
   "step4": {
     "title": "Ellenőrizd az e-maileidet",
-    "subtitle": "Üdvözlünk a\nJövő Őrzők között",
+    "subtitle": "Üdvözlünk a\nJövő Őrzők közt",
     "emailSent": "Megerősítő linket küldtünk a következő címre:",
     "emailInstruction": "Kattints a linkre a fiókod hitelesítéséhez, majd térj vissza a bejelentkezéshez."
   },
   "ageGate": {
     "title1": "Mielőtt",
     "title2": "elkezdenénk",
-    "body": "A Jövő Őrzőkhöz való csatlakozáshoz legalább 18 évesnek kell lenned.",
+    "body": "A Jövő Őrzőkhez való csatlakozáshoz legalább 18 évesnek kell lenned.",
     "confirm": "Igen, 18 éves vagy idősebb vagyok",
     "deny": "Nem, 18 évesnél fiatalabb vagyok",
     "blockedTitle": "Sajnáljuk, nem vagy jogosult",
@@ -53,7 +54,7 @@
     "blockedBack": "Vissza"
   },
   "termsAndConditions": "Általános Szerződési Feltételek",
-  "gotfName": "Jövő Őrzők",
+  "gotfName": "Jövő Őrzői",
   "errors": {
     "credentialsRequired": "Kérjük, adj meg az e-mail címed vagy a telefonszámod.",
     "emailRequired": "Kérjük, add meg az e-mail címed.",
