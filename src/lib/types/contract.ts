@@ -134,6 +134,7 @@ export interface AnchorPoint {
   priorityLevel?: string;
   waterSourceTypeConnected?: string;
   droughtReliability?: string;
+  sourceType?: string;
   opensAt?: string;
   closedAt?: string;
   mediaFileReferenceId: string;
@@ -234,6 +235,8 @@ export interface DataEnvelope {
   litresCollected?: Measurement;
   houseHoldsCount?: Measurement;
   houseHoldsServed?: Measurement;
+  gardensServed?: Measurement;
+  activeSharingPoints?: Measurement;
   waterSourceMonitored?: Measurement;
   capacity?: Measurement;
   level?: Measurement;
@@ -306,6 +309,7 @@ export interface DataEnvelope {
   hasWaterAccess?: boolean;
   open?: boolean;
   permissionObtained?: boolean;
+  supplyShortFall?: boolean;
   metaData?: unknown;
   communicationChannel?: unknown[];
   consentMethod?: string;
