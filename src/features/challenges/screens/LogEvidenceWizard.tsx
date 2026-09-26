@@ -35,12 +35,14 @@ import {
   findAnchorLeaves,
   findAnchorReference,
   flattenContainersForPayload,
+  foldTimeIntoDate,
   hoistContainerValues,
   nestContainerValues,
   normalizeFieldName,
   preNormalizeAnchorFields,
   shapeFieldValue,
   toDataKey,
+  unfoldTimeFromDate,
   usableLeaves,
   withMediaFileReferenceId,
 } from "../lib/deriveWizardConfig";
@@ -270,6 +272,11 @@ function anchorPointToEntry(
       point.measurement.unitOfMeasure;
   }
 
+  // A date + time pair was stored as one timestamp — split it back into both
+  // inputs, in local time, before the per-field reads below (see
+  // unfoldTimeFromDate)
+  const pointValues = unfoldTimeFromDate(subFields, point as Record<string, unknown>);
+
   // Remaining subfields were passed through shaped (see buildAnchorSetupPayload)
   // — undo just enough shaping to feed them back into FieldControl inputs.
   for (const sub of subFields) {
@@ -281,7 +288,7 @@ function anchorPointToEntry(
       if (point.mediaFile) entry[sub.name] = point.mediaFile;
       continue;
     }
-    const raw = (point as Record<string, unknown>)[sub.name];
+    const raw = pointValues[sub.name];
     if (raw === undefined || raw === null) continue;
     if (
       (sub.type === "NUMBER" || sub.type === "NUMERIC") &&
@@ -661,7 +668,7 @@ function activityToDynamic(
     result[pointsField.name] = {
       selected: (anchorPointRaw as { name?: string } | undefined)?.name ?? "",
       higherRiskFlag: (anchorPointRaw as { higherRiskFlag?: boolean } | undefined)?.higherRiskFlag ?? false,
-      values: {
+      values: unfoldTimeFromDate(nestedDetailFields, {
         ...(() => {
           if (!primaryFieldName) return {};
           // The reading now goes out on the point (anchorPoint.measurement),
@@ -678,7 +685,7 @@ function activityToDynamic(
             : {};
         })(),
         ...Object.fromEntries(extraEntries),
-      },
+      }),
     } satisfies SetupUpdateEntry;
   } else if (data.measurement && !fields.some((f) => f.name === "measurement")) {
     // data.measurement belongs to the first free numeric field, or the
@@ -773,7 +780,7 @@ function activityToDynamic(
           }
           entry[sub.name] = raw;
         }
-        return entry;
+        return unfoldTimeFromDate(subs, entry);
       });
     }
   }
@@ -1481,7 +1488,8 @@ export default function LogEvidenceWizard({
     // instead of only the first one surviving as the legacy mediaFile part
     const pointMediaFiles: { file: File; mediaFileReferenceId: string }[] = [];
     const anchorPoints: ChallengeSetupAnchorPoint[] = entries
-      .map((entry) => {
+      .map((rawEntry) => {
+        const entry = foldTimeIntoDate(subFields, rawEntry);
         const point: ChallengeSetupAnchorPoint = {
           name: nameSub ? ((entry[nameSub.name] as string) ?? "") : "",
         };
@@ -1706,7 +1714,8 @@ export default function LogEvidenceWizard({
         : [];
     const pointMediaFiles: { file: File; mediaFileReferenceId: string }[] = [];
     const anchorPoints: ChallengeSetupAnchorPoint[] = groupEntries
-      .map((entry) => {
+      .map((rawEntry) => {
+        const entry = foldTimeIntoDate(subFields, rawEntry);
         const point: ChallengeSetupAnchorPoint = {
           name: nameSub ? ((entry[nameSub.name] as string) ?? "") : "",
         };
@@ -1860,6 +1869,11 @@ export default function LogEvidenceWizard({
     // can share a name with a nested one, and only the nested one belongs on
     // the point.
     const anchorFields: ReadonlySet<ApiTemplateFormField> = new Set(detailFields);
+    // A point's date + time inputs go out as the one timestamp its date slot
+    // holds (see foldTimeIntoDate) — per bag, since each set of detail fields
+    // reads from its own
+    const inlineValues = foldTimeIntoDate(inlineDetailFields, entry?.values ?? {});
+    const sharedValues = foldTimeIntoDate(promotedDetailFields, collectedValues);
     const consumed = new Set(
       [
         setupStep.fields.map((f) => f.name),
@@ -1895,7 +1909,7 @@ export default function LogEvidenceWizard({
       // Inline per-point fields (and their __unit companions) live in
       // entry.values; everything else in the shared dynamicValues bag (with
       // any display container already spread flat into it)
-      const bag = inlineDetailFields.includes(field) ? entry?.values : collectedValues;
+      const bag = inlineDetailFields.includes(field) ? inlineValues : sharedValues;
       const val = bag?.[field.name];
       if (val === undefined || val === null || val === "") continue;
       if (field.type === "IMAGE" || val instanceof File) {
@@ -2138,9 +2152,10 @@ export default function LogEvidenceWizard({
       if (field.type === "GROUP" || field.type === "ITEM") {
         const shapeEntry = (
           subFields: ApiTemplateFormField[],
-          entry: Record<string, unknown>,
+          rawEntry: Record<string, unknown>,
           mediaFileReferenceId: string,
         ): Record<string, unknown> => {
+          const entry = foldTimeIntoDate(subFields, rawEntry);
           const out: Record<string, unknown> = {};
           for (const sub of subFields) {
             const sv = entry[sub.name];
