@@ -1,4 +1,5 @@
 import type { ApiTemplateFormField, ChallengeSetupAnchorPoint } from "@/lib/types/challenges";
+import { isAnchorPointKey } from "@/lib/types/contractKeys";
 
 export type DerivedStepKind =
   | "volunteer-hours"
@@ -658,6 +659,75 @@ export function toDataKey(name: string, val: unknown): string {
   // BE tag is singular
   if (norm === "COMMUNICATIONCHANNELS") return "communicationChannel";
   return name;
+}
+
+// ── Date + time pairs ────────────────────────────────────────────────────────
+// A point that asks for its date and time as two inputs (CH-001/CH-002's
+// dateCaptured + time, CH-007's dateRegistered + time) only has a slot for the
+// date on the Go AnchorPoint — the time field's own key is dropped on submit,
+// so every reading was stored at midnight. The date slot is a full timestamp,
+// though, so the time travels inside it. Paired only when the fields hold
+// exactly one DATE and exactly one TIME that has no AnchorPoint slot of its
+// own: a TIME that does (CH-010's opensAt, CH-012's eventStartTime) is real
+// data under its own name and is left alone.
+function dateTimePair(
+  fields: ApiTemplateFormField[],
+): { date: ApiTemplateFormField; time: ApiTemplateFormField } | undefined {
+  const dates = fields.filter((f) => f.type === "DATE");
+  const times = fields.filter((f) => f.type === "TIME" && !isAnchorPointKey(f.name));
+  return dates.length === 1 && times.length === 1
+    ? { date: dates[0], time: times[0] }
+    : undefined;
+}
+
+// Submit: the time input's "HH:MM" joins the date input's "YYYY-MM-DD" as one
+// local date-time, which shapeFieldValue's DATE branch turns into the right
+// UTC instant. The time key itself is removed — it has nowhere to land.
+export function foldTimeIntoDate(
+  fields: ApiTemplateFormField[],
+  values: Record<string, unknown>,
+): Record<string, unknown> {
+  const pair = dateTimePair(fields);
+  if (!pair) return values;
+  const { [pair.time.name]: time, ...rest } = values;
+  const date = values[pair.date.name];
+  if (
+    typeof date === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+    typeof time === "string" &&
+    /^\d{2}:\d{2}/.test(time)
+  ) {
+    rest[pair.date.name] = `${date}T${time}`;
+  }
+  return rest;
+}
+
+// Read-back: the stored timestamp split back into both inputs, in local time.
+// A value at exactly UTC midnight is a date-only record — everything stored
+// before the time was kept — so its date is read as written rather than
+// shifted into the local zone, and no time is invented for it.
+export function unfoldTimeFromDate(
+  fields: ApiTemplateFormField[],
+  values: Record<string, unknown>,
+): Record<string, unknown> {
+  const pair = dateTimePair(fields);
+  const raw = pair ? values[pair.date.name] : undefined;
+  if (!pair || typeof raw !== "string" || !raw.includes("T")) return values;
+  if (/T00:00(:00(\.0+)?)?Z$/.test(raw)) {
+    return { ...values, [pair.date.name]: raw.slice(0, 10) };
+  }
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return values;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const existingTime = values[pair.time.name];
+  return {
+    ...values,
+    [pair.date.name]: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    [pair.time.name]:
+      existingTime !== undefined && existingTime !== ""
+        ? existingTime
+        : `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  };
 }
 
 // Stamps a fresh mediaFileReferenceId onto a Region/Location/AnchorPoint
