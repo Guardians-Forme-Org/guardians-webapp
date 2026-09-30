@@ -9,7 +9,7 @@ import LocationPicker, { type LocationResult } from "@/components/ui/LocationPic
 import { compressImage, MAX_UPLOAD_BYTES } from "@/lib/compressImage";
 import { useChallenge } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
-import { isPersonSelectField } from "../../lib/deriveWizardConfig";
+import { isPersonSelectField, REGISTER_PICK_FIELD_NAME } from "../../lib/deriveWizardConfig";
 import { FieldGroup, SaveButton, ToggleCard } from "../shared";
 import type { ApiTemplateFormField } from "@/lib/types/challenges";
 
@@ -685,6 +685,30 @@ function GroupField({
   const entryMissing = (entry: Record<string, unknown>) =>
     subFields.some((sub) => isFieldMissing(sub, entry[sub.name]));
 
+  // A sourced field (see withRegisterPicker) picks each entry from what an
+  // earlier step registered; the picked option's `fill` sets the locked fields
+  const pickField = subFields.find((sub) => sub.name === REGISTER_PICK_FIELD_NAME);
+  const pickOptions = pickField?.options ?? [];
+  const lockedFields = subFields.filter((sub) =>
+    (pickField ? (field.source?.lockedFields ?? []) : []).includes(sub.name),
+  );
+  // The option an entry was picked from — or, for one reopened from a
+  // submission (which stores only the copied values), the option it matches
+  const pickedOption = (entry: Record<string, unknown>) =>
+    pickOptions.find((o) => o.value === entry[REGISTER_PICK_FIELD_NAME]) ??
+    pickOptions.find(
+      (o) =>
+        !!o.fill &&
+        Object.entries(o.fill).every(([name, v]) => String(entry[name] ?? "") === String(v)),
+    );
+  // Locked fields are the pick's to fill, so they're hidden while an entry is
+  // empty or matches a registered option. One typed before the picker
+  // existed that matches none keeps them visible and editable — its values
+  // aren't silently replaced.
+  const hideLocked = (entry: Record<string, unknown>) =>
+    !!pickedOption(entry) ||
+    lockedFields.every((sub) => entry[sub.name] === undefined || entry[sub.name] === "");
+
   const setEntry = (i: number, patch: Record<string, unknown>) => {
     settled.current = true;
     update(field.name, entries.map((e, j) => (j === i ? { ...e, ...patch } : e)));
@@ -770,6 +794,36 @@ function GroupField({
               {isExpanded && (
                 <div className="px-4 pb-4 flex flex-col gap-5">
                   {subFields.map((sub) => {
+                    if (sub === pickField) {
+                      // Required through the fields it fills: flagged when
+                      // any of them is still missing
+                      const pickError =
+                        showErrors && lockedFields.some((l) => isFieldMissing(l, entry[l.name]))
+                          ? t("required")
+                          : undefined;
+                      return (
+                        <FieldGroup key={sub.name} label={sub.label} required error={pickError}>
+                          <select
+                            value={pickedOption(entry)?.value ?? ""}
+                            onChange={(e) => {
+                              const option = pickOptions.find((o) => o.value === e.target.value);
+                              setEntry(i, { [REGISTER_PICK_FIELD_NAME]: e.target.value, ...option?.fill });
+                            }}
+                            className="w-full h-[44px] border border-[rgba(26,26,24,0.28)] rounded-[8px] px-3 text-base text-text-primary outline-none bg-white"
+                          >
+                            <option value="" disabled>
+                              {t("registerPickPlaceholder")}
+                            </option>
+                            {pickOptions.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.label}
+                              </option>
+                            ))}
+                          </select>
+                        </FieldGroup>
+                      );
+                    }
+                    if (lockedFields.includes(sub) && hideLocked(entry)) return null;
                     const subError =
                       showErrors && isFieldMissing(sub, entry[sub.name])
                         ? t("required")

@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEvidence } from "@/lib/hooks/activities";
 import {
   useChallenge,
+  useChallengeRegisters,
   useMarkStepComplete,
   useSubmitEvidence,
   useSubmitRegistration,
@@ -37,14 +38,17 @@ import {
   flattenContainersForPayload,
   foldTimeIntoDate,
   hoistContainerValues,
+  isNumericFieldValue,
   nestContainerValues,
   normalizeFieldName,
   preNormalizeAnchorFields,
+  REGISTER_PICK_FIELD_NAME,
   shapeFieldValue,
   toDataKey,
   unfoldTimeFromDate,
   usableLeaves,
   withMediaFileReferenceId,
+  withRegisterPicker,
 } from "../lib/deriveWizardConfig";
 import { DEFAULT_FORM_CONFIG, STEP_FORM_CONFIGS } from "../stepFormConfig";
 import { WizardHeader } from "../wizard/shared";
@@ -154,17 +158,6 @@ function isValueUnit(v: unknown): v is { value: number; unit?: string; unitOfMea
 
 function valueUnitOf(v: { unit?: string; unitOfMeasure?: string }): string | undefined {
   return v.unit ?? v.unitOfMeasure;
-}
-
-// Same shape as isValueUnit but for a field already known to be NUMBER/
-// NUMERIC — unit-less counts (e.g. CH-011 species.quantity: {"value": 1},
-// no unit/unitOfMeasure key at all) still need stringifying, so the unit key
-// can't be required here the way isValueUnit requires it to disambiguate
-// from other object-shaped fields (LOCATION, mediaFile, …).
-function isNumericFieldValue(
-  v: unknown,
-): v is { value: number; unit?: string; unitOfMeasure?: string } {
-  return v !== null && typeof v === "object" && !Array.isArray(v) && "value" in v;
 }
 
 // Reverses shapeEntry's per-subfield shaping (buildDynamicPayload) for one
@@ -958,19 +951,38 @@ export default function LogEvidenceWizard({
     [setupDetail, stepMeta],
   );
 
+  // Fields whose template says to pick from an earlier step's entries, and
+  // what those steps recorded — see withRegisterPicker
+  const sourcedFields = useMemo(
+    () => (rawStepForm ?? []).filter((f) => !!f.source),
+    [rawStepForm],
+  );
+  const registerData = useChallengeRegisters(
+    challengeId,
+    sourcedFields.map((f) => f.source!),
+  );
+  const registers = useMemo(
+    () => new Map(sourcedFields.map((f, i) => [f.name, registerData[i] ?? []])),
+    [sourcedFields, registerData],
+  );
+
   // CH-011/CH-015 splice a synthetic point-select subfield into their
   // addable anchorPoint GROUP — see withPointSelectSubfield
   const stepForm = useMemo(
     () =>
       rawStepForm
-        ? withPointSelectSubfield(
-            rawStepForm,
-            challenge?.challengeCode,
-            stepMeta?.stepType,
-            setupData?.anchorPoints ?? [],
+        ? withRegisterPicker(
+            withPointSelectSubfield(
+              rawStepForm,
+              challenge?.challengeCode,
+              stepMeta?.stepType,
+              setupData?.anchorPoints ?? [],
+            ),
+            registers,
+            t("registerPickLabel"),
           )
         : rawStepForm,
-    [rawStepForm, challenge?.challengeCode, stepMeta?.stepType, setupData],
+    [rawStepForm, challenge?.challengeCode, stepMeta?.stepType, setupData, registers, t],
   );
 
   // BE form takes precedence over FE config whenever form fields are present.
@@ -1931,6 +1943,7 @@ export default function LogEvidenceWizard({
         const converted = (val as Record<string, unknown>[]).map((e) => {
           if (!e || typeof e !== "object") return e;
           const out: Record<string, unknown> = { ...e };
+          delete out[REGISTER_PICK_FIELD_NAME];
           // One id per entry, correlating the entry with its own photo. The BE
           // reads it back off each entry (models.Species.MediaFileReferenceId)
           // and looks the file up as mediaFiles[<id>].
@@ -2158,6 +2171,9 @@ export default function LogEvidenceWizard({
           const entry = foldTimeIntoDate(subFields, rawEntry);
           const out: Record<string, unknown> = {};
           for (const sub of subFields) {
+            // The register picker only chose what to copy in; the copied
+            // fields are what's submitted
+            if (sub.name === REGISTER_PICK_FIELD_NAME) continue;
             const sv = entry[sub.name];
             if (sv === undefined || sv === null || sv === "") continue;
             if (sv instanceof File) {
