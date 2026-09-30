@@ -400,14 +400,11 @@ export function useSubmitRegistration() {
   });
 }
 
-type MarkStepCompletePayload = {
-  stepNumber: number;
-  stepType: string;
-  stepId: string;
-  title: string;
-  description: string;
-  isCompleted: boolean;
-};
+// The whole step, not just the flag: the BE replaces the stored step with this
+// body wholesale, so any field left out (required, form, activity, …) is saved
+// as its zero value — a partial body made the completed step "not required"
+// and dropped it out of the progress count.
+type MarkStepCompletePayload = NonNullable<ApiCircleChallenge["challengeSteps"]>[number];
 
 export function useMarkStepComplete() {
   const queryClient = useQueryClient();

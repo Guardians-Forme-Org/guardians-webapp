@@ -2546,14 +2546,7 @@ export default function LogEvidenceWizard({
     if (shouldMarkComplete && stepMeta && challenge) {
       markStepComplete.mutate({
         challengeId: challenge.challengeId,
-        step: {
-          stepNumber: stepMeta.stepNumber,
-          stepType: stepMeta.stepType,
-          stepId: stepMeta.stepId,
-          title: stepMeta.title,
-          description: stepMeta.description,
-          isCompleted: true,
-        },
+        step: { ...stepMeta, isCompleted: true },
       });
     }
     setSubmitted(true);
