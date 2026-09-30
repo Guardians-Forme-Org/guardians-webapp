@@ -9,7 +9,7 @@ import LocationPicker, { type LocationResult } from "@/components/ui/LocationPic
 import { compressImage, MAX_UPLOAD_BYTES } from "@/lib/compressImage";
 import { useChallenge } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
-import { isPersonSelectField, REGISTER_PICK_FIELD_NAME } from "../../lib/deriveWizardConfig";
+import { isPersonSelectField, REGISTER_PICK_FIELD_NAME, registeredIdentity } from "../../lib/deriveWizardConfig";
 import { FieldGroup, SaveButton, ToggleCard } from "../shared";
 import type { ApiTemplateFormField } from "@/lib/types/challenges";
 
@@ -758,7 +758,12 @@ function GroupField({
       <div className="flex flex-col gap-3">
         {entries.map((entry, i) => {
           const isExpanded = expanded.has(i) || (!!showErrors && entryMissing(entry));
-          const title = ((nameField ? entry[nameField.name] : "") as string) || `#${i + 1}`;
+          // A sourced entry is named the way its picker option is ("#22 Brest")
+          // — two trees can share a species name, not a number
+          const title =
+            (lockedFields.length ? registeredIdentity(lockedFields, entry) : "") ||
+            ((nameField ? entry[nameField.name] : "") as string) ||
+            `#${i + 1}`;
           return (
             <div key={i} className="border border-[rgba(26,26,24,0.14)] rounded-[12px] overflow-hidden">
               <div className="flex items-center px-4 py-3 gap-2">

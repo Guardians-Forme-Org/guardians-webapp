@@ -680,6 +680,22 @@ export function isNumericFieldValue(
   return v !== null && typeof v === "object" && !Array.isArray(v) && "value" in v;
 }
 
+// "#22 Brest": a registered entry's locked values the way the picker's options
+// and the entry cards both name it — numbers prefixed with #
+export function registeredIdentity(
+  locked: ApiTemplateFormField[],
+  values: Record<string, unknown>,
+): string {
+  return locked
+    .map((sub) => {
+      const v = String(values[sub.name] ?? "").trim();
+      if (!v) return "";
+      return sub.type === "NUMBER" || sub.type === "NUMERIC" ? `#${v}` : v;
+    })
+    .filter(Boolean)
+    .join(" ");
+}
+
 // A GROUP/ITEM whose template names a `source` (CH-011/CH-019's survival
 // assessment) picks each entry from what an earlier step recorded, instead of
 // having it typed in again. A synthetic SELECT goes first in the entry; each
@@ -700,7 +716,7 @@ export function withRegisterPicker(
       .map((name) => subFields.find((sub) => sub.name === name))
       .filter((sub): sub is ApiTemplateFormField => !!sub);
     const seen = new Set<string>();
-    const options: NonNullable<ApiTemplateFormField["options"]> = [];
+    const picks: { anchorPoint: string; fill: Record<string, string> }[] = [];
     for (const registered of entries) {
       const fill: Record<string, string> = {};
       for (const sub of locked) {
@@ -718,20 +734,28 @@ export function withRegisterPicker(
       const key = JSON.stringify([registered.anchorPoint ?? "", fill]);
       if (seen.has(key)) continue;
       seen.add(key);
-      // "#1 Jacaranda · Sisulu Garden": numbers restart per anchor point, so
-      // the point is what tells two "#1"s apart
-      const identity = locked
-        .filter((sub) => fill[sub.name])
-        .map((sub) =>
-          sub.type === "NUMBER" || sub.type === "NUMERIC" ? `#${fill[sub.name].trim()}` : fill[sub.name].trim(),
-        )
-        .join(" ");
-      options.push({
-        value: String(options.length),
-        label: [identity, registered.anchorPoint].filter(Boolean).join(" · "),
-        fill,
-      });
+      picks.push({ anchorPoint: registered.anchorPoint ?? "", fill });
     }
+    // The register comes newest-first; listed by anchor point, then by number
+    // (#1, #11, #22 — numerically, not as text), then by name, it scans the
+    // way the trees were laid out
+    const numberFields = locked.filter((sub) => sub.type === "NUMBER" || sub.type === "NUMERIC");
+    picks.sort(
+      (a, b) =>
+        a.anchorPoint.localeCompare(b.anchorPoint) ||
+        numberFields.reduce(
+          (order, sub) => order || (Number(a.fill[sub.name]) || 0) - (Number(b.fill[sub.name]) || 0),
+          0,
+        ) ||
+        registeredIdentity(locked, a.fill).localeCompare(registeredIdentity(locked, b.fill)),
+    );
+    // "#1 Jacaranda · Sisulu Garden": numbers restart per anchor point, so
+    // the point is what tells two "#1"s apart
+    const options: NonNullable<ApiTemplateFormField["options"]> = picks.map((pick, i) => ({
+      value: String(i),
+      label: [registeredIdentity(locked, pick.fill), pick.anchorPoint].filter(Boolean).join(" · "),
+      fill: pick.fill,
+    }));
     if (!options.length) return f;
     return {
       ...f,
