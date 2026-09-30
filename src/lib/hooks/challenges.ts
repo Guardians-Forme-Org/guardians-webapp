@@ -4,10 +4,12 @@ import type {
   ChallengeSetupAnchorPoint,
   ChallengeSetupLocation,
   CreateChallengeRequest,
+  FieldSource,
+  RegisterEntry,
   TemplatesListResponse,
 } from "@/lib/types/challenges";
 import type { ApiCircleChallenge } from "@/lib/types/circles";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useTemplates() {
   return useQuery({
@@ -28,6 +30,27 @@ export function useChallenge(challengeId: string) {
     queryKey: ["challenge", challengeId],
     queryFn: () => api.get<ApiCircleChallenge>(`/challenges/${challengeId}`),
     enabled: !!challengeId,
+  });
+}
+
+// Stable reference: useQueries only re-combines when results change, and the
+// combined array keeps its identity until the data does
+const registerData = (results: { data?: RegisterEntry[] }[]) =>
+  results.map((r) => r.data ?? []);
+
+// The entries each sourced field picks from — one request per source, in the
+// order given; empty until loaded
+export function useChallengeRegisters(challengeId: string, sources: FieldSource[]) {
+  return useQueries({
+    queries: sources.map((source) => ({
+      queryKey: ["challengeRegister", challengeId, source.stepId, source.field],
+      queryFn: () =>
+        api.get<RegisterEntry[]>(
+          `/challenges/${challengeId}/register?stepId=${encodeURIComponent(source.stepId)}&field=${encodeURIComponent(source.field)}`,
+        ),
+      enabled: !!challengeId,
+    })),
+    combine: registerData,
   });
 }
 
@@ -196,6 +219,7 @@ export function useSubmitEvidence() {
       queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
       queryClient.invalidateQueries({ queryKey: ["recentActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["challengeRegister"] });
       queryClient.invalidateQueries({ queryKey: ["userRecentActivities"] });
     },
   });
@@ -230,6 +254,7 @@ export function useUpdateEvidence() {
       queryClient.invalidateQueries({ queryKey: ["loginData"] });
       queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
       queryClient.invalidateQueries({ queryKey: ["recentActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["challengeRegister"] });
       queryClient.invalidateQueries({ queryKey: ["userRecentActivities"] });
     },
   });

@@ -87,6 +87,8 @@
   "tapToUploadFiles": "Tap to upload",
   "fileFormats": "JPG, PNG, HEIF · max 10 MB",
   "required": "Required",
+  "registerPickLabel": "Select from what was registered",
+  "registerPickPlaceholder": "Choose one",
   "uploaded": "Uploaded",
   "siteDetailsHeading": "Site Details\n& Baseline",
   "siteNameLabel": "Site Name",

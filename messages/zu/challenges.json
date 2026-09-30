@@ -1,5 +1,7 @@
 {
   "submissionHeading": "Ukuthunyelwa",
   "submissionSubheading": "Lokho okuthunyelwe kulo msebenzi.",
-  "impactGeneratedLabel": "Umthelela okhiqiziwe"
+  "impactGeneratedLabel": "Umthelela okhiqiziwe",
+  "registerPickLabel": "Khetha kulokho okubhalisiwe",
+  "registerPickPlaceholder": "Khetha okukodwa"
 }

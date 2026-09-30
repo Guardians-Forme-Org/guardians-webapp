@@ -17,6 +17,21 @@ export type ApiTemplateFormFieldType =
   | "GROUP"
   | "ITEM"; //Same as GROUP
 
+export type FieldSource = {
+  stepId: string;
+  field: string;
+  lockedFields?: string[];
+};
+
+// One entry an earlier submission recorded under a sourced field — served by
+// GET /challenges/:id/register (BE models.RegisterEntry)
+export type RegisterEntry = {
+  anchorPoint?: string;
+  values: Record<string, unknown>;
+  submissionId: string;
+  submittedAt: string;
+};
+
 export type ApiTemplateFormField = {
   name: string;
   label: string;
@@ -24,13 +39,19 @@ export type ApiTemplateFormField = {
   type: ApiTemplateFormFieldType;
   required: boolean;
   displayOrder: number;
-  options?: { value: string; label: string }[];
+  // `fill` is FE-only: the synthetic register picker's options carry the
+  // values a pick copies into the entry (see withRegisterPicker)
+  options?: { value: string; label: string; fill?: Record<string, unknown> }[];
   unitOfMeasureOptions?: { value: string; label: string }[];
   // User can append multiple entries for this field — the value becomes an
   // array of whatever the base input type produces (strings, objects, …)
   addableInput?: boolean;
   // GROUP/ITEM only: the sub-form rendered for each entry
   fields?: ApiTemplateFormField[];
+  // GROUP/ITEM only (BE models.FieldSource): each entry is picked from what
+  // step `stepId` recorded under `field` earlier in this challenge;
+  // `lockedFields` are copied from the pick instead of typed in
+  source?: FieldSource;
   // BE sometimes ships the anchor-point reference wrapped under this key
   // instead of as a properly-typed field (CH-001/CH-008A/CH-004 EXECUTION
   // steps) — see deriveWizardConfig's wrapper normalization

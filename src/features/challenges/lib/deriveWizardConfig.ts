@@ -1,4 +1,8 @@
-import type { ApiTemplateFormField, ChallengeSetupAnchorPoint } from "@/lib/types/challenges";
+import type {
+  ApiTemplateFormField,
+  ChallengeSetupAnchorPoint,
+  RegisterEntry,
+} from "@/lib/types/challenges";
 import { isAnchorPointKey } from "@/lib/types/contractKeys";
 
 export type DerivedStepKind =
@@ -659,6 +663,91 @@ export function toDataKey(name: string, val: unknown): string {
   // BE tag is singular
   if (norm === "COMMUNICATIONCHANNELS") return "communicationChannel";
   return name;
+}
+
+// The synthetic "pick a registered entry" subfield a sourced GROUP/ITEM gets
+// (see LogEvidenceWizard's withRegisterPicker). FE-only: never submitted.
+export const REGISTER_PICK_FIELD_NAME = "__registerPick";
+
+// Same shape as isValueUnit but for a field already known to be NUMBER/
+// NUMERIC — unit-less counts (e.g. CH-011 species.quantity: {"value": 1},
+// no unit/unitOfMeasure key at all) still need stringifying, so the unit key
+// can't be required here the way isValueUnit requires it to disambiguate
+// from other object-shaped fields (LOCATION, mediaFile, …).
+export function isNumericFieldValue(
+  v: unknown,
+): v is { value: number; unit?: string; unitOfMeasure?: string } {
+  return v !== null && typeof v === "object" && !Array.isArray(v) && "value" in v;
+}
+
+// A GROUP/ITEM whose template names a `source` (CH-011/CH-019's survival
+// assessment) picks each entry from what an earlier step recorded, instead of
+// having it typed in again. A synthetic SELECT goes first in the entry; each
+// option carries the values a pick copies into the entry (`fill`, already in
+// form-input shape), and GroupField hides the locked fields it fills. With
+// nothing registered yet the field is left exactly as the template has it —
+// typed entries, as before — so the step never becomes unusable.
+export function withRegisterPicker(
+  fields: ApiTemplateFormField[],
+  registers: ReadonlyMap<string, RegisterEntry[]>,
+  label: string,
+): ApiTemplateFormField[] {
+  return fields.map((f) => {
+    const entries = f.source ? registers.get(f.name) : undefined;
+    if (!f.source || !entries?.length) return f;
+    const subFields = f.fields ?? [];
+    const locked = (f.source.lockedFields ?? [])
+      .map((name) => subFields.find((sub) => sub.name === name))
+      .filter((sub): sub is ApiTemplateFormField => !!sub);
+    const seen = new Set<string>();
+    const options: NonNullable<ApiTemplateFormField["options"]> = [];
+    for (const registered of entries) {
+      const fill: Record<string, string> = {};
+      for (const sub of locked) {
+        const raw = registered.values[sub.name];
+        const formValue =
+          (sub.type === "NUMBER" || sub.type === "NUMERIC") && isNumericFieldValue(raw)
+            ? String(raw.value)
+            : typeof raw === "string" || typeof raw === "number"
+              ? String(raw)
+              : "";
+        if (formValue.trim()) fill[sub.name] = formValue;
+      }
+      if (!Object.keys(fill).length) continue;
+      // The same entry resubmitted (or registered twice) is one choice
+      const key = JSON.stringify([registered.anchorPoint ?? "", fill]);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      // "#1 Jacaranda · Sisulu Garden": numbers restart per anchor point, so
+      // the point is what tells two "#1"s apart
+      const identity = locked
+        .filter((sub) => fill[sub.name])
+        .map((sub) =>
+          sub.type === "NUMBER" || sub.type === "NUMERIC" ? `#${fill[sub.name].trim()}` : fill[sub.name].trim(),
+        )
+        .join(" ");
+      options.push({
+        value: String(options.length),
+        label: [identity, registered.anchorPoint].filter(Boolean).join(" · "),
+        fill,
+      });
+    }
+    if (!options.length) return f;
+    return {
+      ...f,
+      fields: [
+        {
+          name: REGISTER_PICK_FIELD_NAME,
+          label,
+          type: "SELECT",
+          required: false,
+          displayOrder: -1,
+          options,
+        },
+        ...subFields,
+      ],
+    };
+  });
 }
 
 // ── Date + time pairs ────────────────────────────────────────────────────────
