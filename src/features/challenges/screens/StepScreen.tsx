@@ -265,14 +265,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                         markComplete.mutate(
                           {
                             challengeId,
-                            step: {
-                              stepNumber: step.stepNumber,
-                              stepType: step.stepType,
-                              stepId: step.stepId,
-                              title: step.title,
-                              description: step.description,
-                              isCompleted: true,
-                            },
+                            step: { ...step, isCompleted: true },
                           },
                           { onSuccess: () => setConfirming(false) },
                         )
