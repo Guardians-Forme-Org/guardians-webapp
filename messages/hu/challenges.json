@@ -84,6 +84,8 @@
   "tapToUploadFiles": "Koppints a feltöltéshez",
   "fileFormats": "JPG, PNG, HEIF · max 10 MB",
   "required": "Kötelező",
+  "registerPickLabel": "Válassz a regisztráltak közül",
+  "registerPickPlaceholder": "Válassz egyet",
   "uploaded": "Feltöltve",
   "siteDetailsHeading": "Helyszín részletei és kiindulási állapot",
   "siteNameLabel": "Helyszín neve",

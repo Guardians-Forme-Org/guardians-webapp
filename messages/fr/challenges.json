@@ -1,5 +1,7 @@
 {
   "submissionHeading": "Soumission",
   "submissionSubheading": "Ce qui a été soumis pour cette activité.",
-  "impactGeneratedLabel": "Impact généré"
+  "impactGeneratedLabel": "Impact généré",
+  "registerPickLabel": "Choisir parmi les éléments enregistrés",
+  "registerPickPlaceholder": "Choisissez-en un"
 }
