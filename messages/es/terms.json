@@ -1,0 +1,245 @@
+{
+  "back": "Back",
+  "lastUpdated": "Last updated: {date}",
+  "title": "Terms and Conditions",
+  "updatedOn": "29.06.2026",
+  "sections": [
+    {
+      "number": 1,
+      "heading": "Introduction",
+      "content": [
+        "Welcome to Guardians (hereafter Platform)",
+        "These Terms and Conditions govern your access to and use of the Platform. By registering, accessing, or using the Platform, you agree to be bound by these Terms.",
+        "If you do not agree to these Terms, please do not use the Platform."
+      ]
+    },
+    {
+      "number": 2,
+      "heading": "Purpose of the Platform",
+      "content": [
+        "The Platform is a pilot initiative designed to support volunteers, participants, and community groups in organizing, documenting, and coordinating activities that contribute to positive social and environmental impact.",
+        "The Platform is provided for community collaboration purposes only."
+      ]
+    },
+    {
+      "number": 3,
+      "heading": "Eligibility",
+      "content": [
+        "You must:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Be at least 18 years old.",
+            "Provide accurate information when registering.",
+            "Comply with these Terms and all applicable laws."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "We reserve the right to suspend or terminate access for users who violate these Terms."
+      ]
+    },
+    {
+      "number": 4,
+      "heading": "Volunteer Participation",
+      "content": [
+        "Participation through the Platform is voluntary.",
+        "Nothing in these Terms creates:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "An employment relationship;",
+            "A contractor relationship;",
+            "A partnership;",
+            "An agency relationship;"
+          ]
+        }
+      ],
+      "trailingContent": [
+        "between the Platform and any user.",
+        "Volunteers participate at their own discretion and responsibility."
+      ]
+    },
+    {
+      "number": 5,
+      "heading": "User Responsibilities",
+      "content": [
+        "Users agree to:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Act respectfully toward others.",
+            "Follow all safeguarding requirements.",
+            "Respect local laws and regulations.",
+            "Provide truthful information.",
+            "Use the Platform only for lawful and ethical purposes.",
+            "Protect the privacy and dignity of other participants."
+          ]
+        },
+        {
+          "intro": "Users must not:",
+          "items": [
+            "Harass, bully, threaten, or discriminate against others.",
+            "Upload illegal, offensive, harmful, or misleading content.",
+            "Misrepresent themselves or others.",
+            "Attempt unauthorized access to systems or accounts.",
+            "Use the Platform for commercial spam or unauthorized fundraising."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "heading": "Safeguarding",
+      "content": [
+        "The safety and wellbeing of participants is a priority.",
+        "All users must comply with the Platform's Safeguarding Policy and Code of Conduct.",
+        "Where safeguarding concerns arise, the Platform reserves the right to:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Investigate reports;",
+            "Restrict participation;",
+            "Suspend or remove users;",
+            "Notify relevant authorities where required by law."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "heading": "User Content",
+      "content": [
+        "Users retain ownership of content they submit.",
+        "By submitting content, users grant the Platform a non-exclusive, worldwide, royalty-free license to:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Store;",
+            "Display;",
+            "Process;",
+            "Share within the Platform;"
+          ]
+        }
+      ],
+      "trailingContent": [
+        "for the purpose of operating and improving the Platform.",
+        "Users are responsible for ensuring they have permission to upload any content they submit."
+      ]
+    },
+    {
+      "number": 8,
+      "heading": "Intellectual Property",
+      "content": [
+        "Platform software, branding, logos, templates, documentation, and other materials remain the property of the Platform or its licensors unless otherwise stated.",
+        "Users may not copy, distribute, or modify Platform materials without permission."
+      ]
+    },
+    {
+      "number": 9,
+      "heading": "Pilot Status Disclaimer",
+      "content": [
+        "The Platform is currently operated as a pilot project.",
+        "Users acknowledge that:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Features may change;",
+            "Services may be interrupted;",
+            "Bugs or errors may occur;",
+            "Data structures and processes may evolve."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "The Platform is provided on an \"as available\" basis.",
+        "No guarantee is made regarding uninterrupted availability."
+      ]
+    },
+    {
+      "number": 10,
+      "heading": "Limitation of Liability",
+      "content": [
+        "To the maximum extent permitted by law, the Platform and its operators shall not be liable for:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Indirect or consequential losses;",
+            "Loss of opportunities;",
+            "Loss of data;",
+            "Personal decisions made based on Platform content;",
+            "Actions or omissions of other users."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "Users participate in activities at their own risk."
+      ]
+    },
+    {
+      "number": 11,
+      "heading": "Privacy and Data Protection",
+      "content": [
+        "Personal data is processed in accordance with our Privacy Policy.",
+        "By using the Platform, you acknowledge that your information may be processed as described in the Privacy Policy."
+      ]
+    },
+    {
+      "number": 12,
+      "heading": "Account Suspension and Termination",
+      "content": [
+        "We may suspend or terminate access if:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "These Terms are violated;",
+            "Safeguarding concerns arise;",
+            "Fraudulent activity is detected;",
+            "Continued participation may harm the community or the Platform."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "Users may stop using the Platform at any time."
+      ]
+    },
+    {
+      "number": 13,
+      "heading": "Changes to These Terms",
+      "content": [
+        "We may update these Terms periodically.",
+        "Updated versions will be published on the Platform.",
+        "Continued use after changes become effective constitutes acceptance of the revised Terms."
+      ]
+    },
+    {
+      "number": 14,
+      "heading": "Governing Law",
+      "content": [
+        "These Terms shall be governed by the laws of Hungary.",
+        "Any disputes shall be subject to the jurisdiction of the competent courts of that country, unless otherwise required by applicable law."
+      ]
+    },
+    {
+      "number": 15,
+      "heading": "Contact",
+      "content": [
+        "For questions regarding these Terms, please contact:"
+      ],
+      "contactDetails": {
+        "organisationName": "MIMÓZA Kommunikációs Kft.",
+        "email": "info@mimoza.hu",
+        "website": "https://www.mimoza.hu/",
+        "address": "1118 Budapest, Gombocz Zoltán utca 5. A. ép. Fsz. 2. ajtó"
+      }
+    }
+  ]
+}
