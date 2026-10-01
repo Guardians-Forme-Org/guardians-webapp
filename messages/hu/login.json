@@ -29,7 +29,7 @@
   "forgotPasswordBackToLogin": "Vissza a bejelentkezéshez",
   "forgotPasswordErrorEmail": "Kérjük, add meg az e-mail címed.",
   "forgotPasswordErrorGeneric": "Valami hiba történt. Kérjük, próbáld újra.",
-  "forgotPasswordMinor": "Ezt a fiókot az iskolád kezeli. Kérd meg a tanárodat, hogy állítsa vissza a jelszavadat.",
+  "forgotPasswordMinor": "This account is managed by your school. Ask your teacher to reset your password.",
   "resetPasswordTitle1": "Hozz létre új",
   "resetPasswordTitle2": "jelszót",
   "resetPasswordLabel": "Új jelszó",
