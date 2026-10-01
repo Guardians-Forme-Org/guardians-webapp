@@ -255,7 +255,7 @@ function Step1({
           />
         </div>
 
-        {/* Circle Lead(s) */}
+        {/* Circle Lead */}
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
             {t("circleLeadLabel")}{" "}
