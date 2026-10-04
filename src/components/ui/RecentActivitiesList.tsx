@@ -30,7 +30,7 @@ function formatStepId(stepId: string): string {
 export default function RecentActivitiesList({ thingId, filterStepId, userId, circleId }: Props) {
   const [limitIndex, setLimitIndex] = useState(0);
   const limit = LIMIT_STEPS[limitIndex];
-  const thing = useRecentActivities(thingId ?? "", limit);
+  const thing = useRecentActivities(thingId ?? "", limit, filterStepId);
   const user = useUserRecentActivities(userId ?? "", limit);
   const circle = useCircleRecentActivities(circleId ?? "", limit);
   const {
@@ -41,8 +41,10 @@ export default function RecentActivitiesList({ thingId, filterStepId, userId, ci
   } = thingId ? thing : circleId ? circle : user;
   // More items may exist when the API filled the requested window
   const hasMore = rawActivities.length >= limit && limitIndex < LIMIT_STEPS.length - 1;
+  // The BE filters by step already; keep a case-insensitive pass for an API that
+  // predates the stepId filter (stepIds were renamed after some submissions).
   const activities = filterStepId
-    ? rawActivities.filter((a) => a.stepId === filterStepId)
+    ? rawActivities.filter((a) => a.stepId?.toLowerCase() === filterStepId.toLowerCase())
     : rawActivities;
   const { data: users = [] } = useUsers();
   const { loginData, user: authUser } = useAuth();
