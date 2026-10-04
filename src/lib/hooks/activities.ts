@@ -4,13 +4,17 @@ import type { ApiRecentActivity } from "@/lib/types/circles";
 
 export const DEFAULT_ACTIVITIES_LIMIT = 3;
 
-export function useRecentActivities(thingId: string, limit = DEFAULT_ACTIVITIES_LIMIT) {
+// stepId narrows the list to one step on the BE, so paging counts that step's
+// activities rather than the whole challenge's.
+export function useRecentActivities(thingId: string, limit = DEFAULT_ACTIVITIES_LIMIT, stepId?: string) {
   return useQuery({
-    queryKey: ["recentActivities", thingId, limit],
+    queryKey: ["recentActivities", thingId, limit, stepId ?? null],
     // BE answers an empty list with 404 + [] — treat it as no activities.
     queryFn: () =>
       api
-        .get<ApiRecentActivity[]>(`/recentActivities/${thingId}?limit=${limit}`)
+        .get<ApiRecentActivity[]>(
+          `/recentActivities/${thingId}?limit=${limit}${stepId ? `&stepId=${encodeURIComponent(stepId)}` : ""}`,
+        )
         .catch((err: Error) => {
           if (err.message === "API error 404") return [];
           throw err;
