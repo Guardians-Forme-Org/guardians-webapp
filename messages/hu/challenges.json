@@ -86,6 +86,7 @@
   "required": "Kötelező",
   "registerPickLabel": "Válassz a regisztráltak közül",
   "registerPickPlaceholder": "Válassz egyet",
+  "sumOfHint": "A megadott tételekből automatikusan összeadva",
   "uploaded": "Feltöltve",
   "siteDetailsHeading": "Helyszín részletei és kiindulási állapot",
   "siteNameLabel": "Helyszín neve",

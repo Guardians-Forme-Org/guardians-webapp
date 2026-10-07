@@ -89,6 +89,7 @@
   "required": "Required",
   "registerPickLabel": "Select from what was registered",
   "registerPickPlaceholder": "Choose one",
+  "sumOfHint": "Added up automatically from your entries",
   "uploaded": "Uploaded",
   "siteDetailsHeading": "Site Details\n& Baseline",
   "siteNameLabel": "Site Name",

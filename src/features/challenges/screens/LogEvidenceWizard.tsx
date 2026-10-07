@@ -49,6 +49,7 @@ import {
   usableLeaves,
   withMediaFileReferenceId,
   withRegisterPicker,
+  withSumFields,
 } from "../lib/deriveWizardConfig";
 import { DEFAULT_FORM_CONFIG, STEP_FORM_CONFIGS } from "../stepFormConfig";
 import { WizardHeader } from "../wizard/shared";
@@ -1056,7 +1057,14 @@ export default function LogEvidenceWizard({
   );
 
   // ── Dynamic form state ─────────────────────────────────────────────────────
-  const [dynamicValues, setDynamicValues] = useState<DynamicValues>({});
+  // What was typed in; dynamicValues adds the totals the template says to
+  // work out from it (see withSumFields), so every reader — the screens,
+  // review, the payload builders — sees them like any other value
+  const [enteredValues, setDynamicValues] = useState<DynamicValues>({});
+  const dynamicValues = useMemo(
+    () => withSumFields(stepForm ?? [], enteredValues),
+    [stepForm, enteredValues],
+  );
   const updateDynamic = (name: string, value: unknown) =>
     setDynamicValues((prev) => {
       const next = { ...prev, [name]: value };
