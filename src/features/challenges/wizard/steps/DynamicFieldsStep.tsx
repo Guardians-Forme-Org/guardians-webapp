@@ -428,6 +428,9 @@ export function FieldControl({
 
   // ── NUMBER / NUMERIC ────────────────────────────────────────────────
   if (field.type === "NUMBER" || field.type === "NUMERIC") {
+    // A total the template says to work out from other entries (see
+    // withSumFields) — shown, never typed
+    const computed = !!field.sumOf;
     const numberInput = (val: string, onValueChange: (v: string) => void) => (
       <div
         className={`w-full flex items-center border border-[rgba(26,26,24,0.28)] rounded-[8px] overflow-hidden transition-opacity ${
@@ -438,10 +441,10 @@ export function FieldControl({
           type="number"
           inputMode="decimal"
           min="0"
-          disabled={disabled}
+          disabled={disabled || computed}
           value={val}
           onChange={(e) => onValueChange(e.target.value)}
-          placeholder={field.placeholder ?? "0"}
+          placeholder={computed ? "0" : (field.placeholder ?? "0")}
           className="flex-1 min-w-0 h-[44px] px-3 text-base text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none bg-white disabled:bg-[#f0efeb]"
         />
         {field.unitOfMeasureOptions && field.unitOfMeasureOptions.length > 1 ? (
@@ -517,6 +520,7 @@ export function FieldControl({
     return (
       <FieldGroup label={field.label} required={field.required} compact={compact} error={error}>
         {numberInput((value as string) ?? "", (v) => onChange(v))}
+        {computed && <p className="text-xs text-text-muted mt-1.5">{t("sumOfHint")}</p>}
         {disabled && disabledHint && (
           <p className="text-xs text-text-muted mt-1.5">{disabledHint}</p>
         )}

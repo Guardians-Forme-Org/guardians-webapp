@@ -774,6 +774,88 @@ export function withRegisterPicker(
   });
 }
 
+// ── Totals worked out from entries ───────────────────────────────────────────
+// A NUMBER field whose template names a `sumOf` (CH-011/CH-016's
+// speciesPlanted, CH-015's treePlanted) is the sum of one subfield across
+// another field's entries — the quantities in the species list — so it is
+// shown rather than asked for. The entries are looked up beside the total
+// first, then anywhere in the step: templates differ on whether the list sits
+// next to the total or inside the anchor point group.
+const isNumberField = (f: ApiTemplateFormField) => f.type === "NUMBER" || f.type === "NUMERIC";
+const isGroupField = (f: ApiTemplateFormField) => f.type === "GROUP" || f.type === "ITEM";
+
+const entriesOf = (value: unknown): Record<string, unknown>[] =>
+  Array.isArray(value)
+    ? value.filter(
+        (e): e is Record<string, unknown> => !!e && typeof e === "object" && !Array.isArray(e),
+      )
+    : [];
+
+function findEntries(
+  fields: ApiTemplateFormField[],
+  values: Record<string, unknown>,
+  name: string,
+): Record<string, unknown>[] {
+  return fields.filter(isGroupField).flatMap((f) => {
+    const entries = entriesOf(values[f.name]);
+    return f.name === name
+      ? entries
+      : entries.flatMap((entry) => findEntries(f.fields ?? [], entry, name));
+  });
+}
+
+const hasSumField = (fields: ApiTemplateFormField[]): boolean =>
+  fields.some((f) => !!f.sumOf || hasSumField(f.fields ?? []));
+
+// `values` with every sumOf field set to its total. Returns `values` itself
+// when nothing changes. A total with nothing to add up is left as it is, so a
+// submission from before the field was computed reopens with what was typed.
+export function withSumFields(
+  fields: ApiTemplateFormField[],
+  values: Record<string, unknown>,
+  root: { fields: ApiTemplateFormField[]; values: Record<string, unknown> } = { fields, values },
+): Record<string, unknown> {
+  let next = values;
+  for (const f of fields) {
+    if (f.sumOf && isNumberField(f)) {
+      const { field, of } = f.sumOf;
+      const entries = fields.some((sibling) => sibling.name === field)
+        ? entriesOf(values[field])
+        : findEntries(root.fields, root.values, field);
+      const amounts = entries
+        .map((entry) => {
+          const raw = isNumericFieldValue(entry[of]) ? entry[of].value : entry[of];
+          return typeof raw === "number" ? raw : typeof raw === "string" ? parseFloat(raw) : NaN;
+        })
+        .filter((n) => Number.isFinite(n));
+      if (!amounts.length) continue;
+      // Rounded so decimal quantities don't surface float noise (0.1 + 0.2)
+      const total = String(Math.round(amounts.reduce((a, b) => a + b, 0) * 1000) / 1000);
+      if (next[f.name] !== total) next = { ...next, [f.name]: total };
+      continue;
+    }
+    if (!isGroupField(f) || !hasSumField(f.fields ?? [])) continue;
+    // A total inside a group lives in the group's entries. A non-addable
+    // group that hasn't been touched yet has no entry to hold it, so it gets
+    // the single blank one its card renders with.
+    const stored = values[f.name];
+    const entries =
+      Array.isArray(stored) && stored.length
+        ? (stored as unknown[])
+        : !f.addableInput && (stored === undefined || stored === null || Array.isArray(stored))
+          ? [{}]
+          : null;
+    if (!entries) continue;
+    const summed = entries.map((entry) =>
+      entry && typeof entry === "object" && !Array.isArray(entry)
+        ? withSumFields(f.fields ?? [], entry as Record<string, unknown>, root)
+        : entry,
+    );
+    if (summed.some((entry, i) => entry !== entries[i])) next = { ...next, [f.name]: summed };
+  }
+  return next;
+}
+
 // ── Date + time pairs ────────────────────────────────────────────────────────
 // A point that asks for its date and time as two inputs (CH-001/CH-002's
 // dateCaptured + time, CH-007's dateRegistered + time) only has a slot for the

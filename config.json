@@ -1,5 +1,6 @@
 {
   "compactDetailFields": false,
   "progressRequiredStepsOnly": true,
+  "progressOptionalStepsBonus": true,
   "canCompleteGateEnabled": false
 }
