@@ -44,7 +44,7 @@ function HomeTab({
   const [expanded, setExpanded] = useState(false);
   const [showAllMembers, setShowAllMembers] = useState(false);
   const { data: users = [] } = useUsers();
-  const { percent: progress } = calcChallengeProgress(challenge);
+  const { percent: progress, displayPercent } = calcChallengeProgress(challenge);
   const members = challenge.members ?? [];
 
   return (
@@ -101,7 +101,7 @@ function HomeTab({
             />
           </div>
           <p className="text-xl text-text-primary font-normal shrink-0">
-            {progress}%
+            {displayPercent}%
           </p>
         </div>
       </div>
