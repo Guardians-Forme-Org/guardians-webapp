@@ -83,7 +83,9 @@ export default function StepScreen({ challengeId, stepId }: Props) {
   // once confirmed.
   const canCompleteStep = !appConfig.canCompleteGateEnabled || step?.canComplete !== false;
 
-  const { percent: progress } = challenge ? calcChallengeProgress(challenge) : { percent: 0 };
+  const { percent: progress, displayPercent } = challenge
+    ? calcChallengeProgress(challenge)
+    : { percent: 0, displayPercent: 0 };
   const fUser = users.find((u) => u.id === (f?.id ?? f?.userId));
   const fAvatar = f?.avatarUrl || fUser?.user_metadata?.avatarUrl;
   const fName = fUser
@@ -216,7 +218,7 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                   />
                 </div>
                 <p className="text-xl text-text-primary font-normal shrink-0">
-                  {progress}%
+                  {displayPercent}%
                 </p>
               </div>
             </div>

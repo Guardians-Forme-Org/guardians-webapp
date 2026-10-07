@@ -54,7 +54,7 @@ export function calcChallengeProgress(challenge: {
   steps: number;
   currentStep: number;
   challengeSteps?: Array<{ isCompleted: boolean; required?: boolean }> | null;
-}): { percent: number; completedCount: number; total: number } {
+}): { percent: number; displayPercent: number; completedCount: number; total: number } {
   const steps = challenge.challengeSteps;
   // Toggle in config.json — flip off if required-only progress needs to be
   // compared against the old all-steps behavior.
@@ -62,12 +62,25 @@ export function calcChallengeProgress(challenge: {
     appConfig.progressRequiredStepsOnly && !!steps?.some((s) => s.required === true);
   const countedSteps = hasRequiredSteps ? steps!.filter((s) => s.required === true) : steps;
   const total = countedSteps?.length ? countedSteps.length : challenge.steps;
-  if (total <= 0) return { percent: 0, completedCount: 0, total: 0 };
+  if (total <= 0) return { percent: 0, displayPercent: 0, completedCount: 0, total: 0 };
   const completedCount = countedSteps?.length
     ? countedSteps.filter((s) => s.isCompleted).length
     : challenge.currentStep;
+  const percent = Math.min(100, Math.round((completedCount / total) * 100));
+  // Toggle in config.json — optional steps finished on top of a complete
+  // required set push the figure past 100 (3 required + 1 optional, all done
+  // → 133%). They only count once every required step is done, so the figure
+  // never reads 100% while a required step is still open. `percent` stays
+  // capped for the bar's width; `displayPercent` is the number shown.
+  const bonusCount =
+    appConfig.progressOptionalStepsBonus && hasRequiredSteps && completedCount >= total
+      ? steps!.filter((s) => s.required !== true && s.isCompleted).length
+      : 0;
   return {
-    percent: Math.min(100, Math.round((completedCount / total) * 100)),
+    percent,
+    displayPercent: bonusCount
+      ? Math.round(((completedCount + bonusCount) / total) * 100)
+      : percent,
     completedCount,
     total,
   };

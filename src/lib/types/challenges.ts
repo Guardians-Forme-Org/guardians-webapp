@@ -23,6 +23,13 @@ export type FieldSource = {
   lockedFields?: string[];
 };
 
+// BE models.FieldSum: a NUMBER field that is the sum of subfield `of` across
+// every entry recorded under `field` in the same step
+export type FieldSum = {
+  field: string;
+  of: string;
+};
+
 // One entry an earlier submission recorded under a sourced field — served by
 // GET /challenges/:id/register (BE models.RegisterEntry)
 export type RegisterEntry = {
@@ -52,6 +59,9 @@ export type ApiTemplateFormField = {
   // step `stepId` recorded under `field` earlier in this challenge;
   // `lockedFields` are copied from the pick instead of typed in
   source?: FieldSource;
+  // NUMBER/NUMERIC only (BE models.FieldSum): worked out from another
+  // field's entries instead of typed in — see withSumFields
+  sumOf?: FieldSum;
   // BE sometimes ships the anchor-point reference wrapped under this key
   // instead of as a properly-typed field (CH-001/CH-008A/CH-004 EXECUTION
   // steps) — see deriveWizardConfig's wrapper normalization
