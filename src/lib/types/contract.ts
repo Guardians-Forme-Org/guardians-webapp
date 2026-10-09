@@ -220,7 +220,6 @@ export interface AnchorPoint {
   plants?: Plant[];
   trees?: Plant[];
   species?: Species[];
-  seeds?: Species[];
   seedsUsed?: Measurement;
 }
 
@@ -337,6 +336,5 @@ export interface DataEnvelope {
   plants?: Plant[];
   usedSpecies?: Species[];
   species?: Species[];
-  seeds?: Species[];
   seedsUsed?: Measurement;
 }
