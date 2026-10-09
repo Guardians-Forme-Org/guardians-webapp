@@ -163,44 +163,47 @@ describe("withSumFields — total inside a display container", () => {
   });
 });
 
-// CH-016's planting step: a second list for seeds sown by mass, with its own
-// total beside the species one. Grams is the only unit the template offers.
-describe("withSumFields — seeds by mass beside species by count", () => {
+// CH-016's planting step: a species row carries a count, a mass of seeds in
+// grams, or both, and each amount has its own total beside the list
+describe("withSumFields — two totals over the same list", () => {
   const grams = [{ value: "g", label: "Grams (g)" }];
-  const seeds = field("seeds", "ITEM", {
+  const rows = field("species", "ITEM", {
     addableInput: true,
-    fields: [field("name", "TEXT"), field("mass", "NUMBER", { unitOfMeasureOptions: grams })],
+    fields: [
+      field("name", "TEXT"),
+      field("mass", "NUMBER", { unitOfMeasureOptions: grams }),
+      field("quantity", "NUMBER"),
+    ],
   });
   const form = [
     field("anchorPoint", "GROUP"),
-    species,
+    rows,
     field("speciesPlanted", "NUMERIC", { sumOf }),
-    seeds,
     field("seedsUsed", "NUMERIC", {
       unitOfMeasureOptions: grams,
-      sumOf: { field: "seeds", of: "mass" },
+      sumOf: { field: "species", of: "mass" },
     }),
   ];
 
-  it("totals each list on its own", () => {
+  it("totals each amount on its own", () => {
     const out = withSumFields(form, {
-      species: [{ name: "Tomato", quantity: "6" }],
-      seeds: [
+      species: [
+        { name: "Tomato", quantity: "6" },
         { name: "Carrot", mass: "12.5" },
-        { name: "Basil", mass: "7.5" },
+        { name: "Basil", mass: "7.5", quantity: "4" },
       ],
     });
-    expect(out.speciesPlanted).toBe("6");
+    expect(out.speciesPlanted).toBe("10");
     expect(out.seedsUsed).toBe("20");
   });
 
-  it("leaves the species total empty when only seeds were logged", () => {
-    const out = withSumFields(form, { seeds: [{ name: "Carrot", mass: "40" }] });
+  it("leaves the species total empty when every row is logged by mass", () => {
+    const out = withSumFields(form, { species: [{ name: "Carrot", mass: "40" }] });
     expect(out.seedsUsed).toBe("40");
     expect(out.speciesPlanted).toBeUndefined();
   });
 
-  it("leaves the seeds total empty when only species were logged", () => {
+  it("leaves the mass total empty when every row is logged by count", () => {
     const out = withSumFields(form, { species: [{ name: "Tomato", quantity: "6" }] });
     expect(out.speciesPlanted).toBe("6");
     expect(out.seedsUsed).toBeUndefined();
@@ -208,7 +211,7 @@ describe("withSumFields — seeds by mass beside species by count", () => {
 
   it("reads a stored mass back from its {value, unitOfMeasure} shape", () => {
     const out = withSumFields(form, {
-      seeds: [{ mass: { value: 12.5, unitOfMeasure: "g" } }, { mass: { value: 7.5, unitOfMeasure: "g" } }],
+      species: [{ mass: { value: 12.5, unitOfMeasure: "g" } }, { mass: { value: 7.5, unitOfMeasure: "g" } }],
     });
     expect(out.seedsUsed).toBe("20");
   });
