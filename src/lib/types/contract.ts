@@ -108,12 +108,14 @@ export interface Species {
   mediaFileReferenceId?: string;
   iNaturalistObsId?: string;
   mass?: Measurement;
+  native?: boolean;
 }
 
 export interface AnchorPoint {
   name: string;
   consentMethod?: string;
   outreachMethod?: string;
+  outreachMethods?: unknown[];
   waterHarvestingType?: string;
   shadeType?: string;
   orientation?: string;
@@ -233,6 +235,7 @@ export interface DataEnvelope {
   vulnerableMembers?: Measurement;
   membersAssisted?: Measurement;
   householdsReached?: Measurement;
+  volunteersActive?: Measurement;
   litresDistributed?: Measurement;
   litresCollected?: Measurement;
   houseHoldsCount?: Measurement;
