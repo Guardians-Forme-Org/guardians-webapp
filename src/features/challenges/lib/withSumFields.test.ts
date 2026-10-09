@@ -162,3 +162,54 @@ describe("withSumFields — total inside a display container", () => {
     expect(out.anchorPoint).toBe(anchorPoint);
   });
 });
+
+// CH-016's planting step: a second list for seeds sown by mass, with its own
+// total beside the species one. Grams is the only unit the template offers.
+describe("withSumFields — seeds by mass beside species by count", () => {
+  const grams = [{ value: "g", label: "Grams (g)" }];
+  const seeds = field("seeds", "ITEM", {
+    addableInput: true,
+    fields: [field("name", "TEXT"), field("mass", "NUMBER", { unitOfMeasureOptions: grams })],
+  });
+  const form = [
+    field("anchorPoint", "GROUP"),
+    species,
+    field("speciesPlanted", "NUMERIC", { sumOf }),
+    seeds,
+    field("seedsUsed", "NUMERIC", {
+      unitOfMeasureOptions: grams,
+      sumOf: { field: "seeds", of: "mass" },
+    }),
+  ];
+
+  it("totals each list on its own", () => {
+    const out = withSumFields(form, {
+      species: [{ name: "Tomato", quantity: "6" }],
+      seeds: [
+        { name: "Carrot", mass: "12.5" },
+        { name: "Basil", mass: "7.5" },
+      ],
+    });
+    expect(out.speciesPlanted).toBe("6");
+    expect(out.seedsUsed).toBe("20");
+  });
+
+  it("leaves the species total empty when only seeds were logged", () => {
+    const out = withSumFields(form, { seeds: [{ name: "Carrot", mass: "40" }] });
+    expect(out.seedsUsed).toBe("40");
+    expect(out.speciesPlanted).toBeUndefined();
+  });
+
+  it("leaves the seeds total empty when only species were logged", () => {
+    const out = withSumFields(form, { species: [{ name: "Tomato", quantity: "6" }] });
+    expect(out.speciesPlanted).toBe("6");
+    expect(out.seedsUsed).toBeUndefined();
+  });
+
+  it("reads a stored mass back from its {value, unitOfMeasure} shape", () => {
+    const out = withSumFields(form, {
+      seeds: [{ mass: { value: 12.5, unitOfMeasure: "g" } }, { mass: { value: 7.5, unitOfMeasure: "g" } }],
+    });
+    expect(out.seedsUsed).toBe("20");
+  });
+});

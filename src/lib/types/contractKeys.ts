@@ -33,7 +33,8 @@ export const ANCHOR_POINT_KEYS = [
   "estimatedCapacityPerDay", "speciesUsed", "gardenArea", "speciesPlanted",
   "actualGardenArea", "nativeSpeciesCount", "harvestEstimate",
   "pointsRestoredCreated", "estimatedLitresPerDay", "totalTrees",
-  "catchmentArea", "excavationDepth", "plants", "trees", "species",
+  "catchmentArea", "excavationDepth", "plants", "trees", "species", "seeds",
+  "seedsUsed",
 ] as const satisfies readonly (keyof AnchorPoint)[];
 
 export const DATA_ENVELOPE_KEYS = [
@@ -63,7 +64,7 @@ export const DATA_ENVELOPE_KEYS = [
   "dateVerified", "confirmAccessible", "openingHour", "closingHour",
   "caption", "category", "notes", "name",
   "shadeType", "activationMode", "activationModel", "surfaceType", "plants",
-  "usedSpecies", "species",
+  "usedSpecies", "species", "seeds", "seedsUsed",
 ] as const satisfies readonly (keyof DataEnvelope)[];
 
 // `satisfies` above catches a key that contract.ts dropped; these catch one it
