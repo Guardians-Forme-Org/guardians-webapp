@@ -7,7 +7,8 @@ import type { AnchorPoint, DataEnvelope } from "./contract";
 // drift apart in either direction.
 
 export const ANCHOR_POINT_KEYS = [
-  "name", "consentMethod", "outreachMethod", "outreachMethods", "waterHarvestingType",
+  "name", "consentMethod", "outreachMethod", "outreachMethods", "surfaces",
+  "waterHarvestingType",
   "shadeType",
   "orientation", "notes", "description", "coolingCornerType", "healthatAdaption",
   "participationType", "installationType", "institutionName",
@@ -40,7 +41,9 @@ export const ANCHOR_POINT_KEYS = [
 export const DATA_ENVELOPE_KEYS = [
   "measurement", "count", "checkinCount", "shortFall", "volunteerHours",
   "assignedVolunteers", "vulnerableMembers", "membersAssisted",
-  "householdsReached", "volunteersActive", "litresDistributed", "litresCollected",
+  "householdsReached", "volunteersActive", "teamMembers", "surveyArea", "boundary",
+  "irDeviceAvailable",
+  "actionsTriggered", "surfaces", "litresDistributed", "litresCollected",
   "houseHoldsCount",
   "houseHoldsServed", "gardensServed", "activeSharingPoints",
   "waterSourceMonitored", "capacity", "level",
