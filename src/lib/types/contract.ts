@@ -108,12 +108,30 @@ export interface Species {
   mediaFileReferenceId?: string;
   iNaturalistObsId?: string;
   mass?: Measurement;
+  native?: boolean;
+}
+
+// One sealed surface in a CH-018 audit (BE models.SurveyedSurface)
+export interface SurveyedSurface {
+  name?: string;
+  location?: Location;
+  surfaceType?: string;
+  estimatedArea?: Measurement;
+  sunExposure?: string;
+  temperature?: Measurement;
+  notes?: string;
+  mediaFile?: MediaFile;
+  mediaFileReferenceId?: string;
+  priorityLevel?: string;
+  recommendation?: string;
 }
 
 export interface AnchorPoint {
   name: string;
   consentMethod?: string;
   outreachMethod?: string;
+  outreachMethods?: unknown[];
+  surfaces?: SurveyedSurface[];
   waterHarvestingType?: string;
   shadeType?: string;
   orientation?: string;
@@ -233,6 +251,13 @@ export interface DataEnvelope {
   vulnerableMembers?: Measurement;
   membersAssisted?: Measurement;
   householdsReached?: Measurement;
+  volunteersActive?: Measurement;
+  teamMembers?: Measurement;
+  boundary?: string;
+  irDeviceAvailable?: boolean;
+  surveyArea?: Measurement;
+  actionsTriggered?: string;
+  surfaces?: SurveyedSurface[];
   litresDistributed?: Measurement;
   litresCollected?: Measurement;
   houseHoldsCount?: Measurement;
