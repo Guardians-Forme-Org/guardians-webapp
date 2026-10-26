@@ -1971,7 +1971,14 @@ export default function LogEvidenceWizard({
           }
           for (const sub of numSubs) {
             const raw = out[sub.name];
-            if (raw === undefined || raw === "") continue;
+            // A number left blank (CH-016's mass when only a count is logged)
+            // goes out without its key: `out` is a copy of the entry, and a
+            // bare "" in a Measurement slot fails the whole submission
+            if (raw === undefined || raw === null || raw === "") {
+              delete out[sub.name];
+              delete out[`${sub.name}__unit`];
+              continue;
+            }
             const subUnit =
               (out[`${sub.name}__unit`] as string) ?? sub.unitOfMeasureOptions?.[0]?.value;
             out[sub.name] = shapeFieldValue(sub, raw, subUnit);
