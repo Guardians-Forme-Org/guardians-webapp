@@ -696,6 +696,23 @@ export function registeredIdentity(
     .join(" ");
 }
 
+// CH-002's optional "linked challenge" (companion mode) links to a parent
+// challenge. The template ships it as a SELECT with no options; they're the
+// other challenges of the same circle, and the value sent is the challenge ID.
+export function withLinkedChallengeOptions(
+  form: ApiTemplateFormField[],
+  circleChallenges: { challengeId: string; name: string }[],
+  currentChallengeId: string,
+): ApiTemplateFormField[] {
+  if (!form.some((f) => normalizeFieldName(f.name) === "LINKEDCHALLENGE")) return form;
+  const options = circleChallenges
+    .filter((c) => c.challengeId !== currentChallengeId)
+    .map((c) => ({ label: `${c.name} · ${c.challengeId}`, value: c.challengeId }));
+  return form.map((f) =>
+    normalizeFieldName(f.name) === "LINKEDCHALLENGE" ? { ...f, type: "SELECT", options } : f,
+  );
+}
+
 // A GROUP/ITEM whose template names a `source` (CH-011/CH-019's survival
 // assessment) picks each entry from what an earlier step recorded, instead of
 // having it typed in again. A synthetic SELECT goes first in the entry; each
