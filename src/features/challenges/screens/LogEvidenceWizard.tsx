@@ -17,6 +17,7 @@ import {
   type SetupUpdateEvidencePayload,
   type SubmitEvidenceResponse,
 } from "@/lib/hooks/challenges";
+import { useCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
 import { canManageCircle } from "@/lib/permissions";
 import { computeChallengeRoles } from "@/lib/roles";
@@ -47,6 +48,7 @@ import {
   toDataKey,
   unfoldTimeFromDate,
   usableLeaves,
+  withLinkedChallengeOptions,
   withMediaFileReferenceId,
   withRegisterPicker,
   withSumFields,
@@ -967,23 +969,31 @@ export default function LogEvidenceWizard({
     [sourcedFields, registerData],
   );
 
+  // CH-002's linked challenge picks from the circle's other challenges
+  const { data: circleOfChallenge } = useCircle(challenge?.circleId ?? "");
+  const circleChallenges = circleOfChallenge?.challenges;
+
   // CH-011/CH-015 splice a synthetic point-select subfield into their
   // addable anchorPoint GROUP — see withPointSelectSubfield
   const stepForm = useMemo(
     () =>
       rawStepForm
-        ? withRegisterPicker(
-            withPointSelectSubfield(
-              rawStepForm,
-              challenge?.challengeCode,
-              stepMeta?.stepType,
-              setupData?.anchorPoints ?? [],
+        ? withLinkedChallengeOptions(
+            withRegisterPicker(
+              withPointSelectSubfield(
+                rawStepForm,
+                challenge?.challengeCode,
+                stepMeta?.stepType,
+                setupData?.anchorPoints ?? [],
+              ),
+              registers,
+              t("registerPickLabel"),
             ),
-            registers,
-            t("registerPickLabel"),
+            circleChallenges ?? [],
+            challengeId,
           )
         : rawStepForm,
-    [rawStepForm, challenge?.challengeCode, stepMeta?.stepType, setupData, registers, t],
+    [rawStepForm, challenge?.challengeCode, stepMeta?.stepType, setupData, registers, t, circleChallenges, challengeId],
   );
 
   // BE form takes precedence over FE config whenever form fields are present.
@@ -1711,6 +1721,14 @@ export default function LogEvidenceWizard({
         ? String(weatherRaw)
         : undefined;
 
+    // Optional parent challenge (companion mode) — a challenge ID
+    const linkedField = stepForm?.find(
+      (f) => normalizeFieldName(f.name) === "LINKEDCHALLENGE",
+    );
+    const linkedRaw = linkedField ? dynamicValues[linkedField.name] : undefined;
+    const linkedChallenge =
+      typeof linkedRaw === "string" && linkedRaw !== "" ? linkedRaw : undefined;
+
     const dateField = stepForm?.find((f) => f.type === "DATE");
     const dateRaw = dateField
       ? (dynamicValues[dateField.name] as string | undefined)
@@ -1791,6 +1809,7 @@ export default function LogEvidenceWizard({
       volunteerHours,
       capturedAt,
       ...(weatherCondition ? { weatherCondition } : {}),
+      ...(linkedChallenge ? { linkedChallenge } : {}),
       ...(location ? { location } : {}),
       anchorPoints,
     };
