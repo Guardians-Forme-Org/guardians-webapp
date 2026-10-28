@@ -26,13 +26,30 @@ export function getImpactTileLabel(item: {
   return deriveImpactLabel(item.impact?.shortSummary ?? item.impact?.summary ?? "");
 }
 
+// The API's count units are always plural ("1 gardens"); these read singular
+// for an amount of exactly 1
+const SINGULAR_UNITS: Record<string, string> = {
+  hours: "hour",
+  trees: "tree",
+  gardens: "garden",
+  "cooling points": "cooling point",
+  households: "household",
+  volunteers: "volunteer",
+  surfaces: "surface",
+  recommendations: "recommendation",
+  incidents: "incident",
+};
+
 export function formatImpactDisplayValue(displayName: string): string {
-  return displayName
+  const value = displayName
     .replace(/^([\d.]+)/, (_, n) => {
       const rounded = Math.round(parseFloat(n) * 10) / 10;
       return rounded % 1 === 0 ? String(Math.round(rounded)) : String(rounded);
     })
     .replace(/\bIncidents\b/, "incidents");
+  const one = value.match(/^1 (.+)$/);
+  const singular = one && SINGULAR_UNITS[one[1].toLowerCase()];
+  return singular ? `1 ${singular}` : value;
 }
 
 // displayName is `omitzero` on the BE Measurement struct — some write paths
