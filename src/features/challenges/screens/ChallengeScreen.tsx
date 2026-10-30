@@ -393,6 +393,8 @@ export default function ChallengeScreen({ challengeId }: Props) {
 
   const isMember =
     !!user && (challenge.members ?? []).some((m) => m.userId === user.id);
+  const isCircleMember =
+    !!user && (circle?.members ?? []).some((m) => m.userId === user.id);
 
   const facilitator = challenge.facilitator as {
     id?: string;
@@ -476,8 +478,8 @@ export default function ChallengeScreen({ challengeId }: Props) {
               {(() => {
                 const isPending = joinChallenge.isPending;
                 const isDisabled = isMember || isPending;
-                // Minors are enrolled by an admin and can't join anything themselves.
-                if (isMinor && !isMember) return null;
+                // Minors can join challenges only in a circle they're already in (the API enforces this too).
+                if (isMinor && !isMember && !isCircleMember) return null;
                 return (
                   <button
                     disabled={isDisabled}
