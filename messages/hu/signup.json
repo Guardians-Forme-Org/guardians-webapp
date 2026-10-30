@@ -15,7 +15,8 @@
     "bodyMobile": "mobilszámod",
     "bodyOr": " vagy az ",
     "bodyEmail": "e-mail címed",
-    "bodyPart2": ", és válassz egy jelszót."
+    "bodyPart2": ", és válassz egy jelszót.",
+    "bodyEmailRequired": "An email address is required to verify your account."
   },
   "step2": {
     "title1": "Néhány szót",
