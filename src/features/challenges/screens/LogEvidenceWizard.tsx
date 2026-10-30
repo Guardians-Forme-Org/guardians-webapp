@@ -1075,6 +1075,20 @@ export default function LogEvidenceWizard({
     () => withSumFields(stepForm ?? [], enteredValues),
     [stepForm, enteredValues],
   );
+  // The completion switch decides whether this entry also completes the step.
+  // Off, the entry is saved and the step stays open for more entries.
+  // CH-008B's switch only records the installation, so submitting there
+  // still completes the step.
+  const isCH008B = challenge?.challengeCode === "CH-008B";
+  const completionToggleName = derivedConfig?.steps.find(
+    (s) => s.kind === "mark-complete",
+  )?.fields[0]?.name;
+  const completesStep =
+    shouldMarkComplete &&
+    (!isDerived ||
+      !completionToggleName ||
+      isCH008B ||
+      !!dynamicValues[completionToggleName]);
   const updateDynamic = (name: string, value: unknown) =>
     setDynamicValues((prev) => {
       const next = { ...prev, [name]: value };
@@ -2035,13 +2049,12 @@ export default function LogEvidenceWizard({
       consumed.add(field.name);
     }
 
-    // Submitting via the mark-complete screen implies the flag itself
-    // (BE Data.Confirm / Data.Completed)
+    // The completion flag follows the switch (BE Data.Confirm / Data.Completed)
     if (shouldMarkComplete) {
       const completionDetail = [...detailFields, ...normalizedStepForm].find(
         (f) => COMPLETION_NAMES.has(normalizeFieldName(f.name)),
       );
-      if (completionDetail) extraData[completionDetail.name] = true;
+      if (completionDetail) extraData[completionDetail.name] = completesStep;
     }
 
     const imageField = normalizedStepForm.find((f) => f.type === "IMAGE");
@@ -2525,10 +2538,9 @@ export default function LogEvidenceWizard({
     // Merge remaining fields directly into data
     Object.assign(data, rawFields);
 
-    // Submitting via the mark-complete screen implies the flag itself
-    // (BE Data.Confirm / Data.Completed)
+    // The completion flag follows the switch (BE Data.Confirm / Data.Completed)
     if (completionField && shouldMarkComplete) {
-      data[completionField.name] = true;
+      data[completionField.name] = completesStep;
     }
 
     // First IMAGE (or FILE) field becomes the media file. In view/edit mode
@@ -2593,7 +2605,7 @@ export default function LogEvidenceWizard({
   const onSuccess = (data?: SubmitEvidenceResponse) => {
     clearDraft();
     setImpactMessage(data?.impactSummary?.impact?.summary ?? null);
-    if (shouldMarkComplete && stepMeta && challenge) {
+    if (completesStep && stepMeta && challenge) {
       markStepComplete.mutate({
         challengeId: challenge.challengeId,
         step: { ...stepMeta, isCompleted: true },
@@ -2921,10 +2933,7 @@ export default function LogEvidenceWizard({
             if (ds.kind === "mark-complete") {
               const completionField = ds.fields[0];
               // CH-008B: the switch logs whether the installation is done,
-              // it is not a precondition for logging today's volunteer
-              // hours — so it should not block the button, and the button
-              // reads "Continue" rather than "Mark Complete".
-              const isCH008B = challenge?.challengeCode === "CH-008B";
+              // so the button reads "Continue" rather than "Mark Complete"
               return (
                 <MarkCompleteStep
                   field={completionField}
@@ -2937,8 +2946,8 @@ export default function LogEvidenceWizard({
                   }
                   onSubmit={submit}
                   isPending={isPending}
-                  blockOnToggle={!isCH008B}
                   buttonLabel={isCH008B ? tCommon("continue") : undefined}
+                  showHint={!isCH008B}
                 />
               );
             }

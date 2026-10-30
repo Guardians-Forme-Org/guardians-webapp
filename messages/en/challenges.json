@@ -192,6 +192,8 @@
   "interventionsSubtitle": "Specify any interventions on the site.",
   "interventionsHint": "Planted, Cleaned etc",
   "markCompleteSubtitle": "Confirm this step is done.",
+  "submitEntry": "Submit",
+  "markCompleteHint": "Switch this on only when no more entries are needed for this step. Leave it off to save this entry and keep the step open.",
   "measurementTypeLabel": "Type",
   "measurementDescPlaceholder": "e.g. Added yard waste and kitchen scraps to the compost bin.",
   "volunteerHoursQuestion": "How many hours did the team spend on this activity?",
