@@ -1,7 +1,7 @@
 import type { LoginData } from "./auth";
 import type { ApiCircle, ApiCircleChallenge } from "./types/circles";
 import type { BadgeRole } from "@/components/ui/RoleBadge";
-import { isWhitelisted } from "./permissions";
+import { circleLeadIdsOf, isCircleLead, isFacilitator, isWhitelisted } from "./permissions";
 
 // Global roles across all circles + challenges (for profile page).
 // A user can hold multiple roles simultaneously.
@@ -16,17 +16,13 @@ export function computeGlobalRoles(
 
   if (isWhitelisted(userEmail)) roles.push("admin");
 
-  const isCircleLead = (loginData?.circles ?? []).some(
-    (c) => (c.circleLead as { userId?: string } | null)?.userId === userId,
-  );
-  if (isCircleLead) roles.push("circle-lead");
+  if ((loginData?.circles ?? []).some((c) => isCircleLead(userId, c))) {
+    roles.push("circle-lead");
+  }
 
-  const isFacilitator = (loginData?.challenges ?? []).some((c) =>
-    (c.members ?? []).some(
-      (m) => m.userId === userId && m.role === "CHALLENGE_FACILITATOR",
-    ),
-  );
-  if (isFacilitator) roles.push("facilitator");
+  if ((loginData?.challenges ?? []).some((c) => isFacilitator(userId, c))) {
+    roles.push("facilitator");
+  }
 
   return roles;
 }
@@ -43,14 +39,13 @@ export function computeCircleRoles(
 
   if (isWhitelisted(userEmail)) roles.push("admin");
 
-  if ((circle.circleLead as { userId?: string } | null)?.userId === userId) {
+  if (circleLeadIdsOf(circle).includes(userId)) {
     roles.push("circle-lead");
   }
 
-  const isFacilitator = circle.challenges.some(
-    (c) => (c.facilitator as { userId?: string } | null)?.userId === userId,
-  );
-  if (isFacilitator) roles.push("facilitator");
+  if (circle.challenges.some((c) => isFacilitator(userId, c))) {
+    roles.push("facilitator");
+  }
 
   return roles;
 }
@@ -67,9 +62,7 @@ export function computeChallengeRoles(
 
   if (isWhitelisted(userEmail)) roles.push("admin");
 
-  const f = challenge.facilitator as { id?: string; userId?: string } | null;
-  const isFacilitator = !!(f && (f.id === userId || f.userId === userId));
-  if (isFacilitator) roles.push("facilitator");
+  if (isFacilitator(userId, challenge)) roles.push("facilitator");
 
   return roles;
 }

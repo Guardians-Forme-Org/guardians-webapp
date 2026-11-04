@@ -96,15 +96,57 @@ export function isMinorAlias(email: string): boolean {
 type CircleRef = {
   createdBy?: string;
   circleLead?: unknown;
+  circleLeads?: { userId?: string }[] | null;
 };
+
+type ChallengeRef = {
+  facilitator?: unknown;
+  facilitators?: { userId?: string }[] | null;
+  members?: { userId?: string; role?: string }[] | null;
+};
+
+const idOf = (person: unknown): string | undefined => {
+  const p = person as { id?: string; userId?: string } | null | undefined;
+  return p?.userId ?? p?.id;
+};
+
+// The user ids of a circle's leads. The BE lists them all in circleLeads;
+// older responses only carry the single circleLead.
+export function circleLeadIdsOf(circle: CircleRef): string[] {
+  if (circle.circleLeads?.length) {
+    return circle.circleLeads.map(idOf).filter((id): id is string => !!id);
+  }
+  const single = idOf(circle.circleLead);
+  return single ? [single] : [];
+}
+
+// The user ids of a challenge's facilitators: the BE's facilitators list, else
+// members holding the facilitator role, else the single facilitator field
+export function facilitatorIdsOf(challenge: ChallengeRef): string[] {
+  if (challenge.facilitators?.length) {
+    return challenge.facilitators.map(idOf).filter((id): id is string => !!id);
+  }
+  const byRole = (challenge.members ?? [])
+    .filter((m) => m.role === "CHALLENGE_FACILITATOR")
+    .map((m) => m.userId)
+    .filter((id): id is string => !!id);
+  if (byRole.length) return [...new Set(byRole)];
+  const single = idOf(challenge.facilitator);
+  return single ? [single] : [];
+}
 
 export function isCircleLead(
   userId: string | null | undefined,
   circle: CircleRef,
 ): boolean {
-  if (!userId) return false;
-  const lead = circle.circleLead as { id?: string; userId?: string } | null;
-  return !!(lead && (userId === lead.id || userId === lead.userId));
+  return !!userId && circleLeadIdsOf(circle).includes(userId);
+}
+
+export function isFacilitator(
+  userId: string | null | undefined,
+  challenge: ChallengeRef,
+): boolean {
+  return !!userId && facilitatorIdsOf(challenge).includes(userId);
 }
 
 export function canManageCircle(
@@ -114,8 +156,26 @@ export function canManageCircle(
 ): boolean {
   if (isWhitelisted(userEmail)) return true;
   if (userId && circle.createdBy && userId === circle.createdBy) return true;
-  const lead = circle.circleLead as { id?: string; userId?: string } | null;
-  if (userId && lead && (userId === lead.id || userId === lead.userId))
-    return true;
-  return false;
+  return isCircleLead(userId, circle);
+}
+
+// Adding and removing a circle's leads: admins and the circle's creator
+export function canManageLeads(
+  userEmail: string | null | undefined,
+  userId: string | null | undefined,
+  circle: CircleRef,
+): boolean {
+  if (isWhitelisted(userEmail)) return true;
+  return !!userId && !!circle.createdBy && userId === circle.createdBy;
+}
+
+// Adding and removing a challenge's facilitators: admins, the circle's
+// creator and each of its leads
+export function canManageFacilitators(
+  userEmail: string | null | undefined,
+  userId: string | null | undefined,
+  circle: CircleRef | null | undefined,
+): boolean {
+  if (isWhitelisted(userEmail)) return true;
+  return !!circle && canManageCircle(userEmail, userId, circle);
 }

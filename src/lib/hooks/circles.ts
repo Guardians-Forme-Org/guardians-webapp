@@ -88,6 +88,7 @@ export function useUpdateCircle() {
   });
 }
 
+// Adds a lead — the circle's other leads stay
 export function useAssignCircleLead() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -98,6 +99,26 @@ export function useAssignCircleLead() {
       }),
     onSuccess: (_data, { circleId }) => {
       queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
+      queryClient.invalidateQueries({ queryKey: ["circles"] });
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
+    },
+  });
+}
+
+// The lead stays in the circle as a member. The BE refuses to remove the last
+// lead (409, code circle_last_lead).
+export function useRemoveCircleLead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ circleId, userId }: { circleId: string; userId: string }) =>
+      apiFetch<void>(`/circles/${circleId}/leads`, {
+        method: "DELETE",
+        headers: { "X-User-ID": userId },
+      }),
+    onSuccess: (_data, { circleId }) => {
+      queryClient.invalidateQueries({ queryKey: ["circle", circleId] });
+      queryClient.invalidateQueries({ queryKey: ["circles"] });
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
     },
   });
 }

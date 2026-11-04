@@ -11,7 +11,7 @@ import { useCreateChallenge, useUpdateChallenge, useTemplates } from "@/lib/hook
 import { useCircle } from "@/lib/hooks/circles";
 import { compressImage } from "@/lib/compressImage";
 import { useUsers } from "@/lib/hooks/users";
-import { isMinorUser } from "@/lib/permissions";
+import { facilitatorIdsOf, isMinorUser } from "@/lib/permissions";
 import type { AuthUser } from "@/lib/types/auth";
 import type { ApiChallenge, ApiTemplate } from "@/lib/types/challenges";
 import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
@@ -52,7 +52,7 @@ type FormData = {
   description: string;
   circleId: string;
   supportedBy: string;
-  facilitatorId: string;
+  facilitatorIds: string[];
   channel: Channel;
   channelLink: string;
   bannerUrl: string;
@@ -65,7 +65,7 @@ const initialForm: FormData = {
   description: "",
   circleId: "",
   supportedBy: "",
-  facilitatorId: "",
+  facilitatorIds: [],
   channel: "whatsapp",
   channelLink: "",
   bannerUrl: "",
@@ -457,7 +457,7 @@ function Step3({
   isEdit,
 }: {
   form: FormData;
-  onChange: (field: keyof FormData, value: string) => void;
+  onChange: (field: Exclude<keyof FormData, "facilitatorIds">, value: string) => void;
   onFileSelect: (file: File) => void;
   location: LocationResult | null;
   onLocationSelect: (place: LocationResult) => void;
@@ -584,20 +584,24 @@ function displayName(u: AuthUser) {
 
 function Step4({
   form,
-  onChange,
+  onToggle,
   users,
   isLoading,
   circleMembers,
   currentUserId,
+  readOnly,
 }: {
   form: FormData;
-  onChange: (id: string) => void;
+  onToggle: (id: string) => void;
   users: AuthUser[];
   isLoading: boolean;
   circleMembers: import("@/lib/types/circles").CircleMember[];
   currentUserId: string;
+  // Edit mode: facilitators are added and removed on the challenge's page
+  readOnly?: boolean;
 }) {
   const t = useTranslations("challenges");
+  const tRoles = useTranslations("roles");
   const locale = useLocale();
   const [search, setSearch] = useState("");
 
@@ -612,11 +616,15 @@ function Step4({
     ),
   ];
 
-  const filtered = search
+  const searched = search
     ? sorted.filter((u) =>
         displayName(u).toLowerCase().includes(search.toLowerCase()),
       )
     : sorted;
+  // Read-only lists just the challenge's facilitators
+  const filtered = readOnly
+    ? searched.filter((u) => form.facilitatorIds.includes(u.id))
+    : searched;
 
   return (
     <>
@@ -624,6 +632,18 @@ function Step4({
         title={t("chooseFacilitator")}
         description={t("findFacilitator")}
       />
+
+      {readOnly ? (
+        <p className="px-7.5 pb-4 text-sm text-text-secondary">
+          {tRoles("manageFacilitatorsOnChallenge")}
+        </p>
+      ) : (
+        form.facilitatorIds.length === 0 && (
+          <p className="px-7.5 pb-4 text-sm text-text-secondary">
+            {tRoles("facilitatorRequired")}
+          </p>
+        )
+      )}
 
       <div className="sticky top-0 bg-white z-10">
         <SearchBar placeholder={t("findFacilitator")} onChange={setSearch} />
@@ -653,11 +673,13 @@ function Step4({
               locale,
               { day: "numeric", month: "long", year: "numeric" },
             );
-            const selected = form.facilitatorId === u.id;
+            const selected = form.facilitatorIds.includes(u.id);
             return (
               <button
                 key={u.id}
-                onClick={() => onChange(u.id)}
+                onClick={() => onToggle(u.id)}
+                disabled={readOnly}
+                aria-pressed={selected}
                 className="flex items-center gap-3.75 w-full text-left"
               >
                 <span className="w-2.5 text-center font-medium text-base text-black shrink-0">
@@ -831,11 +853,14 @@ function Step6({
     templates.find((tmpl) => tmpl.templateId === form.templateId);
   const templateSteps = template?.steps ?? [];
 
-  const facilitatorUser = users.find((u) => u.id === form.facilitatorId);
-  const facilitatorName = facilitatorUser
-    ? displayName(facilitatorUser)
-    : t("facilitator");
-  const facilitatorAvatar = facilitatorUser?.user_metadata.avatarUrl ?? "";
+  const facilitatorPeople = form.facilitatorIds.map((id) => {
+    const u = users.find((x) => x.id === id);
+    return {
+      id,
+      name: u ? displayName(u) : t("facilitator"),
+      avatar: u?.user_metadata.avatarUrl ?? "",
+    };
+  });
 
   const circleMembers = circle?.members ?? [];
 
@@ -977,31 +1002,35 @@ function Step6({
 
         <div className="border-t border-progress-track" />
 
-        {/* Facilitator */}
-        <div className="flex items-center gap-5 px-7.5 py-5 border-b border-progress-track">
+        {/* Facilitators */}
+        {facilitatorPeople.map((fac, idx) => (
+        <div key={fac.id} className="flex items-center gap-5 px-7.5 py-5 border-b border-progress-track">
           <div className="flex items-center justify-between w-full gap-3">
           <div className="flex items-center gap-5 flex-1">
           <div className="size-10 rounded-full bg-surface border border-border shrink-0 overflow-hidden">
-            {facilitatorAvatar && (
+            {fac.avatar && (
               <img
-                src={facilitatorAvatar}
-                alt={facilitatorName}
+                src={fac.avatar}
+                alt={fac.name}
                 className="w-full h-full object-cover"
               />
             )}
           </div>
           <div className="min-w-0">
             <p className="text-xl font-semibold text-text-primary break-words">
-              {facilitatorName}
+              {fac.name}
             </p>
             <p className="text-base font-medium text-text-secondary">
               {t("facilitator")}
             </p>
           </div>
           </div>
-          <EditButton label={t("edit")} onClick={() => onGoToStep(4)} />
+          {idx === 0 && !isEdit && (
+            <EditButton label={t("edit")} onClick={() => onGoToStep(4)} />
+          )}
           </div>
         </div>
+        ))}
 
         {/* Members */}
         <div className="border-b border-progress-track">
@@ -1123,10 +1152,7 @@ export default function CreateChallengeWizard({
   const isEdit = !!editChallenge;
 
   const ch0 = editChallenge?.communicationChannels?.[0];
-  const facilitatorId =
-    (editChallenge?.facilitator as { id?: string; userId?: string } | null)?.id ??
-    (editChallenge?.facilitator as { id?: string; userId?: string } | null)?.userId ??
-    "";
+  const facilitatorIds = editChallenge ? facilitatorIdsOf(editChallenge) : [];
 
   const [step, setStep] = useState(isEdit ? 3 : 1);
   const [form, setForm] = useState<FormData>(
@@ -1138,7 +1164,7 @@ export default function CreateChallengeWizard({
           description: editChallenge.description,
           circleId: editChallenge.circleId,
           supportedBy: "",
-          facilitatorId,
+          facilitatorIds,
           channel: ch0 ? channelIdFromName(ch0.name) : "whatsapp",
           channelLink: ch0?.url ?? "",
           bannerUrl: editChallenge.bannerUrl ?? "",
@@ -1161,7 +1187,14 @@ export default function CreateChallengeWizard({
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.form) setForm((f) => ({ ...f, ...parsed.form, bannerUrl: "" }));
+        if (parsed.form) {
+          // Drafts saved before several facilitators carry one facilitatorId
+          const { facilitatorId: oldId, ...draftForm } = parsed.form;
+          const draftIds: string[] = Array.isArray(draftForm.facilitatorIds)
+            ? draftForm.facilitatorIds
+            : oldId ? [oldId] : [];
+          setForm((f) => ({ ...f, ...draftForm, facilitatorIds: draftIds, bannerUrl: "" }));
+        }
         if (parsed.location) setLocation(parsed.location);
         // A draft saved before a template was picked must resume at step 1
         if (parsed.step) setStep(parsed.form?.templateId ? parsed.step : 1);
@@ -1187,8 +1220,15 @@ export default function CreateChallengeWizard({
     router.back();
   };
 
-  const updateForm = (field: keyof FormData, value: string) =>
+  const updateForm = (field: Exclude<keyof FormData, "facilitatorIds">, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
+  const toggleFacilitator = (id: string) =>
+    setForm((f) => ({
+      ...f,
+      facilitatorIds: f.facilitatorIds.includes(id)
+        ? f.facilitatorIds.filter((x) => x !== id)
+        : [...f.facilitatorIds, id],
+    }));
 
   const buildChannels = () => {
     const selectedChannel = CHANNELS.find((c) => c.id === form.channel);
@@ -1220,7 +1260,6 @@ export default function CreateChallengeWizard({
           payload: {
             name: form.name,
             description: form.description,
-            facilitatorId: form.facilitatorId,
             communicationChannels: buildChannels(),
             ...(bannerFile ? {} : { bannerUrl: form.bannerUrl }),
           },
@@ -1239,7 +1278,8 @@ export default function CreateChallengeWizard({
             templateId: form.templateId,
             challengeCode: form.templateId,
             createdBy: user?.id ?? "",
-            facilitatorId: form.facilitatorId,
+            facilitatorId: form.facilitatorIds[0] ?? "",
+            facilitatorIds: form.facilitatorIds,
             equipments: [],
             communicationChannels: buildChannels(),
             location: locationPayload,
@@ -1301,7 +1341,8 @@ export default function CreateChallengeWizard({
         {step === 4 && (
           <Step4
             form={form}
-            onChange={(id) => updateForm("facilitatorId", id)}
+            onToggle={toggleFacilitator}
+            readOnly={isEdit}
             users={users}
             isLoading={usersLoading}
             circleMembers={selectedCircle?.members ?? []}
@@ -1339,7 +1380,10 @@ export default function CreateChallengeWizard({
             t("next")
           }
           onClick={next}
-          disabled={step === 1 && !isEdit && !form.templateId}
+          disabled={
+            (step === 1 && !isEdit && !form.templateId) ||
+            (step === 4 && !isEdit && form.facilitatorIds.length === 0)
+          }
         />
       )}
     </div>
