@@ -13,6 +13,7 @@ export const namespaces = [
   "discover",
   "circles",
   "challenges",
+  "roles",
   "profile",
   "terms",
   "privacy",

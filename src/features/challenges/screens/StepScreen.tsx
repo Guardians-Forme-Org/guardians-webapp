@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { useChallenge, useMarkStepComplete, useTemplates } from "@/lib/hooks/challenges";
 import { useUsers } from "@/lib/hooks/users";
-import { canManageCircle, isWhitelisted } from "@/lib/permissions";
+import { canManageCircle, facilitatorIdsOf, isFacilitator, isWhitelisted } from "@/lib/permissions";
 import { computeChallengeRoles } from "@/lib/roles";
 import RoleBadge from "@/components/ui/RoleBadge";
 import type { ApiCircle } from "@/lib/types/circles";
@@ -48,18 +48,10 @@ export default function StepScreen({ challengeId, stepId }: Props) {
     return tmpl?.steps?.find((s) => s.stepId === stepId)?.form ?? null;
   }, [challenge?.templateId, templates, stepId]);
 
-  const f = challenge?.facilitator as {
-    id?: string;
-    userId?: string;
-    avatarUrl?: string;
-    name?: string;
-  } | null;
-
-  const facilitatorId = f?.id ?? f?.userId;
   const canSubmit =
     isWhitelisted(user?.email) ||
     (!!circle && canManageCircle(user?.email, user?.id, circle)) ||
-    (!!user?.id && !!facilitatorId && user.id === facilitatorId);
+    (!!challenge && isFacilitator(user?.id, challenge));
 
   const isActionable = !!step && (
     step.stepId in STEP_FORM_CONFIGS ||
@@ -86,13 +78,18 @@ export default function StepScreen({ challengeId, stepId }: Props) {
   const { percent: progress, displayPercent } = challenge
     ? calcChallengeProgress(challenge)
     : { percent: 0, displayPercent: 0 };
-  const fUser = users.find((u) => u.id === (f?.id ?? f?.userId));
-  const fAvatar = f?.avatarUrl || fUser?.user_metadata?.avatarUrl;
-  const fName = fUser
-    ? [fUser.user_metadata.firstName, fUser.user_metadata.lastName]
-        .filter(Boolean)
-        .join(" ")
-    : (f?.name ?? "Facilitator");
+  // Every facilitator, named from the users list
+  const facilitators = (challenge ? facilitatorIdsOf(challenge) : []).map((id) => {
+    const u = users.find((x) => x.id === id);
+    const stored = challenge?.facilitators?.find((x) => x.userId === id);
+    return {
+      id,
+      avatar: stored?.avatarUrl || u?.user_metadata?.avatarUrl,
+      name: u
+        ? [u.user_metadata.firstName, u.user_metadata.lastName].filter(Boolean).join(" ")
+        : t("facilitator"),
+    };
+  });
 
   if (isLoading) {
     return (
@@ -303,21 +300,23 @@ export default function StepScreen({ challengeId, stepId }: Props) {
             )}
           </div>
 
-          {/* Facilitator */}
-          {!!f && (
+          {/* Facilitators */}
+          {facilitators.length > 0 && (
             <>
               <div className="border-t border-progress-track" />
-              <div className="flex items-center gap-5 px-10 py-5">
-                <Avatar src={fAvatar} alt={fName} className="size-10 rounded-full border border-border shrink-0" />
-                <div>
-                  <p className="text-xl font-semibold text-text-primary">
-                    {fName}
-                  </p>
-                  <p className="text-base font-medium text-text-secondary">
-                    {t("facilitator")}
-                  </p>
+              {facilitators.map((fac) => (
+                <div key={fac.id} className="flex items-center gap-5 px-10 py-5">
+                  <Avatar src={fac.avatar} alt={fac.name} className="size-10 rounded-full border border-border shrink-0" />
+                  <div>
+                    <p className="text-xl font-semibold text-text-primary">
+                      {fac.name}
+                    </p>
+                    <p className="text-base font-medium text-text-secondary">
+                      {t("facilitator")}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ))}
             </>
           )}
 

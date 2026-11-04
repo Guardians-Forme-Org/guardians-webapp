@@ -74,6 +74,7 @@ export type CreateCircleRequest = {
   creatorAvatarUrl: string;
   communicationChannels: { name: string; url: string; icon: string }[];
   circleLeadId?: string;
+  circleLeadIds?: string[];
   region: {
     placeId: string;
     city: string;
@@ -181,6 +182,9 @@ export type ApiCircleChallenge = {
   };
   members: ApiCircleChallengeMember[] | null;
   facilitator: unknown | null;
+  // Every facilitator, from the member roles (BE 2026-11-04); `facilitator`
+  // is the first of them. Read through facilitatorIdsOf (lib/permissions).
+  facilitators?: ApiCircleChallengeMember[] | null;
   duration: unknown | null;
   equipments: unknown[];
   status: CircleStatus;
@@ -254,6 +258,9 @@ export type ApiCircle = {
   };
   challenges: ApiCircleChallenge[];
   circleLead: null | unknown;
+  // Every lead, from the member roles (BE 2026-11-04); `circleLead` is the
+  // first of them. Read through circleLeadIdsOf (lib/permissions).
+  circleLeads?: CircleMember[] | null;
   members: CircleMember[];
   joinLink: string;
   createdBy: string;

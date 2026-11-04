@@ -3,9 +3,10 @@
 import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import { useAssignCircleLead, useJoinCircle } from "@/lib/hooks/circles";
+import { useAssignCircleLead, useJoinCircle, useRemoveCircleLead } from "@/lib/hooks/circles";
 import RecentActivitiesList from "@/components/ui/RecentActivitiesList";
-import { canManageCircle, isMinorUser, isWhitelisted } from "@/lib/permissions";
+import { canManageCircle, canManageLeads, circleLeadIdsOf, isMinorUser, isWhitelisted } from "@/lib/permissions";
+import RoleHoldersSection from "@/components/ui/RoleHoldersSection";
 import { useUsers } from "@/lib/hooks/users";
 import type {
   ApiCircle,
@@ -14,7 +15,7 @@ import type {
 } from "@/lib/types/circles";
 import { calcChallengeProgress, formatImpactMetricValue, getImpactTileLabel } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, MapPin, Pencil, UserPlus } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Pencil } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import Avatar from "@/components/ui/Avatar";
@@ -134,10 +135,9 @@ export default function CircleScreen({ circleId }: Props) {
   const { user, isMinor } = useAuth();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
-  const [showLeadPicker, setShowLeadPicker] = useState(false);
-  const [leadSearch, setLeadSearch] = useState("");
   const joinCircle = useJoinCircle();
   const assignLead = useAssignCircleLead();
+  const removeLead = useRemoveCircleLead();
   const queryClient = useQueryClient();
   const { data: users = [] } = useUsers();
 
@@ -383,88 +383,37 @@ export default function CircleScreen({ circleId }: Props) {
           )}
         </div>
 
-        {/* Circle Lead */}
+        {/* Circle Leads */}
         {(() => {
-          const lead = circle.circleLead as { id?: string; userId?: string; avatarUrl?: string; name?: string; firstName?: string; lastName?: string } | null;
-          const leadUser = lead ? users.find((u) => u.id === (lead.id ?? lead.userId)) : null;
-          const leadName = leadUser
-            ? [leadUser.user_metadata.firstName, leadUser.user_metadata.lastName].filter(Boolean).join(" ")
-            : [lead?.firstName, lead?.lastName].filter(Boolean).join(" ") || lead?.name || "";
-          const leadAvatar = lead?.avatarUrl || leadUser?.user_metadata?.avatarUrl;
-          const filtered = users.filter((u) =>
-            !isMinorUser(u) && (!leadSearch ||
-            `${u.user_metadata.firstName ?? ""} ${u.user_metadata.lastName ?? ""} ${u.email ?? ""}`.toLowerCase().includes(leadSearch.toLowerCase()))
-          );
-
+          const canManage = canManageLeads(user?.email, user?.id, circle);
+          const holders = (circle.circleLeads?.length
+            ? circle.circleLeads
+            : circleLeadIdsOf(circle).map((userId) => ({
+                userId,
+                avatarUrl: (circle.circleLead as { avatarUrl?: string } | null)?.avatarUrl,
+              }))
+          ).map((l) => ({ userId: l.userId, avatarUrl: l.avatarUrl }));
+          if (!holders.length && !canManage) return null;
+          const leadError = assignLead.error ?? removeLead.error;
           return (
-            <div className="border-t border-progress-track border-b border-progress-track">
-              {lead ? (
-                <div className="flex items-center gap-5 px-7.5 py-5">
-                  <Avatar src={leadAvatar} alt={leadName} className="size-10 rounded-full border border-border shrink-0" />
-                  <div>
-                    <p className="text-xl font-semibold text-text-primary">{leadName || t("circleLead")}</p>
-                    <p className="text-base font-medium text-text-secondary">{t("circleLead")}</p>
-                  </div>
-                </div>
-              ) : isWhitelisted(user?.email) ? (
-                <div className="px-7.5 py-5 relative">
-                  {!showLeadPicker ? (
-                    <button
-                      onClick={() => setShowLeadPicker(true)}
-                      className="flex items-center gap-2 px-4 h-10 bg-surface border border-border rounded-full text-sm font-medium text-text-primary"
-                    >
-                      <UserPlus size={14} />
-                      {t("assignCircleLead")}
-                    </button>
-                  ) : (
-                    <div>
-                      <input
-                        type="text"
-                        value={leadSearch}
-                        onChange={(e) => setLeadSearch(e.target.value)}
-                        placeholder={t("searchUsers")}
-                        autoFocus
-                        className="w-full h-[44px] border border-[#d9d9d9] rounded-[8px] px-4 text-base placeholder:text-[#bfbfbf] outline-none"
-                      />
-                      {filtered.length > 0 && (
-                        <div className="absolute left-7.5 right-7.5 mt-1 bg-white border border-[#d9d9d9] rounded-[8px] shadow-lg z-50 max-h-[200px] overflow-y-auto">
-                          {filtered.map((u) => (
-                            <button
-                              key={u.id}
-                              disabled={assignLead.isPending}
-                              onClick={() => {
-                                assignLead.mutate({ circleId, userId: u.id });
-                                setShowLeadPicker(false);
-                                setLeadSearch("");
-                              }}
-                              className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-[#f5f5f5] disabled:opacity-50"
-                            >
-                              <div className="size-8 rounded-full bg-[#d9d9d9] overflow-hidden shrink-0">
-                                {u.user_metadata.avatarUrl && (
-                                  <img src={u.user_metadata.avatarUrl} alt="" className="w-full h-full object-cover" />
-                                )}
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-text-primary">
-                                  {u.user_metadata.firstName} {u.user_metadata.lastName}
-                                </p>
-                                <p className="text-xs text-text-muted">{u.email}</p>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      <button
-                        onClick={() => { setShowLeadPicker(false); setLeadSearch(""); }}
-                        className="mt-2 text-sm text-text-muted"
-                      >
-                        {t("cancel")}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : null}
-            </div>
+            <RoleHoldersSection
+              kind="lead"
+              holders={holders}
+              users={users}
+              candidates={users.filter((u) => !isMinorUser(u))}
+              currentUserId={user?.id}
+              canManage={canManage}
+              onAdd={(userId) => {
+                removeLead.reset();
+                assignLead.mutate({ circleId, userId });
+              }}
+              onRemove={(userId, onDone) => {
+                assignLead.reset();
+                removeLead.mutate({ circleId, userId }, { onSettled: onDone });
+              }}
+              isPending={assignLead.isPending || removeLead.isPending}
+              error={leadError instanceof Error ? leadError.message : null}
+            />
           );
         })()}
 
