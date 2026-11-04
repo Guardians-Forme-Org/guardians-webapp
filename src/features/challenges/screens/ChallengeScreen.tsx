@@ -9,10 +9,23 @@ import Text from "@/components/ui/Text";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "@/i18n/navigation";
 import { api } from "@/lib/api";
-import { useChallenge, useJoinChallenge } from "@/lib/hooks/challenges";
+import {
+  useAssignChallengeFacilitator,
+  useChallenge,
+  useJoinChallenge,
+  useRemoveChallengeFacilitator,
+} from "@/lib/hooks/challenges";
 import { useJoinCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
-import { canManageCircle, isWhitelisted } from "@/lib/permissions";
+import {
+  canManageCircle,
+  canManageFacilitators,
+  facilitatorIdsOf,
+  isFacilitator,
+  isMinorUser,
+  isWhitelisted,
+} from "@/lib/permissions";
+import RoleHoldersSection from "@/components/ui/RoleHoldersSection";
 import { computeChallengeRoles } from "@/lib/roles";
 import SdgPills from "../components/SdgPills";
 import type { ApiCircle, ApiCircleChallenge } from "@/lib/types/circles";
@@ -31,13 +44,17 @@ import ChallengeHero from "../components/ChallengeHero";
 function HomeTab({
   challenge,
   challengeId,
+  circle,
   circleName,
   userId,
+  userEmail,
 }: {
   challenge: ApiCircleChallenge;
   challengeId: string;
+  circle?: ApiCircle;
   circleName?: string;
   userId?: string | null;
+  userEmail?: string | null;
 }) {
   const t = useTranslations("challenges");
   const tCircles = useTranslations("circles");
@@ -46,6 +63,8 @@ function HomeTab({
   const { data: users = [] } = useUsers();
   const { percent: progress, displayPercent } = calcChallengeProgress(challenge);
   const members = challenge.members ?? [];
+  const assignFacilitator = useAssignChallengeFacilitator();
+  const removeFacilitator = useRemoveChallengeFacilitator();
 
   return (
     <>
@@ -108,43 +127,46 @@ function HomeTab({
 
       <div className="border-t border-progress-track" />
 
-      {/* Facilitator */}
-      {!!challenge.facilitator &&
-        (() => {
-          const f = challenge.facilitator as {
-            id?: string;
-            userId?: string;
-            avatarUrl?: string;
-            name?: string;
-          } | null;
-          const fUser = users.find((u) => u.id === (f?.id ?? f?.userId));
-          const fAvatar = f?.avatarUrl || fUser?.user_metadata?.avatarUrl;
-          const fName = fUser
-            ? [fUser.user_metadata.firstName, fUser.user_metadata.lastName]
-                .filter(Boolean)
-                .join(" ")
-            : (f?.name ?? "Facilitator");
-          return (
-            <>
-              <div className="flex items-center gap-5 px-7.5 py-5">
-                <Avatar
-                  src={fAvatar}
-                  alt={fName}
-                  className="size-10 rounded-full border border-border shrink-0"
-                />
-                <div>
-                  <p className="text-xl font-semibold text-text-primary">
-                    {fName}
-                  </p>
-                  <p className="text-base font-medium text-text-secondary">
-                    {t("facilitator")}
-                  </p>
-                </div>
-              </div>
-              <div className="border-t border-progress-track" />
-            </>
-          );
-        })()}
+      {/* Facilitators */}
+      {(() => {
+        const canManage = canManageFacilitators(userEmail, userId, circle);
+        const memberAvatar = (id: string) =>
+          members.find((m) => m.userId === id)?.avatarUrl;
+        const holders = (challenge.facilitators?.length
+          ? challenge.facilitators.map((f) => ({ userId: f.userId, avatarUrl: f.avatarUrl }))
+          : facilitatorIdsOf(challenge).map((id) => ({
+              userId: id,
+              avatarUrl:
+                (challenge.facilitator as { avatarUrl?: string } | null)?.avatarUrl ??
+                memberAvatar(id),
+            })));
+        if (!holders.length && !canManage) return null;
+        // Facilitators come from the circle's members, as in the create wizard
+        const circleMemberIds = new Set((circle?.members ?? []).map((m) => m.userId));
+        const facilitatorError = assignFacilitator.error ?? removeFacilitator.error;
+        return (
+          <>
+            <RoleHoldersSection
+              kind="facilitator"
+              holders={holders}
+              users={users}
+              candidates={users.filter((u) => circleMemberIds.has(u.id) && !isMinorUser(u))}
+              currentUserId={userId}
+              canManage={canManage}
+              onAdd={(id) => {
+                removeFacilitator.reset();
+                assignFacilitator.mutate({ challengeId, userId: id });
+              }}
+              onRemove={(id, onDone) => {
+                assignFacilitator.reset();
+                removeFacilitator.mutate({ challengeId, userId: id }, { onSettled: onDone });
+              }}
+              isPending={assignFacilitator.isPending || removeFacilitator.isPending}
+              error={facilitatorError instanceof Error ? facilitatorError.message : null}
+            />
+          </>
+        );
+      })()}
 
       {/* Members */}
       {members.length > 0 && (
@@ -396,19 +418,9 @@ export default function ChallengeScreen({ challengeId }: Props) {
   const isCircleMember =
     !!user && (circle?.members ?? []).some((m) => m.userId === user.id);
 
-  const facilitator = challenge.facilitator as {
-    id?: string;
-    userId?: string;
-  } | null;
-  const isFacilitator =
-    !!user &&
-    !!(
-      (facilitator?.id && facilitator.id === user.id) ||
-      (facilitator?.userId && facilitator.userId === user.id)
-    );
   const canEdit =
     isWhitelisted(user?.email) ||
-    isFacilitator ||
+    isFacilitator(user?.id, challenge) ||
     canManageCircle(
       user?.email,
       user?.id,
@@ -548,8 +560,10 @@ export default function ChallengeScreen({ challengeId }: Props) {
             <HomeTab
               challenge={challenge}
               challengeId={challengeId}
+              circle={circle}
               circleName={circle?.name}
               userId={user?.id}
+              userEmail={user?.email}
             />
           ) : (
             <ActivitiesTab challengeId={challenge.challengeId} />

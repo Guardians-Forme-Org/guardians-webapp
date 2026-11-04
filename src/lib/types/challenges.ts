@@ -214,6 +214,7 @@ export type CreateChallengeRequest = {
   challengeCode: string;
   createdBy: string;
   facilitatorId: string;
+  facilitatorIds?: string[];
   equipments: unknown[];
   communicationChannels: { name: string; url: string; icon: string }[];
   location: ChallengeLocation | null;

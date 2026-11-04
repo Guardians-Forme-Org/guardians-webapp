@@ -471,6 +471,26 @@ export function useAssignChallengeFacilitator() {
       }),
     onSuccess: (_data, { challengeId }) => {
       queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+      queryClient.invalidateQueries({ queryKey: ["circle"] });
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
+    },
+  });
+}
+
+// The facilitator stays in the challenge as a member. The BE refuses to remove
+// the last facilitator (409, code challenge_last_facilitator).
+export function useRemoveChallengeFacilitator() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ challengeId, userId }: { challengeId: string; userId: string }) =>
+      apiFetch<void>(`/challenges/${challengeId}/facilitators`, {
+        method: "DELETE",
+        headers: { "X-User-ID": userId },
+      }),
+    onSuccess: (_data, { challengeId }) => {
+      queryClient.invalidateQueries({ queryKey: ["challenge", challengeId] });
+      queryClient.invalidateQueries({ queryKey: ["circle"] });
+      queryClient.invalidateQueries({ queryKey: ["loginData"] });
     },
   });
 }

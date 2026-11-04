@@ -9,7 +9,7 @@ import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateCircle, useUpdateCircle } from "@/lib/hooks/circles";
 import { useUsers } from "@/lib/hooks/users";
-import { isMinorUser } from "@/lib/permissions";
+import { circleLeadIdsOf, isMinorUser } from "@/lib/permissions";
 import { compressImage } from "@/lib/compressImage";
 import type { AuthUser } from "@/lib/types/auth";
 import type { ApiCircle, CreateCircleResponse } from "@/lib/types/circles";
@@ -181,15 +181,18 @@ function WizardTitle({
 function WizardNextButton({
   label,
   onClick,
+  disabled,
 }: {
   label: string;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="px-5 mb-20 pt-4 shrink-0">
       <button
         onClick={onClick}
-        className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium"
+        disabled={disabled}
+        className="w-full h-14 bg-black text-white rounded-full text-[18px] font-medium disabled:opacity-40"
       >
         {label}
       </button>
@@ -202,19 +205,24 @@ function WizardNextButton({
 function Step1({
   form,
   onChange,
-  selectedLead,
+  selectedLeads,
   onSelectLead,
   onRemoveLead,
+  leadsReadOnly,
 }: {
   form: CircleFormData;
   onChange: (f: keyof CircleFormData, v: string) => void;
-  selectedLead: AuthUser | null;
+  selectedLeads: AuthUser[];
   onSelectLead: (user: AuthUser) => void;
-  onRemoveLead: () => void;
+  onRemoveLead: (userId: string) => void;
+  // Edit mode: leads are added and removed on the circle's page
+  leadsReadOnly?: boolean;
 }) {
   const t = useTranslations("circles");
+  const tRoles = useTranslations("roles");
   const { data: allUsers = [] } = useUsers();
-  const users = allUsers.filter((u) => !isMinorUser(u));
+  const selectedIds = new Set(selectedLeads.map((u) => u.id));
+  const users = allUsers.filter((u) => !isMinorUser(u) && !selectedIds.has(u.id));
   const [showDropdown, setShowDropdown] = useState(false);
 
   const query = form.leads.trim().toLowerCase();
@@ -258,27 +266,30 @@ function Step1({
         {/* Circle Lead */}
         <div className="flex flex-col gap-2">
           <label className="text-base font-medium text-text-primary tracking-[0.16px]">
-            {t("circleLeadLabel")}{" "}
-            <span className="text-[rgba(60,60,67,0.29)] font-normal">
-              {t("optional")}
-            </span>
+            {t("circleLeadLabel")}
           </label>
 
-          {selectedLead ? (
-            <div className="flex items-center gap-3 h-[60px] border border-[#d9d9d9] rounded-[8px] px-4">
+          {selectedLeads.map((lead) => (
+            <div key={lead.id} className="flex items-center gap-3 h-[60px] border border-[#d9d9d9] rounded-[8px] px-4">
               <Avatar
-                src={selectedLead.user_metadata.avatarUrl}
-                alt={`${selectedLead.user_metadata.firstName} ${selectedLead.user_metadata.lastName}`}
+                src={lead.user_metadata.avatarUrl}
+                alt={`${lead.user_metadata.firstName} ${lead.user_metadata.lastName}`}
                 className="size-8 rounded-full shrink-0"
               />
               <span className="flex-1 text-base text-text-primary">
-                {selectedLead.user_metadata.firstName}{" "}
-                {selectedLead.user_metadata.lastName}
+                {lead.user_metadata.firstName}{" "}
+                {lead.user_metadata.lastName}
               </span>
-              <button onClick={onRemoveLead} className="text-text-muted">
-                <X size={16} />
-              </button>
+              {!leadsReadOnly && (
+                <button onClick={() => onRemoveLead(lead.id)} className="text-text-muted">
+                  <X size={16} />
+                </button>
+              )}
             </div>
+          ))}
+
+          {leadsReadOnly ? (
+            <p className="text-sm text-text-secondary">{tRoles("manageLeadsOnCircle")}</p>
           ) : (
             <div className="relative">
               <input
@@ -327,6 +338,10 @@ function Step1({
                 </div>
               )}
             </div>
+          )}
+
+          {!leadsReadOnly && selectedLeads.length === 0 && (
+            <p className="text-sm text-text-secondary">{tRoles("leadRequired")}</p>
           )}
         </div>
 
@@ -599,7 +614,7 @@ function ReadOnlyRow({ label, value }: { label: string; value: string }) {
 function Step4Review({
   form,
   location,
-  selectedLead,
+  selectedLeads,
   onGoToStep,
   onConfirm,
   isPending,
@@ -608,7 +623,7 @@ function Step4Review({
 }: {
   form: CircleFormData;
   location: LocationResult | null;
-  selectedLead: AuthUser | null;
+  selectedLeads: AuthUser[];
   onGoToStep: (step: number) => void;
   onConfirm: () => void;
   isPending: boolean;
@@ -629,10 +644,12 @@ function Step4Review({
         <ReviewSection label={t("circleDetailsSection")} stepIndex={1} onEdit={onGoToStep}>
           {form.name && <ReadOnlyRow label={t("nameLabel")} value={form.name} />}
           {form.description && <ReadOnlyRow label={t("descriptionLabel")} value={form.description} />}
-          {selectedLead && (
+          {selectedLeads.length > 0 && (
             <ReadOnlyRow
               label={t("circleLeadReview")}
-              value={`${selectedLead.user_metadata.firstName ?? ""} ${selectedLead.user_metadata.lastName ?? ""}`.trim()}
+              value={selectedLeads
+                .map((l) => `${l.user_metadata.firstName ?? ""} ${l.user_metadata.lastName ?? ""}`.trim())
+                .join(", ")}
             />
           )}
           {channelLabel && (
@@ -722,55 +739,15 @@ export default function CreateCircleWizard({
       : initialForm,
   );
   const [location, setLocation] = useState<LocationResult | null>(null);
-  const [selectedLead, setSelectedLead] = useState<AuthUser | null>(() => {
-    if (!editCircle?.circleLead) return null;
-    const lead = editCircle.circleLead as {
-      id?: string;
-      userId?: string;
-      firstName?: string;
-      lastName?: string;
-      name?: string;
-      avatarUrl?: string;
-    };
-    const nameParts = lead.name?.split(" ") ?? [];
-    return {
-      id: lead.userId ?? lead.id ?? "",
-      email: "",
-      aud: "",
-      role: "",
-      invited_at: "",
-      confirmed_at: "",
-      confirmation_sent_at: "",
-      app_metadata: {},
-      user_metadata: {
-        firstName: lead.firstName ?? nameParts[0] ?? "",
-        lastName: lead.lastName ?? nameParts.slice(1).join(" ") ?? "",
-        avatarUrl: lead.avatarUrl ?? "",
-        email: "",
-        email_verified: false,
-        id: lead.userId ?? lead.id ?? "",
-        location: {} as never,
-        mobile: "",
-        phone_verified: false,
-        preferredLanguage: { code: "", id: "", name: "" },
-        sub: "",
-        username: "",
-      },
-      created_at: "",
-      updated_at: "",
-    };
-  });
+  const [selectedLeads, setSelectedLeads] = useState<AuthUser[]>([]);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [createdCircle, setCreatedCircle] = useState<CreateCircleResponse | null>(null);
 
-  // Resolve lead name from users list once loaded (edit mode)
+  // Edit mode: show the circle's current leads, named from the users list
   useEffect(() => {
-    if (!isEdit || !editCircle?.circleLead || !allUsers.length) return;
-    const lead = editCircle.circleLead as { id?: string; userId?: string } | null;
-    const leadId = lead?.userId ?? lead?.id;
-    if (!leadId) return;
-    const found = allUsers.find((u) => u.id === leadId);
-    if (found) setSelectedLead(found);
+    if (!isEdit || !editCircle || !allUsers.length) return;
+    const ids = circleLeadIdsOf(editCircle);
+    setSelectedLeads(allUsers.filter((u) => ids.includes(u.id)));
   }, [allUsers, isEdit, editCircle]);
 
   // Load draft from localStorage (create mode only)
@@ -783,7 +760,9 @@ export default function CreateCircleWizard({
         if (parsed.form) setForm((f) => ({ ...f, ...parsed.form, imagePreview: "", leads: "" }));
         if (parsed.location) setLocation(parsed.location);
         if (parsed.step) setStep(parsed.step);
-        if (parsed.selectedLead) setSelectedLead(parsed.selectedLead);
+        // Drafts saved before several leads carry one selectedLead
+        if (Array.isArray(parsed.selectedLeads)) setSelectedLeads(parsed.selectedLeads);
+        else if (parsed.selectedLead) setSelectedLeads([parsed.selectedLead]);
       } catch { /* ignore corrupt draft */ }
     }
   }, [isEdit]);
@@ -792,8 +771,8 @@ export default function CreateCircleWizard({
   useEffect(() => {
     if (isEdit) return;
     const { imagePreview: _img, ...serializableForm } = form;
-    localStorage.setItem(CIRCLE_DRAFT_KEY, JSON.stringify({ form: { ...serializableForm, leads: "" }, location, step, selectedLead }));
-  }, [form, location, step, selectedLead, isEdit]);
+    localStorage.setItem(CIRCLE_DRAFT_KEY, JSON.stringify({ form: { ...serializableForm, leads: "" }, location, step, selectedLeads }));
+  }, [form, location, step, selectedLeads, isEdit]);
 
   const next = () => {
     // In edit mode skip step 2 (location)
@@ -846,7 +825,6 @@ export default function CreateCircleWizard({
             name: form.name,
             description: form.description,
             communicationChannels: buildChannels(),
-            ...(selectedLead ? { circleLeadId: selectedLead.id } : {}),
             ...(bannerFile ? {} : { bannerUrl: form.imagePreview }),
           },
           bannerFile: bannerFile ?? undefined,
@@ -863,7 +841,9 @@ export default function CreateCircleWizard({
             createdBy: user.id,
             creatorAvatarUrl: user.user_metadata.avatarUrl,
             communicationChannels: buildChannels(),
-            ...(selectedLead ? { circleLeadId: selectedLead.id } : {}),
+            ...(selectedLeads.length
+              ? { circleLeadId: selectedLeads[0].id, circleLeadIds: selectedLeads.map((l) => l.id) }
+              : {}),
             region: {
               placeId: location?.placeId ?? "",
               city: location?.city ?? "",
@@ -910,9 +890,10 @@ export default function CreateCircleWizard({
           <Step1
             form={form}
             onChange={updateForm}
-            selectedLead={selectedLead}
-            onSelectLead={setSelectedLead}
-            onRemoveLead={() => setSelectedLead(null)}
+            selectedLeads={selectedLeads}
+            onSelectLead={(u) => setSelectedLeads((ls) => (ls.some((l) => l.id === u.id) ? ls : [...ls, u]))}
+            onRemoveLead={(id) => setSelectedLeads((ls) => ls.filter((l) => l.id !== id))}
+            leadsReadOnly={isEdit}
           />
         )}
         {step === 2 && <Step2 location={location} onSelect={setLocation} />}
@@ -928,7 +909,7 @@ export default function CreateCircleWizard({
           <Step4Review
             form={form}
             location={location}
-            selectedLead={selectedLead}
+            selectedLeads={selectedLeads}
             onGoToStep={setStep}
             onConfirm={handleSubmit}
             isPending={isPending}
@@ -938,7 +919,13 @@ export default function CreateCircleWizard({
         )}
       </div>
 
-      {step < 3 && <WizardNextButton label={t("next")} onClick={next} />}
+      {step < 3 && (
+        <WizardNextButton
+          label={t("next")}
+          onClick={next}
+          disabled={step === 1 && !isEdit && selectedLeads.length === 0}
+        />
+      )}
     </div>
   );
 }
