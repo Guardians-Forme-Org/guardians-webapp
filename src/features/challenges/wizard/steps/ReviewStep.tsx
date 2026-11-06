@@ -3,7 +3,7 @@
 import { Leaf, Pencil } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { WizardStepType } from "../../stepFormConfig";
-import { isPersonSelectField, normalizeFieldName } from "../../lib/deriveWizardConfig";
+import { isDisplayContainer, isPersonSelectField, normalizeFieldName } from "../../lib/deriveWizardConfig";
 import { FileThumb, ReadOnlyField } from "../shared";
 import type { LogFormData } from "../types";
 import type { ApiTemplateFormField } from "@/lib/types/challenges";
@@ -187,7 +187,9 @@ function formatDynamicValue(
 }
 
 // One GROUP entry (e.g. a registered anchor point) — every filled sub-field
-// rendered with its label; the first TEXT sub doubles as the card title
+// rendered with its label; the first TEXT sub doubles as the card title. A
+// display container (siteMetadata, area) only groups a step's own fields, so
+// it has no title: its first TEXT field (CH-021's iNaturalist IDs) is a row.
 function GroupEntryCard({
   field,
   entry,
@@ -200,12 +202,13 @@ function GroupEntryCard({
   users?: UserLike[];
 }) {
   const subs = [...(field.fields ?? [])].sort((a, b) => a.displayOrder - b.displayOrder);
-  const nameSub = subs.find((s) => s.type === "TEXT");
+  const untitled = isDisplayContainer(field);
+  const nameSub = untitled ? undefined : subs.find((s) => s.type === "TEXT");
   const title = (nameSub && (entry[nameSub.name] as string)) || `#${index + 1}`;
 
   return (
     <div className="border border-[rgba(26,26,24,0.14)] rounded-[12px] p-4 flex flex-col gap-3">
-      <p className="text-sm font-semibold text-text-primary">{title}</p>
+      {!untitled && <p className="text-sm font-semibold text-text-primary">{title}</p>}
       {subs.map((sub) => {
         if (sub === nameSub) return null;
         const sv = entry[sub.name];
