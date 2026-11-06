@@ -30,6 +30,9 @@ export default function StepScreen({ challengeId, stepId }: Props) {
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  // Reopening a completed step (Pal's order, Nov 2026): for when it was
+  // closed by mistake or more evidence came in later
+  const [confirmingReopen, setConfirmingReopen] = useState(false);
   const markComplete = useMarkStepComplete();
 
   const { data: challenge, isLoading } = useChallenge(challengeId);
@@ -247,8 +250,47 @@ export default function StepScreen({ challengeId, stepId }: Props) {
                 )}
 
                 {step.isCompleted ? (
-                  <div className="w-full h-12 border border-gotf-green text-gotf-green text-base font-semibold rounded-full flex items-center justify-center gap-2">
-                    <span>✓</span> {t("completed")}
+                  <div className="flex flex-col gap-2.5">
+                    <div className="w-full h-12 border border-gotf-green text-gotf-green text-base font-semibold rounded-full flex items-center justify-center gap-2">
+                      <span>✓</span> {t("completed")}
+                    </div>
+                    {confirmingReopen ? (
+                      <div className="flex flex-col gap-2.5">
+                        <p className="text-sm text-[#666] text-center">{t("reopenStepConfirm")}</p>
+                        {markComplete.isError && (
+                          <p className="text-red-500 text-sm text-center">
+                            {markComplete.error instanceof Error
+                              ? markComplete.error.message
+                              : t("failedRetry")}
+                          </p>
+                        )}
+                        <button
+                          onClick={() =>
+                            markComplete.mutate(
+                              { challengeId, step: { ...step, isCompleted: false } },
+                              { onSuccess: () => setConfirmingReopen(false) },
+                            )
+                          }
+                          disabled={markComplete.isPending}
+                          className="w-full h-12 bg-[#1a1a1a] text-white text-base font-semibold rounded-full flex items-center justify-center disabled:opacity-50"
+                        >
+                          {markComplete.isPending ? t("saving") : t("confirmReopenStep")}
+                        </button>
+                        <button
+                          onClick={() => { setConfirmingReopen(false); markComplete.reset(); }}
+                          className="w-full h-12 border border-[#1a1a1a] text-[#1a1a1a] text-base font-semibold rounded-full flex items-center justify-center"
+                        >
+                          {t("cancel")}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmingReopen(true)}
+                        className="text-sm font-medium text-text-secondary underline underline-offset-4 self-center py-1"
+                      >
+                        {t("reopenStep")}
+                      </button>
+                    )}
                   </div>
                 ) : confirming ? (
                   <div className="flex flex-col gap-2.5">
