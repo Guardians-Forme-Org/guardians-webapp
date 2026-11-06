@@ -29,6 +29,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AnchorPoint } from "@/lib/types/contract";
 import { warnUnmappedAnchorPointKey } from "@/lib/types/contractKeys";
 import type { DerivedStep, DerivedWizardConfig } from "../lib/deriveWizardConfig";
+import { noteFields, stepNoteSubmission, stepNoteValues, withNoteStep } from "../lib/stepNote";
 import {
   anchorWrappedNames,
   COMPLETION_NAMES,
@@ -1015,10 +1016,27 @@ export default function LogEvidenceWizard({
   const anchorPointTracking =
     stepMeta?.anchorPointTracking ?? templateStep?.anchorPointTracking;
 
+  // The optional note + photo every step offers — see stepNote
+  const stepNoteFields = useMemo(
+    () =>
+      stepForm
+        ? noteFields(stepForm, {
+            note: t("stepNoteLabel"),
+            notePlaceholder: t("stepNotePlaceholder"),
+            photo: t("stepNotePhotoLabel"),
+            photoPlaceholder: t("stepNotePhotoPlaceholder"),
+          })
+        : [],
+    [stepForm, t],
+  );
+
   const derivedConfig: DerivedWizardConfig | null = useMemo(() => {
     if (!isDerived || !stepForm) return null;
-    return deriveWizardConfig(stepForm, setupData, stepMeta?.stepType, anchorPointTracking);
-  }, [isDerived, stepForm, setupData, stepMeta?.stepType, anchorPointTracking]);
+    return withNoteStep(
+      deriveWizardConfig(stepForm, setupData, stepMeta?.stepType, anchorPointTracking),
+      stepNoteFields,
+    );
+  }, [isDerived, stepForm, setupData, stepMeta?.stepType, anchorPointTracking, stepNoteFields]);
 
   const setupUpdateStep = useMemo(
     () => derivedConfig?.steps.find((s) => s.kind === "setup-update"),
@@ -1305,15 +1323,16 @@ export default function LogEvidenceWizard({
     if (!viewActivity) return;
     setForm(activityToForm(viewActivity));
     if (isDerived) {
-      setDynamicValues(
-        activityToDynamic(
+      setDynamicValues({
+        ...activityToDynamic(
           viewActivity,
           vhFieldName,
           contribFieldName,
           stepForm,
           anchorPointTracking,
         ),
-      );
+        ...stepNoteValues(stepForm ?? [], mergeActivityData(viewActivity)),
+      });
     }
   }, [viewActivity, isDerived, vhFieldName, contribFieldName, stepForm, anchorPointTracking]);
 
@@ -2605,12 +2624,28 @@ export default function LogEvidenceWizard({
   // Picks the right payload builder for the current step and how it should
   // be sent — the single source of truth for both the actual submit() and
   // the review-screen payload preview below, so they can never drift apart.
-  const resolveSubmission = (): {
+  type ResolvedSubmission = {
     payload: unknown;
     mediaFile?: File;
     mediaFiles?: { file: File; mediaFileReferenceId: string }[];
+    notePhoto?: File;
     transport: "registration" | "evidence" | "evidence-multipart" | "update";
-  } => {
+  };
+
+  // Every dynamic-path submission also carries the step's note + photo
+  const resolveSubmission = (): ResolvedSubmission => {
+    const resolved = resolveStepSubmission();
+    if (!isDerived) return resolved;
+    const { envelope, notePhoto } = stepNoteSubmission(stepForm ?? [], dynamicValues);
+    const payload = resolved.payload as { dataEnvelope?: Record<string, unknown> };
+    return {
+      ...resolved,
+      payload: { ...payload, dataEnvelope: { ...payload.dataEnvelope, ...envelope } },
+      ...(notePhoto ? { notePhoto } : {}),
+    };
+  };
+
+  const resolveStepSubmission = (): ResolvedSubmission => {
     if (!user) throw new Error("Not authenticated");
     if (!challenge) throw new Error("Challenge not loaded");
     if (!stepMeta) throw new Error("Step not found in challenge");
@@ -2726,7 +2761,7 @@ export default function LogEvidenceWizard({
       return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { payload, mediaFile, mediaFiles, transport } = resolveSubmission() as any;
+    const { payload, mediaFile, mediaFiles, notePhoto, transport } = resolveSubmission() as any;
 
     if (transport === "registration") {
       submitRegistration.mutate(
@@ -2738,6 +2773,7 @@ export default function LogEvidenceWizard({
           payload,
           mediaFile,
           mediaFiles,
+          notePhoto,
         },
         { onSuccess: () => onSuccess() },
       );
@@ -2772,7 +2808,7 @@ export default function LogEvidenceWizard({
         userId: user.id,
         payload,
         ...(transport === "evidence-multipart"
-          ? { multipart: true, mediaFile, mediaFiles }
+          ? { multipart: true, mediaFile, mediaFiles, notePhoto }
           : {}),
       },
       { onSuccess },
@@ -2990,6 +3026,7 @@ export default function LogEvidenceWizard({
                           ),
                       ),
                       ...(derivedConfig.anchorDetailFields ?? []),
+                      ...stepNoteFields,
                     ],
                     values: dynamicValues,
                     fieldToStepIndex: derivedConfig.fieldToStepIndex,
