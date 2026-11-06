@@ -353,6 +353,10 @@ export interface DataEnvelope {
   caption?: string;
   category?: unknown[];
   notes?: string;
+  notePhoto?: MediaFile;
+  otherSpecies?: string;
+  participantCount?: Measurement;
+  iNaturalistObsIds?: unknown;
   name?: string;
   shadeType?: string;
   activationMode?: string;

@@ -66,7 +66,8 @@ export const DATA_ENVELOPE_KEYS = [
   "consentMethod",
   "outreachMethod", "outreachMethods", "institutionType", "verificationMethod",
   "dateVerified", "confirmAccessible", "openingHour", "closingHour",
-  "caption", "category", "notes", "name",
+  "caption", "category", "notes", "notePhoto", "otherSpecies",
+  "participantCount", "iNaturalistObsIds", "name",
   "shadeType", "activationMode", "activationModel", "surfaceType", "plants",
   "usedSpecies", "species", "seedsUsed",
 ] as const satisfies readonly (keyof DataEnvelope)[];
