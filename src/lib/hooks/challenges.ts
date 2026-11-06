@@ -164,6 +164,7 @@ export function useSubmitEvidence() {
       payload,
       mediaFile,
       mediaFiles,
+      notePhoto,
       multipart,
     }: {
       challengeCode: string;
@@ -175,6 +176,8 @@ export function useSubmitEvidence() {
       // Every uploaded file, each tagged with its owning entry's
       // mediaFileReferenceId — sent alongside mediaFile, not instead of it
       mediaFiles?: { file: File; mediaFileReferenceId: string }[];
+      // The step's optional note photo (see stepNote), its own form part
+      notePhoto?: File;
       // Send as metadata + mediaFile form parts instead of a JSON body
       multipart?: boolean;
     }) => {
@@ -203,6 +206,7 @@ export function useSubmitEvidence() {
         for (const m of mediaFiles ?? []) {
           formData.append(`mediaFiles[${m.mediaFileReferenceId}]`, m.file);
         }
+        if (notePhoto) formData.append("notePhoto", notePhoto);
         return apiFetch<SubmitEvidenceResponse>(endpoint, {
           method: "POST",
           body: formData,
@@ -389,6 +393,7 @@ export function useSubmitRegistration() {
       payload,
       mediaFile,
       mediaFiles,
+      notePhoto,
     }: {
       challengeCode: string;
       challengeId: string;
@@ -399,6 +404,8 @@ export function useSubmitRegistration() {
       // Every uploaded file, each tagged with its owning entry's
       // mediaFileReferenceId — sent alongside mediaFile, not instead of it
       mediaFiles?: { file: File; mediaFileReferenceId: string }[];
+      // The step's optional note photo (see stepNote), its own form part
+      notePhoto?: File;
     }) => {
       const formData = new FormData();
       formData.append("metadata", JSON.stringify(payload));
@@ -407,6 +414,7 @@ export function useSubmitRegistration() {
       for (const m of mediaFiles ?? []) {
         formData.append(`mediaFiles[${m.mediaFileReferenceId}]`, m.file);
       }
+      if (notePhoto) formData.append("notePhoto", notePhoto);
       return apiFetch<void>("/challengeSetup", {
         method: "POST",
         body: formData,
