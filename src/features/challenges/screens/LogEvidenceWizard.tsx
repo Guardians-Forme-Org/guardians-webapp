@@ -2,7 +2,7 @@
 
 import WizardSuccessScreen from "@/components/ui/WizardSuccessScreen";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEvidence } from "@/lib/hooks/activities";
+import { useEvidence, useRecentActivities } from "@/lib/hooks/activities";
 import {
   useChallenge,
   useChallengeRegisters,
@@ -374,23 +374,6 @@ function withPointSelectSubfield(
         }
       : f,
   );
-}
-
-// Reverses buildAnchorSetupPayload's `vhUnit === "H" ? "hours" : vhUnit.toLowerCase()`
-// — matches the stored unit string back to one of the field's own option
-// codes (falls back to the field's first/default option, "H" in practice).
-function reverseUnitCode(
-  field: ApiTemplateFormField | undefined,
-  storedUnit: string | undefined,
-): string | undefined {
-  if (!storedUnit) return undefined;
-  const opt = field?.unitOfMeasureOptions?.find(
-    (u) =>
-      u.value.toLowerCase() === storedUnit.toLowerCase() ||
-      u.label.toLowerCase() === storedUnit.toLowerCase() ||
-      (u.value === "H" && storedUnit.toLowerCase() === "hours"),
-  );
-  return opt?.value ?? field?.unitOfMeasureOptions?.[0]?.value;
 }
 
 function activityToDynamic(
@@ -1003,6 +986,15 @@ export default function LogEvidenceWizard({
   // Setup is whichever step sits first in challengeSteps (array position,
   // not a stepNumber/stepType field).
   const isSetupStep = challenge?.challengeSteps?.[0]?.stepId === stepId;
+  // A step that already has an upload (always so after Reopen): a further
+  // upload adds its hours to the totals, so a correction or extra evidence
+  // must be able to go in with 0 hours and nobody listed
+  const { data: earlierUploads = [] } = useRecentActivities(
+    isSetupStep || viewId ? "" : challengeId,
+    1,
+    stepMeta?.stepId ?? stepId,
+  );
+  const hasEarlierUpload = isSetupStep ? !!challenge?.submittedSetupDetail : earlierUploads.length > 0;
   // Already-registered anchor points, visible only while sitting on the
   // setup step itself — used to prefill/resume the addable GROUP below
   // instead of starting blank and losing them on resubmit. Memoized so the
@@ -1259,10 +1251,12 @@ export default function LogEvidenceWizard({
 
   // ── Prefill: resume the previously submitted setup step ────────────────────
   // The BE replaces submittedSetupDetail wholesale on every /challengeSetup
-  // call (no merge) — reopening step one has to seed every field it carries
-  // (region, anchor points, volunteer hours, contributors) from what was
-  // already submitted, or resubmitting to add a far-away anchor point
-  // silently wipes the rest of the step, not just the missing point. Only
+  // call (no merge) — reopening step one has to seed the details it carries
+  // (region, anchor points) from what was already submitted, or resubmitting
+  // to add a far-away anchor point silently wipes the rest of the step, not
+  // just the missing point. Hours and contributors are not seeded: every
+  // upload adds its hours to the totals, so copying them would count the
+  // same work twice. Only
   // ever fills in a field that's still empty, so an in-progress local draft
   // (restored by the effect above) always wins, and this never re-fires
   // once seeded.
@@ -1273,9 +1267,6 @@ export default function LogEvidenceWizard({
     const locationField = stepForm?.find(
       (f) => f.type === "LOCATION" && !f.addableInput,
     );
-    const vhField = derivedConfig?.steps.find((s) => s.kind === "volunteer-hours")
-      ?.fields[0];
-
     setDynamicValues((prev) => {
       const isEmpty = (v: unknown) =>
         v === undefined || v === null || v === "" ||
@@ -1294,16 +1285,6 @@ export default function LogEvidenceWizard({
         next[locationField.name] = loc;
         changed = true;
       }
-      if (vhField && setupDetail.volunteerHours && isEmpty(prev[vhFieldName])) {
-        next[vhFieldName] = String(setupDetail.volunteerHours.value);
-        const unit = reverseUnitCode(vhField, setupDetail.volunteerHours.unitOfMeasure);
-        if (unit) next[`${vhFieldName}__unit`] = unit;
-        changed = true;
-      }
-      if (setupDetail.contributors?.length && isEmpty(prev[contribFieldName])) {
-        next[contribFieldName] = setupDetail.contributors;
-        changed = true;
-      }
 
       return changed ? next : prev;
     });
@@ -1313,9 +1294,6 @@ export default function LogEvidenceWizard({
     isSetupStep,
     setupDetail,
     stepForm,
-    derivedConfig,
-    vhFieldName,
-    contribFieldName,
   ]);
 
   // ── View mode: populate form/dynamicValues once config resolves ────────────
@@ -2949,7 +2927,7 @@ export default function LogEvidenceWizard({
                   nextLabel={nextLabel}
                   members={members}
                   users={users}
-                  field={ds.fields[0]}
+                  field={hasEarlierUpload ? { ...ds.fields[0], required: false } : ds.fields[0]}
                 />
               );
             }
