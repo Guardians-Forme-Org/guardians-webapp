@@ -64,5 +64,14 @@
   "topImpactors": "Top Impactors",
   "joinedDate": "Joined {date}",
   "totalGuardians": "{count} Total Guardians",
-  "aboutCircleDesc": "Please fill out the below to be able to create a circle."
+  "aboutCircleDesc": "Please fill out the below to be able to create a circle.",
+  "listTitle": "Circles",
+  "listCreate": "Create",
+  "searchCircles": "Search circles...",
+  "loadingCircles": "Loading circles…",
+  "loadCirclesFailed": "Failed to load circles.",
+  "myCircles": "My Circles",
+  "noCirclesJoined": "You haven't joined any circles yet.",
+  "exploreNearYou": "Explore Near You",
+  "join": "Join"
 }
