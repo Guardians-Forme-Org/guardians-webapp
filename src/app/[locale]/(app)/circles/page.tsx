@@ -58,7 +58,7 @@ function CircleCard({ circle, role }: { circle: ApiCircle; role?: string }) {
         <ChevronRight size={16} className="text-text-muted shrink-0" />
       ) : (
         <button className="shrink-0 text-[11px] font-semibold text-gotf-green border border-gotf-green px-2.5 py-1 rounded-lg">
-          Join
+          {t("join")}
         </button>
       )}
     </Link>
@@ -68,6 +68,7 @@ function CircleCard({ circle, role }: { circle: ApiCircle; role?: string }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function CirclesPage() {
+  const t = useTranslations("circles");
   const { user } = useAuth();
   const { data: circles, isLoading, error } = useQuery({
     queryKey: ["circles"],
@@ -86,7 +87,7 @@ export default function CirclesPage() {
     <div className="flex flex-col min-h-full bg-surface">
       <header className="bg-white border-b border-border">
         <PageHeader
-          title="Circles"
+          title={t("listTitle")}
           action={
             isWhitelisted(user?.email) ? (
               <Link
@@ -94,31 +95,31 @@ export default function CirclesPage() {
                 className="flex items-center gap-1.5 bg-gotf-green text-white text-xs font-medium px-3 py-2 rounded-xl"
               >
                 <Plus size={13} />
-                Create
+                {t("listCreate")}
               </Link>
             ) : null
           }
         />
-        <SearchBar placeholder="Search circles..." />
+        <SearchBar placeholder={t("searchCircles")} />
       </header>
 
       <div className="flex-1 px-5 py-5 space-y-6">
         {isLoading && (
-          <p className="text-sm text-text-muted text-center pt-10">Loading circles…</p>
+          <p className="text-sm text-text-muted text-center pt-10">{t("loadingCircles")}</p>
         )}
 
         {error && (
           <p className="text-sm text-red-500 text-center pt-10">
-            {error instanceof Error ? error.message : "Failed to load circles."}
+            {error instanceof Error ? error.message : t("loadCirclesFailed")}
           </p>
         )}
 
         {!isLoading && !error && (
           <>
             <section>
-              <SectionHeader title="My Circles" />
+              <SectionHeader title={t("myCircles")} />
               {myCircles.length === 0 ? (
-                <p className="text-sm text-text-muted">You haven&apos;t joined any circles yet.</p>
+                <p className="text-sm text-text-muted">{t("noCirclesJoined")}</p>
               ) : (
                 <div className="space-y-2.5">
                   {myCircles.map((c) => {
@@ -133,7 +134,7 @@ export default function CirclesPage() {
 
             {exploreCircles.length > 0 && (
               <section>
-                <SectionHeader title="Explore Near You" />
+                <SectionHeader title={t("exploreNearYou")} />
                 <div className="space-y-2.5">
                   {exploreCircles.map((c) => (
                     <CircleCard key={c.id} circle={c} />
