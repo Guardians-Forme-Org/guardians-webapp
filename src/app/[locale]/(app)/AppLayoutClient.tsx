@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import BottomNavBar from "@/components/nav/BottomNavBar";
 import LogoSpinner from "@/components/ui/LogoSpinner";
+import PullToRefresh from "@/components/ui/PullToRefresh";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -85,6 +86,7 @@ export default function AppLayoutClient({
         wizard ? "overflow-hidden" : ""
       }`}
     >
+      <PullToRefresh scrollerRef={mainRef} enabled={!wizard} />
       <main ref={mainRef} className={`flex-1 overflow-y-auto ${wizard ? "" : "pb-safe-nav"}`}>
         {children}
       </main>
