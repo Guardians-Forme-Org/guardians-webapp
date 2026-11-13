@@ -7,10 +7,11 @@ import LogoSpinner from "@/components/ui/LogoSpinner";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Wizard flows — no bottom nav, no pb-safe-nav padding
+// Wizard flows and full-page documents — no bottom nav, no pb-safe-nav padding
 const WIZARD_PATHS = [
   "/challenges/create",
   "/circles/create",
+  "/documentation",
 ];
 
 function isWizardPath(pathname: string) {

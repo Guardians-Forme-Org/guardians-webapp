@@ -1,0 +1,221 @@
+{
+  "back": "Back",
+  "lastUpdated": "Last updated: {date}",
+  "title": "Admin Guide",
+  "updatedOn": "13.11.2026",
+  "sections": [
+    {
+      "number": 1,
+      "heading": "About this guide",
+      "content": [
+        "This guide is for admins of the Guardians of the Future platform. It explains who can do what, and how circles, challenges, evidence and impact work, so you can run the platform and help circle leads and facilitators when they get stuck.",
+        "Admins are a fixed list of accounts set up by support. To add or remove an admin, contact support."
+      ]
+    },
+    {
+      "number": 2,
+      "heading": "Roles",
+      "content": [
+        "Everyone with an account is a Guardian. On top of that, a person can hold one or more of these roles:"
+      ],
+      "lists": [
+        {
+          "items": [
+            "Admin: can do everything below in every circle and challenge, and is the only role that can create circles.",
+            "Circle Lead: manages a circle. Can edit it, create challenges in it, add and remove the facilitators of its challenges, and log evidence on them. A circle can have several leads.",
+            "Facilitator: runs a challenge. Can edit it and log evidence on its steps. A challenge can have several facilitators.",
+            "Member: has joined a circle or a challenge. Members follow its progress and are credited for work when they are listed as contributors, but don't log evidence themselves.",
+            "Minor: an under-18 account created for a school. Minors can follow and be credited, but can't be made a lead or facilitator, can't edit their profile and can only join challenges in their own circle."
+          ]
+        }
+      ],
+      "trailingContent": [
+        "The person who created a circle can manage it like a lead, and is the only one besides admins who can add or remove its leads."
+      ]
+    },
+    {
+      "number": 3,
+      "heading": "Circles",
+      "content": [
+        "A circle is a local group of Guardians, usually one organisation or community, that runs challenges together."
+      ],
+      "lists": [
+        {
+          "label": "Creating a circle",
+          "items": [
+            "Go to Discover, open the Circles tab and tap Create Circle.",
+            "Fill in the name, description, an optional communication channel link (for example a WhatsApp group), the location and a profile image.",
+            "Add at least one circle lead, check the review screen and tap Create Circle.",
+            "Copy the invitation link on the last screen and share it with the people who should join."
+          ]
+        },
+        {
+          "label": "Inviting people",
+          "items": [
+            "Every circle page has a Share button in its top corner that copies a link to the circle. People who open it can sign up and tap Join Circle.",
+            "Minors can't join circles themselves. They are added to their school's circle when their accounts are created."
+          ]
+        },
+        {
+          "label": "Circle leads",
+          "items": [
+            "On the circle's page, admins and the circle's creator can add leads and remove them. Any Guardian except a minor can be made a lead; adding someone also makes them a member.",
+            "A circle always keeps at least one lead, so add a new lead before removing the last one.",
+            "Removing a lead, or a lead stepping down, keeps them in the circle with all their entries. Only an admin can make them a lead again."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "heading": "Challenges",
+      "content": [
+        "A challenge is one environmental action a circle takes on, such as a compost sprint or a tree planting. Each challenge is built from a template (CH-001 to CH-022) that sets its steps, the questions on each step and how its impact is counted."
+      ],
+      "lists": [
+        {
+          "label": "Creating a challenge",
+          "items": [
+            "Go to Discover and tap Create Challenge. Admins and circle leads can do this. If you can create in several circles, choose the circle first.",
+            "Pick a template, read through its steps and tap Continue Challenge.",
+            "Enter the challenge's name, description, region and an image.",
+            "Choose at least one facilitator from the circle's members.",
+            "Optionally add a communication channel link, review everything and tap Publish.",
+            "Share the invitation link on the last screen so circle members can join."
+          ]
+        },
+        {
+          "label": "Editing",
+          "items": [
+            "Admins, the circle's leads and the challenge's facilitators can edit its name, description, region, image and channel from the challenge page.",
+            "The template, and so the steps, can't be changed once a challenge is published. Start a new challenge if a different template is needed."
+          ]
+        },
+        {
+          "label": "Facilitators",
+          "items": [
+            "On the challenge's page, admins, the circle's creator and its leads can add facilitators from the circle's members and remove them.",
+            "A challenge always keeps at least one facilitator, so add a new one before removing the last.",
+            "Removing a facilitator, or a facilitator stepping down, keeps them in the challenge with all their entries. A circle lead can make them a facilitator again."
+          ]
+        },
+        {
+          "label": "Members",
+          "items": [
+            "Guardians join a challenge with Join Challenge on its page. Joining a challenge also makes them a member of its circle.",
+            "Only members of the challenge can be chosen as contributors when evidence is logged, so ask everyone taking part to join the challenge first."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "heading": "Steps and evidence",
+      "content": [
+        "A challenge is a series of steps. The first step usually sets the challenge up (for example its site, points or garden), and the later steps record the work done there."
+      ],
+      "lists": [
+        {
+          "label": "Logging evidence",
+          "items": [
+            "Admins, circle leads and facilitators can log evidence. Open the challenge, tap a step and tap Upload Evidence.",
+            "Later steps stay locked until the first step has been submitted.",
+            "Answer the step's questions, enter the volunteer hours and choose the contributors who did the work.",
+            "Every step also offers an optional Notes and Photo screen for anything the questions don't cover.",
+            "Check the review screen and submit. Each submission is saved as a new entry on the step. Entries can be opened and viewed, but not edited."
+          ]
+        },
+        {
+          "label": "Volunteer hours",
+          "items": [
+            "Hours are entered per person: every contributor is credited with the hours entered. Three contributors at 2 hours add 6 hours to the totals."
+          ]
+        },
+        {
+          "label": "Completing a step",
+          "items": [
+            "Where a step ends with a completion switch, leave it off to save the entry and keep the step open for more entries (the button reads Submit). Switch it on when no more entries are needed (the button reads Mark Complete).",
+            "A step can also be closed from its page with Mark Complete.",
+            "The challenge's progress counts its required steps. Optional steps don't hold it back."
+          ]
+        },
+        {
+          "label": "Reopening a step",
+          "items": [
+            "If a step was closed too early, admins, circle leads and facilitators can tap Reopen step under Completed on the step's page.",
+            "Nothing already submitted is lost. The step counts as not completed until it is marked complete again.",
+            "Reopening is for adding evidence. Every new entry adds to the totals, so if you are only correcting a detail, enter 0 hours and leave the contributors empty. On a step that already has an entry, contributors are optional."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "heading": "Impact",
+      "content": [
+        "Each entry turns the step's numbers, such as kilograms of compost, trees planted, area regenerated and volunteer hours, into impact, following the rules of the challenge's template."
+      ],
+      "lists": [
+        {
+          "items": [
+            "Impact is added to the challenge, its circle and the platform totals. Volunteer hours are also credited to each contributor.",
+            "Challenge and circle pages show all of their impact.",
+            "The Impact section on Home shows the platform totals for seven headline metrics: volunteer hours, collected organic waste, avoided CO₂, planted and saved trees, saved water, regenerated area and saved energy. A metric appears once something has been recorded for it. Signed-in Guardians can switch between their own impact (My) and the platform total (Total).",
+            "Totals only grow: entries add to them and nothing in the app subtracts. If an entry was wrong, contact support to correct it."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "heading": "Accounts",
+      "content": [],
+      "lists": [
+        {
+          "label": "Signing up",
+          "items": [
+            "Guardians with an email address sign up in the app, ideally through a circle or challenge link so they land in the right place.",
+            "A forgotten password is reset with Forgot password? on the login screen, which emails a reset link."
+          ]
+        },
+        {
+          "label": "Guardians without email",
+          "items": [
+            "For people without an email address or smartphone, send support their names, circle and challenges, and the accounts are created in bulk.",
+            "Their logins have the form support+firstnamelastname@theguardians.world. Support sends the logins and passwords to whoever asked for the accounts.",
+            "Password reset emails for these accounts go to the support inbox, not to the person."
+          ]
+        },
+        {
+          "label": "Minor accounts",
+          "items": [
+            "Accounts for under-18s are created by support from the school's enrolment list, and added to the school's circle.",
+            "Minors log in with name@school; the app completes the rest of the address.",
+            "The app doesn't send minors reset emails. It asks them to see their teacher, and the school arranges a new password with support."
+          ]
+        },
+        {
+          "label": "Profiles",
+          "items": [
+            "Guardians change their name, mobile number and photo under Profile, Edit Profile. The email address can't be changed.",
+            "The Profile page also shows each person's roles, circles, challenges and contribution markers."
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "heading": "Language",
+      "content": [
+        "The app is available in English and Hungarian. Each person picks a language on their Profile page, and challenge texts follow the same choice. Anything not translated yet shows in English."
+      ]
+    },
+    {
+      "number": 9,
+      "heading": "Getting help",
+      "content": [
+        "For anything this guide doesn't cover, such as correcting existing data, adding an admin, creating accounts in bulk or changing a template, contact support."
+      ]
+    }
+  ]
+}
