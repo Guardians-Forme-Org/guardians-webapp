@@ -47,9 +47,15 @@
           "label": "Creating a circle",
           "items": [
             "Go to Discover, open the Circles tab and tap Create Circle.",
-            "Fill in the name, description, an optional communication channel link (for example a WhatsApp group), the location and a profile image.",
-            "Add at least one circle lead, check the review screen and tap Create Circle.",
+            "Enter the circle's name, choose at least one circle lead, and add a description and an optional communication channel link (for example a WhatsApp group).",
+            "Set the circle's location, add a profile image, check the review screen and tap Create Circle.",
             "Copy the invitation link on the last screen and share it with the people who should join."
+          ]
+        },
+        {
+          "label": "Editing a circle",
+          "items": [
+            "Admins, the circle's creator and its leads can edit the circle's name, description, channel link and profile image with the pencil next to its name."
           ]
         },
         {
@@ -64,7 +70,7 @@
           "items": [
             "On the circle's page, admins and the circle's creator can add leads and remove them. Any Guardian except a minor can be made a lead; adding someone also makes them a member.",
             "A circle always keeps at least one lead, so add a new lead before removing the last one.",
-            "Removing a lead, or a lead stepping down, keeps them in the circle with all their entries. Only an admin can make them a lead again."
+            "Removing a lead, or a lead stepping down, keeps them in the circle with all their entries. An admin or the circle's creator can make them a lead again."
           ]
         }
       ]
@@ -79,7 +85,7 @@
         {
           "label": "Creating a challenge",
           "items": [
-            "Go to Discover and tap Create Challenge. Admins and circle leads can do this. If you can create in several circles, choose the circle first.",
+            "Admins and circle leads create challenges with Create Challenge, on the Challenges tab of Discover or on the circle's page. From Discover, if you can create in several circles, choose the circle first.",
             "Pick a template, read through its steps and tap Continue Challenge.",
             "Enter the challenge's name, description, region and an image.",
             "Choose at least one facilitator from the circle's members.",
@@ -90,7 +96,7 @@
         {
           "label": "Editing",
           "items": [
-            "Admins, the circle's leads and the challenge's facilitators can edit its name, description, region, image and channel from the challenge page.",
+            "Admins, the circle's leads and the challenge's facilitators can edit its name, description, region, image and channel link with the pencil next to its name.",
             "The template, and so the steps, can't be changed once a challenge is published. Start a new challenge if a different template is needed."
           ]
         },
@@ -139,7 +145,7 @@
           "items": [
             "Where a step ends with a completion switch, leave it off to save the entry and keep the step open for more entries (the button reads Submit). Switch it on when no more entries are needed (the button reads Mark Complete).",
             "A step can also be closed from its page with Mark Complete.",
-            "The challenge's progress counts its required steps. Optional steps don't hold it back."
+            "The challenge's progress counts its required steps, so optional steps don't hold it back. Once every required step is done, completed optional steps can take it past 100%."
           ]
         },
         {
@@ -162,8 +168,9 @@
         {
           "items": [
             "Impact is added to the challenge, its circle and the platform totals. Volunteer hours are also credited to each contributor.",
-            "Challenge and circle pages show all of their impact.",
-            "The Impact section on Home shows the platform totals for seven headline metrics: volunteer hours, collected organic waste, avoided CO₂, planted and saved trees, saved water, regenerated area and saved energy. A metric appears once something has been recorded for it. Signed-in Guardians can switch between their own impact (My) and the platform total (Total).",
+            "Each challenge page shows the challenge's impact, and each circle page shows the circle's impact.",
+            "The Impact section on Home shows the platform totals for seven headline metrics: volunteer hours, collected organic waste, avoided CO₂, planted and saved trees, saved water, regenerated area and saved energy. A metric appears once something has been recorded for it. Below the totals, Home shows how many circles, challenges and Guardians made them.",
+            "Each Guardian's own impact is on their Profile page, under My impact.",
             "Totals only grow: entries add to them and nothing in the app subtracts. If an entry was wrong, contact support to correct it."
           ]
         }
@@ -200,8 +207,8 @@
         {
           "label": "Profiles",
           "items": [
-            "Guardians change their name, mobile number and photo under Profile, Edit Profile. The email address can't be changed.",
-            "The Profile page also shows each person's roles, circles, challenges and contribution markers."
+            "Guardians change their photo, name, mobile number and location under Profile, Account Details. The email address can't be changed, and minors can't edit their profile.",
+            "The Profile page also shows each person's roles, their challenges and circles, their own impact and their contribution markers."
           ]
         }
       ]
@@ -210,7 +217,7 @@
       "number": 8,
       "heading": "Language",
       "content": [
-        "The app is available in English and Hungarian. Each person picks a language on their Profile page, and challenge texts follow the same choice. Anything not translated yet shows in English."
+        "The app is available in English and Hungarian. Each person picks a language under Profile, Language, and challenge texts follow the same choice. Anything not translated yet shows in English."
       ]
     },
     {
