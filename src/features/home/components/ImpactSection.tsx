@@ -4,7 +4,7 @@ import Skeleton from "@/components/ui/Skeleton";
 import Text from "@/components/ui/Text";
 import type { ThingsMatrixItem } from "@/lib/hooks/metrics";
 import type { ApiImpactRecord } from "@/lib/types/circles";
-import { formatImpactMetricValue, getImpactTileLabel } from "@/lib/utils";
+import { formatImpactDisplayValue, formatImpactMetricValue, getImpactTileLabel } from "@/lib/utils";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -22,12 +22,21 @@ type Props = {
   isLoading?: boolean;
 };
 
+// Hours read as "h" here: the full word wraps a large total onto two lines
+function tileValue(item: ApiImpactRecord, hoursShort: string): string {
+  if (item.siUnit === "VOLUNTEER_HOURS" && item.impact?.value != null) {
+    return `${formatImpactDisplayValue(String(item.impact.value))} ${hoursShort}`;
+  }
+  return formatImpactMetricValue(item.impact);
+}
+
 function ImpactGrid({ items }: { items: ApiImpactRecord[] }) {
+  const t = useTranslations("home");
   return (
     <div className="grid grid-cols-3 gap-x-2 gap-y-5 px-5 py-5">
       {items.map((item) => {
         const label = getImpactTileLabel(item);
-        const value = formatImpactMetricValue(item.impact);
+        const value = tileValue(item, t("hoursShort"));
         return (
           <div key={item.impactRecordId} className="flex flex-col items-center">
             <Text
@@ -36,7 +45,7 @@ function ImpactGrid({ items }: { items: ApiImpactRecord[] }) {
             >
               {label}
             </Text>
-            <p className="text-[22px] font-semibold text-text-primary leading-tight mt-0.5">
+            <p className="text-[22px] font-semibold text-text-primary leading-tight mt-0.5 text-center">
               {value}
             </p>
           </div>
