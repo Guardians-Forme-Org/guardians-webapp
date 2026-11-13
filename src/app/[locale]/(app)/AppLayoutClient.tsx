@@ -8,12 +8,15 @@ import PullToRefresh from "@/components/ui/PullToRefresh";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Wizard flows and full-page documents — no bottom nav, no pb-safe-nav padding
+// Wizard flows — no bottom nav, no pb-safe-nav padding, no pull-to-refresh
+// (a reload would lose what's been filled in)
 const WIZARD_PATHS = [
   "/challenges/create",
   "/circles/create",
-  "/documentation",
 ];
+
+// Full-page documents — no bottom nav, but pull-to-refresh is fine
+const DOCUMENT_PATHS = ["/documentation"];
 
 function isWizardPath(pathname: string) {
   if (WIZARD_PATHS.some((p) => pathname.startsWith(p))) return true;
@@ -43,6 +46,7 @@ export default function AppLayoutClient({
   const pathname = usePathname();
   const router = useRouter();
   const wizard = isWizardPath(pathname);
+  const fullPage = wizard || DOCUMENT_PATHS.some((p) => pathname.startsWith(p));
   const isPublic = isPublicPath(pathname);
   const mainRef = useRef<HTMLElement>(null);
   const { user: authUser, loginData, loading: authLoading } = useAuth();
@@ -83,14 +87,14 @@ export default function AppLayoutClient({
   return (
     <div
       className={`fade-in relative flex flex-col min-h-full max-w-md mx-auto bg-white shadow-xl ${
-        wizard ? "overflow-hidden" : ""
+        fullPage ? "overflow-hidden" : ""
       }`}
     >
       <PullToRefresh scrollerRef={mainRef} enabled={!wizard} />
-      <main ref={mainRef} className={`flex-1 overflow-y-auto ${wizard ? "" : "pb-safe-nav"}`}>
+      <main ref={mainRef} className={`flex-1 overflow-y-auto ${fullPage ? "" : "pb-safe-nav"}`}>
         {children}
       </main>
-      {!wizard && <BottomNavBar avatarUrl={avatarUrl} isAuthenticated={!!authUser} />}
+      {!fullPage && <BottomNavBar avatarUrl={avatarUrl} isAuthenticated={!!authUser} />}
     </div>
   );
 }
