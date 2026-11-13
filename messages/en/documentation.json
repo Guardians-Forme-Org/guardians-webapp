@@ -3,6 +3,9 @@
   "lastUpdated": "Last updated: {date}",
   "title": "Admin Guide",
   "updatedOn": "13.11.2026",
+  "searchPlaceholder": "Search the guide",
+  "noResults": "Nothing in the guide matches \"{query}\".",
+  "nextSection": "Next",
   "sections": [
     {
       "number": 1,
