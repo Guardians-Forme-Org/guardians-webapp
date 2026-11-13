@@ -34,7 +34,7 @@ type LegalSection = {
 };
 
 /**
- * Renders a locale-aware legal document (terms, privacy policy) from the
+ * Renders a locale-aware document (terms, privacy policy, admin guide) from the
  * message namespace of the same name. Each locale owns its own `sections`
  * array, so translations are free to differ in structure from the English.
  */

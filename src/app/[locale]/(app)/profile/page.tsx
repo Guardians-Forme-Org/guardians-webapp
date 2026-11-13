@@ -15,7 +15,9 @@ import { useThingImpactRecords } from "@/lib/hooks/metrics";
 import type { ApiCircle, ApiImpactRecord } from "@/lib/types/circles";
 import type { ContributionMarker } from "@/lib/types/auth";
 import { formatImpactMetricValue, getImpactTileLabel } from "@/lib/utils";
+import { isWhitelisted } from "@/lib/permissions";
 import {
+  BookOpen,
   Calendar,
   CheckCircle,
   ChevronDown,
@@ -571,6 +573,20 @@ export default function ProfilePage() {
           </div>
           <ChevronRight size={20} className="text-text-muted" />
         </button>
+
+        {/* Admin guide */}
+        {isWhitelisted(user?.email) && (
+          <Link
+            href="/documentation"
+            className="flex items-center justify-between w-full px-7.5 py-6 border-b border-progress-track"
+          >
+            <div className="flex items-center gap-3">
+              <BookOpen size={18} className="text-text-muted" />
+              <span className="text-base font-medium text-black">{t("adminGuide")}</span>
+            </div>
+            <ChevronRight size={20} className="text-text-muted" />
+          </Link>
+        )}
 
         {/* Terms & Conditions */}
         <Link
