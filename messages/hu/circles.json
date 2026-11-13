@@ -64,5 +64,16 @@
   "topImpactors": "Legjobb hozzájárulók",
   "joinedDate": "Csatlakozott: {date}",
   "totalGuardians": "Jövő Őrzők száma {count}",
-  "aboutCircleDesc": "Kérjük, töltsd ki az alábbi mezőket a kör létrehozásához."
+  "aboutCircleDesc": "Kérjük, töltsd ki az alábbi mezőket a kör létrehozásához.",
+  "listTitle": "Jövő Őrzők",
+  "listCreate": "Create",
+  "searchCircles": "Search circles...",
+  "loadingCircles": "Körök betöltése…",
+  "loadCirclesFailed": "Failed to load circles.",
+  "myCircles": "My Circles",
+  "noCirclesJoined": "You haven't joined any circles yet.",
+  "exploreNearYou": "Explore Near You",
+  "join": "Join",
+  "roleMember": "Member",
+  "roleCreator": "Creator"
 }
