@@ -73,5 +73,7 @@
   "myCircles": "My Circles",
   "noCirclesJoined": "You haven't joined any circles yet.",
   "exploreNearYou": "Explore Near You",
-  "join": "Join"
+  "join": "Join",
+  "roleMember": "Member",
+  "roleCreator": "Creator"
 }
