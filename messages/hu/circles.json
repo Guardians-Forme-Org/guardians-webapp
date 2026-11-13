@@ -73,5 +73,7 @@
   "myCircles": "Köreim",
   "noCirclesJoined": "Még nem tagja egyetlen körnek sem.",
   "exploreNearYou": "Felfedezés a közelben",
-  "join": "Csatlakozás"
+  "join": "Csatlakozás",
+  "roleMember": "Tag",
+  "roleCreator": "Létrehozó"
 }

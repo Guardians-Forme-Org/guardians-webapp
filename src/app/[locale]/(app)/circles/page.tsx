@@ -15,8 +15,24 @@ import { useTranslations } from "next-intl";
 
 // ── Circle card ───────────────────────────────────────────────────────────────
 
+// A circle membership's role (circleMembers.role) as a translated label
+function useRoleLabel() {
+  const t = useTranslations("circles");
+  const tCommon = useTranslations("common");
+  return (role: string) => {
+    switch (role.toUpperCase()) {
+      case "MEMBER": return t("roleMember");
+      case "CREATOR": return t("roleCreator");
+      case "CIRCLE_LEAD": return tCommon("roleCircleLead");
+      case "ADMIN": return tCommon("roleAdmin");
+      default: return role.toLowerCase().replace(/_/g, " ");
+    }
+  };
+}
+
 function CircleCard({ circle, role }: { circle: ApiCircle; role?: string }) {
   const t = useTranslations("circles");
+  const roleLabel = useRoleLabel();
   const location = circle.region.formattedAddress || [circle.region.city, circle.region.province].filter(Boolean).join(", ") || "—";
 
   return (
@@ -39,7 +55,7 @@ function CircleCard({ circle, role }: { circle: ApiCircle; role?: string }) {
           </Text>
           {role && (
             <span className="shrink-0 text-[10px] font-medium text-gotf-green bg-green-50 px-2 py-0.5 rounded-full capitalize">
-              {role.toLowerCase()}
+              {roleLabel(role)}
             </span>
           )}
         </div>

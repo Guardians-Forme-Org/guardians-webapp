@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 
 // Pull distance (after resistance) that triggers a refresh, and the most it moves
@@ -19,8 +18,9 @@ function canPull(target: EventTarget | null, scroller: HTMLElement | null): bool
   return true;
 }
 
-// Pull down at the top of a page to reload everything on it. Installed apps
-// get no browser pull-to-refresh, so the app provides its own.
+// Pull down at the top of a page to reload the app, like a browser's own
+// pull-to-refresh: fresh data and, after a release, the new version of the app.
+// Installed apps get no browser pull-to-refresh, so the app provides its own.
 export default function PullToRefresh({
   scrollerRef,
   enabled,
@@ -28,7 +28,6 @@ export default function PullToRefresh({
   scrollerRef: RefObject<HTMLElement | null>;
   enabled: boolean;
 }) {
-  const queryClient = useQueryClient();
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const startY = useRef<number | null>(null);
@@ -65,10 +64,7 @@ export default function PullToRefresh({
       if (!triggered) return;
       busy.current = true;
       setRefreshing(true);
-      queryClient.invalidateQueries().finally(() => {
-        busy.current = false;
-        setRefreshing(false);
-      });
+      window.location.reload();
     };
 
     document.addEventListener("touchstart", onStart, { passive: true });
@@ -81,7 +77,7 @@ export default function PullToRefresh({
       document.removeEventListener("touchend", onEnd);
       document.removeEventListener("touchcancel", onEnd);
     };
-  }, [enabled, queryClient, scrollerRef]);
+  }, [enabled, scrollerRef]);
 
   if (!pull && !refreshing) return null;
   const offset = refreshing ? TRIGGER - 30 : Math.max(pull - 30, 0);
