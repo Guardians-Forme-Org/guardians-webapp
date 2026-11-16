@@ -51,10 +51,19 @@ const WHITELISTED_EMAILS_BY_ENV: Record<AppEnv, string[]> = {
 
 export const WHITELISTED_EMAILS: string[] = WHITELISTED_EMAILS_BY_ENV[APP_ENV];
 
+// The API's answer for the signed-in user (isAdmin in the login data). It wins
+// over the list above, which only covers an API that doesn't send it yet.
+let apiAdmin: { email: string; isAdmin: boolean } | null = null;
+
+export function setApiAdmin(email: string | null | undefined, isAdmin: boolean | undefined): void {
+  apiAdmin = email && typeof isAdmin === "boolean" ? { email: email.toLowerCase(), isAdmin } : null;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 export function isWhitelisted(email: string | null | undefined): boolean {
   if (!email) return false;
+  if (apiAdmin?.email === email.toLowerCase()) return apiAdmin.isAdmin;
   return WHITELISTED_EMAILS.map((e) => e.toLowerCase()).includes(
     email.toLowerCase(),
   );

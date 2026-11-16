@@ -16,7 +16,7 @@ import type {
   UserMetadata,
 } from "@/lib/types/auth";
 import { useUserMetadata } from "@/lib/hooks/users";
-import { isMinorToken } from "@/lib/permissions";
+import { isMinorToken, setApiAdmin } from "@/lib/permissions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
@@ -70,6 +70,7 @@ export async function fetchLoginData(userId: string): Promise<LoginData> {
     challengesCount: profile.challengesCount,
     circlesCount: profile.circlesCount,
     contributionMarkers: profile.contributionMarkers,
+    isAdmin: profile.isAdmin,
   };
 }
 
@@ -92,6 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     enabled: !!user?.id && !!token,
     staleTime: 2 * 60 * 1000,
   });
+
+  // The API decides who's an admin. Set before the children render so every
+  // permission check below this provider sees it.
+  setApiAdmin(user?.email, loginData?.isAdmin);
 
   // Keep localStorage in sync whenever React Query updates loginData
   useEffect(() => {
@@ -211,6 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         challengesCount: response.challengesCount,
         circlesCount: response.circlesCount,
         contributionMarkers: response.contributionMarkers,
+        isAdmin: response.isAdmin,
       };
       saveLoginData(data);
       queryClient.setQueryData(["loginData"], data);

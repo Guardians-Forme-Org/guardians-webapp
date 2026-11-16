@@ -6,6 +6,8 @@ import {
   facilitatorIdsOf,
   isCircleLead,
   isFacilitator,
+  isWhitelisted,
+  setApiAdmin,
 } from "./permissions";
 
 // An admin email (WHITELISTED_EMAILS, local env)
@@ -61,5 +63,21 @@ describe("facilitators", () => {
     expect(canManageFacilitators(null, "lead2", circle)).toBe(true);
     expect(canManageFacilitators(null, "f1", circle)).toBe(false);
     expect(canManageFacilitators(null, "lead1", null)).toBe(false);
+  });
+});
+
+describe("admins", () => {
+  it("uses the API's answer for the signed-in user", () => {
+    setApiAdmin("Someone@Example.org", true);
+    expect(isWhitelisted("someone@example.org")).toBe(true);
+    setApiAdmin(ADMIN, false);
+    expect(isWhitelisted(ADMIN)).toBe(false);
+    setApiAdmin(null, undefined);
+  });
+
+  it("falls back to the app's list when the API doesn't say", () => {
+    setApiAdmin(ADMIN, undefined);
+    expect(isWhitelisted(ADMIN)).toBe(true);
+    expect(isWhitelisted("someone@example.org")).toBe(false);
   });
 });
