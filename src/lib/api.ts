@@ -1,4 +1,4 @@
-import { getToken } from "./auth";
+import { getRefreshToken, getToken, getTokenExpiresAt, saveTokens } from "./auth";
 import { getCurrentLocale } from "./locale-store";
 import type { Language } from "./types/auth";
 
@@ -61,6 +61,57 @@ if (typeof window !== "undefined") {
   window.apiLog = apiLog;
 }
 
+// Renew the session this long before the access token expires
+const RENEW_BEFORE_MS = 60_000;
+
+// One renewal at a time: calls made while it runs wait for the same result
+let renewing: Promise<boolean> | null = null;
+
+/**
+ * Swaps the stored refresh token for a new session (POST /refresh).
+ * Resolves false when there's no refresh token or the API refuses it.
+ */
+export function renewSession(): Promise<boolean> {
+  if (renewing) return renewing;
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return Promise.resolve(false);
+  const token = getToken();
+  renewing = fetch(`${BASE_URL}/refresh`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(API_KEY ? { "X-Api-Key": API_KEY } : {}),
+    },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  })
+    .then(async (response) => {
+      if (!response.ok) return false;
+      const json = (await response.json()) as {
+        metaData?: { access_token?: string; refresh_token?: string; expires_in?: number };
+      };
+      const meta = json.metaData;
+      if (!meta?.access_token) return false;
+      saveTokens({
+        access_token: meta.access_token,
+        refresh_token: meta.refresh_token ?? refreshToken,
+        expires_in: meta.expires_in ?? 0,
+      });
+      return true;
+    })
+    .catch(() => false)
+    .finally(() => {
+      renewing = null;
+    });
+  return renewing;
+}
+
+// Renew ahead of time when the access token is about to expire
+async function renewIfExpiring(): Promise<void> {
+  const expiresAt = getTokenExpiresAt();
+  if (expiresAt && expiresAt - Date.now() < RENEW_BEFORE_MS) await renewSession();
+}
+
 /**
  * Typed fetch wrapper for the Guardians API.
  * Automatically injects Authorization, X-Api-Key, and Accept-Language headers.
@@ -74,7 +125,9 @@ export async function apiFetch<T>(
     headers?: Record<string, string>;
     lang?: string;
   } = {},
+  retried = false,
 ): Promise<T> {
+  if (path !== "/login" && path !== "/refresh") await renewIfExpiring();
   const token = getToken();
 
   const isFormData = options.body instanceof FormData;
@@ -139,6 +192,11 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     if (response.status === 401) {
+      // The session may have expired between the check above and the
+      // request: renew once and try again before signing out
+      if (!retried && token && (await renewSession())) {
+        return apiFetch<T>(path, options, true);
+      }
       unauthorizedHandler?.();
     }
     const message =
