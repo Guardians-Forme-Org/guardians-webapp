@@ -392,6 +392,20 @@ export default function ReviewStep({
 }: Props) {
   const t = useTranslations("challenges");
   const idx = (type: WizardStepType) => stepTypes.indexOf(type) + 1;
+  // Hours are per person: each contributor is credited with them, so the
+  // totals grow by hours × contributors. Shown under the contributors.
+  const hoursField = dynamicConfig?.fields.find((f) =>
+    ["VOLUNTEERHOURS", "VOLUNTEERSHOURS"].includes(normalizeFieldName(f.name)),
+  );
+  const hoursEach = hoursField ? Number(dynamicConfig?.values[hoursField.name]) : NaN;
+  const hoursTotal = (count: number) =>
+    hoursEach > 0
+      ? t("hoursTotal", {
+          count,
+          hours: Math.round(hoursEach * 10) / 10,
+          total: Math.round(hoursEach * count * 10) / 10,
+        })
+      : null;
   const showEdit = !readOnly || !!canEdit;
 
   if (isLoading) {
@@ -552,6 +566,9 @@ export default function ReviewStep({
                     showEdit={showEdit}
                   >
                     <ContributorsList ids={ids} users={users} />
+                    {hoursTotal(ids.length) && (
+                      <p className="text-sm text-text-muted mt-2">{hoursTotal(ids.length)}</p>
+                    )}
                   </ReviewSection>
                 );
               }

@@ -117,6 +117,7 @@
   "volunteerHoursSection": "Önkéntes órák",
   "hoursLabel": "Órák",
   "hoursValue": "{hours} óra",
+  "hoursTotal": "{count} fő × {hours, number} ó = {total, number} ó önkéntes munka",
   "measurementSection": "Mérés",
   "amountLabel": "Mennyiség",
   "descriptionLabel": "Leírás",
