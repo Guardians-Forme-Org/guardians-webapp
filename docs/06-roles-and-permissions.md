@@ -4,10 +4,10 @@
 
 | Role | Where it's stored |
 | --- | --- |
-| **Admin** | The API's admin list (configuration per environment). The API tells the app whether the signed-in user is an admin in the login data. |
+| **Admin** | The API's admin list: `ADMIN_EMAILS` per environment, else the list in the API's `config/admins.go`. The API tells the app in the login data (`isAdmin`). |
 | **Creator** | `circleMembers.role = CREATOR` for the person who created the circle. |
 | **Circle Lead** | `circleMembers.role = CIRCLE_LEAD`. A circle can have several. |
-| **Facilitator** | `challengeMembers.role = CHALLENGE_FACILITATOR`. A challenge can have several. |
+| **Facilitator** | `challengeMembers.role = CHALLENGE_FACILITATOR`, plus the `CHALLENGE_OWNER` who created the challenge. A challenge can have several. |
 | **Member** | `circleMembers` / `challengeMembers` with `role = MEMBER`. |
 | **Minor** | `app_metadata.minor = true` on the Supabase Auth account. Set when the account is created; users can't change `app_metadata`. |
 
@@ -19,6 +19,7 @@
 | Action | Admin | Creator | Lead | Facilitator | Member | Minor |
 | --- | --- | --- | --- | --- | --- | --- |
 | Create a circle | ✓ | | | | | |
+| Delete a circle or challenge | ✓ | | | | | |
 | Edit a circle | ✓ | ✓ | ✓ | | | |
 | Add or remove circle leads | ✓ | ✓ | | | | |
 | Create a challenge in the circle | ✓ | ✓ | ✓ | | | |
@@ -51,7 +52,9 @@ Further rules:
    takes the acting user from it. Who is acting never comes from a header or the
    request body. A missing, forged or expired token gets `401`.
 2. **Permission check.** The API loads the circle or challenge and the acting
-   user's roles, and checks the table above. A refused action gets `403`.
+   user's roles, and checks the table above. A refused action gets `403` with
+   `code: not_allowed`. Joining, and stepping down from a role, are allowed for
+   the person themselves (`X-User-ID` is the acting user).
 3. **Minors.** `middlewares.DenyMinors` refuses minors on the routes they're
    excluded from, including when someone tries to make a minor a lead or
    facilitator.

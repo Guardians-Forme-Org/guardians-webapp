@@ -105,6 +105,8 @@ export type LoginResponse = {
   challengesCount: { total: number; label: string; displayValue: string };
   circlesCount: { total: number; label: string; displayValue: string };
   contributionMarkers: ContributionMarker[] | null;
+  // On the API's admin list (APIs before 2026-11-16 leave it out)
+  isAdmin?: boolean;
 };
 
 export type ApiError = {
