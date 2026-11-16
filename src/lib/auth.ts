@@ -4,13 +4,15 @@ export type LoginData = Pick<LoginResponse, "challenges" | "circles" | "impactRe
 
 const KEYS = {
   token: "gotf_token",
+  refreshToken: "gotf_refresh_token",
+  expiresAt: "gotf_token_expires_at",
   user: "gotf_user",
   preferredLanguage: "gotf_lang",
   loginData: "gotf_login_data",
 } as const;
 
 export function saveSession(meta: AuthMetadata, lang?: Language): void {
-  localStorage.setItem(KEYS.token, meta.access_token);
+  saveTokens(meta);
   localStorage.setItem(KEYS.user, JSON.stringify(meta.user));
   if (lang?.id) {
     localStorage.setItem(KEYS.preferredLanguage, JSON.stringify(lang));
@@ -19,6 +21,29 @@ export function saveSession(meta: AuthMetadata, lang?: Language): void {
 
 export function saveLoginData(data: LoginData): void {
   localStorage.setItem(KEYS.loginData, JSON.stringify(data));
+}
+
+// The access token lasts about an hour; the refresh token renews it
+// (POST /refresh) so people stay signed in. Older sessions saved before
+// renewal existed have no refresh token and sign in again when they expire.
+export function saveTokens(meta: Pick<AuthMetadata, "access_token" | "refresh_token" | "expires_in">): void {
+  localStorage.setItem(KEYS.token, meta.access_token);
+  if (meta.refresh_token) localStorage.setItem(KEYS.refreshToken, meta.refresh_token);
+  if (meta.expires_in) {
+    localStorage.setItem(KEYS.expiresAt, String(Date.now() + meta.expires_in * 1000));
+  }
+}
+
+export function getRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(KEYS.refreshToken);
+}
+
+// When the access token expires, in ms since the epoch; null if unknown
+export function getTokenExpiresAt(): number | null {
+  if (typeof window === "undefined") return null;
+  const raw = Number(localStorage.getItem(KEYS.expiresAt));
+  return raw > 0 ? raw : null;
 }
 
 export function getToken(): string | null {
