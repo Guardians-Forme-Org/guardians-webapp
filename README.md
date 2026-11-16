@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Guardians of the Future — web app
 
-## Getting Started
+Guardians of the Future is a platform for local groups (circles) running
+environmental challenges: composting, tree planting, biodiversity walks, water
+saving and more. Each challenge follows a template of steps; groups log evidence
+on each step, and the platform turns that evidence into impact totals for every
+person, challenge, circle and the platform as a whole.
 
-First, run the development server:
+This repository is the web app (Next.js), installed on phones as a web app. The
+API lives in [guardians-api](https://github.com/Guardians-Forme-Org/guardians-api).
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env.local   # then fill in the values, see docs/02-running-and-releasing.md
+pnpm dev                     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```bash
+pnpm test    # unit tests (vitest)
+pnpm lint
+pnpm build
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Technical guide
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Read these in order the first time.
 
-## Learn More
+1. [Overview](docs/01-overview.md): the parts of the platform and how they fit together
+2. [Running and releasing](docs/02-running-and-releasing.md): environments, branches, deploys
+3. [App structure](docs/03-app-structure.md): where things live in this repo
+4. [Templates and the evidence form](docs/04-templates-and-the-evidence-form.md): how a template becomes the step-by-step form
+5. [A submission end to end](docs/05-a-submission-end-to-end.md): from the form to the impact totals
+6. [Roles and permissions](docs/06-roles-and-permissions.md): who can do what, and where it's enforced
+7. [Translations](docs/07-translations.md): message files, template text and Crowdin
 
-To learn more about Next.js, take a look at the following resources:
+The API has its own guide in `guardians-api/docs/`: its structure, how impact
+is calculated, and the database and template-change workflow.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The admin guide for people running the platform is inside the app, at
+`/documentation` (admins only).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Older notes
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`EVIDENCE_WIZARD.md`, `SETUP_UPDATE_FLOW.md`, `ROLES.md` and `ADDING_LANGUAGES.md`
+are working notes from mid-2026. They go deeper into some corners of the evidence
+form, but parts are out of date. Where they disagree with `docs/`, `docs/` wins.

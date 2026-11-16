@@ -120,6 +120,7 @@
   "volunteerHoursSection": "Volunteer hours",
   "hoursLabel": "Hours",
   "hoursValue": "{hours} hours",
+  "hoursTotal": "{count, plural, one {# person} other {# people}} × {hours, number} h = {total, number} h volunteer hours",
   "measurementSection": "Measurement",
   "amountLabel": "Amount",
   "descriptionLabel": "Description",

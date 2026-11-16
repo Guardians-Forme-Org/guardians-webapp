@@ -55,7 +55,9 @@ export default function VolunteerHoursStep({ form, update, onNext, nextLabel, fi
             min="0"
             value={form.volunteerHours}
             onChange={(e) => update("volunteerHours", e.target.value)}
-            placeholder={field?.placeholder ?? "0"}
+            // Not the template's hint: many say "Total hours…", but the hours
+            // are per person (each contributor is credited with them)
+            placeholder={t("volunteerHoursPlaceholder")}
             className="flex-1 h-[52px] px-3 text-xl text-text-primary placeholder:text-[rgba(26,26,24,0.5)] outline-none bg-white"
           />
           <div className="h-[52px] px-4 flex items-center bg-[#f0efeb] border-l border-[rgba(26,26,24,0.14)]">
